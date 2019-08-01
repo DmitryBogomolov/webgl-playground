@@ -5,7 +5,7 @@ module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
     entry: {
-        index: './src/index.js',
+        root: './src/index.js',
     },
     output: {
         filename: '[name].bundle.js',
@@ -20,8 +20,8 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|gif)$/,
                 use: ['file-loader'],
-            }
-        ]
+            },
+        ],
     },
     plugins: [
         new CleanWebpackPlugin(),

@@ -1,3 +1,1 @@
-import make from './hello';
-
-document.body.appendChild(make());
+console.log('This is root page');
