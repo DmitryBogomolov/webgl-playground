@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TODO</title>
+    <title>{{title}}</title>
     <style>
         .container {
             border: 1px solid black;
@@ -12,7 +12,10 @@
     </style>
 </head>
 <body>
+    <h2>{{title}}</h2>
+    <a href="/">Back</a>
+    <hr />
     <div class="container"></div>
-    <script src="/static/root.bundle.js"></script>
+    <script src="{{& bundle}}"></script>
 </body>
 </html>

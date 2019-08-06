@@ -7,10 +7,6 @@ const stat = promisify(fs.stat);
 
 const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 
-function prettifyName(name) {
-    return name.split(/_/g).slice(1).join(' ');
-}
-
 async function collect() {
     let items = await readdir(PLAYGROUND_DIR);
     items = await Promise.all(items.map(async (item) => {
@@ -20,7 +16,6 @@ async function collect() {
             const st = await stat(indexPath);
             return st.isFile() ? {
                 name: item,
-                displayName: prettifyName(item),
                 indexPath,
             } : null;
         } catch (e) {

@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL playground</title>
+</head>
+<body>
+    <div>
+        <h1>Targets</h1>
+        <hr />
+        <div>
+            {{#targets}}
+            <a href="{{& path}}">{{title}}</a>
+            {{/targets}}
+        </div>
+    </div>
+    <script src={{& bundle}}></script>
+</body>
+</html>

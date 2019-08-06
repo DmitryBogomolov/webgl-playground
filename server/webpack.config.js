@@ -1,5 +1,6 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { getOutputName } = require('./utils');
 
 module.exports = {
     mode: 'development',
@@ -8,7 +9,7 @@ module.exports = {
         root: './src/index.js',
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: getOutputName('[name]'),
         path: path.join(__dirname, 'dist'),
     },
     module: {

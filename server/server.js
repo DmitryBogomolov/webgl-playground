@@ -1,14 +1,22 @@
 const path = require('path');
 const fs = require('fs');
+const { promisify } = require('util');
 const http = require('http');
 const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const config = require('../webpack.config');
+const Mustache = require('mustache');
+const { 
+    PLAYGROUND_ROUTE, STATIC_ROUTE,
+    getBundleRoute, prettifyName,
+} = require('./utils');
+const config = require('./webpack.config');
+
+const readFile = promisify(fs.readFile);
 
 const PORT = process.env.PORT || 3000;
-const STATIC_DIR = path.join(__dirname, '../static');
-const INDEX_FILE = path.join(STATIC_DIR, 'index.html');
+const ROOT_TEMPLATE = path.join(__dirname, '../static/root.html');
+const PLAYGROUND_TEMPLATE = path.join(__dirname, '../static/playground.html');
 
 function buildConfig(config, targets) {
     const result = Object.assign({}, config);
@@ -19,29 +27,45 @@ function buildConfig(config, targets) {
     return result;
 }
 
+async function renderTemplate(templatePath, view) {
+    const template = await readFile(templatePath, 'utf8');
+    return Mustache.render(template, view);
+}
+
 async function runServer(targets) {
     const app = express();
     const patchedConfig = buildConfig(config, targets);
     const compiler = webpack(patchedConfig);
-    const knownTargets = new Set(targets.map(target => target.name));
 
-    app.get('/', (req, res) => {
+    app.get('/', async (_, res) => {
         console.log('Root');
-        fs.createReadStream(INDEX_FILE).pipe(res);
+        const content = await renderTemplate(ROOT_TEMPLATE, {
+            targets: targets.map(target => ({
+                title: prettifyName(target.name),
+                path: `${PLAYGROUND_ROUTE}/${target.name}`,
+            })),
+            bundle: getBundleRoute('root'),
+        });
+        res.end(content);
     });
 
-    app.get('/playground/:target', (req, res) => {
-        const target = req.params.target;
-        console.log('Playground', target);
-        if (!knownTargets.has(target)) {
+    app.get(`${PLAYGROUND_ROUTE}/:target`, async (req, res) => {
+        const name = req.params.target;
+        const target = targets.find(target => target.name === name);
+        console.log('Playground', name);
+        if (!target) {
             res.status(404).end('Unknown target.\n');
             return;
         }
-        fs.createReadStream(INDEX_FILE).pipe(res);
+        const content = await renderTemplate(PLAYGROUND_TEMPLATE, {
+            title: prettifyName(target.name),
+            bundle: getBundleRoute(target.name),
+        });
+        res.end(content);
     });
     
     app.use(webpackDevMiddleware(compiler, {
-        publicPath: '/static',
+        publicPath: STATIC_ROUTE,
     }));
 
     return new Promise((resolve, reject) => {
