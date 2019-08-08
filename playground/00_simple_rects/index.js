@@ -6,7 +6,7 @@ const {
     COMPILE_STATUS, LINK_STATUS,
     ARRAY_BUFFER, STATIC_DRAW,
     COLOR_BUFFER_BIT,
-    FLOAT,
+    UNSIGNED_BYTE, FLOAT,
     TRIANGLES,
 } = WebGLRenderingContext.prototype;
 
@@ -93,7 +93,7 @@ function createBuffer(gl) {
         { position: [-1,  1], color: [0, 1, 1], },
         { position: [-1,  0], color: [0, 1, 1], },
     ];
-    const vertexSize = (2 + 3) * 4;
+    const vertexSize = (2 + 1) * 4;
     const data = new ArrayBuffer(vertices.length * vertexSize);
     const dv = new DataView(data);
     let offset = 0;
@@ -102,12 +102,14 @@ function createBuffer(gl) {
         offset += 4;
         dv.setFloat32(offset, vertex.position[1], true);
         offset += 4;
-        dv.setFloat32(offset, vertex.color[0], true);
-        offset += 4;
-        dv.setFloat32(offset, vertex.color[1], true);
-        offset += 4;
-        dv.setFloat32(offset, vertex.color[2], true);
-        offset += 4;
+        dv.setUint8(offset, Math.round(vertex.color[0] * 255));
+        offset++;
+        dv.setUint8(offset, Math.round(vertex.color[1] * 255));
+        offset++;
+        dv.setUint8(offset, Math.round(vertex.color[2] * 255));
+        offset++;
+        dv.setUint8(offset, 0);
+        offset++;
     });
 
     const buffer = gl.createBuffer();
@@ -146,7 +148,7 @@ function render({ gl, program, buffer }) {
     gl.bindBuffer(ARRAY_BUFFER, buffer.buffer);
     gl.vertexAttribPointer(program.attributes.a_position, 2, FLOAT, false, buffer.vertexSize, 0);
     gl.enableVertexAttribArray(program.attributes.a_position);
-    gl.vertexAttribPointer(program.attributes.a_color, 3, FLOAT, false, buffer.vertexSize, 8);
+    gl.vertexAttribPointer(program.attributes.a_color, 3, UNSIGNED_BYTE, true, buffer.vertexSize, 8);
     gl.enableVertexAttribArray(program.attributes.a_color);
     gl.drawArrays(TRIANGLES, 0, buffer.vertexCount);
 }
