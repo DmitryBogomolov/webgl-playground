@@ -75,14 +75,26 @@ function createBuffer(gl) {
     const buffer = gl.createBuffer();
     gl.bindBuffer(ARRAY_BUFFER, buffer);
     const vertices = [
-        0, 0,
-        0, 1,
-        1, 0,
+        -1,  0,
+        -1, -1,
+         0, -1,
+
+         0, -1,
+         1, -1,
+         1,  0,
+
+         1,  0,
+         1,  1,
+         0,  1,
+
+         0,  1,
+        -1,  1,
+        -1,  0,
     ];
     gl.bufferData(ARRAY_BUFFER, new Float32Array(vertices), STATIC_DRAW);
     return {
         buffer,
-        vertexCount: 3,
+        vertexCount: 12,
         vertexSize: 2,
     };
 }
