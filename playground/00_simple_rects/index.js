@@ -72,30 +72,40 @@ function createProgram(gl, vertShader, fragShader) {
 // TODO: Add index buffer.
 // TODO: Use VertexAttributeArray.
 function createBuffer(gl) {
+    const vertices = [
+        [-1,  0],
+        [-1, -1],
+        [ 0, -1],
+
+        [ 0, -1],
+        [ 1, -1],
+        [ 1,  0],
+
+        [ 1,  0],
+        [ 1,  1],
+        [ 0,  1],
+
+        [ 0,  1],
+        [-1,  1],
+        [-1,  0],
+    ];
+    const data = new ArrayBuffer(vertices.length * vertices[0].length * 4);
+    const dv = new DataView(data);
+    let offset = 0;
+    vertices.forEach((vertex) => {
+        dv.setFloat32(offset, vertex[0], true);
+        offset += 4;
+        dv.setFloat32(offset, vertex[1], true);
+        offset += 4;
+    });
+
     const buffer = gl.createBuffer();
     gl.bindBuffer(ARRAY_BUFFER, buffer);
-    const vertices = [
-        -1,  0,
-        -1, -1,
-         0, -1,
-
-         0, -1,
-         1, -1,
-         1,  0,
-
-         1,  0,
-         1,  1,
-         0,  1,
-
-         0,  1,
-        -1,  1,
-        -1,  0,
-    ];
-    gl.bufferData(ARRAY_BUFFER, new Float32Array(vertices), STATIC_DRAW);
+    gl.bufferData(ARRAY_BUFFER, data, STATIC_DRAW);
     return {
         buffer,
-        vertexCount: 12,
-        vertexSize: 2,
+        vertexCount: vertices.length,
+        vertexSize: vertices[0].length,
     };
 }
 
