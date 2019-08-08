@@ -49,6 +49,17 @@ function createProgram(gl, vertShader, fragShader) {
     const program = gl.createProgram();
     gl.attachShader(program, vertShader);
     gl.attachShader(program, fragShader);
+
+    // TODO: Inspect sources for names.
+    const attributes = {
+        a_position: 0,
+        a_color: 1,
+    };
+    const uniforms = {};
+    Object.keys(attributes).forEach((name) => {
+        gl.bindAttribLocation(program, attributes[name], name);
+    })
+    
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, LINK_STATUS)) {
         gl.deleteShader(vertShader);
@@ -59,13 +70,6 @@ function createProgram(gl, vertShader, fragShader) {
         throw new Error(err);
     }
 
-    // TODO: Inspect sources for names.
-    // TODO: Use `bindAttribLocation`.
-    const attributes = {
-        a_position: gl.getAttribLocation(program, 'a_position'),
-    };
-    const uniforms = {};
-
     return { program, attributes, uniforms };
 }
 
@@ -73,29 +77,36 @@ function createProgram(gl, vertShader, fragShader) {
 // TODO: Use VertexAttributeArray.
 function createBuffer(gl) {
     const vertices = [
-        [-1,  0],
-        [-1, -1],
-        [ 0, -1],
+        { position: [-1,  0], color: [1, 0, 0], },
+        { position: [-1, -1], color: [1, 0, 0], },
+        { position: [ 0, -1], color: [1, 0, 0], },
 
-        [ 0, -1],
-        [ 1, -1],
-        [ 1,  0],
+        { position: [ 0, -1], color: [1, 1, 0], },
+        { position: [ 1, -1], color: [1, 1, 0], },
+        { position: [ 1,  0], color: [1, 1, 0], },
 
-        [ 1,  0],
-        [ 1,  1],
-        [ 0,  1],
+        { position: [ 1,  0], color: [0, 1, 0], },
+        { position: [ 1,  1], color: [0, 1, 0], },
+        { position: [ 0,  1], color: [0, 1, 0], },
 
-        [ 0,  1],
-        [-1,  1],
-        [-1,  0],
+        { position: [ 0,  1], color: [0, 1, 1], },
+        { position: [-1,  1], color: [0, 1, 1], },
+        { position: [-1,  0], color: [0, 1, 1], },
     ];
-    const data = new ArrayBuffer(vertices.length * vertices[0].length * 4);
+    const vertexSize = (2 + 3) * 4;
+    const data = new ArrayBuffer(vertices.length * vertexSize);
     const dv = new DataView(data);
     let offset = 0;
     vertices.forEach((vertex) => {
-        dv.setFloat32(offset, vertex[0], true);
+        dv.setFloat32(offset, vertex.position[0], true);
         offset += 4;
-        dv.setFloat32(offset, vertex[1], true);
+        dv.setFloat32(offset, vertex.position[1], true);
+        offset += 4;
+        dv.setFloat32(offset, vertex.color[0], true);
+        offset += 4;
+        dv.setFloat32(offset, vertex.color[1], true);
+        offset += 4;
+        dv.setFloat32(offset, vertex.color[2], true);
         offset += 4;
     });
 
@@ -105,7 +116,7 @@ function createBuffer(gl) {
     return {
         buffer,
         vertexCount: vertices.length,
-        vertexSize: vertices[0].length,
+        vertexSize,
     };
 }
 
@@ -133,8 +144,10 @@ function render({ gl, program, buffer }) {
     gl.clear(COLOR_BUFFER_BIT);
     gl.useProgram(program.program);
     gl.bindBuffer(ARRAY_BUFFER, buffer.buffer);
+    gl.vertexAttribPointer(program.attributes.a_position, 2, FLOAT, false, buffer.vertexSize, 0);
     gl.enableVertexAttribArray(program.attributes.a_position);
-    gl.vertexAttribPointer(program.attributes.a_position, buffer.vertexSize, FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(program.attributes.a_color, 3, FLOAT, false, buffer.vertexSize, 8);
+    gl.enableVertexAttribArray(program.attributes.a_color);
     gl.drawArrays(TRIANGLES, 0, buffer.vertexCount);
 }
 
