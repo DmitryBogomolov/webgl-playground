@@ -4,9 +4,9 @@ import fragShaderSource from './simple.frag';
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
     COMPILE_STATUS, LINK_STATUS,
-    ARRAY_BUFFER, STATIC_DRAW,
+    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER, STATIC_DRAW,
     COLOR_BUFFER_BIT,
-    UNSIGNED_BYTE, FLOAT,
+    UNSIGNED_BYTE, UNSIGNED_SHORT, FLOAT,
     TRIANGLES,
 } = WebGLRenderingContext.prototype;
 
@@ -73,7 +73,6 @@ function createProgram(gl, vertShader, fragShader) {
     return { program, attributes, uniforms };
 }
 
-// TODO: Add index buffer.
 // TODO: Use VertexAttributeArray.
 function createBuffer(gl) {
     const vertices = [
@@ -92,6 +91,12 @@ function createBuffer(gl) {
         { position: [ 0,  1], color: [0, 1, 1], },
         { position: [-1,  1], color: [0, 1, 1], },
         { position: [-1,  0], color: [0, 1, 1], },
+    ];
+    const indexes = [
+        0, 1, 2,
+        3, 4, 5,
+        6, 7, 8,
+        9, 10, 11,
     ];
     const vertexSize = (2 + 1) * 4;
     const data = new ArrayBuffer(vertices.length * vertexSize);
@@ -112,13 +117,20 @@ function createBuffer(gl) {
         offset++;
     });
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(ARRAY_BUFFER, buffer);
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(ARRAY_BUFFER, data, STATIC_DRAW);
+
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), STATIC_DRAW);
+
     return {
-        buffer,
+        vertexBuffer,
+        indexBuffer,
         vertexCount: vertices.length,
         vertexSize,
+        indexCount: vertices.length,
     };
 }
 
@@ -145,12 +157,13 @@ function init() {
 function render({ gl, program, buffer }) {
     gl.clear(COLOR_BUFFER_BIT);
     gl.useProgram(program.program);
-    gl.bindBuffer(ARRAY_BUFFER, buffer.buffer);
+    gl.bindBuffer(ARRAY_BUFFER, buffer.vertexBuffer);
     gl.vertexAttribPointer(program.attributes.a_position, 2, FLOAT, false, buffer.vertexSize, 0);
     gl.enableVertexAttribArray(program.attributes.a_position);
     gl.vertexAttribPointer(program.attributes.a_color, 3, UNSIGNED_BYTE, true, buffer.vertexSize, 8);
     gl.enableVertexAttribArray(program.attributes.a_color);
-    gl.drawArrays(TRIANGLES, 0, buffer.vertexCount);
+    gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer.indexBuffer);
+    gl.drawElements(TRIANGLES, buffer.indexCount, UNSIGNED_SHORT, 0);
 }
 
 function runLoop(state) {
