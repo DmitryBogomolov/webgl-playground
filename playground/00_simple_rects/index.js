@@ -4,7 +4,8 @@ import fragShaderSource from './simple.frag';
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
     COMPILE_STATUS, LINK_STATUS,
-    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER, STATIC_DRAW,
+    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
+    STATIC_DRAW,
     COLOR_BUFFER_BIT,
     UNSIGNED_BYTE, UNSIGNED_SHORT, FLOAT,
     TRIANGLES,
@@ -24,6 +25,11 @@ function createContext(container) {
     const gl = canvas.getContext('webgl');
     if (!gl) {
         const err = 'Context is not created';
+        console.error(err);
+        throw new Error(err);
+    }
+    if (!gl.getExtension('OES_vertex_array_object')) {
+        const err = 'No OES_vertex_array_object extension';
         console.error(err);
         throw new Error(err);
     }
@@ -73,8 +79,7 @@ function createProgram(gl, vertShader, fragShader) {
     return { program, attributes, uniforms };
 }
 
-// TODO: Use VertexAttributeArray.
-function createBuffer(gl) {
+function createBuffer(gl, program, vaoExt) {
     const vertices = [
         { position: [-1,  0], color: [1, 0, 0], },
         { position: [-1, -1], color: [1, 0, 0], },
@@ -125,7 +130,18 @@ function createBuffer(gl) {
     gl.bindBuffer(ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), STATIC_DRAW);
 
+    const vao = vaoExt.createVertexArrayOES();
+    vaoExt.bindVertexArrayOES(vao);
+    gl.bindBuffer(ARRAY_BUFFER, vertexBuffer);
+    gl.vertexAttribPointer(program.attributes.a_position, 2, FLOAT, false, vertexSize, 0);
+    gl.enableVertexAttribArray(program.attributes.a_position);
+    gl.vertexAttribPointer(program.attributes.a_color, 3, UNSIGNED_BYTE, true, vertexSize, 8);
+    gl.enableVertexAttribArray(program.attributes.a_color);
+    gl.bindBuffer(ELEMENT_ARRAY_BUFFER, indexBuffer);
+    vaoExt.bindVertexArrayOES(null);
+
     return {
+        vao,
         vertexBuffer,
         indexBuffer,
         vertexCount: vertices.length,
@@ -137,33 +153,31 @@ function createBuffer(gl) {
 function init() {
     const container = document.querySelector('.container');
     const { gl, size } = createContext(container);
+    const vaoExt = gl.getExtension('OES_vertex_array_object');
 
     const vertShader = createShader(gl, VERTEX_SHADER, vertShaderSource);
     const fragShader = createShader(gl, FRAGMENT_SHADER, fragShaderSource);
     const program = createProgram(gl, vertShader, fragShader);
 
-    const buffer = createBuffer(gl);
+    const buffer = createBuffer(gl, program, vaoExt);
 
     gl.viewport(0, 0, size[0], size[1]);
     gl.clearColor(0, 0, 0, 1);
 
     return {
         gl,
+        vaoExt,
         program,
         buffer,
     };
 }
 
-function render({ gl, program, buffer }) {
+function render({ gl, vaoExt, program, buffer }) {
     gl.clear(COLOR_BUFFER_BIT);
     gl.useProgram(program.program);
-    gl.bindBuffer(ARRAY_BUFFER, buffer.vertexBuffer);
-    gl.vertexAttribPointer(program.attributes.a_position, 2, FLOAT, false, buffer.vertexSize, 0);
-    gl.enableVertexAttribArray(program.attributes.a_position);
-    gl.vertexAttribPointer(program.attributes.a_color, 3, UNSIGNED_BYTE, true, buffer.vertexSize, 8);
-    gl.enableVertexAttribArray(program.attributes.a_color);
-    gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer.indexBuffer);
+    vaoExt.bindVertexArrayOES(buffer.vao);
     gl.drawElements(TRIANGLES, buffer.indexCount, UNSIGNED_SHORT, 0);
+    vaoExt.bindVertexArrayOES(null);
 }
 
 function runLoop(state) {
