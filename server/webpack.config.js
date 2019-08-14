@@ -12,6 +12,11 @@ module.exports = {
         filename: getOutputName('[name]'),
         path: path.join(__dirname, '../dist'),
     },
+    resolve: {
+        alias: {
+            lib: path.join(__dirname, '../lib'),
+        },
+    },
     module: {
         rules: [
             {

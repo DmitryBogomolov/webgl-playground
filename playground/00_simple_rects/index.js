@@ -1,7 +1,7 @@
 import {
     Context, RenderLoop, VertexSchema, VertexWriter,
     generateDefaultIndexes,
-} from '../../lib';
+} from 'lib';
 import vertShaderSource from './simple.vert';
 import fragShaderSource from './simple.frag';
 
