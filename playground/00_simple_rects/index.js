@@ -1,5 +1,6 @@
 import {
     Context, RenderLoop, VertexSchema, VertexWriter,
+    generateDefaultIndexes,
 } from '../../lib';
 import vertShaderSource from './simple.vert';
 import fragShaderSource from './simple.frag';
@@ -21,12 +22,6 @@ function initData(context, program) {
         { position: [ 0,  1], color: [0, 1, 1], },
         { position: [-1,  1], color: [0, 1, 1], },
         { position: [-1,  0], color: [0, 1, 1], },
-    ];
-    const indexes = [
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 10, 11,
     ];
 
     const schema = new VertexSchema([
@@ -54,7 +49,7 @@ function initData(context, program) {
 
     const indexBuffer = context.createIndexBuffer();
     indexBuffer.bind();
-    indexBuffer.setData(new Uint16Array(indexes));
+    indexBuffer.setData(new Uint16Array(generateDefaultIndexes(vertices.length)));
 
     const vao = context.createVAO();
     vao.bind();
