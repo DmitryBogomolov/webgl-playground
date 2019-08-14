@@ -72,6 +72,7 @@ function initData(context, program) {
 function init() {
     const container = document.querySelector('.container');
     const context = new Context(container);
+    context.init();
 
     const program = context.createProgram(vertShaderSource, fragShaderSource);
 
