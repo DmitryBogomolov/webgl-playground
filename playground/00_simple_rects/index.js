@@ -1,6 +1,6 @@
 import {
     Context, RenderLoop, VertexSchema, VertexWriter,
-    generateDefaultIndexes,
+    generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertShaderSource from './simple.vert';
 import fragShaderSource from './simple.frag';
@@ -91,3 +91,4 @@ function render({ context, program, vao, vertexCount }) {
 const state = init();
 const loop = new RenderLoop(() => render(state));
 loop.start();
+logSilenced(true);
