@@ -43,11 +43,11 @@ function initData(context, program) {
         writer.writeField(i, 'a_color', vertex.color);
     });
 
-    const vertexBuffer = context.createBuffer();
+    const vertexBuffer = context.createArrayBuffer();
     vertexBuffer.bind();
     vertexBuffer.setData(data);
 
-    const indexBuffer = context.createIndexBuffer();
+    const indexBuffer = context.createElementArrayBuffer();
     indexBuffer.bind();
     indexBuffer.setData(new Uint16Array(generateDefaultIndexes(vertices.length)));
 
