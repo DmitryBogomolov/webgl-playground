@@ -51,7 +51,7 @@ function initData(context, program) {
     indexBuffer.bind();
     indexBuffer.setData(new Uint16Array(generateDefaultIndexes(vertices.length)));
 
-    const vao = context.createVAO();
+    const vao = context.createVertexArrayObject();
     vao.bind();
     vertexBuffer.bind();
     program.setupVertexAttributes(schema);
