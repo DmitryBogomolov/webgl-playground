@@ -2,8 +2,8 @@ import {
     Context, RenderLoop, VertexSchema, VertexWriter,
     generateDefaultIndexes, logSilenced,
 } from 'lib';
-import vertShaderSource from './simple.vert';
-import fragShaderSource from './simple.frag';
+import vertexShaderSource from './simple.vert';
+import fragmentShaderSource from './simple.frag';
 
 function initData(context, program) {
     const vertices = [
@@ -68,7 +68,7 @@ function init() {
     const container = document.querySelector('.container');
     const context = new Context(container);
 
-    const program = context.createProgram(vertShaderSource, fragShaderSource);
+    const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
 
     const { vao, vertexCount } = initData(context, program);
 
