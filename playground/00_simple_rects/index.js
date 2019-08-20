@@ -1,5 +1,5 @@
 import {
-    Context, RenderLoop, VertexWriter,
+    Context, RenderLoop, VertexWriter, FluentVertexWriter,
     parseSchema, generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
@@ -37,7 +37,8 @@ function initData(context, program) {
     ]);
 
     const data = new ArrayBuffer(vertices.length * schema.vertexSize);
-    const writer = new VertexWriter(data, schema);
+    // const writer = new VertexWriter(data, schema);
+    const writer = new FluentVertexWriter(data, schema);
     vertices.forEach((vertex, i) => {
         writer.writeField(i, 'a_position', vertex.position);
         writer.writeField(i, 'a_color', vertex.color);
