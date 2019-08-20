@@ -6,11 +6,16 @@ module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
     entry: {
-        root: './src/index.js',
+        root: path.join(__dirname, './client/index.js'),
     },
     output: {
         filename: getOutputName('[name]'),
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, '../dist'),
+    },
+    resolve: {
+        alias: {
+            lib: path.join(__dirname, '../lib'),
+        },
     },
     module: {
         rules: [
