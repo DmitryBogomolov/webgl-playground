@@ -56,7 +56,7 @@ function initData(context, program) {
     vertexBuffer.bind();
     program.setupVertexAttributes(schema);
     indexBuffer.bind();
-    vao.unbind();
+    context.bindVertexArrayObject(null);
 
     return {
         vao,
@@ -85,7 +85,7 @@ function render({ context, program, vao, vertexCount }) {
     program.use();
     vao.bind();
     context.drawElements(vertexCount);
-    vao.unbind();
+    context.bindVertexArrayObject(null);
 }
 
 const state = init();
