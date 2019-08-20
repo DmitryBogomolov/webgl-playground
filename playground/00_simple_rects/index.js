@@ -1,6 +1,6 @@
 import {
-    Context, RenderLoop, VertexSchema, VertexWriter,
-    generateDefaultIndexes, logSilenced,
+    Context, RenderLoop, VertexWriter,
+    parseSchema, generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
 import fragmentShaderSource from './simple.frag';
@@ -24,7 +24,7 @@ function initData(context, program) {
         { position: [-1,  0], color: [0, 1, 1], },
     ];
 
-    const schema = new VertexSchema([
+    const schema = parseSchema([
         {
             name: 'a_position',
             type: 'float2',
@@ -36,7 +36,7 @@ function initData(context, program) {
         },
     ]);
 
-    const data = new ArrayBuffer(vertices.length * schema.vertexSize());
+    const data = new ArrayBuffer(vertices.length * schema.vertexSize);
     const writer = new VertexWriter(data, schema);
     vertices.forEach((vertex, i) => {
         writer.writeField(i, 'a_position', vertex.position);
