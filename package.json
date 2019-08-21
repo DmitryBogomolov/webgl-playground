@@ -7,7 +7,8 @@
     "dev": "node ./server/index.js",
     "build": "webpack",
     "build:watch": "webpack --watch",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "webgl"
