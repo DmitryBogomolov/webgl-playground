@@ -1,5 +1,7 @@
 import {
-    Context, RenderLoop, VertexWriter, FluentVertexWriter,
+    Context, RenderLoop,
+    VertexWriter,
+    // FluentVertexWriter as VertexWriter,
     parseSchema, generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
@@ -7,21 +9,21 @@ import fragmentShaderSource from './simple.frag';
 
 function initData(context, program) {
     const vertices = [
-        { position: [-1,  0], color: [1, 0, 0], },
-        { position: [-1, -1], color: [1, 0, 0], },
-        { position: [ 0, -1], color: [1, 0, 0], },
+        { position: [-1, +0], color: [1, 0, 0] },
+        { position: [-1, -1], color: [1, 0, 0] },
+        { position: [+0, -1], color: [1, 0, 0] },
 
-        { position: [ 0, -1], color: [1, 1, 0], },
-        { position: [ 1, -1], color: [1, 1, 0], },
-        { position: [ 1,  0], color: [1, 1, 0], },
+        { position: [+0, -1], color: [1, 1, 0] },
+        { position: [+1, -1], color: [1, 1, 0] },
+        { position: [+1, +0], color: [1, 1, 0] },
 
-        { position: [ 1,  0], color: [0, 1, 0], },
-        { position: [ 1,  1], color: [0, 1, 0], },
-        { position: [ 0,  1], color: [0, 1, 0], },
+        { position: [+1, +0], color: [0, 1, 0] },
+        { position: [+1, +1], color: [0, 1, 0] },
+        { position: [+0, +1], color: [0, 1, 0] },
 
-        { position: [ 0,  1], color: [0, 1, 1], },
-        { position: [-1,  1], color: [0, 1, 1], },
-        { position: [-1,  0], color: [0, 1, 1], },
+        { position: [+0, +1], color: [0, 1, 1] },
+        { position: [-1, +1], color: [0, 1, 1] },
+        { position: [-1, +0], color: [0, 1, 1] },
     ];
 
     const schema = parseSchema([
@@ -37,8 +39,7 @@ function initData(context, program) {
     ]);
 
     const data = new ArrayBuffer(vertices.length * schema.vertexSize);
-    // const writer = new VertexWriter(data, schema);
-    const writer = new FluentVertexWriter(data, schema);
+    const writer = new VertexWriter(data, schema);
     vertices.forEach((vertex, i) => {
         writer.writeField(i, 'a_position', vertex.position);
         writer.writeField(i, 'a_color', vertex.color);
