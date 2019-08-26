@@ -43,6 +43,10 @@ function init() {
     
     context.bindVertexArrayObject(null);
 
+    const texture = context.createTexture();
+    context.activeTexture(0);
+    texture.bind();
+
     return () => {
         context.clearColor();
         program.use();
