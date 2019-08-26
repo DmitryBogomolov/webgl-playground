@@ -70,6 +70,7 @@ function init() {
     return () => {
         context.clearColor();
         context.useProgram(program);
+        program.setUniform('u_texture', 0);
         context.bindVertexArrayObject(vao);
         context.drawElements(indexes.length);
         context.bindVertexArrayObject(null);
