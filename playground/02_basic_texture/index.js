@@ -47,6 +47,20 @@ function init() {
     context.activeTexture(0);
     context.bindTexture(texture);
 
+    const textureData = new ArrayBuffer(16 * 4);
+    const textureWriter = new FluentVertexWriter(textureData, parseSchema([
+        { name: 'tex', type: 'ubyte4', normalized: true },
+    ]));
+    [
+        [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
+        [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
+        [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
+        [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
+    ].forEach((color, i) => {
+        textureWriter.writeField(i, 'tex', color);
+    });
+    context.setTextureImage(4, 4, new Uint8Array(textureData));
+
     return () => {
         context.clearColor();
         context.useProgram(program);
