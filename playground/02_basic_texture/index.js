@@ -28,14 +28,14 @@ function init() {
     const indexData = new Uint16Array(indexes);
 
     const vao = context.createVertexArrayObject();
-    vao.bind();
+    context.bindVertexArrayObject(vao);
 
     const vertexBuffer = context.createArrayBuffer();
-    vertexBuffer.bind();
+    context.bindArrayBuffer(vertexBuffer);
     vertexBuffer.setData(vertexData);
 
     const indexBuffer = context.createElementArrayBuffer();
-    indexBuffer.bind();
+    context.bindElementArrayBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
     const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
@@ -45,12 +45,12 @@ function init() {
 
     const texture = context.createTexture();
     context.activeTexture(0);
-    texture.bind();
+    context.bindTexture(texture);
 
     return () => {
         context.clearColor();
-        program.use();
-        vao.bind();
+        context.useProgram(program);
+        context.bindVertexArrayObject(vao);
         context.drawElements(indexes.length);
         context.bindVertexArrayObject(null);
     };

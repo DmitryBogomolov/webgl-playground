@@ -46,18 +46,18 @@ function initData(context, program) {
     });
 
     const vertexBuffer = context.createArrayBuffer();
-    vertexBuffer.bind();
+    context.bindArrayBuffer(vertexBuffer);
     vertexBuffer.setData(data);
 
     const indexBuffer = context.createElementArrayBuffer();
-    indexBuffer.bind();
+    context.bindElementArrayBuffer(indexBuffer);
     indexBuffer.setData(new Uint16Array(generateDefaultIndexes(vertices.length)));
 
     const vao = context.createVertexArrayObject();
-    vao.bind();
-    vertexBuffer.bind();
+    context.bindVertexArrayObject(vao);
+    context.bindArrayBuffer(vertexBuffer);
     program.setupVertexAttributes(schema);
-    indexBuffer.bind();
+    context.bindElementArrayBuffer(indexBuffer);
     context.bindVertexArrayObject(null);
 
     return {
@@ -84,8 +84,8 @@ function init() {
 
 function render({ context, program, vao, vertexCount }) {
     context.clearColor();
-    program.use();
-    vao.bind();
+    context.useProgram(program);
+    context.bindVertexArrayObject(vao);
     context.drawElements(vertexCount);
     context.bindVertexArrayObject(null);
 }
