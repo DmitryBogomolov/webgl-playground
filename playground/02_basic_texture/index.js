@@ -9,6 +9,41 @@ import {
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
+function generateVertices(schema) {
+    const { vertices, indexes } = makeRect((x, y) => ({
+        pos: [x, y],
+        tex: [(x + 1) / 2, (y + 1) / 2],
+    }));
+    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
+    const writer = new FluentVertexWriter(vertexData, schema);
+    vertices.forEach((vertex, i) => {
+        writer.writeField(i, 'a_position', vertex.pos);
+        writer.writeField(i, 'a_texcoord', vertex.tex);
+    });
+    const indexData = new Uint16Array(indexes);
+
+    return { vertexData, indexData };
+}
+
+function generateTextureData() {
+    const schema = parseSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
+    const pixels = [
+        [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
+        [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
+        [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
+        [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
+    ];
+    const buffer = new ArrayBuffer(pixels.length * schema.vertexSize);
+    const writer = new FluentVertexWriter(buffer, schema);
+    pixels.forEach((color, i) => {
+        writer.writeField(i, 'tex', [...color, 1]);
+    });
+    return {
+        dx: 4, dy: 4,
+        data: new Uint8Array(buffer),
+    };
+}
+
 function init() {
     const container = document.querySelector('.container');
     const context = new Context(container);
@@ -18,14 +53,13 @@ function init() {
             name: 'a_position',
             type: 'float2',
         },
+        {
+            name: 'a_texcoord',
+            type: 'float2',
+        },
     ]);
-    const { vertices, indexes } = makeRect();
-    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
-    vertices.forEach((vertex, i) => {
-        writer.writeField(i, 'a_position', vertex);
-    });
-    const indexData = new Uint16Array(indexes);
+
+    const { vertexData, indexData } = generateVertices(schema);
 
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
@@ -53,26 +87,15 @@ function init() {
         'mag-filter': 'nearest',
     });
 
-    const textureData = new ArrayBuffer(16 * 4);
-    const textureWriter = new FluentVertexWriter(textureData, parseSchema([
-        { name: 'tex', type: 'ubyte4', normalized: true },
-    ]));
-    [
-        [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
-        [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
-        [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
-        [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
-    ].forEach((color, i) => {
-        textureWriter.writeField(i, 'tex', [...color, 1]);
-    });
-    context.setTextureImage(4, 4, new Uint8Array(textureData));
+    const texData = generateTextureData();
+    context.setTextureImage(texData.dx, texData.dy, texData.data);
 
     return () => {
         context.clearColor();
         context.useProgram(program);
         program.setUniform('u_texture', 0);
         context.bindVertexArrayObject(vao);
-        context.drawElements(indexes.length);
+        context.drawElements(indexData.length);
         context.bindVertexArrayObject(null);
     };
 }
