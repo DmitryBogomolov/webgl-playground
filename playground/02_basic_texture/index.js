@@ -1,5 +1,6 @@
 import {
     Context,
+    color,
     logSilenced,
     parseSchema,
     makeRect,
@@ -47,6 +48,8 @@ function generateTextureData() {
 function init() {
     const container = document.querySelector('.container');
     const context = new Context(container);
+    
+    context.setClearColor(color(0.8, 0.8, 0.8));
 
     const schema = parseSchema([
         {
@@ -77,6 +80,9 @@ function init() {
     
     context.bindVertexArrayObject(null);
 
+    const texData = generateTextureData();
+    context.setUnpackFlipY(true);
+    
     const texture = context.createTexture();
     context.activeTexture(0);
     context.bindTexture(texture);
@@ -86,17 +92,28 @@ function init() {
         'min-filter': 'nearest',
         'mag-filter': 'nearest',
     });
-
-    context.setUnpackFlipY(true);
-    const texData = generateTextureData();
     context.setTextureImage(texData.dx, texData.dy, texData.data);
+
+    function drawRect(dir, filter) {
+        program.setUniform('u_dir', dir);
+        context.setTextureParameters({
+            'min-filter': filter,
+            'mag-filter': filter,
+        });
+        context.drawElements(indexData.length);
+    }
 
     return () => {
         context.clearColor();
         context.useProgram(program);
         program.setUniform('u_texture', 0);
         context.bindVertexArrayObject(vao);
-        context.drawElements(indexData.length);
+
+        drawRect([-1, +1], 'nearest');
+        drawRect([+1, +1], 'linear');
+        drawRect([-1, -1], 'nearest');
+        drawRect([+1, -1], 'linear');
+
         context.bindVertexArrayObject(null);
     };
 }
