@@ -94,8 +94,13 @@ function init() {
     });
     context.setTextureImage(texData.dx, texData.dy, texData.data);
 
-    function drawRect(dir, filter) {
+    function drawRect(dir, filter, texcoord) {
         program.setUniform('u_dir', dir);
+        program.setUniform('u_flag', texcoord ? 1 : 0);
+        if (texcoord) {
+            program.setUniform('u_texcoord', texcoord);
+        }
+
         context.setTextureParameters({
             'min-filter': filter,
             'mag-filter': filter,
@@ -111,8 +116,8 @@ function init() {
 
         drawRect([-1, +1], 'nearest');
         drawRect([+1, +1], 'linear');
-        drawRect([-1, -1], 'nearest');
-        drawRect([+1, -1], 'linear');
+        drawRect([-1, -1], 'nearest', [0.25, 0.75]);
+        drawRect([+1, -1], 'linear', [0.25, 0.75]);
 
         context.bindVertexArrayObject(null);
     };
