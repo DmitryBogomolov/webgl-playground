@@ -87,6 +87,7 @@ function init() {
         'mag-filter': 'nearest',
     });
 
+    context.setUnpackFlipY(true);
     const texData = generateTextureData();
     context.setTextureImage(texData.dx, texData.dy, texData.data);
 
