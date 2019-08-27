@@ -10,6 +10,47 @@ import {
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
+function createControls(container, handleChange) {
+    const controls = document.createElement('div');
+    controls.classList.add('controls');
+    container.parentElement.insertBefore(controls, container.nextElementSibling);
+    let u = 0;
+    let v = 0;
+    createSlider(controls, u, (value) => {
+        u = value;
+        handleChange([u, v]);
+    });
+    createSlider(controls, v, (value) => {
+        v = value;
+        handleChange([u, v]);
+    });
+}
+
+function createSlider(container, initialValue, handleChange) {
+    const div = document.createElement('div');
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = 0;
+    input.max = 1;
+    input.value = initialValue;
+    input.step = 0.05;
+    const getValue = () => Number(input.value);
+    const label = document.createElement('label');
+    const changeLabel = () => {
+        const val = getValue();
+        label.innerHTML = val.toFixed(2);
+    };
+    input.onchange = () => {
+        changeLabel();
+        const val = getValue();
+        handleChange(val);
+    };
+    changeLabel();
+    div.appendChild(input);
+    div.appendChild(label);
+    container.appendChild(div);
+}
+
 function generateVertices(schema) {
     const { vertices, indexes } = makeRect((x, y) => ({
         pos: [x, y],
@@ -47,6 +88,12 @@ function generateTextureData() {
 
 function init() {
     const container = document.querySelector('.container');
+
+    let texcoord = [0, 0];
+    createControls(container, (arg) => {
+        texcoord = arg;
+    });
+
     const context = new Context(container);
     
     context.setClearColor(color(0.8, 0.8, 0.8));
@@ -116,8 +163,8 @@ function init() {
 
         drawRect([-1, +1], 'nearest');
         drawRect([+1, +1], 'linear');
-        drawRect([-1, -1], 'nearest', [0.25, 0.75]);
-        drawRect([+1, -1], 'linear', [0.25, 0.75]);
+        drawRect([-1, -1], 'nearest', texcoord);
+        drawRect([+1, -1], 'linear', texcoord);
 
         context.bindVertexArrayObject(null);
     };
