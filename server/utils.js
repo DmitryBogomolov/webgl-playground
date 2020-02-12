@@ -13,10 +13,15 @@ function prettifyName(name) {
     return name.split(/_/g).slice(1).join(' ');
 }
 
+function log(...args) {
+    console.log(...args);
+}
+
 module.exports = {
     PLAYGROUND_ROUTE,
     STATIC_ROUTE,
     getOutputName,
     getBundleRoute,
     prettifyName,
+    log,
 };

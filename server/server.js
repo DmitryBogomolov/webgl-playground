@@ -8,9 +8,9 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
 const Mustache = require('mustache');
 const { 
     PLAYGROUND_ROUTE, STATIC_ROUTE,
-    getBundleRoute, prettifyName,
+    getBundleRoute, prettifyName, log,
 } = require('./utils');
-const config = require('./webpack.config');
+const WEBPACK_CONFIG = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
 
@@ -19,8 +19,8 @@ const ROOT_TEMPLATE = path.join(__dirname, '../static/root.html');
 const PLAYGROUND_TEMPLATE = path.join(__dirname, '../static/playground.html');
 
 function buildConfig(config, targets) {
-    const result = Object.assign({}, config);
-    result.entry = Object.assign({}, result.entry);
+    const result = { ...config };
+    result.entry = { ...result.entry };
     targets.forEach((target) => {
         result.entry[target.name] = target.indexPath;
     });
@@ -29,16 +29,20 @@ function buildConfig(config, targets) {
 
 async function renderTemplate(templatePath, view) {
     const template = await readFile(templatePath, 'utf8');
-    return Mustache.render(template, view);
+    return Mustache.render(template, view, {
+        container: '<div class="container"></div>\n',
+    });
 }
+
+const INDENT = '  ';
 
 async function runServer(targets) {
     const app = express();
-    const patchedConfig = buildConfig(config, targets);
+    const patchedConfig = buildConfig(WEBPACK_CONFIG, targets);
     const compiler = webpack(patchedConfig);
 
     app.get('/', async (_, res) => {
-        console.log('Root');
+        log('root');
         const content = await renderTemplate(ROOT_TEMPLATE, {
             targets: targets.map(target => ({
                 title: prettifyName(target.name),
@@ -47,14 +51,16 @@ async function runServer(targets) {
             bundle: getBundleRoute('root'),
         });
         res.end(content);
+        log(INDENT, 'ok');
     });
 
     app.get(`${PLAYGROUND_ROUTE}/:target`, async (req, res) => {
         const name = req.params.target;
         const target = targets.find(target => target.name === name);
-        console.log('Playground', name);
+        log('sample', name);
         if (!target) {
             res.status(404).end('Unknown target.\n');
+            log(INDENT, 'not found');
             return;
         }
         const content = await renderTemplate(PLAYGROUND_TEMPLATE, {
@@ -62,6 +68,7 @@ async function runServer(targets) {
             bundle: getBundleRoute(target.name),
         });
         res.end(content);
+        log(INDENT, 'ok');
     });
     
     app.use(webpackDevMiddleware(compiler, {
@@ -74,7 +81,7 @@ async function runServer(targets) {
                 reject(err);
                 return;
             }
-            console.log(`Listening on port ${PORT}\n`);
+            log(`Listening ${PORT}\n`);
             resolve();
         });
     });
