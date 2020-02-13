@@ -1,12 +1,6 @@
-const PLAYGROUND_ROUTE = '/playground';
-const STATIC_ROUTE = '/static';
 
 function getOutputName(name) {
     return `${name}.bundle.js`;
-}
-
-function getBundleRoute(name) {
-    return `${STATIC_ROUTE}/${getOutputName(name)}`;
 }
 
 function prettifyName(name) {
@@ -18,10 +12,7 @@ function log(...args) {
 }
 
 module.exports = {
-    PLAYGROUND_ROUTE,
-    STATIC_ROUTE,
     getOutputName,
-    getBundleRoute,
     prettifyName,
     log,
 };

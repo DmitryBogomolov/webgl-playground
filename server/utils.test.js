@@ -4,12 +4,7 @@ describe('utils', () => {
     describe('getOutputName', () => {
         it('build output name', () => {
             expect(getOutputName('test-module')).toEqual('test-module.bundle.js');
-        });
-    });
-
-    describe('getBundleRoute', () => {
-        it('build bundle route', () => {
-            expect(getBundleRoute('test-module')).toEqual('/static/test-module.bundle.js');
+            expect(getOutputName('test.module')).toEqual('test.module.bundle.js');
         });
     });
 

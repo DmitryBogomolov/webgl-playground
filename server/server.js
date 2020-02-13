@@ -6,32 +6,53 @@ const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const Mustache = require('mustache');
-const { 
-    PLAYGROUND_ROUTE, STATIC_ROUTE,
-    getBundleRoute, prettifyName, log,
-} = require('./utils');
+const { getOutputName, prettifyName, log } = require('./utils');
 const WEBPACK_CONFIG = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
 
 const PORT = process.env.PORT || 3000;
-const ROOT_TEMPLATE = path.join(__dirname, '../static/root.html');
-const PLAYGROUND_TEMPLATE = path.join(__dirname, '../static/playground.html');
 
-function buildConfig(config, targets) {
-    const result = { ...config };
-    result.entry = { ...result.entry };
-    targets.forEach((target) => {
-        result.entry[target.name] = target.indexPath;
-    });
-    return result;
+const BASE_TEMPLATE = path.resolve('./static/index.html');
+const ROOT_HEAD_TEMPLATE = path.resolve('./static/root_head.html');
+const ROOT_BODY_TEMPLATE = path.resolve('./static/root_body.html');
+const PLAYGROUND_HEAD_TEMPLATE = path.resolve('./static/playground_head.html');
+const PLAYGROUND_BODY_TEMPLATE = path.resolve('./static/playground_body.html');
+
+const ROOT_TARGET_NAME = 'root';
+const ROOT_ENTRY_PATH = path.resolve('./static/index.js');
+const STATIC_ROUTE = '/static';
+const PLAYGROUND_ROUTE = '/playground';
+
+function getBundleRoute(name) {
+    return `${STATIC_ROUTE}/${getOutputName(name)}`;
 }
 
-async function renderTemplate(templatePath, view) {
-    const template = await readFile(templatePath, 'utf8');
-    return Mustache.render(template, view, {
-        container: '<div class="container"></div>\n',
+function buildConfig(config, targets) {
+    const entry = { [ROOT_TARGET_NAME]: ROOT_ENTRY_PATH };
+    targets.forEach((target) => {
+        entry[target.name] = target.indexPath;
     });
+    return { ...config, entry };
+}
+
+function loadTemplates(fileNames) {
+    return Promise.all(
+        fileNames.map((fileName) => readFile(fileName, 'utf8'))
+    );
+}
+
+async function renderTemplate(baseTemplatePath, nestedTemplatesCache, view) {
+    const nestedTemplateNames = Object.keys(nestedTemplatesCache);
+    const [baseTemplate, ...nestedTemplates] = await loadTemplates([
+        baseTemplatePath,
+        ...nestedTemplateNames.map((name) => nestedTemplatesCache[name])
+    ]);
+    const partials = {};
+    nestedTemplateNames.forEach((name, i) => {
+        partials[name] = nestedTemplates[i];
+    });
+    return Mustache.render(baseTemplate, view, partials);
 }
 
 const INDENT = '  ';
@@ -43,13 +64,21 @@ async function runServer(targets) {
 
     app.get('/', async (_, res) => {
         log('root');
-        const content = await renderTemplate(ROOT_TEMPLATE, {
-            targets: targets.map(target => ({
-                title: prettifyName(target.name),
-                path: `${PLAYGROUND_ROUTE}/${target.name}`,
-            })),
-            bundle: getBundleRoute('root'),
-        });
+        const content = await renderTemplate(
+            BASE_TEMPLATE,
+            {
+                head: ROOT_HEAD_TEMPLATE,
+                body: ROOT_BODY_TEMPLATE,
+            },
+            {
+                title: 'WebGL playground',
+                targets: targets.map(target => ({
+                    title: prettifyName(target.name),
+                    path: `${PLAYGROUND_ROUTE}/${target.name}`,
+                })),
+                bundle: getBundleRoute(ROOT_TARGET_NAME),
+            }
+        );
         res.end(content);
         log(INDENT, 'ok');
     });
@@ -57,16 +86,23 @@ async function runServer(targets) {
     app.get(`${PLAYGROUND_ROUTE}/:target`, async (req, res) => {
         const name = req.params.target;
         const target = targets.find(target => target.name === name);
-        log('sample', name);
+        log('playground', name);
         if (!target) {
             res.status(404).end('Unknown target.\n');
             log(INDENT, 'not found');
             return;
         }
-        const content = await renderTemplate(PLAYGROUND_TEMPLATE, {
-            title: prettifyName(target.name),
-            bundle: getBundleRoute(target.name),
-        });
+        const content = await renderTemplate(
+            BASE_TEMPLATE,
+            {
+                head: PLAYGROUND_HEAD_TEMPLATE,
+                body: PLAYGROUND_BODY_TEMPLATE,
+            },
+            {
+                title: prettifyName(target.name),
+                bundle: getBundleRoute(target.name),
+            }
+        );
         res.end(content);
         log(INDENT, 'ok');
     });
@@ -87,4 +123,6 @@ async function runServer(targets) {
     });
 }
 
-exports.runServer = runServer;
+module.exports = {
+    runServer,
+};
