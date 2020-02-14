@@ -1,4 +1,4 @@
-const { getOutputName, getBundleRoute, prettifyName } = require('./utils');
+const { getOutputName, prettifyName } = require('./utils');
 
 describe('utils', () => {
     describe('getOutputName', () => {
