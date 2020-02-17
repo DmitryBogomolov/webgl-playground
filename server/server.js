@@ -70,7 +70,7 @@ async function renderRootPage(targets) {
 async function renderPlaygroundPage(target) {
     const dirPath = path.dirname(target.indexPath);
     const [
-        baseTemplate,head, body,
+        baseTemplate, head, body,
         containerHead, containerBody, customHead, customBody,
     ] = await loadTemplates([
         BASE_TEMPLATE_PATH,

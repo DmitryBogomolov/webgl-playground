@@ -84,7 +84,7 @@ function init() {
         texcoord = arg;
     });
 
-    const context = new Context(document.querySelector('.container'));
+    const context = new Context(document.querySelector(PLAYGROUND_ROOT)); // eslint-disable-line no-undef
     
     context.setClearColor(color(0.8, 0.8, 0.8));
 

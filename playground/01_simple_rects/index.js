@@ -67,7 +67,7 @@ function initData(context, program) {
 }
 
 function init() {
-    const container = document.querySelector('.container');
+    const container = document.querySelector(PLAYGROUND_ROOT); // eslint-disable-line no-undef
     const context = new Context(container);
 
     const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
