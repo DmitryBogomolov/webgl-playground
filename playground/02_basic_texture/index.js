@@ -10,45 +10,37 @@ import {
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
-function createControls(container, handleChange) {
-    const controls = document.createElement('div');
-    controls.classList.add('controls');
-    container.parentElement.insertBefore(controls, container.nextElementSibling);
-    let u = 0;
-    let v = 0;
-    createSlider(controls, u, (value) => {
-        u = value;
-        handleChange([u, v]);
-    });
-    createSlider(controls, v, (value) => {
-        v = value;
-        handleChange([u, v]);
-    });
-}
+function attachHandlers(initial, handleChange) {
+    const uInput = document.querySelector('.controls .u-coord input');
+    const vInput = document.querySelector('.controls .v-coord input');
+    const uLabel = document.querySelector('.controls .u-coord label');
+    const vLabel = document.querySelector('.controls .v-coord label');
 
-function createSlider(container, initialValue, handleChange) {
-    const div = document.createElement('div');
-    const input = document.createElement('input');
-    input.type = 'range';
-    input.min = 0;
-    input.max = 1;
-    input.value = initialValue;
-    input.step = 0.05;
-    const getValue = () => Number(input.value);
-    const label = document.createElement('label');
-    const changeLabel = () => {
-        const val = getValue();
-        label.innerHTML = val.toFixed(2);
-    };
-    input.onchange = () => {
-        changeLabel();
-        const val = getValue();
-        handleChange(val);
-    };
-    changeLabel();
-    div.appendChild(input);
-    div.appendChild(label);
-    container.appendChild(div);
+    let [uValue, vValue] = initial;
+
+    function updateView() {
+        uInput.value = uValue;
+        vInput.value = vValue;
+        uLabel.innerHTML = uValue;
+        vLabel.innerHTML = vValue;
+    }
+
+    function notifyChange() {
+        handleChange([uValue, vValue]);
+    }
+
+    uInput.addEventListener('change', (e) => {
+        uValue = Number(e.target.value);
+        updateView();
+        notifyChange();
+    });
+    vInput.addEventListener('change', (e) => {
+        vValue = Number(e.target.value);
+        updateView();
+        notifyChange();
+    });
+
+    updateView();
 }
 
 function generateVertices(schema) {
@@ -87,14 +79,12 @@ function generateTextureData() {
 }
 
 function init() {
-    const container = document.querySelector('.container');
-
     let texcoord = [0, 0];
-    createControls(container, (arg) => {
+    attachHandlers(texcoord, (arg) => {
         texcoord = arg;
     });
 
-    const context = new Context(container);
+    const context = new Context(document.querySelector('.container'));
     
     context.setClearColor(color(0.8, 0.8, 0.8));
 

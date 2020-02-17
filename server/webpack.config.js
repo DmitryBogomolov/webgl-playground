@@ -5,9 +5,6 @@ const { getOutputName } = require('./utils');
 module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
-    entry: {
-        root: path.join(__dirname, './client/index.js'),
-    },
     output: {
         filename: getOutputName('[name]'),
         path: path.join(__dirname, '../dist'),

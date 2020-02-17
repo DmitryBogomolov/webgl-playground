@@ -5,27 +5,33 @@ const { promisify } = require('util');
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
-const PLAYGROUND_DIR = path.join(__dirname, '../playground');
+const PLAYGROUND_DIR = path.resolve('./playground');
 
-async function collect() {
-    let items = await readdir(PLAYGROUND_DIR);
-    items = await Promise.all(items.map(async (item) => {
-        const dirPath = path.join(PLAYGROUND_DIR, item);
-        const indexPath = path.join(dirPath, 'index.js');
-        try {
-            const st = await stat(indexPath);
-            return st.isFile() ? {
-                name: item,
-                indexPath,
-            } : null;
-        } catch (e) {
-            if (e.code === 'ENOENT') {
-                return null;
-            }
-            throw e;
+function catchNoEnt(ret) {
+    return ret.catch((e) => {
+        if (e.code === 'ENOENT') {
+            return null;
         }
-    }));
-    return items.filter(item => item);
+        throw e;
+    });
 }
 
-exports.collect = collect;
+async function collect() {
+    const directories = await readdir(PLAYGROUND_DIR);
+    const records = await Promise.all(
+        directories.map(async (dirName) => {
+            const dirPath = path.join(PLAYGROUND_DIR, dirName);
+            const indexPath = path.join(dirPath, 'index.js');
+            const st = await catchNoEnt(stat(indexPath));
+            return st.isFile() ? {
+                name: dirName,
+                indexPath,
+            } : null;
+        })
+    );
+    return records.filter(record => record);
+}
+
+module.exports = {
+    collect,
+};
