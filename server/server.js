@@ -20,6 +20,7 @@ const PLAYGROUND_HEAD_TEMPLATE_PATH = path.resolve('./static/playground_head.htm
 const PLAYGROUND_BODY_TEMPLATE_PATH = path.resolve('./static/playground_body.html');
 const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./static/container_head.html');
 const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./static/container_body.html');
+const BOOTSTRAP_CSS_PATH = path.resolve('./static/bootstrap.min.css');
 
 const ROOT_TARGET_NAME = 'root';
 const ROOT_ENTRY_PATH = path.resolve('./static/index.js');
@@ -69,7 +70,7 @@ async function renderRootPage(targets) {
 async function renderPlaygroundPage(target) {
     const dirPath = path.dirname(target.indexPath);
     const [
-        baseTemplate,head, body,
+        baseTemplate, head, body,
         containerHead, containerBody, customHead, customBody,
     ] = await loadTemplates([
         BASE_TEMPLATE_PATH,
@@ -126,6 +127,11 @@ async function runServer(targets) {
     app.use(webpackDevMiddleware(compiler, {
         publicPath: STATIC_ROUTE,
     }));
+
+    // TODO: Use `static` for this.
+    app.get(`${STATIC_ROUTE}/bootstrap.min.css`, (_, res) => {
+        fs.createReadStream(BOOTSTRAP_CSS_PATH).pipe(res);
+    });
 
     return new Promise((resolve, reject) => {
         http.createServer(app).listen(PORT, (err) => {
