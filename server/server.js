@@ -128,6 +128,7 @@ async function runServer(targets) {
         publicPath: STATIC_ROUTE,
     }));
 
+    // TODO: Use `static` for this.
     app.get(`${STATIC_ROUTE}/bootstrap.min.css`, (_, res) => {
         fs.createReadStream(BOOTSTRAP_CSS_PATH).pipe(res);
     });
