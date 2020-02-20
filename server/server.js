@@ -6,8 +6,8 @@ const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const Mustache = require('mustache');
-const { getOutputName, prettifyName, log } = require('./utils');
-const WEBPACK_CONFIG = require('./webpack.config');
+const { log } = require('./utils');
+const { libConfig, pageConfig } = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
 
@@ -22,19 +22,21 @@ const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./static/container_head.html'
 const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./static/container_body.html');
 const BOOTSTRAP_CSS_PATH = path.resolve('./static/bootstrap.min.css');
 
-const ROOT_TARGET_NAME = 'root';
-const ROOT_ENTRY_PATH = path.resolve('./static/index.js');
+const HOME_TARGET_NAME = 'home';
+const HOME_ENTRY_PATH = path.resolve('./static/index.js');
 const STATIC_ROUTE = '/static';
 const PLAYGROUND_ROUTE = '/playground';
 
 function getBundleRoute(name) {
-    return `${STATIC_ROUTE}/${getOutputName(name)}`;
+    return `${STATIC_ROUTE}/${name}.js`;
 }
 
 function buildConfig(config, targets) {
-    const entry = { [ROOT_TARGET_NAME]: ROOT_ENTRY_PATH };
+    const entry = {
+        [HOME_TARGET_NAME]: HOME_ENTRY_PATH,
+    };
     targets.forEach((target) => {
-        entry[target.name] = target.indexPath;
+        entry[target.name] = path.join(target.path, 'index.js');
     });
     return { ...config, entry };
 }
@@ -59,16 +61,15 @@ async function renderRootPage(targets) {
     const view = {
         title: 'WebGL playground',
         targets: targets.map(target => ({
-            title: prettifyName(target.name),
+            title: target.name,
             path: `${PLAYGROUND_ROUTE}/${target.name}`,
         })),
-        bundle: getBundleRoute(ROOT_TARGET_NAME),        
+        bundle: getBundleRoute(HOME_TARGET_NAME),        
     };
     return Mustache.render(baseTemplate, view, { head, body });
 }
 
 async function renderPlaygroundPage(target) {
-    const dirPath = path.dirname(target.indexPath);
     const [
         baseTemplate, head, body,
         containerHead, containerBody, customHead, customBody,
@@ -78,11 +79,11 @@ async function renderPlaygroundPage(target) {
         PLAYGROUND_BODY_TEMPLATE_PATH,
         CONTAINER_HEAD_TEMPLATE_PATH,
         CONTAINER_BODY_TEMPLATE_PATH,
-        path.join(dirPath, 'head.html'),
-        path.join(dirPath, 'body.html'),
+        path.join(target.path, 'head.html'),
+        path.join(target.path, 'body.html'),
     ]);
     const view = {
-        title: prettifyName(target.name),
+        title: target.name,
         bundle: getBundleRoute(target.name),
     };
     const partials = {
@@ -99,9 +100,12 @@ async function renderPlaygroundPage(target) {
 const INDENT = '  ';
 
 async function runServer(targets) {
+    const libCompiler = webpack(libConfig);
+
+    const patchedConfig = buildConfig(pageConfig, targets);
+    const pagesСompiler = webpack(patchedConfig);
+
     const app = express();
-    const patchedConfig = buildConfig(WEBPACK_CONFIG, targets);
-    const compiler = webpack(patchedConfig);
 
     app.get('/', async (_, res) => {
         log('root');
@@ -124,8 +128,14 @@ async function runServer(targets) {
         log(INDENT, 'ok');
     });
     
-    app.use(webpackDevMiddleware(compiler, {
+    app.use(webpackDevMiddleware(libCompiler, {
         publicPath: STATIC_ROUTE,
+        writeToDisk: true,
+    }));
+
+    app.use(webpackDevMiddleware(pagesСompiler, {
+        publicPath: STATIC_ROUTE,
+        writeToDisk: true,
     }));
 
     // TODO: Use `static` for this.
