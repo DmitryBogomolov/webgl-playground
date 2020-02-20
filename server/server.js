@@ -4,9 +4,8 @@ const { promisify } = require('util');
 const http = require('http');
 const express = require('express');
 const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware');
 const Mustache = require('mustache');
-const { log } = require('./utils');
+const { log, error } = require('./utils');
 const { libConfig, pageConfig } = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
@@ -99,11 +98,37 @@ async function renderPlaygroundPage(target) {
 
 const INDENT = '  ';
 
-async function runServer(targets) {
+async function runCompilation(targets) {
+    let notifyLibBuilt;
+    const promise = new Promise((resolve) => {
+        notifyLibBuilt = resolve;
+    });
+
     const libCompiler = webpack(libConfig);
+    libCompiler.watch({}, (err, stats) => {
+        if (err) {
+            error(err);
+        } else {
+            log(stats.toString());
+            notifyLibBuilt();
+        }
+    });
+
+    await promise;
 
     const patchedConfig = buildConfig(pageConfig, targets);
     const pagesСompiler = webpack(patchedConfig);
+    pagesСompiler.watch({}, (err, stats) => {
+        if (err) {
+            error(err);
+        } else {
+            log(stats.toString());
+        }
+    });
+}
+
+async function runServer(targets) {
+    await runCompilation(targets);
 
     const app = express();
 
@@ -127,16 +152,8 @@ async function runServer(targets) {
         res.end(content);
         log(INDENT, 'ok');
     });
-    
-    app.use(webpackDevMiddleware(libCompiler, {
-        publicPath: STATIC_ROUTE,
-        writeToDisk: true,
-    }));
 
-    app.use(webpackDevMiddleware(pagesСompiler, {
-        publicPath: STATIC_ROUTE,
-        writeToDisk: true,
-    }));
+    app.use(STATIC_ROUTE, express.static(path.resolve('./dist')));
 
     // TODO: Use `static` for this.
     app.get(`${STATIC_ROUTE}/bootstrap.min.css`, (_, res) => {

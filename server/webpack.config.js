@@ -11,7 +11,7 @@ const libConfig = {
     ...baseConfig,
     entry: './lib/index.js',
     output: {
-        path: path.resolve('./dist-lib'),
+        path: path.resolve('./dist'),
         filename: 'lib.js',
         library: 'lib',
         libraryTarget: 'umd',
@@ -26,7 +26,7 @@ const pageConfig = {
     },
     resolve: {
         alias: {
-            lib: path.resolve('./dist-lib/lib.js'),
+            lib: path.resolve('./dist/lib.js'),
         },
     },
     module: {
