@@ -166,11 +166,7 @@ async function runServer(targets) {
     });
 
     app.use(STATIC_ROUTE, express.static(path.resolve('./dist')));
-
-    // TODO: Use `static` for this.
-    app.get(`${STATIC_ROUTE}/bootstrap.min.css`, (_, res) => {
-        fs.createReadStream(BOOTSTRAP_CSS_PATH).pipe(res);
-    });
+    app.use(STATIC_ROUTE, express.static(path.resolve('./static')));
 
     return new Promise((resolve, reject) => {
         http.createServer(app).listen(PORT, (err) => {
