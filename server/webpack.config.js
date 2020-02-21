@@ -26,7 +26,7 @@ const pageConfig = {
     },
     resolve: {
         alias: {
-            lib: path.resolve('./dist/lib.js'),
+            lib: path.join(libConfig.output.path, 'lib.js'),
         },
     },
     module: {

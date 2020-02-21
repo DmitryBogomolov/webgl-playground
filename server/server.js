@@ -9,6 +9,7 @@ const { log, error } = require('./utils');
 const { libConfig, pageConfig } = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
+const access = promisify(fs.access);
 
 const PORT = process.env.PORT || 3000;
 
@@ -98,23 +99,34 @@ async function renderPlaygroundPage(target) {
 
 const INDENT = '  ';
 
-async function runCompilation(targets) {
-    let notifyLibBuilt;
-    const promise = new Promise((resolve) => {
-        notifyLibBuilt = resolve;
-    });
+async function wait(timeout) {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+}
 
+async function waitForLibBundle(delay) {
+    await wait(delay);
+    try {
+        await access(pageConfig.resolve.alias.lib, fs.constants.R_OK);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            await waitForLibBundle(250);
+        } else {
+            throw err;
+        }
+    }
+}
+
+async function runCompilation(targets) {
     const libCompiler = webpack(libConfig);
     libCompiler.watch({}, (err, stats) => {
         if (err) {
             error(err);
         } else {
             log(stats.toString());
-            notifyLibBuilt();
         }
     });
 
-    await promise;
+    await waitForLibBundle(500);
 
     const patchedConfig = buildConfig(pageConfig, targets);
     const pagesСompiler = webpack(patchedConfig);
