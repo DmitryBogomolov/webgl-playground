@@ -13,17 +13,17 @@ const access = promisify(fs.access);
 
 const PORT = process.env.PORT || 3000;
 
-const BASE_TEMPLATE_PATH = path.resolve('./static/index.html');
-const ROOT_HEAD_TEMPLATE_PATH = path.resolve('./static/root_head.html');
-const ROOT_BODY_TEMPLATE_PATH = path.resolve('./static/root_body.html');
-const PLAYGROUND_HEAD_TEMPLATE_PATH = path.resolve('./static/playground_head.html');
-const PLAYGROUND_BODY_TEMPLATE_PATH = path.resolve('./static/playground_body.html');
-const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./static/container_head.html');
-const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./static/container_body.html');
-const BOOTSTRAP_CSS_PATH = path.resolve('./static/bootstrap.min.css');
+const BASE_TEMPLATE_PATH = path.resolve('./templates/index.html');
+const ROOT_HEAD_TEMPLATE_PATH = path.resolve('./templates/root_head.html');
+const ROOT_BODY_TEMPLATE_PATH = path.resolve('./templates/root_body.html');
+const PLAYGROUND_HEAD_TEMPLATE_PATH = path.resolve('./templates/playground_head.html');
+const PLAYGROUND_BODY_TEMPLATE_PATH = path.resolve('./templates/playground_body.html');
+const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./templates/container_head.html');
+const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./templates/container_body.html');
+const BOOTSTRAP_CSS_PATH = path.resolve('./templates/bootstrap.min.css');
 
 const HOME_TARGET_NAME = 'home';
-const HOME_ENTRY_PATH = path.resolve('./static/index.js');
+const HOME_ENTRY_PATH = path.resolve('./templates/index.js');
 const STATIC_ROUTE = '/static';
 const PLAYGROUND_ROUTE = '/playground';
 
