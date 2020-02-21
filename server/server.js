@@ -20,7 +20,6 @@ const PLAYGROUND_HEAD_TEMPLATE_PATH = path.resolve('./templates/playground_head.
 const PLAYGROUND_BODY_TEMPLATE_PATH = path.resolve('./templates/playground_body.html');
 const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./templates/container_head.html');
 const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./templates/container_body.html');
-const BOOTSTRAP_CSS_PATH = path.resolve('./templates/bootstrap.min.css');
 
 const HOME_TARGET_NAME = 'home';
 const HOME_ENTRY_PATH = path.resolve('./templates/index.js');
@@ -146,9 +145,15 @@ async function runServer(targets) {
 
     app.get('/', async (_, res) => {
         log('root');
-        const content = await renderRootPage(targets);
-        res.end(content);
-        log(INDENT, 'ok');
+        try {
+            const content = await renderRootPage(targets);
+            res.end(content);
+            log(INDENT, 'ok');
+        } catch (err) {
+            res.status(500);
+            res.end('Internal server error.\n');
+            error(INDENT, err);
+        }
     });
 
     app.get(`${PLAYGROUND_ROUTE}/:target`, async (req, res) => {
@@ -160,9 +165,15 @@ async function runServer(targets) {
             log(INDENT, 'not found');
             return;
         }
-        const content = await renderPlaygroundPage(target);
-        res.end(content);
-        log(INDENT, 'ok');
+        try {
+            const content = await renderPlaygroundPage(target);
+            res.end(content);
+            log(INDENT, 'ok');
+        } catch (err) {
+            res.status(500);
+            res.end('Internal server error.\n');
+            error(INDENT, err);
+        }
     });
 
     app.use(STATIC_ROUTE, express.static(path.resolve('./dist')));
