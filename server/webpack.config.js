@@ -1,18 +1,32 @@
 const path = require('path');
 const { DefinePlugin } = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const { getOutputName } = require('./utils');
 
-module.exports = {
+const baseConfig = {
     mode: 'development',
     devtool: 'inline-source-map',
+};
+
+const libConfig = {
+    ...baseConfig,
+    entry: './lib/index.js',
     output: {
-        filename: getOutputName('[name]'),
-        path: path.join(__dirname, '../dist'),
+        path: path.resolve('./dist'),
+        filename: 'lib.js',
+        library: 'lib',
+        libraryTarget: 'umd',
+        globalObject: 'this',
+    },
+};
+
+const pageConfig = {
+    ...baseConfig,
+    output: {
+        path: path.resolve('./dist'),
     },
     resolve: {
         alias: {
-            lib: path.join(__dirname, '../lib'),
+            lib: path.join(libConfig.output.path, 'lib.js'),
         },
     },
     module: {
@@ -37,4 +51,9 @@ module.exports = {
             PLAYGROUND_ROOT: JSON.stringify('#playground-root'),
         }),
     ],
+};
+
+module.exports = {
+    libConfig,
+    pageConfig,
 };
