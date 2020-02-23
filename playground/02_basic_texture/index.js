@@ -11,10 +11,10 @@ import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
 function attachHandlers(initial, handleChange) {
-    const uInput = document.querySelector('.controls .u-coord input');
-    const vInput = document.querySelector('.controls .v-coord input');
-    const uLabel = document.querySelector('.controls .u-coord label');
-    const vLabel = document.querySelector('.controls .v-coord label');
+    const uInput = document.querySelector('#u-coord-input');
+    const vInput = document.querySelector('#v-coord-input');
+    const uLabel = document.querySelector('#u-coord-label');
+    const vLabel = document.querySelector('#v-coord-label');
 
     let [uValue, vValue] = initial;
 
