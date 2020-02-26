@@ -7,23 +7,32 @@ import {
 import vertexShaderSource from './simple.vert';
 import fragmentShaderSource from './simple.frag';
 
+/**
+ * Just four triangles of different colors.
+ */
+
 function initData(context, program) {
+    const c1 = [1, 0, 0]; // red
+    const c2 = [1, 1, 0]; // yellow
+    const c3 = [0, 1, 0]; // green
+    const c4 = [0, 1, 1]; // cyan
     const vertices = [
-        { position: [-1, +0], color: [1, 0, 0] },
-        { position: [-1, -1], color: [1, 0, 0] },
-        { position: [+0, -1], color: [1, 0, 0] },
-
-        { position: [+0, -1], color: [1, 1, 0] },
-        { position: [+1, -1], color: [1, 1, 0] },
-        { position: [+1, +0], color: [1, 1, 0] },
-
-        { position: [+1, +0], color: [0, 1, 0] },
-        { position: [+1, +1], color: [0, 1, 0] },
-        { position: [+0, +1], color: [0, 1, 0] },
-
-        { position: [+0, +1], color: [0, 1, 1] },
-        { position: [-1, +1], color: [0, 1, 1] },
-        { position: [-1, +0], color: [0, 1, 1] },
+        // bottom-left
+        { position: [-1, +0], color: c1 },
+        { position: [-1, -1], color: c1 },
+        { position: [+0, -1], color: c1 },
+        // bottom-right
+        { position: [+0, -1], color: c2 },
+        { position: [+1, -1], color: c2 },
+        { position: [+1, +0], color: c2 },
+        // top-right
+        { position: [+1, +0], color: c3 },
+        { position: [+1, +1], color: c3 },
+        { position: [+0, +1], color: c3 },
+        // top-left
+        { position: [+0, +1], color: c4 },
+        { position: [-1, +1], color: c4 },
+        { position: [-1, +0], color: c4 },
     ];
 
     const schema = parseSchema([
@@ -38,20 +47,22 @@ function initData(context, program) {
         },
     ]);
 
-    const data = new ArrayBuffer(vertices.length * schema.vertexSize);
-    const writer = new VertexWriter(data, schema);
+    const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
+    const writer = new VertexWriter(vertexData, schema);
     vertices.forEach((vertex, i) => {
         writer.writeField(i, 'a_position', vertex.position);
         writer.writeField(i, 'a_color', vertex.color);
     });
 
+    const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
+
     const vertexBuffer = context.createArrayBuffer();
     context.bindArrayBuffer(vertexBuffer);
-    vertexBuffer.setData(data);
+    vertexBuffer.setData(vertexData);
 
     const indexBuffer = context.createElementArrayBuffer();
     context.bindElementArrayBuffer(indexBuffer);
-    indexBuffer.setData(new Uint16Array(generateDefaultIndexes(vertices.length)));
+    indexBuffer.setData(indexData);
 
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
