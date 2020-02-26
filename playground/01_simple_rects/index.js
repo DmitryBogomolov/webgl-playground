@@ -12,10 +12,10 @@ import fragmentShaderSource from './simple.frag';
  */
 
 function initData(context, program) {
-    const c1 = [1, 0, 0];   // red
-    const c2 = [1, 1, 0];   // yellow
-    const c3 = [0, 1, 0];   // green
-    const c4 = [0, 1, 1];   // cyan
+    const c1 = [1, 0, 0]; // red
+    const c2 = [1, 1, 0]; // yellow
+    const c3 = [0, 1, 0]; // green
+    const c4 = [0, 1, 1]; // cyan
     const vertices = [
         // bottom-left
         { position: [-1, +0], color: c1 },
