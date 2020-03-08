@@ -81,7 +81,8 @@ function init() {
     const container = document.querySelector(PLAYGROUND_ROOT); // eslint-disable-line no-undef
     const context = new Context(container);
 
-    const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
+    const program = context.createProgram();
+    program.setSources(vertexShaderSource, fragmentShaderSource);
 
     const { vao, vertexCount } = initData(context, program);
 

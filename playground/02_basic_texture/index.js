@@ -135,7 +135,8 @@ function init() {
     context.bindElementArrayBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
-    const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
+    const program = context.createProgram();
+    program.setSources(vertexShaderSource, fragmentShaderSource);
     program.setupVertexAttributes(schema);
     
     context.bindVertexArrayObject(null);
