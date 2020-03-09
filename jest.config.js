@@ -67,6 +67,13 @@ module.exports = {
                 SHORT: '#SHORT',
                 UNSIGNED_SHORT: '#UNSIGNED_SHORT',
                 FLOAT: '#FLOAT',
+
+                ARRAY_BUFFER: '#ARRAY_BUFFER',
+                ELEMENT_ARRAY_BUFFER: '#ELEMENT_ARRAY_BUFFER',
+                STATIC_DRAW: '#STATIC_DRAW',
+
+                TEXTURE_2D: '#TEXTURE_2D',
+                TEXTURE0: '#TEXTURE0_',
             },
         },
     },
