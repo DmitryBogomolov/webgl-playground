@@ -56,19 +56,19 @@ function initData(context, program) {
 
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
-    const vertexBuffer = context.createArrayBuffer();
-    context.bindArrayBuffer(vertexBuffer);
+    const vertexBuffer = context.createVertexBuffer();
+    context.bindVertexBuffer(vertexBuffer);
     vertexBuffer.setData(vertexData);
 
-    const indexBuffer = context.createElementArrayBuffer();
-    context.bindElementArrayBuffer(indexBuffer);
+    const indexBuffer = context.createIndexBuffer();
+    context.bindIndexBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
-    context.bindArrayBuffer(vertexBuffer);
+    context.bindVertexBuffer(vertexBuffer);
     program.setupVertexAttributes(schema);
-    context.bindElementArrayBuffer(indexBuffer);
+    context.bindIndexBuffer(indexBuffer);
     context.bindVertexArrayObject(null);
 
     return {

@@ -127,12 +127,12 @@ function init() {
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
 
-    const vertexBuffer = context.createArrayBuffer();
-    context.bindArrayBuffer(vertexBuffer);
+    const vertexBuffer = context.createVertexBuffer();
+    context.bindVertexBuffer(vertexBuffer);
     vertexBuffer.setData(vertexData);
 
-    const indexBuffer = context.createElementArrayBuffer();
-    context.bindElementArrayBuffer(indexBuffer);
+    const indexBuffer = context.createIndexBuffer();
+    context.bindIndexBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
     const program = context.createProgram();
