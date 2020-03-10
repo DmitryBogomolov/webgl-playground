@@ -2,8 +2,9 @@ import {
     Context,
     color,
     logSilenced,
-    parseSchema,
+    VertexSchema,
     FluentVertexWriter,
+    writeVertices,
     RenderLoop,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
@@ -65,11 +66,10 @@ function generateVertices(schema) {
         { position: [-1, +1], texcoord: [0, 1] },
     ];
     const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
-    vertices.forEach((vertex, i) => {
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_texcoord', vertex.texcoord);
-    });
+    writeVertices(new FluentVertexWriter(vertexData, schema), vertices, (vertex) => ({
+        a_position: vertex.position,
+        a_texcoord: vertex.texcoord,
+    }));
     const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
@@ -79,7 +79,7 @@ function generateVertices(schema) {
 }
 
 function generateTextureData() {
-    const schema = parseSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
+    const schema = new VertexSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
     const pixels = [
         // black, blue, green, cyan,
         [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
@@ -91,10 +91,7 @@ function generateTextureData() {
         [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
     ];
     const buffer = new ArrayBuffer(pixels.length * schema.vertexSize);
-    const writer = new FluentVertexWriter(buffer, schema);
-    pixels.forEach((color, i) => {
-        writer.writeField(i, 'tex', [...color, 1]);
-    });
+    writeVertices(new FluentVertexWriter(buffer, schema), pixels, (pixel) => ({ tex: [...pixel, 1] }));
     return {
         size: [4, 4],
         data: new Uint8Array(buffer),
@@ -111,7 +108,7 @@ function init() {
     
     context.setClearColor(color(0.8, 0.8, 0.8));
 
-    const schema = parseSchema([
+    const schema = new VertexSchema([
         {
             name: 'a_position',
             type: 'float2',
@@ -127,15 +124,16 @@ function init() {
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
 
-    const vertexBuffer = context.createArrayBuffer();
-    context.bindArrayBuffer(vertexBuffer);
+    const vertexBuffer = context.createVertexBuffer();
+    context.bindVertexBuffer(vertexBuffer);
     vertexBuffer.setData(vertexData);
 
-    const indexBuffer = context.createElementArrayBuffer();
-    context.bindElementArrayBuffer(indexBuffer);
+    const indexBuffer = context.createIndexBuffer();
+    context.bindIndexBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
-    const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
+    const program = context.createProgram();
+    program.setSources(vertexShaderSource, fragmentShaderSource);
     program.setupVertexAttributes(schema);
     
     context.bindVertexArrayObject(null);

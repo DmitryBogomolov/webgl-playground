@@ -2,7 +2,9 @@ import {
     Context, RenderLoop,
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
-    parseSchema, generateDefaultIndexes, logSilenced,
+    VertexSchema,
+    writeVertices,
+    generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
 import fragmentShaderSource from './simple.frag';
@@ -35,7 +37,7 @@ function initData(context, program) {
         { position: [-1, +0], color: c4 },
     ];
 
-    const schema = parseSchema([
+    const schema = new VertexSchema([
         {
             name: 'a_position',
             type: 'float2',
@@ -48,27 +50,26 @@ function initData(context, program) {
     ]);
 
     const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
-    const writer = new VertexWriter(vertexData, schema);
-    vertices.forEach((vertex, i) => {
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_color', vertex.color);
-    });
+    writeVertices(new VertexWriter(vertexData, schema), vertices, (vertex) => ({
+        a_position: vertex.position,
+        a_color: vertex.color,
+    }));
 
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
-    const vertexBuffer = context.createArrayBuffer();
-    context.bindArrayBuffer(vertexBuffer);
+    const vertexBuffer = context.createVertexBuffer();
+    context.bindVertexBuffer(vertexBuffer);
     vertexBuffer.setData(vertexData);
 
-    const indexBuffer = context.createElementArrayBuffer();
-    context.bindElementArrayBuffer(indexBuffer);
+    const indexBuffer = context.createIndexBuffer();
+    context.bindIndexBuffer(indexBuffer);
     indexBuffer.setData(indexData);
 
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
-    context.bindArrayBuffer(vertexBuffer);
+    context.bindVertexBuffer(vertexBuffer);
     program.setupVertexAttributes(schema);
-    context.bindElementArrayBuffer(indexBuffer);
+    context.bindIndexBuffer(indexBuffer);
     context.bindVertexArrayObject(null);
 
     return {
@@ -81,7 +82,8 @@ function init() {
     const container = document.querySelector(PLAYGROUND_ROOT); // eslint-disable-line no-undef
     const context = new Context(container);
 
-    const program = context.createProgram({ vertexShaderSource, fragmentShaderSource });
+    const program = context.createProgram();
+    program.setSources(vertexShaderSource, fragmentShaderSource);
 
     const { vao, vertexCount } = initData(context, program);
 
