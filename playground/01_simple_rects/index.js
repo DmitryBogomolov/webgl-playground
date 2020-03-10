@@ -2,7 +2,8 @@ import {
     Context, RenderLoop,
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
-    parseSchema, generateDefaultIndexes, logSilenced,
+    VertexSchema,
+    generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
 import fragmentShaderSource from './simple.frag';
@@ -35,7 +36,7 @@ function initData(context, program) {
         { position: [-1, +0], color: c4 },
     ];
 
-    const schema = parseSchema([
+    const schema = new VertexSchema([
         {
             name: 'a_position',
             type: 'float2',

@@ -2,7 +2,7 @@ import {
     Context,
     color,
     logSilenced,
-    parseSchema,
+    VertexSchema,
     FluentVertexWriter,
     RenderLoop,
 } from 'lib';
@@ -79,7 +79,7 @@ function generateVertices(schema) {
 }
 
 function generateTextureData() {
-    const schema = parseSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
+    const schema = new VertexSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
     const pixels = [
         // black, blue, green, cyan,
         [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
@@ -111,7 +111,7 @@ function init() {
     
     context.setClearColor(color(0.8, 0.8, 0.8));
 
-    const schema = parseSchema([
+    const schema = new VertexSchema([
         {
             name: 'a_position',
             type: 'float2',
