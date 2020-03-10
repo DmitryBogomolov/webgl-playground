@@ -3,6 +3,7 @@ import {
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
     VertexSchema,
+    writeVertices,
     generateDefaultIndexes, logSilenced,
 } from 'lib';
 import vertexShaderSource from './simple.vert';
@@ -49,11 +50,10 @@ function initData(context, program) {
     ]);
 
     const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
-    const writer = new VertexWriter(vertexData, schema);
-    vertices.forEach((vertex, i) => {
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_color', vertex.color);
-    });
+    writeVertices(new VertexWriter(vertexData, schema), vertices, (vertex) => ({
+        a_position: vertex.position,
+        a_color: vertex.color,
+    }));
 
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 

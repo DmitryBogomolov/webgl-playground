@@ -4,6 +4,7 @@ import {
     logSilenced,
     VertexSchema,
     FluentVertexWriter,
+    writeVertices,
     RenderLoop,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
@@ -65,11 +66,10 @@ function generateVertices(schema) {
         { position: [-1, +1], texcoord: [0, 1] },
     ];
     const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
-    vertices.forEach((vertex, i) => {
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_texcoord', vertex.texcoord);
-    });
+    writeVertices(new FluentVertexWriter(vertexData, schema), vertices, (vertex) => ({
+        a_position: vertex.position,
+        a_texcoord: vertex.texcoord,
+    }));
     const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
@@ -91,10 +91,7 @@ function generateTextureData() {
         [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
     ];
     const buffer = new ArrayBuffer(pixels.length * schema.vertexSize);
-    const writer = new FluentVertexWriter(buffer, schema);
-    pixels.forEach((color, i) => {
-        writer.writeField(i, 'tex', [...color, 1]);
-    });
+    writeVertices(new FluentVertexWriter(buffer, schema), pixels, (pixel) => ({ tex: [...pixel, 1] }));
     return {
         size: [4, 4],
         data: new Uint8Array(buffer),
