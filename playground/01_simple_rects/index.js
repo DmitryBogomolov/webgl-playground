@@ -6,8 +6,8 @@ import {
     writeVertices,
     generateDefaultIndexes, logSilenced,
 } from 'lib';
-import vertexShaderSource from './simple.vert';
-import fragmentShaderSource from './simple.frag';
+import vertexShaderSource from './shader.vert';
+import fragmentShaderSource from './shader.frag';
 
 /**
  * Just four triangles of different colors.
@@ -68,13 +68,13 @@ function initData(context, program) {
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
     context.bindVertexBuffer(vertexBuffer);
-    program.setupVertexAttributes(schema);
     context.bindIndexBuffer(indexBuffer);
+    program.setupVertexAttributes(schema);
     context.bindVertexArrayObject(null);
 
     return {
         vao,
-        vertexCount: vertices.length,
+        indexCount: indexData.length,
     };
 }
 
@@ -85,21 +85,21 @@ function init() {
     const program = context.createProgram();
     program.setSources(vertexShaderSource, fragmentShaderSource);
 
-    const { vao, vertexCount } = initData(context, program);
+    const { vao, indexCount } = initData(context, program);
 
     return {
         context,
         program,
         vao,
-        vertexCount,
+        indexCount,
     };
 }
 
-function render({ context, program, vao, vertexCount }) {
+function render({ context, program, vao, indexCount }) {
     context.clearColor();
     context.useProgram(program);
     context.bindVertexArrayObject(vao);
-    context.drawElements(vertexCount);
+    context.drawElements(indexCount);
     context.bindVertexArrayObject(null);
 }
 

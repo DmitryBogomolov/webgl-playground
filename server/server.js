@@ -36,6 +36,9 @@ function buildConfig(config, targets) {
     };
     targets.forEach((target) => {
         entry[target.name] = path.join(target.path, 'index.js');
+        if (target.hasWorker) {
+            entry[target.name + '_worker'] = path.join(target.path, 'worker.js');
+        }
     });
     return { ...config, entry };
 }
@@ -68,6 +71,17 @@ async function renderRootPage(targets) {
     return Mustache.render(baseTemplate, view, { head, body });
 }
 
+function buildCustomScript(target) {
+    const lines = [];
+    lines.push('<script>');
+    lines.push(`PLAYGROUND_ROOT = ${JSON.stringify('#playground-root')};`);
+    if (target.hasWorker) {
+        lines.push(`WORKER_URL = ${JSON.stringify(getBundleRoute(target.name + '_worker'))};`);
+    }
+    lines.push('</script>');
+    return lines.join('\n');
+}
+
 async function renderPlaygroundPage(target) {
     const [
         baseTemplate, head, body,
@@ -84,6 +98,7 @@ async function renderPlaygroundPage(target) {
     const view = {
         title: target.name,
         bundle: getBundleRoute(target.name),
+        custom_script: buildCustomScript(target),
     };
     const partials = {
         head,
