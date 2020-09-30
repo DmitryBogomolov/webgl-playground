@@ -1,5 +1,4 @@
 const path = require('path');
-const { DefinePlugin } = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const baseConfig = {
@@ -47,9 +46,6 @@ const pageConfig = {
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new DefinePlugin({
-            PLAYGROUND_ROOT: JSON.stringify('#playground-root'),
-        }),
     ],
 };
 
