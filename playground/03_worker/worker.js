@@ -1,5 +1,7 @@
 import {
     color,
+    setWorkerMessageHandler,
+    postWorkerMessage,
 } from 'lib';
 import {
     TYPE_SCALE,
@@ -37,22 +39,13 @@ function buildColor(value) {
     return color(...ret);
 }
 
-onmessage = (e) => {
-    const delta = e.data.delta;
-    switch (e.data.type) {
-        case TYPE_SCALE:
-            updateScale(delta);
-            postMessage({
-                type: TYPE_SCALE,
-                payload: buildScale(currentScale),
-            });
-            break;
-        case TYPE_COLOR:
-            updateColor(delta);
-            postMessage({
-                type: TYPE_COLOR,
-                payload: buildColor(currentColor),
-            });
-            break;
-    }
-};
+setWorkerMessageHandler({
+    [TYPE_SCALE](payload) {
+        updateScale(payload);
+        postWorkerMessage(TYPE_SCALE, buildScale(currentScale));
+    },
+    [TYPE_COLOR](payload) {
+        updateColor(payload);
+        postWorkerMessage(TYPE_COLOR, buildColor(currentColor));
+    },
+});

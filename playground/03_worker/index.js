@@ -3,6 +3,7 @@ import {
     FluentVertexWriter,
     VertexSchema,
     writeVertices,
+    WorkerMessenger,
     color,
     logSilenced,
 } from 'lib';
@@ -54,21 +55,9 @@ function initData(context, program) {
     };
 }
 
-function makeChannel(handler) {
-    const worker = new Worker(WORKER_URL);  // eslint-disable-line no-undef
-    worker.onmessage = ({ data }) => {
-        handler(data.type, data.payload);
-    };
-    return (type, delta) => {
-        worker.postMessage({
-            type,
-            delta,
-        });
-    };
-}
-
 function init() {
-    const container = document.querySelector(PLAYGROUND_ROOT); // eslint-disable-line no-undef
+    // eslint-disable-next-line no-undef
+    const container = document.querySelector(PLAYGROUND_ROOT);
     const context = new Context(container);
     context.setClearColor(color(0.8, 0.8, 0.8));
 
@@ -79,15 +68,15 @@ function init() {
 
     let clr = color(0, 0, 0, 1);
     let scale = 0;
-    const requestUpdate = makeChannel((type, payload) => {
-        switch (type) {
-            case TYPE_SCALE:
-                scale = payload;
-                break;
-            case TYPE_COLOR:
-                clr = payload;
-                break;
-        }
+
+    // eslint-disable-next-line no-undef
+    const worker = new WorkerMessenger(WORKER_URL, {
+        [TYPE_SCALE](payload) {
+            scale = payload;
+        },
+        [TYPE_COLOR](payload) {
+            clr = payload;
+        },
     });
 
     let scaleDelta = 0;
@@ -97,11 +86,11 @@ function init() {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            requestUpdate(TYPE_SCALE, scaleDelta / 1000);
+            worker.post(TYPE_SCALE, scaleDelta / 1000);
             scaleDelta = 0;
         }
         if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            requestUpdate(TYPE_COLOR, colorDelta / 1000);
+            worker.post(TYPE_COLOR, colorDelta / 1000);
             colorDelta = 0;
         }
 
