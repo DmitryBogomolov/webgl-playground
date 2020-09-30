@@ -15,7 +15,10 @@ import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
 /**
- * TODO
+ * Web worker.
+ *
+ * On each frame message is sent to worker thread. Worker thread from time to time
+ * sends message back - with scale or color parameter.   
  */
 
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
