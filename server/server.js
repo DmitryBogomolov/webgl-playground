@@ -50,7 +50,7 @@ function loadTemplates(fileNames) {
                 return null;
             }
             throw e;
-        }))
+        })),
     );
 }
 
