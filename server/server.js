@@ -4,14 +4,14 @@ const { promisify } = require('util');
 const http = require('http');
 const express = require('express');
 const webpack = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
 const Mustache = require('mustache');
 const { log, error } = require('./utils');
-const { libConfig, pageConfig } = require('./webpack.config');
+const webpackConfig = require('./webpack.config');
 
 const readFile = promisify(fs.readFile);
-const access = promisify(fs.access);
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3001;
 
 const BASE_TEMPLATE_PATH = path.resolve('./templates/index.html');
 const ROOT_HEAD_TEMPLATE_PATH = path.resolve('./templates/root_head.html');
@@ -30,8 +30,10 @@ function getBundleRoute(name) {
     return `${STATIC_ROUTE}/${name}.js`;
 }
 
-function buildConfig(config, targets) {
-    const entry = {
+function buildConfig(baseConfig, targets) {
+    const config = { ...baseConfig };
+    const entry = config.entry = {
+        ...config.entry,
         [HOME_TARGET_NAME]: HOME_ENTRY_PATH,
     };
     targets.forEach((target) => {
@@ -40,18 +42,24 @@ function buildConfig(config, targets) {
             entry[target.name + '_worker'] = path.join(target.path, 'worker.js');
         }
     });
-    return { ...config, entry };
+    return config;
 }
 
-function loadTemplates(fileNames) {
-    return Promise.all(
-        fileNames.map((fileName) => readFile(fileName, 'utf8').catch((e) => {
-            if (e.code === 'ENOENT') {
-                return null;
+async function loadTemplates(fileNames) {
+    const contents = await Promise.all(
+        fileNames.map(async (fileName) => {
+            try {
+                const content = await readFile(fileName, 'utf8');
+                return content;
+            } catch (e) {
+                if (e.code === 'ENOENT') {
+                    return null;
+                }
+                throw e;
             }
-            throw e;
-        })),
+        }),
     );
+    return contents;
 }
 
 async function renderRootPage(targets) {
@@ -113,48 +121,21 @@ async function renderPlaygroundPage(target) {
 
 const INDENT = '  ';
 
-async function wait(timeout) {
-    return new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-async function waitForLibBundle(delay) {
-    await wait(delay);
-    try {
-        await access(pageConfig.resolve.alias.lib, fs.constants.R_OK);
-    } catch (err) {
-        if (err.code === 'ENOENT') {
-            await waitForLibBundle(250);
-        } else {
-            throw err;
-        }
-    }
-}
-
-async function runCompilation(targets) {
-    const libCompiler = webpack(libConfig);
-    libCompiler.watch({}, (err, stats) => {
-        if (err) {
-            error(err);
-        } else {
-            log(stats.toString());
-        }
-    });
-
-    await waitForLibBundle(500);
-
-    const patchedConfig = buildConfig(pageConfig, targets);
-    const pagesСompiler = webpack(patchedConfig);
-    pagesСompiler.watch({}, (err, stats) => {
-        if (err) {
-            error(err);
-        } else {
-            log(stats.toString());
-        }
+function startListening(app) {
+    return new Promise((resolve, reject) => {
+        http.createServer(app).listen(PORT, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            log(`Listening ${PORT}\n`);
+            resolve();
+        });
     });
 }
 
 async function runServer(targets) {
-    await runCompilation(targets);
+    const compiler = webpack(buildConfig(webpackConfig, targets));
 
     const app = express();
 
@@ -191,19 +172,10 @@ async function runServer(targets) {
         }
     });
 
-    app.use(STATIC_ROUTE, express.static(path.resolve('./dist')));
+    app.use(webpackDevMiddleware(compiler, { publicPath: STATIC_ROUTE }));
     app.use(STATIC_ROUTE, express.static(path.resolve('./static')));
 
-    return new Promise((resolve, reject) => {
-        http.createServer(app).listen(PORT, (err) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            log(`Listening ${PORT}\n`);
-            resolve();
-        });
-    });
+    await startListening(app);
 }
 
 module.exports = {
