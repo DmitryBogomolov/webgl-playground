@@ -1,31 +1,22 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-const baseConfig = {
+module.exports = {
     mode: 'development',
     devtool: 'inline-source-map',
-};
 
-const libConfig = {
-    ...baseConfig,
-    entry: './lib/index.js',
-    output: {
-        path: path.resolve('./dist'),
-        filename: 'lib.js',
-        library: 'lib',
-        libraryTarget: 'umd',
-        globalObject: 'this',
+    entry: {
     },
-};
-
-const pageConfig = {
-    ...baseConfig,
     output: {
         path: path.resolve('./dist'),
+        // filename: 'lib.js',
+        // library: 'lib',
+        // libraryTarget: 'umd',
+        // globalObject: 'this',
     },
     resolve: {
         alias: {
-            lib: path.join(libConfig.output.path, 'lib.js'),
+            lib: path.resolve('./lib/index.js'),
         },
     },
     module: {
@@ -47,9 +38,4 @@ const pageConfig = {
     plugins: [
         new CleanWebpackPlugin(),
     ],
-};
-
-module.exports = {
-    libConfig,
-    pageConfig,
 };
