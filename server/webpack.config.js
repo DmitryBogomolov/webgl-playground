@@ -10,9 +10,9 @@ module.exports = {
     output: {
         path: path.resolve('./dist'),
         // filename: 'lib.js',
-        // library: 'lib',
-        // libraryTarget: 'umd',
-        // globalObject: 'this',
+        library: 'lib',
+        libraryTarget: 'umd',
+        globalObject: 'this',
     },
     resolve: {
         alias: {
