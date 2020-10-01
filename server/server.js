@@ -121,6 +121,19 @@ async function renderPlaygroundPage(target) {
 
 const INDENT = '  ';
 
+function startListening(app) {
+    return new Promise((resolve, reject) => {
+        http.createServer(app).listen(PORT, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            log(`Listening ${PORT}\n`);
+            resolve();
+        });
+    });
+}
+
 async function runServer(targets) {
     const compiler = webpack(buildConfig(webpackConfig, targets));
 
@@ -162,16 +175,7 @@ async function runServer(targets) {
     app.use(webpackDevMiddleware(compiler, { publicPath: STATIC_ROUTE }));
     app.use(STATIC_ROUTE, express.static(path.resolve('./static')));
 
-    return new Promise((resolve, reject) => {
-        http.createServer(app).listen(PORT, (err) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            log(`Listening ${PORT}\n`);
-            resolve();
-        });
-    });
+    await startListening(app);
 }
 
 module.exports = {
