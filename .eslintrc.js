@@ -27,5 +27,7 @@ module.exports = {
         'key-spacing': 'error',
         'keyword-spacing': 'error',
         'func-call-spacing': 'error',
+        'object-curly-spacing': ['error', 'always'],
+        'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
     },
 };
