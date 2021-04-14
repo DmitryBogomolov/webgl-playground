@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { promisify } from 'util';
-import http from  'http';
+import http from 'http';
 import express from 'express';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -10,7 +9,7 @@ import { log, error } from './utils';
 import { config as webpackConfig } from './webpack.config';
 import { Target } from './collector';
 
-const readFile = promisify(fs.readFile);
+const { readFile } = fs.promises;
 
 const PORT = Number(process.env.PORT) || 3001;
 
@@ -46,15 +45,15 @@ function buildConfig(baseConfig: webpack.Configuration, targets: Target[]): webp
     return config;
 }
 
-async function loadTemplates(fileNames: string[]): Promise<(string | null)[]> {
+async function loadTemplates(fileNames: string[]): Promise<string[]> {
     const contents = await Promise.all(
         fileNames.map(async (fileName) => {
             try {
                 const content = await readFile(fileName, 'utf8');
                 return content;
             } catch (e) {
-                if (e.code === 'ENOENT') {
-                    return null;
+                if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+                    return '';
                 }
                 throw e;
             }
@@ -71,13 +70,13 @@ async function renderRootPage(targets: Target[]): Promise<string> {
     ]);
     const view = {
         title: 'WebGL playground',
-        targets: targets.map(target => ({
+        targets: targets.map((target) => ({
             title: target.name,
             path: `${PLAYGROUND_ROUTE}/${target.name}`,
         })),
         bundle: getBundleRoute(HOME_TARGET_NAME),        
     };
-    return Mustache.render(baseTemplate!, view, { head: head!, body: body! });
+    return Mustache.render(baseTemplate, view, { head, body });
 }
 
 function buildCustomScript(target: Target): string {
@@ -110,14 +109,14 @@ async function renderPlaygroundPage(target: Target): Promise<string> {
         custom_script: buildCustomScript(target),
     };
     const partials = {
-        head: head!,
-        body: body!,
+        head,
+        body,
         container_head: customHead
-            ? Mustache.render(customHead, view, { container_head: containerHead! }) : containerHead!,
+            ? Mustache.render(customHead, view, { container_head: containerHead }) : containerHead,
         container_body: customBody
-            ? Mustache.render(customBody, view, { container_body: containerBody! }) : containerBody!,
+            ? Mustache.render(customBody, view, { container_body: containerBody }) : containerBody,
     };
-    return Mustache.render(baseTemplate!, view, partials );
+    return Mustache.render(baseTemplate, view, partials );
 }
 
 const INDENT = '  ';
@@ -151,7 +150,7 @@ export async function runServer(targets: Target[]): Promise<void> {
 
     app.get(`${PLAYGROUND_ROUTE}/:target`, async (req, res) => {
         const name = req.params.target;
-        const target = targets.find(target => target.name === name);
+        const target = targets.find((target) => target.name === name);
         log('playground', name);
         if (!target) {
             res.status(404).end('Unknown target.\n');

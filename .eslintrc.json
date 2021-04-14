@@ -32,14 +32,19 @@
         "semi": ["error", "always"],
         "no-multi-spaces": "error",
         "comma-dangle": ["error", "always-multiline"],
-        "space-before-function-paren": [
-            "error",
-            { "anonymous": "always", "named": "never", "asyncArrow": "always" }
-        ],
+        "space-before-function-paren": ["error", { "anonymous": "always", "named": "never", "asyncArrow": "always" }],
         "key-spacing": "error",
         "keyword-spacing": "error",
         "func-call-spacing": "error",
         "object-curly-spacing": ["error", "always"],
-        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+        "space-infix-ops": ["error"],
+        "arrow-parens": ["error"],
+
+        "no-unused-vars": ["off"],
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+
+        "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
+        "@typescript-eslint/no-explicit-any": ["error", { "ignoreRestArgs": true }],
+        "@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false }]
     }
 }
