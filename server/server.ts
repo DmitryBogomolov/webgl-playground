@@ -92,8 +92,13 @@ function buildCustomScript(target: Target): string {
 
 async function renderPlaygroundPage(target: Target): Promise<string> {
     const [
-        baseTemplate, head, body,
-        containerHead, containerBody, customHead, customBody,
+        baseTemplate,
+        headTemplate,
+        bodyTemplate,
+        containerHeadTemplate,
+        containerBodyTemplate,
+        customHeadTemplate,
+        customBodyTemplate,
     ] = await loadTemplates([
         BASE_TEMPLATE_PATH,
         PLAYGROUND_HEAD_TEMPLATE_PATH,
@@ -109,14 +114,14 @@ async function renderPlaygroundPage(target: Target): Promise<string> {
         custom_script: buildCustomScript(target),
     };
     const partials = {
-        head,
-        body,
-        container_head: customHead
-            ? Mustache.render(customHead, view, { container_head: containerHead }) : containerHead,
-        container_body: customBody
-            ? Mustache.render(customBody, view, { container_body: containerBody }) : containerBody,
+        head: headTemplate,
+        body: bodyTemplate,
+        container_head: customHeadTemplate
+            ? Mustache.render(customHeadTemplate, view, { container_head: containerHeadTemplate }) : containerHeadTemplate,
+        container_body: customBodyTemplate
+            ? Mustache.render(customBodyTemplate, view, { container_body: containerBodyTemplate }) : containerBodyTemplate,
     };
-    return Mustache.render(baseTemplate, view, partials );
+    return Mustache.render(baseTemplate, view, partials);
 }
 
 const INDENT = '  ';

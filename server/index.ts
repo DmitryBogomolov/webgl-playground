@@ -11,4 +11,6 @@ async function main(): Promise<void> {
     }
 }
 
+// TODO: Add "--fix" to "lint" script.
+
 void main();

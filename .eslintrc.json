@@ -39,6 +39,7 @@
         "object-curly-spacing": ["error", "always"],
         "space-infix-ops": ["error"],
         "arrow-parens": ["error"],
+        "space-in-parens": ["error"],
 
         "no-unused-vars": ["off"],
         "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
