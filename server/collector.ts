@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-const { readdir,access } = fs.promises;
+const { readdir, access } = fs.promises;
 const { R_OK } = fs.constants;
 
 const PLAYGROUND_DIR = path.resolve('./playground');

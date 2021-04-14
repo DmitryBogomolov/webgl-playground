@@ -90,6 +90,14 @@ function buildCustomScript(target: Target): string {
     return lines.join('\n');
 }
 
+function renderPart(
+    partTemplate: string, view: Record<string, string>, basePartTemplate: string, partKey: string,
+): string {
+    return partTemplate
+        ? Mustache.render(partTemplate, view, { [partKey]: basePartTemplate })
+        : basePartTemplate;
+}
+
 async function renderPlaygroundPage(target: Target): Promise<string> {
     const [
         baseTemplate,
@@ -116,10 +124,8 @@ async function renderPlaygroundPage(target: Target): Promise<string> {
     const partials = {
         head: headTemplate,
         body: bodyTemplate,
-        container_head: customHeadTemplate
-            ? Mustache.render(customHeadTemplate, view, { container_head: containerHeadTemplate }) : containerHeadTemplate,
-        container_body: customBodyTemplate
-            ? Mustache.render(customBodyTemplate, view, { container_body: containerBodyTemplate }) : containerBodyTemplate,
+        container_head: renderPart(customHeadTemplate, view, containerHeadTemplate, 'container_head'),
+        container_body: renderPart(customBodyTemplate, view, containerBodyTemplate, 'container_body'),
     };
     return Mustache.render(baseTemplate, view, partials);
 }
