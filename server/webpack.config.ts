@@ -1,7 +1,8 @@
-const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+import path from 'path';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import { Configuration } from 'webpack';
 
-module.exports = {
+export const config: Configuration = {
     mode: 'development',
     devtool: 'inline-source-map',
 

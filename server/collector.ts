@@ -1,13 +1,19 @@
-const path = require('path');
-const fs = require('fs');
-const { promisify } = require('util');
+import path from 'path';
+import fs from 'fs';
+import { promisify } from 'util';
 
 const readdir = promisify(fs.readdir);
 const access = promisify(fs.access);
 
 const PLAYGROUND_DIR = path.resolve('./playground');
 
-async function collect() {
+export interface Target {
+    readonly name: string;
+    readonly path: string;
+    readonly hasWorker: boolean;
+}
+
+export async function collect(): Promise<Target[]> {
     const dirNames = await readdir(PLAYGROUND_DIR);
     return Promise.all(dirNames.map(async (dirName) => {
         const dirPath = path.join(PLAYGROUND_DIR, dirName);
@@ -28,7 +34,3 @@ async function collect() {
         };
     }));
 }
-
-module.exports = {
-    collect,
-};

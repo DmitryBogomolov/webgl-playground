@@ -1,7 +1,7 @@
-const { collect } = require('./collector');
-const { runServer } = require('./server');
+import { collect } from './collector';
+import { runServer } from './server';
 
-async function main() {
+async function main(): Promise<void> {
     try {
         const targets = await collect();
         await runServer(targets);

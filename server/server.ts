@@ -1,13 +1,14 @@
-const path = require('path');
-const fs = require('fs');
-const { promisify } = require('util');
-const http = require('http');
-const express = require('express');
-const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware');
-const Mustache = require('mustache');
-const { log, error } = require('./utils');
-const webpackConfig = require('./webpack.config');
+import path from 'path';
+import fs from 'fs';
+import { promisify } from 'util';
+import http from  'http';
+import express from 'express';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import Mustache from 'mustache';
+import { log, error } from './utils';
+import { config as webpackConfig } from './webpack.config';
+import { Target } from './collector';
 
 const readFile = promisify(fs.readFile);
 
@@ -26,14 +27,14 @@ const HOME_ENTRY_PATH = path.resolve('./templates/index.js');
 const STATIC_ROUTE = '/static';
 const PLAYGROUND_ROUTE = '/playground';
 
-function getBundleRoute(name) {
+function getBundleRoute(name: string) {
     return `${STATIC_ROUTE}/${name}.js`;
 }
 
-function buildConfig(baseConfig, targets) {
-    const config = { ...baseConfig };
-    const entry = config.entry = {
-        ...config.entry,
+function buildConfig(baseConfig: webpack.Configuration, targets: Target[]): webpack.Configuration {
+    const config: webpack.Configuration = { ...baseConfig };
+    const entry: webpack.Entry = config.entry = {
+        ...(config.entry as webpack.Entry),
         [HOME_TARGET_NAME]: HOME_ENTRY_PATH,
     };
     targets.forEach((target) => {
@@ -45,7 +46,7 @@ function buildConfig(baseConfig, targets) {
     return config;
 }
 
-async function loadTemplates(fileNames) {
+async function loadTemplates(fileNames: string[]): Promise<(string | null)[]> {
     const contents = await Promise.all(
         fileNames.map(async (fileName) => {
             try {
@@ -62,7 +63,7 @@ async function loadTemplates(fileNames) {
     return contents;
 }
 
-async function renderRootPage(targets) {
+async function renderRootPage(targets: Target[]): Promise<string> {
     const [baseTemplate, head, body] = await loadTemplates([
         BASE_TEMPLATE_PATH,
         ROOT_HEAD_TEMPLATE_PATH,
@@ -76,10 +77,10 @@ async function renderRootPage(targets) {
         })),
         bundle: getBundleRoute(HOME_TARGET_NAME),        
     };
-    return Mustache.render(baseTemplate, view, { head, body });
+    return Mustache.render(baseTemplate!, view, { head: head!, body: body! });
 }
 
-function buildCustomScript(target) {
+function buildCustomScript(target: Target): string {
     const lines = [];
     lines.push('<script>');
     lines.push(`PLAYGROUND_ROOT = ${JSON.stringify('#playground-root')};`);
@@ -90,7 +91,7 @@ function buildCustomScript(target) {
     return lines.join('\n');
 }
 
-async function renderPlaygroundPage(target) {
+async function renderPlaygroundPage(target: Target): Promise<string> {
     const [
         baseTemplate, head, body,
         containerHead, containerBody, customHead, customBody,
@@ -109,32 +110,28 @@ async function renderPlaygroundPage(target) {
         custom_script: buildCustomScript(target),
     };
     const partials = {
-        head,
-        body,
+        head: head!,
+        body: body!,
         container_head: customHead
-            ? Mustache.render(customHead, view, { container_head: containerHead }) : containerHead,
+            ? Mustache.render(customHead, view, { container_head: containerHead! }) : containerHead!,
         container_body: customBody
-            ? Mustache.render(customBody, view, { container_body: containerBody }) : containerBody,
+            ? Mustache.render(customBody, view, { container_body: containerBody! }) : containerBody!,
     };
-    return Mustache.render(baseTemplate, view, partials );
+    return Mustache.render(baseTemplate!, view, partials );
 }
 
 const INDENT = '  ';
 
-function startListening(app) {
-    return new Promise((resolve, reject) => {
-        http.createServer(app).listen(PORT, (err) => {
-            if (err) {
-                reject(err);
-                return;
-            }
+function startListening(app: express.Express): Promise<void> {
+    return new Promise((resolve, _reject) => {
+        http.createServer(app).listen(PORT, () => {
             log(`Listening ${PORT}\n`);
             resolve();
         });
     });
 }
 
-async function runServer(targets) {
+export async function runServer(targets: Target[]): Promise<void> {
     const compiler = webpack(buildConfig(webpackConfig, targets));
 
     const app = express();
@@ -177,7 +174,3 @@ async function runServer(targets) {
 
     await startListening(app);
 }
-
-module.exports = {
-    runServer,
-};
