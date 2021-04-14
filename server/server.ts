@@ -26,7 +26,7 @@ const HOME_ENTRY_PATH = path.resolve('./templates/index.js');
 const STATIC_ROUTE = '/static';
 const PLAYGROUND_ROUTE = '/playground';
 
-function getBundleRoute(name: string) {
+function getBundleRoute(name: string): string {
     return `${STATIC_ROUTE}/${name}.js`;
 }
 
