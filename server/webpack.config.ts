@@ -2,7 +2,7 @@ import path from 'path';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import { Configuration } from 'webpack';
 
-export const config: Configuration = {
+const config: Configuration = {
     mode: 'development',
     devtool: 'inline-source-map',
 
@@ -40,3 +40,5 @@ export const config: Configuration = {
         new CleanWebpackPlugin(),
     ],
 };
+
+export default config;

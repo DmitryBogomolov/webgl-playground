@@ -6,7 +6,7 @@ import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import Mustache from 'mustache';
 import { log, error } from './utils';
-import { config as webpackConfig } from './webpack.config';
+import webpackConfig from './webpack.config';
 import { Target } from './collector';
 
 const { readFile } = fs.promises;
