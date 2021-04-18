@@ -11,11 +11,11 @@ export class VertexArrayObject extends BaseWrapper<WebGLVertexArrayObjectOES> {
     }
 
     static contextMethods = {
-        createVertexArrayObject(ctx: ContextView) {
+        createVertexArrayObject(ctx: ContextView): VertexArrayObject {
             return new VertexArrayObject(ctx);
         },
         
-        bindVertexArrayObject(ctx: ContextView, target: VertexArrayObject | null) {
+        bindVertexArrayObject(ctx: ContextView, target: VertexArrayObject | null): void {
             ctx.logCall('bind_vertex_array_object', target ? target.id() : null);
             ctx.vaoExt().bindVertexArrayOES(target ? target.handle() : null);
         },

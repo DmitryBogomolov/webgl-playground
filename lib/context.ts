@@ -84,7 +84,7 @@ export class Context implements ContextView {
         return this._canvas;
     }
 
-    logCall(funcName: string, param: any): void {
+    logCall(funcName: string, param: unknown): void {
         this._logger.log(`${funcName}(${param})`);
     }
 
@@ -118,7 +118,7 @@ export class Context implements ContextView {
         return IndexBuffer.contextMethods.createIndexBuffer(this);
     }
     
-    bindIndexBuffer(target: IndexBuffer | null) {
+    bindIndexBuffer(target: IndexBuffer | null): void {
         IndexBuffer.contextMethods.bindIndexBuffer(this, target);
     }
 
@@ -130,19 +130,19 @@ export class Context implements ContextView {
         VertexArrayObject.contextMethods.bindVertexArrayObject(this, target);
     }
 
-    createTexture() {
+    createTexture(): Texture {
         return Texture.contextMethods.createTexture(this);
     }
 
-    bindTexture(target: Texture | null) {
+    bindTexture(target: Texture | null): void {
         Texture.contextMethods.bindTexture(this, target);
     }
 
-    activeTexture(unit: number) {
+    activeTexture(unit: number): void {
         Texture.contextMethods.activeTexture(this, unit);
     }
 
-    setTextureParameters(params: Record<string, string>) {
+    setTextureParameters(params: Record<string, string>): void {
         Texture.contextMethods.setTextureParameters(this, params);
     }
 
@@ -150,15 +150,15 @@ export class Context implements ContextView {
         Texture.contextMethods.setTextureImage(this, width, height, data);
     }
 
-    setUnpackFlipY(value: number | boolean) {
+    setUnpackFlipY(value: number | boolean): void {
         Texture.contextMethods.setUnpackFlipY(this, value);
     }
 
-    createProgram() {
+    createProgram(): Program {
         return Program.contextMethods.createProgram(this);
     }
 
-    useProgram(target: Program | null) {
+    useProgram(target: Program | null): void {
         Program.contextMethods.useProgram(this, target);
     }
 }

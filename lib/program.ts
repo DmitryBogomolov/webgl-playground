@@ -96,7 +96,7 @@ export class Program extends BaseWrapper<WebGLProgram> {
     private _collectAttributes(): Record<string, AttributeDesc> {
         const ctx = this._context.handle();
         const program = this._handle;
-        const count = ctx.getProgramParameter(program, ACTIVE_ATTRIBUTES);
+        const count = ctx.getProgramParameter(program, ACTIVE_ATTRIBUTES) as number;
         const attributes: Record<string, AttributeDesc> = {};
         for (let i = 0; i < count; ++i) {
             const { name, size, type } = ctx.getActiveAttrib(program, i)!;
@@ -113,7 +113,7 @@ export class Program extends BaseWrapper<WebGLProgram> {
     private _collectUniforms(): Record<string, UniformDesc> {
         const ctx = this._context.handle();
         const program = this._handle;
-        const count = ctx.getProgramParameter(program, ACTIVE_UNIFORMS);
+        const count = ctx.getProgramParameter(program, ACTIVE_UNIFORMS) as number;
         const uniforms: Record<string, UniformDesc> = {};
         for (let i = 0; i < count; ++i) {
             const { name, size, type } = ctx.getActiveUniform(program, i)!;
@@ -182,13 +182,13 @@ export class Program extends BaseWrapper<WebGLProgram> {
     }
 
     static contextMethods = {
-        createProgram(ctx: ContextView) {
+        createProgram(ctx: ContextView): Program {
             return new Program(ctx);
         },
     
-        useProgram(ctx: ContextView, target: Program | null) {
+        useProgram(ctx: ContextView, target: Program | null): void {
             ctx.logCall('use_program', target ? target.id() : null);
             ctx.handle().useProgram(target ? target.handle() : null);
         },
-    }
-};
+    };
+}

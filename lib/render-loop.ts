@@ -12,7 +12,7 @@ export class RenderLoop {
         this._logger = new Logger(generateId('RenderLoop'));
         this._requestId = 0;
         this._timestamp = NaN;
-        this._renderFrame = (timestamp) => {
+        this._renderFrame = (timestamp): void => {
             // Measured in ms.
             const delta = (timestamp - this._timestamp) || 0;
             this._timestamp = timestamp;

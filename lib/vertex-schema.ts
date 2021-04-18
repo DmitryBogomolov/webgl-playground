@@ -95,6 +95,8 @@ export class VertexSchema {
         });
         this.items = items;
         this.vertexSize = totalSize + (this.isPacked ? 0 : getAlignBytes(totalSize));
-        this._logger.log(`parsed(fields: ${this.items.length}, vertex_size: ${this.vertexSize}${this.isPacked ? ', packed' : ''})`);
+        this._logger.log(
+            `parsed(fields: ${this.items.length}, vertex_size: ${this.vertexSize}${this.isPacked ? ', packed' : ''})`,
+        );
     }
 }
