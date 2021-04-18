@@ -1,25 +1,27 @@
 import { VertexArrayObject } from './vertex-array-object';
 import './no-console-in-tests';
+import { ContextView } from './context-view';
 
 describe('vertex array object', () => {
     describe('VertexArrayObject', () => {
-        /** @type {WebGLVertexArrayObjectOES} */
-        let vao;
-        /** @type {OES_vertex_array_object} */
-        let vaoExt;
-        /** @type {import('./program').Context} */
-        let context;
+        let vao: WebGLVertexArrayObjectOES;
+        let vaoExt: OES_vertex_array_object;
+        let context: ContextView;
+        let createVertexArrayOES: jest.Mock;
+        let bindVertexArrayOES: jest.Mock;
 
         beforeEach(() => {
             vao = { tag: 'test-vao' };
+            createVertexArrayOES = jest.fn().mockReturnValue(vao);
+            bindVertexArrayOES = jest.fn();
             vaoExt = {
-                createVertexArrayOES: jest.fn().mockReturnValue(vao),
-                bindVertexArrayOES: jest.fn(),
-            };
+                createVertexArrayOES,
+                bindVertexArrayOES,
+            } as unknown as OES_vertex_array_object;
             context = {
-                logCall() { },
+                logCall() { /* empty */ },
                 vaoExt() { return vaoExt; },
-            };
+            } as unknown as ContextView;
         });
 
         it('has proper handle', () => {
@@ -27,14 +29,15 @@ describe('vertex array object', () => {
         });
 
         it('create vertex array object', () => {
-            expect(VertexArrayObject.contextMethods.createVertexArrayObject(context) instanceof VertexArrayObject).toEqual(true);
+            expect(VertexArrayObject.contextMethods.createVertexArrayObject(context) instanceof VertexArrayObject)
+                .toEqual(true);
         });
 
         it('bind vertex array object', () => {
             VertexArrayObject.contextMethods.bindVertexArrayObject(context, new VertexArrayObject(context));
             VertexArrayObject.contextMethods.bindVertexArrayObject(context, null);
 
-            expect(vaoExt.bindVertexArrayOES.mock.calls).toEqual([
+            expect(bindVertexArrayOES.mock.calls).toEqual([
                 [vao],
                 [null],
             ]);

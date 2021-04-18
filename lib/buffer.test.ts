@@ -1,25 +1,29 @@
 import { VertexBuffer, IndexBuffer } from './buffer';
+import { ContextView } from './context-view';
 import './no-console-in-tests';
 
 describe('buffer', () => {
-    /** @type {WebGLBuffer} */
-    let buffer;
-    /** @type {WebGLRenderingContext} */
-    let ctx;
-    /** @type {import('./program').Context} */
-    let context;
+    let buffer: WebGLBuffer;
+    let ctx: WebGLRenderingContext;
+    let context: ContextView;
+    let createBuffer: jest.Mock;
+    let bindBuffer: jest.Mock;
+    let bufferData: jest.Mock;
 
     beforeEach(() => {
         buffer = { tag: 'test-buffer' };
+        createBuffer = jest.fn().mockReturnValue(buffer);
+        bindBuffer = jest.fn();
+        bufferData = jest.fn();
         ctx = {
-            createBuffer: jest.fn().mockReturnValue(buffer),
-            bindBuffer: jest.fn(),
-            bufferData: jest.fn(),
-        };
+            createBuffer,
+            bindBuffer,
+            bufferData,
+        } as unknown as WebGLRenderingContext;
         context = {
-            logCall() { },
+            logCall() { /* empty */ },
             handle() { return ctx; },
-        };
+        } as unknown as ContextView;
     });
 
     describe('VertexBuffer', () => {
@@ -35,7 +39,7 @@ describe('buffer', () => {
             const stubBuffer = new ArrayBuffer(100);
             new VertexBuffer(context).setData(stubBuffer);
 
-            expect(ctx.bufferData.mock.calls[0]).toEqual(['#ARRAY_BUFFER', stubBuffer, '#STATIC_DRAW']);
+            expect(bufferData.mock.calls[0]).toEqual(['#ARRAY_BUFFER', stubBuffer, '#STATIC_DRAW']);
         });
 
         it('create buffer', () => {
@@ -46,7 +50,7 @@ describe('buffer', () => {
             VertexBuffer.contextMethods.bindVertexBuffer(context, new VertexBuffer(context));
             VertexBuffer.contextMethods.bindVertexBuffer(context, null);
 
-            expect(ctx.bindBuffer.mock.calls).toEqual([
+            expect(bindBuffer.mock.calls).toEqual([
                 ['#ARRAY_BUFFER', buffer],
                 ['#ARRAY_BUFFER', null],
             ]);
@@ -66,7 +70,7 @@ describe('buffer', () => {
             const stubBuffer = new ArrayBuffer(100);
             new IndexBuffer(context).setData(stubBuffer);
 
-            expect(ctx.bufferData.mock.calls[0]).toEqual(['#ELEMENT_ARRAY_BUFFER', stubBuffer, '#STATIC_DRAW']);
+            expect(bufferData.mock.calls[0]).toEqual(['#ELEMENT_ARRAY_BUFFER', stubBuffer, '#STATIC_DRAW']);
         });
 
         it('create buffer', () => {
@@ -77,7 +81,7 @@ describe('buffer', () => {
             IndexBuffer.contextMethods.bindIndexBuffer(context, new IndexBuffer(context));
             IndexBuffer.contextMethods.bindIndexBuffer(context, null);
 
-            expect(ctx.bindBuffer.mock.calls).toEqual([
+            expect(bindBuffer.mock.calls).toEqual([
                 ['#ELEMENT_ARRAY_BUFFER', buffer],
                 ['#ELEMENT_ARRAY_BUFFER', null],
             ]);

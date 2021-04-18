@@ -1,25 +1,27 @@
 import { Program } from './program';
 import './no-console-in-tests';
+import { ContextView } from './context-view';
 
 describe('program', () => {
     describe('Program', () => {
-        /** @type {WebGLProgram} */
-        let program;
-        /** @type {WebGLRenderingContext} */
-        let ctx;
-        /** @type {import('./program').Context} */
-        let context;
+        let program: WebGLProgram;
+        let ctx: WebGLRenderingContext;
+        let context: ContextView;
+        let createProgram: jest.Mock;
+        let useProgram: jest.Mock;
 
         beforeEach(() => {
             program = { tag: 'test-program' };
+            createProgram = jest.fn().mockReturnValue(program);
+            useProgram = jest.fn();
             ctx = {
-                createProgram: jest.fn().mockReturnValue(program),
-                useProgram: jest.fn(),
-            };
+                createProgram,
+                useProgram,
+            } as unknown as WebGLRenderingContext;
             context = {
-                logCall() { },
+                logCall() { /* empty */ },
                 handle() { return ctx; },
-            };
+            } as unknown as ContextView;
         });
         
         it('has proper handle', () => {
@@ -34,7 +36,7 @@ describe('program', () => {
             Program.contextMethods.useProgram(context, new Program(context));
             Program.contextMethods.useProgram(context, null);
 
-            expect(ctx.useProgram.mock.calls).toEqual([
+            expect(useProgram.mock.calls).toEqual([
                 [program],
                 [null],
             ]);
