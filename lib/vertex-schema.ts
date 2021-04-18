@@ -71,7 +71,7 @@ export class VertexSchema {
             if (!field.name) {
                 throw raiseError(this._logger, `item ${i} "name" is not defined`);
             }
-            const {name}=field;
+            const { name } = field;
             const type = parseType(name);
             const size = parseSize(name);
             const bytes = BYTE_SIZES[type];
@@ -88,7 +88,7 @@ export class VertexSchema {
                 bytes,
                 normalized: type !== 'float' && !!field.normalized,
                 offset: totalSize,
-                gltype: GL_TYPES[type]
+                gltype: GL_TYPES[type],
             });
             const byteSize = bytes * size;
             totalSize += byteSize + (this.isPacked ? 0 : getAlignBytes(byteSize));

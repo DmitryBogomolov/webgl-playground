@@ -8,6 +8,6 @@ export interface Color {
     readonly a: number;
 }
 
-export function color(r: number, g: number, b: number, a: number = 1): Color {
+export function color(r: number, g: number, b: number, a = 1): Color {
     return { r, g, b, a };
 }

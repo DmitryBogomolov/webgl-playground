@@ -11,7 +11,7 @@ describe('context', () => {
         let ctx;
         /** @type {OES_vertex_array_object} */
         let vaoExt;
-        let createElement = document.createElement;
+        const createElement = document.createElement;
 
         beforeEach(() => {
             container = document.createElement('div');

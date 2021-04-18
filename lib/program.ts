@@ -1,5 +1,7 @@
+import { VertexSchema } from '.';
 import { BaseWrapper } from './base-wrapper';
 import { contextConstants } from './context-constants';
+import { ContextView } from './context-view';
 import { raiseError } from './utils';
 
 const {
@@ -10,48 +12,64 @@ const {
     SAMPLER_2D,
 } = contextConstants;
 
-const uniformSetters = {
-    [FLOAT]: 'uniform1f',
-    [FLOAT_VEC2]: 'uniform2fv',
-    [FLOAT_VEC3]: 'uniform3fv',
-    [FLOAT_VEC4]: 'uniform4fv',
-    [SAMPLER_2D]: 'uniform1i',
+type UniformValue = number | [number, number] | [number, number, number] | [number, number, number, number];
+type UniformSetter = (ctx: WebGLRenderingContext, location: WebGLUniformLocation, value: UniformValue) => void;
+
+const uniformSetters: Record<number, UniformSetter> = {
+    [FLOAT]: (ctx, location, value) => ctx.uniform1f(location, value as number),
+    [FLOAT_VEC2]: (ctx, location, value) => ctx.uniform2fv(location, value as number[]),
+    [FLOAT_VEC3]: (ctx, location, value) => ctx.uniform3fv(location, value as number[]),
+    [FLOAT_VEC4]: (ctx, location, value) => ctx.uniform4fv(location, value as number[]),
+    [SAMPLER_2D]: (ctx, location, value) => ctx.uniform1i(location, value as number),
 };
 
-/** @typedef {import('./vertex-schema').VertexSchema} VertexSchema */
+interface AttributeDesc {
+    readonly location: number;
+    readonly size: number;
+    readonly type: number;
+}
 
-/**
- * @typedef {Object} AttributeDesc
- * @property {number} location
- * @property {number} size
- * @property {number} type
- */
+interface UniformDesc {
+    readonly location: WebGLUniformLocation;
+    readonly size: number;
+    readonly type: number;
+}
 
-/**
- * @typedef {Object} UniformDesc
- * @property {WebGLUniformLocation} location
- * @property {number} size
- * @property {number} type
- */
+type AttributesMap = Record<string, AttributeDesc>;
 
-export class Program extends BaseWrapper {
-    _init() {
-        this._handle = this._context.handle().createProgram();
+type UniformsMap = Record<string, UniformDesc>;
+
+export class Program extends BaseWrapper<WebGLProgram> {
+    private _vertexShader: WebGLShader | null = null;
+    private _fragmentShader: WebGLShader | null = null;
+    private _attributes: AttributesMap = {};
+    private _uniforms: UniformsMap = {};
+
+    constructor(context: ContextView) {
+        super(context);
         this.setSources(null, null);
     }
 
-    _dispose() {
+    dispose(): void {
         this.setSources(null, null);
-        this._context.handle().deleteProgram(this._handle);
+        super.dispose();
     }
 
-    _createShader(/** @type {number} */type, /** @type {string} */source) {
+    protected _createHandle(): WebGLProgram {
+        return this._context.handle().createProgram()!;
+    }
+
+    protected _destroyHandle(handle: WebGLProgram): void {
+        this._context.handle().deleteProgram(handle);
+    }
+
+    private _createShader(type: number, source: string): WebGLShader {
         const ctx = this._context.handle();
-        const shader = ctx.createShader(type);
+        const shader = ctx.createShader(type)!;
         ctx.shaderSource(shader, source);
         ctx.compileShader(shader);
         if (!ctx.getShaderParameter(shader, COMPILE_STATUS)) {
-            const info = ctx.getShaderInfoLog(shader);
+            const info = ctx.getShaderInfoLog(shader)!;
             ctx.deleteShader(shader);
             throw raiseError(this._logger, info);
         }
@@ -59,30 +77,29 @@ export class Program extends BaseWrapper {
         return shader;
     }
 
-    _deleteShader(/** @type {WebGLShader} */shader) {
+    private _deleteShader(shader: WebGLShader): void {
         const ctx = this._context.handle();
         ctx.detachShader(this._handle, shader);
         ctx.deleteShader(shader);
     }
 
-    _linkProgram() {
+    private _linkProgram(): void {
         const ctx = this._context.handle();
         const program = this._handle;
         ctx.linkProgram(program);
         if (!ctx.getProgramParameter(program, LINK_STATUS)) {
-            const info = ctx.getProgramInfoLog(program);
+            const info = ctx.getProgramInfoLog(program)!;
             throw raiseError(this._logger, info);
         }
     }
 
-    _collectAttributes() {
+    private _collectAttributes(): Record<string, AttributeDesc> {
         const ctx = this._context.handle();
         const program = this._handle;
         const count = ctx.getProgramParameter(program, ACTIVE_ATTRIBUTES);
-        /** @type {{ [name: string]: AttributeDesc }} */
-        const attributes = {};
+        const attributes: Record<string, AttributeDesc> = {};
         for (let i = 0; i < count; ++i) {
-            const { name, size, type } = ctx.getActiveAttrib(program, i);
+            const { name, size, type } = ctx.getActiveAttrib(program, i)!;
             const location = ctx.getAttribLocation(program, name);
             attributes[name] = {
                 location,
@@ -93,15 +110,14 @@ export class Program extends BaseWrapper {
         return attributes;
     }
 
-    _collectUniforms() {
+    private _collectUniforms(): Record<string, UniformDesc> {
         const ctx = this._context.handle();
         const program = this._handle;
         const count = ctx.getProgramParameter(program, ACTIVE_UNIFORMS);
-        /** @type {{ [name: string]: UniformDesc }} */
-        const uniforms = {};
+        const uniforms: Record<string, UniformDesc> = {};
         for (let i = 0; i < count; ++i) {
-            const { name, size, type } = ctx.getActiveUniform(program, i);
-            const location = ctx.getUniformLocation(program, name);
+            const { name, size, type } = ctx.getActiveUniform(program, i)!;
+            const location = ctx.getUniformLocation(program, name)!;
             uniforms[name] = {
                 location,
                 size,
@@ -111,7 +127,7 @@ export class Program extends BaseWrapper {
         return uniforms;
     }
 
-    setSources(/** @type {string | null} */vertexShader, /** @type {string | null} */fragmentShader) {
+    setSources(vertexShader: string | null, fragmentShader: string | null): void {
         if (this._vertexShader) {
             this._deleteShader(this._vertexShader);
             this._vertexShader = null;
@@ -133,7 +149,7 @@ export class Program extends BaseWrapper {
         }
     }
 
-    setupVertexAttributes(/** @type {VertexSchema} */schema) {
+    setupVertexAttributes(schema: VertexSchema): void {
         this._logger.log(`setup_vertex_attributes(${schema.items.length})`);
         const ctx = this._context.handle();
         const attributes = this._attributes;
@@ -152,7 +168,7 @@ export class Program extends BaseWrapper {
         });
     }
 
-    setUniform(/** @type {string} */name, /** @type {number} */value) {
+    setUniform(name: string, value: number): void {
         this._logger.log(`set_uniform(${name},${value})`);
         const attr = this._uniforms[name];
         if (!attr) {
@@ -162,19 +178,17 @@ export class Program extends BaseWrapper {
         if (!setter) {
             throw raiseError(this._logger, `uniform "${name}" setter is not found`);
         }
-        this._context.handle()[setter](attr.location, value);
+        setter(this._context.handle(), attr.location, value);
     }
-}
 
-/** @typedef {import('./context').Context} Context */
-
-Program.contextMethods = {
-    createProgram(/** @type {Context} */ctx, params) {
-        return new Program(ctx, params);
-    },
-
-    useProgram(/** @type {Context} */ctx, /** @type {Program} */target) {
-        ctx.logCall('use_program', target ? target.id() : null);
-        ctx.handle().useProgram(target ? target.handle() : null);
-    },
+    static contextMethods = {
+        createProgram(ctx: ContextView) {
+            return new Program(ctx);
+        },
+    
+        useProgram(ctx: ContextView, target: Program | null) {
+            ctx.logCall('use_program', target ? target.id() : null);
+            ctx.handle().useProgram(target ? target.handle() : null);
+        },
+    }
 };

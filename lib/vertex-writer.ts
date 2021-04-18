@@ -77,14 +77,14 @@ const dataViewCallers: Record<string, DataViewCaller> = {
     short: (dv, offset, value) => dv.setInt16(offset, value, true),
     ushort: (dv, offset, value) => dv.setUint16(offset, value, true),
     float: (dv, offset, value) => dv.setFloat32(offset, value, true),
-}
+};
 
 export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
     private readonly _dv: DataView;
 
     constructor(source: VertexWriterSource, schema: VertexSchema) {
         super(source, schema);
-        const {buffer, offset, length} = wrapBuffer(source);
+        const { buffer, offset, length } = wrapBuffer(source);
         this._dv = new DataView(buffer, offset, length);
         Object.assign(this._impl, dataViewCallers);
     }
@@ -111,7 +111,7 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
         if (this._schema.isPacked) {
             throw raiseError(this._logger, 'not for packed schema');
         }
-        const {buffer,offset,length}=wrapBuffer(source);
+        const { buffer, offset, length } = wrapBuffer(source);
         this._schema.items.forEach((meta) => {
             const type = meta.type;
             if (!this._impl[type]) {

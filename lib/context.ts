@@ -153,4 +153,12 @@ export class Context implements ContextView {
     setUnpackFlipY(value: number | boolean) {
         Texture.contextMethods.setUnpackFlipY(this, value);
     }
+
+    createProgram() {
+        return Program.contextMethods.createProgram(this);
+    }
+
+    useProgram(target: Program | null) {
+        Program.contextMethods.useProgram(this, target);
+    }
 }

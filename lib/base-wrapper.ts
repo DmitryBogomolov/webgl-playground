@@ -13,17 +13,13 @@ export abstract class BaseWrapper<T extends WebGLObject> {
         this._context = context;
         this._logger.log('init');
         this._handle = this._createHandle();
-        this._init();
     }
 
     protected abstract _createHandle(): T;
     protected abstract _destroyHandle(handle: T): void;
-    protected _init(): void { }
-    protected _dispose(): void { }
 
     dispose(): void {
         this._logger.log('dispose');
-        this._dispose();
         this._destroyHandle(this._handle);
     }
 
