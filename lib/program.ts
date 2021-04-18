@@ -1,5 +1,5 @@
 import { BaseWrapper } from './base-wrapper';
-import { constants } from './constants';
+import { contextConstants } from './context-constants';
 import { raiseError } from './utils';
 
 const {
@@ -8,7 +8,7 @@ const {
     ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS,
     FLOAT, FLOAT_VEC2, FLOAT_VEC3, FLOAT_VEC4,
     SAMPLER_2D,
-} = constants;
+} = contextConstants;
 
 const uniformSetters = {
     [FLOAT]: 'uniform1f',
@@ -53,7 +53,7 @@ export class Program extends BaseWrapper {
         if (!ctx.getShaderParameter(shader, COMPILE_STATUS)) {
             const info = ctx.getShaderInfoLog(shader);
             ctx.deleteShader(shader);
-            raiseError(this._logger, info);
+            throw raiseError(this._logger, info);
         }
         ctx.attachShader(this._handle, shader);
         return shader;
@@ -71,7 +71,7 @@ export class Program extends BaseWrapper {
         ctx.linkProgram(program);
         if (!ctx.getProgramParameter(program, LINK_STATUS)) {
             const info = ctx.getProgramInfoLog(program);
-            raiseError(this._logger, info);
+            throw raiseError(this._logger, info);
         }
     }
 
@@ -141,7 +141,7 @@ export class Program extends BaseWrapper {
         schema.items.forEach((item) => {
             const attr = attributes[item.name];
             if (!attr) {
-                raiseError(this._logger, `attribute "${item.name}" is unknown`);
+                throw raiseError(this._logger, `attribute "${item.name}" is unknown`);
             }
             // TODO: Validate type and size (if it is possible).
             // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getActiveUniform
@@ -156,11 +156,11 @@ export class Program extends BaseWrapper {
         this._logger.log(`set_uniform(${name},${value})`);
         const attr = this._uniforms[name];
         if (!attr) {
-            raiseError(this._logger, `uniform "${name}" is unknown`);
+            throw raiseError(this._logger, `uniform "${name}" is unknown`);
         }
         const setter = uniformSetters[attr.type];
         if (!setter) {
-            raiseError(this._logger, `uniform "${name}" setter is not found`);
+            throw raiseError(this._logger, `uniform "${name}" setter is not found`);
         }
         this._context.handle()[setter](attr.location, value);
     }

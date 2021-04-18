@@ -11,10 +11,24 @@
  * @property {Message[]} messages
  */
 
+type WorkerMessagePayload = any;
+
+interface WorkerEventData {
+    readonly type: string;
+    readonly payload: WorkerMessagePayload;
+}
+
+type WorkerMessageHandler = (message: WorkerMessagePayload) => void;
+
+type WorkerMessageHandlers = Record<string, WorkerMessageHandler>;
+
 export class WorkerMessenger {
-    constructor(/** @type {string} */workerUrl, /** @type {WorkerMessageHandlers} */messageHandlers) {
+    private readonly _worker: Worker;
+    private readonly _handleMessage: (event: MessageEvent<WorkerEventData>) => void;
+
+    constructor(workerUrl: string, messageHandlers: WorkerMessageHandlers) {
         this._worker = new Worker(workerUrl);
-        this._handleMessage = (/** @type {MessageEvent<WorkerEventData>} */event) => {
+        this._handleMessage = (event) => {
             const { type, payload } = event.data;
             const handleMessage = messageHandlers[type];
             if (handleMessage) {
@@ -29,13 +43,13 @@ export class WorkerMessenger {
         this._worker.terminate();
     }
 
-    post(/** @type {string} */type, /** @type {WorkerMessagePayload} */payload) {
+    post(type: string, payload: WorkerMessagePayload) {
         this._worker.postMessage({ type, payload });
     }
 }
 
-export function setWorkerMessageHandler(/** @type {WorkerMessageHandlers} */messageHandlers) {
-    self.onmessage = (/** @type {MessageEvent<WorkerEventData>} */event) => {
+export function setWorkerMessageHandler(messageHandlers: WorkerMessageHandlers): void {
+    self.onmessage = (event: MessageEvent<WorkerEventData>) => {
         const { type, payload } = event.data;
         const handleMessage = messageHandlers[type];
         if (handleMessage) {
@@ -44,6 +58,6 @@ export function setWorkerMessageHandler(/** @type {WorkerMessageHandlers} */mess
     };
 }
 
-export function postWorkerMessage(/** @type {string} */type, /** @type {WorkerMessagePayload} */payload) {
-    self.postMessage({ type, payload });
+export function postWorkerMessage(type: string, payload: WorkerMessagePayload): void {
+    self.postMessage({ type, payload }, 'TODO');
 }

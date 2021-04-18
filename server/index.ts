@@ -11,6 +11,9 @@ async function main(): Promise<void> {
     }
 }
 
+// TODO: Move "src" to ts.
+// TODO: Move tests to ts.
+// TODO: Try to use webpack-dev-server.
 // TODO: Add "--fix" to "lint" script.
 
 void main();

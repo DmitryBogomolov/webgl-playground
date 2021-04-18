@@ -1,15 +1,18 @@
 import { Logger, generateId } from './utils';
 
-/**
- * @typedef {(delta: number, timestamp: number) => void} RenderFrameCallback
- */
+type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
-    constructor(/** @type {RenderFrameCallback} */renderFrame) {
+    private readonly _logger: Logger;
+    private _requestId: number;
+    private _timestamp: number;
+    private readonly _renderFrame: FrameRequestCallback;
+
+    constructor(renderFrame: RenderFrameCallback) {
         this._logger = new Logger(generateId('RenderLoop'));
         this._requestId = 0;
         this._timestamp = NaN;
-        this._renderFrame = (/** @type {number} */timestamp) => {
+        this._renderFrame = (timestamp) => {
             // Measured in ms.
             const delta = (timestamp - this._timestamp) || 0;
             this._timestamp = timestamp;
@@ -18,11 +21,11 @@ export class RenderLoop {
         };
     }
 
-    _requestRender() {
+    private _requestRender(): void {
         this._requestId = requestAnimationFrame(this._renderFrame);
     }
 
-    start() {
+    start(): void {
         this._logger.log('start');
         if (this.isRunning()) {
             this._logger.error('already running');
@@ -31,7 +34,7 @@ export class RenderLoop {
         this._requestRender();
     }
 
-    stop() {
+    stop(): void {
         this._logger.log('stop');
         if (!this.isRunning()) {
             this._logger.error('not running');
@@ -40,7 +43,7 @@ export class RenderLoop {
         this._requestId = 0;
     }
 
-    isRunning() {
+    isRunning(): boolean {
         return this._requestId > 0;
     }
 }
