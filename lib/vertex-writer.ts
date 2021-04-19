@@ -126,9 +126,11 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
 }
 
 type VertexDesc = Record<string, number[]>;
-type VertexTransformer = (vertex: VertexDesc, index: number) => VertexDesc;
+type VertexTransformer<T> = (vertex: T, index: number) => VertexDesc;
 
-export function writeVertices(writer: BaseVertexWriter, vertices: VertexDesc[], func: VertexTransformer): void {
+export function writeVertices<T>(
+    writer: BaseVertexWriter<unknown>, vertices: ReadonlyArray<T>, func: VertexTransformer<T>,
+): void {
     const names = writer.schema().items.map((item) => item.name);
     vertices.forEach((vertex, i) => {
         const data = func(vertex, i);

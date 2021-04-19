@@ -12,14 +12,17 @@ const {
     SAMPLER_2D,
 } = contextConstants;
 
-type UniformValue = number | [number, number] | [number, number, number] | [number, number, number, number];
+type v2 = Readonly<[number, number]>;
+type v3 = Readonly<[number, number, number]>;
+type v4 = Readonly<[number, number, number, number]>;
+export type UniformValue = number | v2 | v3 | v4;
 type UniformSetter = (ctx: WebGLRenderingContext, location: WebGLUniformLocation, value: UniformValue) => void;
 
 const uniformSetters: Record<number, UniformSetter> = {
     [FLOAT]: (ctx, location, value) => ctx.uniform1f(location, value as number),
-    [FLOAT_VEC2]: (ctx, location, value) => ctx.uniform2fv(location, value as number[]),
-    [FLOAT_VEC3]: (ctx, location, value) => ctx.uniform3fv(location, value as number[]),
-    [FLOAT_VEC4]: (ctx, location, value) => ctx.uniform4fv(location, value as number[]),
+    [FLOAT_VEC2]: (ctx, location, value) => ctx.uniform2fv(location, value as v2),
+    [FLOAT_VEC3]: (ctx, location, value) => ctx.uniform3fv(location, value as v3),
+    [FLOAT_VEC4]: (ctx, location, value) => ctx.uniform4fv(location, value as v4),
     [SAMPLER_2D]: (ctx, location, value) => ctx.uniform1i(location, value as number),
 };
 
@@ -168,7 +171,7 @@ export class Program extends BaseWrapper<WebGLProgram> {
         });
     }
 
-    setUniform(name: string, value: number): void {
+    setUniform(name: string, value: UniformValue): void {
         this._logger.log(`set_uniform(${name},${value})`);
         const attr = this._uniforms[name];
         if (!attr) {
@@ -185,7 +188,7 @@ export class Program extends BaseWrapper<WebGLProgram> {
         createProgram(ctx: ContextView): Program {
             return new Program(ctx);
         },
-    
+
         useProgram(ctx: ContextView, target: Program | null): void {
             ctx.logCall('use_program', target ? target.id() : null);
             ctx.handle().useProgram(target ? target.handle() : null);

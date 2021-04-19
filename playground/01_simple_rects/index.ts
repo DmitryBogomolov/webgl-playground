@@ -3,6 +3,8 @@ import {
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
     VertexSchema,
+    VertexArrayObject,
+    Program,
     writeVertices,
     generateDefaultIndexes, logSilenced,
 } from 'lib';
@@ -13,7 +15,14 @@ import fragmentShaderSource from './shader.frag';
  * Just four triangles of different colors.
  */
 
-function initData(context, program) {
+interface State {
+    readonly context: Context;
+    readonly program: Program;
+    readonly vao: VertexArrayObject;
+    readonly indexCount: number;
+}
+
+function initData(context: Context, program: Program): Pick<State, 'vao' | 'indexCount'> {
     const c1 = [1, 0, 0]; // red
     const c2 = [1, 1, 0]; // yellow
     const c3 = [0, 1, 0]; // green
@@ -78,8 +87,8 @@ function initData(context, program) {
     };
 }
 
-function init() {
-    const container = document.querySelector(PLAYGROUND_ROOT); // eslint-disable-line no-undef
+function init(): State {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!; // eslint-disable-line no-undef
     const context = new Context(container);
 
     const program = context.createProgram();
@@ -95,7 +104,7 @@ function init() {
     };
 }
 
-function render({ context, program, vao, indexCount }) {
+function render({ context, program, vao, indexCount }: State): void {
     context.clearColor();
     context.useProgram(program);
     context.bindVertexArrayObject(vao);

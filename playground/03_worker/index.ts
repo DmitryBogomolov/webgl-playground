@@ -5,7 +5,11 @@ import {
     writeVertices,
     WorkerMessenger,
     color,
+    Color,
     logSilenced,
+    RenderFrameCallback,
+    Program,
+    VertexArrayObject,
 } from 'lib';
 import {
     TYPE_SCALE,
@@ -18,13 +22,13 @@ import fragmentShaderSource from './shader.frag';
  * Web worker.
  *
  * On each frame message is sent to worker thread. Worker thread from time to time
- * sends message back - with scale or color parameter.   
+ * sends message back - with scale or color parameter.
  */
 
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
-function initData(context, program) {
+function initData(context: Context, program: Program): { vao: VertexArrayObject, indexCount: number } {
     const schema = new VertexSchema([
         { name: 'a_position', type: 'float2' },
     ]);
@@ -58,9 +62,9 @@ function initData(context, program) {
     };
 }
 
-function init() {
+function init(): RenderFrameCallback {
     // eslint-disable-next-line no-undef
-    const container = document.querySelector(PLAYGROUND_ROOT);
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const context = new Context(container);
     context.setClearColor(color(0.8, 0.8, 0.8));
 
@@ -75,17 +79,17 @@ function init() {
     // eslint-disable-next-line no-undef
     const worker = new WorkerMessenger(WORKER_URL, {
         [TYPE_SCALE](payload) {
-            scale = payload;
+            scale = payload as number;
         },
         [TYPE_COLOR](payload) {
-            clr = payload;
+            clr = payload as Color;
         },
     });
 
     let scaleDelta = 0;
     let colorDelta = 0;
 
-    function render(delta) {
+    function render(delta: number): void {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {

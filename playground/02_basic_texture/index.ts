@@ -6,51 +6,52 @@ import {
     FluentVertexWriter,
     writeVertices,
     RenderLoop,
+    RenderFrameCallback,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
 /**
  * Four rectangles.
- * 
+ *
  * Top rectangles are colored with texture.
  * Left one with *nearest* filter, right one with *linear*.
- * 
+ *
  * Bottom rectangles are colored with a colored samples from texture.
  * Left one with *nearest* filter, right one with *linear*.
  * Texture coordinates are taken from input controls.
- * 
+ *
  * Texture is custom 4x4 image.
  * First two rows have colors from black to white.
  * Last two rows have same colors in reverse order.
  */
 
-function attachHandlers(initial, handleChange) {
-    const uInput = document.querySelector('#u-coord-input');
-    const vInput = document.querySelector('#v-coord-input');
-    const uLabel = document.querySelector('#u-coord-label');
-    const vLabel = document.querySelector('#v-coord-label');
+function attachHandlers(initial: TexCoord, handleChange: (val: TexCoord) => void): void {
+    const uInput = document.querySelector<HTMLInputElement>('#u-coord-input')!;
+    const vInput = document.querySelector<HTMLInputElement>('#v-coord-input')!;
+    const uLabel = document.querySelector<HTMLSpanElement>('#u-coord-label')!;
+    const vLabel = document.querySelector<HTMLSpanElement>('#v-coord-label')!;
 
     let [uValue, vValue] = initial;
 
-    function updateView() {
-        uInput.value = uValue;
-        vInput.value = vValue;
-        uLabel.innerHTML = uValue;
-        vLabel.innerHTML = vValue;
+    function updateView(): void {
+        uInput.value = String(uValue);
+        vInput.value = String(vValue);
+        uLabel.innerHTML = String(uValue);
+        vLabel.innerHTML = String(vValue);
     }
 
-    function notifyChange() {
+    function notifyChange(): void {
         handleChange([uValue, vValue]);
     }
 
-    uInput.addEventListener('change', (e) => {
-        uValue = Number(e.target.value);
+    uInput.addEventListener('change', () => {
+        uValue = Number(uInput.value);
         updateView();
         notifyChange();
     });
-    vInput.addEventListener('change', (e) => {
-        vValue = Number(e.target.value);
+    vInput.addEventListener('change', () => {
+        vValue = Number(vInput.value);
         updateView();
         notifyChange();
     });
@@ -58,7 +59,7 @@ function attachHandlers(initial, handleChange) {
     updateView();
 }
 
-function generateVertices(schema) {
+function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, indexData: Uint16Array } {
     const vertices = [
         { position: [-1, -1], texcoord: [0, 0] },
         { position: [+1, -1], texcoord: [1, 0] },
@@ -78,7 +79,7 @@ function generateVertices(schema) {
     return { vertexData, indexData };
 }
 
-function generateTextureData() {
+function generateTextureData(): { size: [number, number], data: Uint8Array } {
     const schema = new VertexSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
     const pixels = [
         // black, blue, green, cyan,
@@ -98,14 +99,18 @@ function generateTextureData() {
     };
 }
 
-function init() {
-    let texcoord = [0, 0];
+type TexCoord = Readonly<[number, number]>;
+type TexDir = Readonly<[number, number]>;
+
+function init(): RenderFrameCallback {
+    let texcoord: TexCoord = [0, 0];
     attachHandlers(texcoord, (arg) => {
         texcoord = arg;
     });
 
-    const context = new Context(document.querySelector(PLAYGROUND_ROOT)); // eslint-disable-line no-undef
-    
+    // eslint-disable-next-line no-undef
+    const context = new Context(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
+
     context.setClearColor(color(0.8, 0.8, 0.8));
 
     const schema = new VertexSchema([
@@ -135,12 +140,12 @@ function init() {
     const program = context.createProgram();
     program.setSources(vertexShaderSource, fragmentShaderSource);
     program.setupVertexAttributes(schema);
-    
+
     context.bindVertexArrayObject(null);
 
     const texData = generateTextureData();
     context.setUnpackFlipY(true);
-    
+
     const texture = context.createTexture();
     context.activeTexture(0);
     context.bindTexture(texture);
@@ -152,7 +157,7 @@ function init() {
     });
     context.setTextureImage(texData.size[0], texData.size[1], texData.data);
 
-    function drawRect(dir, filter, texcoord) {
+    function drawRect(dir: TexDir, filter: string, texcoord: TexCoord | null): void {
         program.setUniform('u_dir', dir);
         program.setUniform('u_flag', texcoord ? 1 : 0);
         if (texcoord) {
@@ -166,10 +171,10 @@ function init() {
         context.drawElements(indexData.length);
     }
 
-    const DIR_TL = [-1, +1];
-    const DIR_TR = [+1, +1];
-    const DIR_BL = [-1, -1];
-    const DIR_BR = [+1, -1];
+    const DIR_TL: TexDir = [-1, +1];
+    const DIR_TR: TexDir = [+1, +1];
+    const DIR_BL: TexDir = [-1, -1];
+    const DIR_BR: TexDir = [+1, -1];
 
     return () => {
         context.clearColor();

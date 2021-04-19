@@ -1,6 +1,6 @@
 import { Logger, generateId } from './utils';
 
-type RenderFrameCallback = (delta: number, timestamp: number) => void;
+export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
     private readonly _logger = new Logger(generateId('RenderLoop'));
