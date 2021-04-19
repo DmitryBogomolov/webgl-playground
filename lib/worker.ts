@@ -46,5 +46,5 @@ export function setWorkerMessageHandler(messageHandlers: WorkerMessageHandlers):
 }
 
 export function postWorkerMessage(type: string, payload: WorkerMessagePayload): void {
-    self.postMessage({ type, payload }, 'TODO');
+    self.postMessage({ type, payload }, '*');
 }
