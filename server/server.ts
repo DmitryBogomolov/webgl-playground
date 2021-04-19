@@ -37,9 +37,9 @@ function buildConfig(baseConfig: webpack.Configuration, targets: Target[]): webp
         [HOME_TARGET_NAME]: HOME_ENTRY_PATH,
     };
     targets.forEach((target) => {
-        entry[target.name] = path.join(target.path, 'index.js');
+        entry[target.name] = path.join(target.path, 'index.ts');
         if (target.hasWorker) {
-            entry[target.name + '_worker'] = path.join(target.path, 'worker.js');
+            entry[target.name + '_worker'] = path.join(target.path, 'worker.ts');
         }
     });
     return config;
@@ -74,7 +74,7 @@ async function renderRootPage(targets: Target[]): Promise<string> {
             title: target.name,
             path: `${PLAYGROUND_ROUTE}/${target.name}`,
         })),
-        bundle: getBundleRoute(HOME_TARGET_NAME),        
+        bundle: getBundleRoute(HOME_TARGET_NAME),
     };
     return Mustache.render(baseTemplate, view, { head, body });
 }

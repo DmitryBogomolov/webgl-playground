@@ -88,7 +88,8 @@ function initData(context: Context, program: Program): Pick<State, 'vao' | 'inde
 }
 
 function init(): State {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!; // eslint-disable-line no-undef
+    // eslint-disable-next-line no-undef
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const context = new Context(container);
 
     const program = context.createProgram();

@@ -17,7 +17,7 @@ const config: Configuration = {
     },
     resolve: {
         alias: {
-            lib: path.resolve('./lib/index.js'),
+            lib: path.resolve('./lib/index.ts'),
         },
     },
     module: {
