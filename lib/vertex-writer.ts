@@ -106,7 +106,7 @@ const viewMakers: Record<string, ArrayMaker> = {
 };
 
 export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
-    constructor(source: ArrayBufferSite, schema: VertexSchema) {
+    constructor(source: VertexWriterSource, schema: VertexSchema) {
         super(source, schema);
         if (this._schema.isPacked) {
             throw raiseError(this._logger, 'not for packed schema');

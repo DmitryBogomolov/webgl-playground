@@ -1,7 +1,7 @@
+import { VertexSchema } from './vertex-schema';
 import { VertexWriter, FluentVertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
-    /** @type {import('./vertex-schema').VertexSchema} */
     const schema = {
         items: [
             { name: 'f1', type: 'float', size: 2, bytes: 4, offset: 0 },
@@ -10,7 +10,7 @@ describe('vertex writer', () => {
         ],
         vertexSize: 16,
         isPacked: false,
-    };
+    } as unknown as VertexSchema;
 
     describe('VertexWriter', () => {
         it('write fields', () => {

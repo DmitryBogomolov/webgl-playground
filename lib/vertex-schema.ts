@@ -71,18 +71,17 @@ export class VertexSchema {
             if (!field.name) {
                 throw raiseError(this._logger, `item ${i} "name" is not defined`);
             }
-            const { name } = field;
-            const type = parseType(name);
-            const size = parseSize(name);
+            const type = parseType(field.type);
+            const size = parseSize(field.type);
             const bytes = BYTE_SIZES[type];
             if (!(bytes > 0)) {
-                throw raiseError(this._logger, `item "${name}" type name is not valid`);
+                throw raiseError(this._logger, `item "${field.name}" type name is not valid`);
             }
             if (!(1 <= size && size <= 4)) {
-                throw raiseError(this._logger, `item "${name}" type size is not valid`);
+                throw raiseError(this._logger, `item "${field.name}" type size is not valid`);
             }
             items.push({
-                name,
+                name: field.name,
                 type,
                 size,
                 bytes,

@@ -1,4 +1,4 @@
-import { VertexSchema } from '.';
+import { VertexSchema } from './vertex-schema';
 import { BaseWrapper } from './base-wrapper';
 import { contextConstants } from './context-constants';
 import { ContextView } from './context-view';
