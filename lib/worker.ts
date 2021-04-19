@@ -15,7 +15,7 @@ export class WorkerMessenger {
 
     constructor(workerUrl: string, messageHandlers: WorkerMessageHandlers) {
         this._worker = new Worker(workerUrl);
-        this._handleMessage = (event): void => {
+        this._handleMessage = (event) => {
             const { type, payload } = event.data;
             const handleMessage = messageHandlers[type];
             if (handleMessage) {
@@ -36,7 +36,7 @@ export class WorkerMessenger {
 }
 
 export function setWorkerMessageHandler(messageHandlers: WorkerMessageHandlers): void {
-    self.onmessage = (event: MessageEvent<WorkerEventData>): void => {
+    self.onmessage = (event: MessageEvent<WorkerEventData>) => {
         const { type, payload } = event.data;
         const handleMessage = messageHandlers[type];
         if (handleMessage) {
