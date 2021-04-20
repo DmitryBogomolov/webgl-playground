@@ -22,7 +22,7 @@ const CONTAINER_HEAD_TEMPLATE_PATH = path.resolve('./templates/container_head.ht
 const CONTAINER_BODY_TEMPLATE_PATH = path.resolve('./templates/container_body.html');
 
 const HOME_TARGET_NAME = 'home';
-const HOME_ENTRY_PATH = path.resolve('./templates/index.js');
+const HOME_ENTRY_PATH = path.resolve('./templates/index.ts');
 const STATIC_ROUTE = '/static';
 const PLAYGROUND_ROUTE = '/playground';
 
@@ -33,7 +33,7 @@ function getBundleRoute(name: string): string {
 function buildConfig(baseConfig: webpack.Configuration, targets: Target[]): webpack.Configuration {
     const config: webpack.Configuration = { ...baseConfig };
     const entry: webpack.Entry = config.entry = {
-        ...(config.entry as webpack.Entry),
+        ...(config.entry as webpack.EntryObject),
         [HOME_TARGET_NAME]: HOME_ENTRY_PATH,
     };
     targets.forEach((target) => {
