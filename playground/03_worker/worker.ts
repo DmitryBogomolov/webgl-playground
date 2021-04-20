@@ -1,9 +1,9 @@
 import {
     color,
+    Color,
     setWorkerMessageHandler,
     postWorkerMessage,
 } from 'lib';
-import { Color } from 'lib/color';
 import {
     TYPE_SCALE,
     TYPE_COLOR,

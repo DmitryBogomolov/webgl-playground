@@ -37,17 +37,17 @@ export class Texture extends BaseWrapper<WebGLTexture> {
         createTexture(ctx: ContextView): Texture {
             return new Texture(ctx);
         },
-    
+
         bindTexture(ctx: ContextView, target: Texture | null): void {
             ctx.logCall('bind_texture', target ? target.id() : null);
             ctx.handle().bindTexture(TEXTURE_2D, target ? target.handle() : null);
         },
-    
+
         activeTexture(ctx: ContextView, unit: number): void {
             ctx.logCall('active_texture', unit);
             ctx.handle().activeTexture(TEXTURE0 + unit);
         },
-    
+
         setTextureParameters(ctx: ContextView, params: Record<string, string>): void {
             const keys = Object.keys(params);
             ctx.logCall('set_texture_parameters', keys);
@@ -57,12 +57,12 @@ export class Texture extends BaseWrapper<WebGLTexture> {
                 handle.texParameteri(TEXTURE_2D, PARAM_NAME_MAP[name], PARAM_VALUE_MAP[value]);
             });
         },
-    
+
         setTextureImage(ctx: ContextView, width: number, height: number, data: ArrayBufferView | null): void {
             ctx.logCall('set_texture_image', `${width},${height},${data ? data.byteLength : null}`);
             ctx.handle().texImage2D(TEXTURE_2D, 0, RGBA, width, height, 0, RGBA, UNSIGNED_BYTE, data);
         },
-    
+
         setUnpackFlipY(ctx: ContextView, value: number | boolean): void {
             ctx.logCall('set_unpack_flip_y', value);
             ctx.handle().pixelStorei(UNPACK_FLIP_Y_WEBGL, value);
@@ -70,6 +70,3 @@ export class Texture extends BaseWrapper<WebGLTexture> {
     };
 
 }
-
-/** @typedef {import('./context').Context} Context */
-
