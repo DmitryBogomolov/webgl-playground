@@ -23,7 +23,7 @@ describe('program', () => {
                 handle() { return ctx; },
             } as unknown as ContextView;
         });
-        
+
         it('has proper handle', () => {
             expect(new Program(context).handle()).toBe(program);
         });

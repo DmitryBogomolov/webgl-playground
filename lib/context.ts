@@ -54,7 +54,7 @@ export class Context implements ContextView {
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
 
         this.setViewport(0, 0, this._canvas.width, this._canvas.height);
-        this.setClearColor(BLACK);    
+        this.setClearColor(BLACK);
     }
 
     private readonly _handleContextLost: EventListener = () => {
@@ -117,7 +117,7 @@ export class Context implements ContextView {
     createIndexBuffer(): IndexBuffer {
         return IndexBuffer.contextMethods.createIndexBuffer(this);
     }
-    
+
     bindIndexBuffer(target: IndexBuffer | null): void {
         IndexBuffer.contextMethods.bindIndexBuffer(this, target);
     }
@@ -125,7 +125,7 @@ export class Context implements ContextView {
     createVertexArrayObject(): VertexArrayObject {
         return VertexArrayObject.contextMethods.createVertexArrayObject(this);
     }
-    
+
     bindVertexArrayObject(target: VertexArrayObject | null): void {
         VertexArrayObject.contextMethods.bindVertexArrayObject(this, target);
     }

@@ -51,8 +51,8 @@ describe('vertex writer', () => {
             expect(dv.getUint8(offset + 13)).toEqual(2);
             expect(dv.getUint8(offset + 14)).toEqual(1);
         });
-    });  
-    
+    });
+
     describe('FluentVertexWriter', () => {
         it('write fields', () => {
             const dv = new DataView(new ArrayBuffer(100));

@@ -34,7 +34,7 @@ describe('context', () => {
 
         it('has context, vaoExt, canvas', () => {
             const context = new Context(container);
-            
+
             expect(context.handle()).toEqual(ctx);
             expect(context.vaoExt()).toEqual(vaoExt);
             expect(context.canvas()).toEqual(canvas);

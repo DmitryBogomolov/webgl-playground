@@ -6,5 +6,5 @@ describe('index', () => {
             // @ts-ignore Check that value is defined.
             expect(content[key]).toBeDefined();
         });
-    }); 
+    });
 });

@@ -26,7 +26,7 @@ describe('texture', () => {
                 handle() { return ctx; },
             } as unknown as ContextView;
         });
-        
+
         it('has proper handle', () => {
             expect(new Texture(context).handle()).toBe(texture);
         });

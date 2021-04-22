@@ -35,7 +35,7 @@ describe('vertex schema', () => {
                 offset: 16,
                 bytes: 1,
                 normalized: true,
-                
+
             };
             const item3 = {
                 name: 'field3',
@@ -75,7 +75,7 @@ describe('vertex schema', () => {
                 offset: 16,
                 bytes: 1,
                 normalized: true,
-                
+
             };
             const item3 = {
                 name: 'field3',
