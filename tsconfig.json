@@ -79,7 +79,8 @@
     },
     "include": [
         "./lib/**/*.ts",
-        "./types/*.ts"
+        "./types/*.ts",
+        "./playground/**/*.ts"
     ],
     "exclude": [
         "node_modules",
