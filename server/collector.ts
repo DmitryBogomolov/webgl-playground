@@ -14,9 +14,13 @@ export interface Target {
 
 export async function collect(): Promise<Target[]> {
     const dirNames = await readdir(PLAYGROUND_DIR);
-    return Promise.all(dirNames.map(async (dirName) => {
+    const items = await Promise.all(dirNames.map(async (dirName) => {
         const dirPath = path.join(PLAYGROUND_DIR, dirName);
-        await access(path.join(dirPath, 'index.ts'), R_OK);
+        try {
+            await access(path.join(dirPath, 'index.ts'), R_OK);
+        } catch (_err) {
+            return null;
+        }
         let hasWorker = false;
         try {
             await access(path.join(dirPath, 'worker.ts'), R_OK);
@@ -32,4 +36,5 @@ export async function collect(): Promise<Target[]> {
             hasWorker,
         };
     }));
+    return items.filter((x) => x) as Target[];
 }
