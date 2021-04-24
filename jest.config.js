@@ -76,6 +76,9 @@ module.exports = {
                 TEXTURE0: '#TEXTURE0_',
             },
         },
+        'ts-jest': {
+            tsconfig: '<rootDir>/tsconfig.json'
+        }
     },
 
     // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
@@ -109,7 +112,7 @@ module.exports = {
     // notifyMode: "failure-change",
 
     // A preset that is used as a base for Jest's configuration
-    // preset: null,
+    preset: 'ts-jest',
 
     // Run tests from one or more projects
     // projects: null,

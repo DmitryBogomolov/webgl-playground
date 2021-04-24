@@ -1,0 +1,67 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "es2017": true,
+        "jest": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.eslint.json",
+        "tsconfigRootDir": ".",
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "max-len": ["error", { "code": 120 }],
+        "quotes": ["error", "single"],
+        "no-trailing-spaces": "error",
+        "key-spacing": "error",
+        "arrow-parens": ["error"],
+        "space-in-parens": ["error"],
+
+        "semi": "off",
+        "@typescript-eslint/semi": ["error", "always"],
+        "comma-dangle": "off",
+        "@typescript-eslint/comma-dangle": ["error", "always-multiline"],
+        "space-before-function-paren": "off",
+        "@typescript-eslint/space-before-function-paren": ["error", { "anonymous": "always", "named": "never", "asyncArrow": "always" }],
+        "comma-spacing": "off",
+        "@typescript-eslint/comma-spacing": "error",
+        "keyword-spacing": "off",
+        "@typescript-eslint/keyword-spacing": "error",
+        "func-call-spacing": "off",
+        "@typescript-eslint/func-call-spacing": "error",
+        "object-curly-spacing": "off",
+        "@typescript-eslint/object-curly-spacing": ["error", "always"],
+        "space-infix-ops": "off",
+        "@typescript-eslint/space-infix-ops": ["error"],
+        "no-unused-vars": ["off"],
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+
+        "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description" }],
+        "@typescript-eslint/no-explicit-any": ["error", { "ignoreRestArgs": true }],
+        "@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false }],
+        "@typescript-eslint/type-annotation-spacing": "error",
+        "@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
+        "@typescript-eslint/typedef": "error",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "@typescript-eslint/no-inferrable-types": "off"
+    }
+}
