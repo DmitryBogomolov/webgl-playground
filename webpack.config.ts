@@ -5,11 +5,10 @@ import { Configuration } from 'webpack';
 const config: Configuration = {
     mode: 'development',
     devtool: 'inline-source-map',
-
     entry: {
     },
     output: {
-        path: path.resolve('./dist'),
+        path: path.join(__dirname, './build'),
         // filename: 'lib.js',
         library: 'lib',
         libraryTarget: 'umd',
@@ -18,8 +17,12 @@ const config: Configuration = {
     resolve: {
         extensions: ['.ts', '.js'],
         alias: {
-            lib: path.resolve('./lib/index.ts'),
+            lib: path.join(__dirname, './lib/index.ts'),
         },
+    },
+    devServer: {
+        compress: true,
+        port: 3001
     },
     module: {
         rules: [
