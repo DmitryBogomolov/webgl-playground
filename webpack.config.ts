@@ -6,6 +6,11 @@ const config: Configuration = {
     mode: 'development',
     devtool: 'inline-source-map',
     entry: {
+        'index': path.join(__dirname, './templates/index.ts'),
+        '01_simple_rects': path.join(__dirname, './playground/01_simple_rects/index.ts'),
+        '02_basic_texture': path.join(__dirname, './playground/02_basic_texture/index.ts'),
+        '03_worker': path.join(__dirname, './playground/03_worker/index.ts'),
+        '03_worker_worker': path.join(__dirname, './playground/03_worker/worker.ts'),
     },
     output: {
         path: path.join(__dirname, './build'),
@@ -22,7 +27,16 @@ const config: Configuration = {
     },
     devServer: {
         compress: true,
-        port: 3001
+        port: 3001,
+        publicPath: '/static',
+        contentBase: path.join(__dirname, './static'),
+        contentBasePublicPath: '/static',
+        index: path.join(__dirname, './templates/index.html'),
+        before: (app) => {
+            app.get('/test', (_req, res) => {
+                res.json({ message: 'Hello' });
+            });
+        }
     },
     module: {
         rules: [
