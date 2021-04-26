@@ -1,14 +1,24 @@
 <!doctype html>
 <html>
 <head>
+    <meta charset="utf8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="/static/bootstrap.min.css">
-    {{>head}}
+    <title><%= title %></title>
+    <link rel="stylesheet" href="<%= bootstrap_url %>">
 </head>
 <body>
-    {{>body}}
-    {{&custom_script}}
-    <script src="{{&bundle}}"></script>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Samples</h1>
+        </div>
+        <div class="panel-body">
+            <div class="list-group">
+            <% for (const { url, title } of playgrounds) { %>
+                <a class="list-group-item list-group-item-action" href="<%= url %>"><%= title %></a>
+            <% } %>
+            </div>
+        </div>
+    </div>
+    <script src="<%= bundle_url %>"></script>
 </body>
 </html>
