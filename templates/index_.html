@@ -4,7 +4,7 @@
     <meta charset="utf8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{{ bootstrap_url }}}">
+    <link rel="stylesheet" href="{{ &bootstrap_url }}">
 </head>
 <body>
     <div class="panel panel-default">
@@ -14,11 +14,11 @@
         <div class="panel-body">
             <div class="list-group">
                 {{ #playgrounds }}
-                <a class="list-group-item list-group-item-action" href="{{{ url }}}">{{ title }}</a>
+                <a class="list-group-item list-group-item-action" href="{{ &url }}">{{ title }}</a>
                 {{ /playgrounds }}
             </div>
         </div>
     </div>
-    <script src="{{{ bundle_url }}}"></script>
+    <script src="{{ &bundle_url }}"></script>
 </body>
 </html>
