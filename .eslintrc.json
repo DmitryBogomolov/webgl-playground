@@ -32,6 +32,7 @@
         "quotes": ["error", "single"],
         "no-trailing-spaces": "error",
         "key-spacing": "error",
+        "arrow-spacing": "error",
         "arrow-parens": ["error"],
         "space-in-parens": ["error"],
 
