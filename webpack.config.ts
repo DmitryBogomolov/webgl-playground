@@ -9,6 +9,7 @@ interface Playground {
     readonly name: string;
     readonly title: string;
     readonly hasWorker: boolean;
+    readonly hasMarkup: boolean;
 }
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -20,11 +21,13 @@ function capitalizeWord(word: string): string {
 
 const playgrounds: Playground[] = [];
 fs.readdirSync(PLAYGROUND_DIR).forEach((dirName) => {
-    if (fs.existsSync(path.join(PLAYGROUND_DIR, dirName, 'index.ts'))) {
+    const currentDir = path.join(PLAYGROUND_DIR, dirName);
+    if (fs.existsSync(path.join(currentDir, 'index.ts'))) {
         playgrounds.push({
             name: dirName,
             title: dirName.replace(/_/g, ' ').replace(/\w\S*/g, capitalizeWord),
-            hasWorker: fs.existsSync(path.join(PLAYGROUND_DIR, dirName, 'worker.ts')),
+            hasWorker: fs.existsSync(path.join(currentDir, 'worker.ts')),
+            hasMarkup: fs.existsSync(path.join(currentDir, 'markup.html')),
         });
     }
 });
@@ -86,8 +89,7 @@ const config: Configuration = {
                         title: 'WebGL Playground',
                         bootstrap_url: '/static/bootstrap.min.css',
                         bundle_url: '/assets/index.js',
-                        playground_path: 'playground',
-                        playgrounds: playgrounds.map(({ name }) => `/playground/${name}/`),
+                        playgrounds: playgrounds.map(({ name, title }) => ({ url: `/playground/${name}/`, title })),
                     });
                 });
             }
@@ -99,12 +101,13 @@ const config: Configuration = {
 
             function updatePlayground(): void {
                 fs.promises.readFile(path.join(TEMPLATES_DIR, 'playground_.html'), 'utf8').then((template) => {
-                    playgrounds.forEach(({ name, title, hasWorker }) => {
+                    playgrounds.forEach(({ name, title, hasWorker, hasMarkup }) => {
                         const content = Mustache.render(template, {
                             title,
                             bootstrap_url: '/static/bootstrap.min.css',
                             bundle_url: `/assets/${name}.js`,
                             worker_url: hasWorker ? `/assets/${name}_worker.js` : null,
+                            custom_markup: hasMarkup ? fs.readFileSync(path.join(PLAYGROUND_DIR, name, 'markup.html'), 'utf8') : null,
                         });
                         playgroundContents.set(name, content);
                     });
@@ -210,6 +213,11 @@ const config: Configuration = {
                         path.join(TEMPLATES_DIR, 'index_.html'),
                         path.join(TEMPLATES_DIR, 'playground_.html'),
                     ]);
+                    playgrounds.forEach(({ name, hasMarkup }) => {
+                        if (hasMarkup) {
+                            compilation.fileDependencies.add(path.join(PLAYGROUND_DIR, name, 'markup.html'));
+                        }
+                    });
                 });
             },
         },
