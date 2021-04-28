@@ -27,6 +27,8 @@ const ASSETS_PATH = '/assets';
 const BOOTSTRAP_PATH = `${CONTENT_PATH}/bootstrap.min.css`;
 const PLAYGROUND_PATH = '/playground';
 
+const PORT = Number(process.env.PORT) || 3001;
+
 const templates: Record<string, Template> = {};
 templates[ROOT_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' };
 templates[PLAYGROUND_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'playground.html'), content: '' };
@@ -86,7 +88,7 @@ const config: Configuration = {
     },
     devServer: {
         compress: true,
-        port: 3001,
+        port: PORT,
         publicPath: `${ASSETS_PATH}/`,
         contentBase: path.join(__dirname, './static'),
         contentBasePublicPath: `${CONTENT_PATH}/`,
