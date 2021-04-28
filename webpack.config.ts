@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { Compiler, Configuration, EntryObject } from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 import Mustache from 'mustache';
 
 interface Playground {
@@ -153,6 +154,10 @@ const config: Configuration = {
     },
     plugins: [
         new CleanWebpackPlugin(),
+        // Without it "[WDS] Nothing changed" (in browser console) is reported when template files are updated.
+        // As a result hot reload does not happen and page content is not updated.
+        // Somehow "HtmlWebpackPlugin" solves this.
+        new HtmlWebpackPlugin(),
         {
             apply(compiler: Compiler): void {
                 compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
