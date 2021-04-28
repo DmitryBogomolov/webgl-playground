@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import { Compiler, Configuration, EntryObject } from 'webpack';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import Mustache from 'mustache';
 
 interface Playground {
@@ -20,6 +20,11 @@ const PLAYGROUND_DIR = path.join(__dirname, 'playground');
 
 const ROOT_TEMPLATE_NAME = 'index';
 const PLAYGROUND_TEMPLATE_NAME = 'playground';
+
+const CONTENT_PATH = '/static';
+const ASSETS_PATH = '/assets';
+const BOOTSTRAP_PATH = `${CONTENT_PATH}/bootstrap.min.css`;
+const PLAYGROUND_PATH = '/playground';
 
 const templates: Record<string, Template> = {};
 templates[ROOT_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' };
@@ -81,9 +86,9 @@ const config: Configuration = {
     devServer: {
         compress: true,
         port: 3001,
-        publicPath: '/assets/',
+        publicPath: `${ASSETS_PATH}/`,
         contentBase: path.join(__dirname, './static'),
-        contentBasePublicPath: '/static/',
+        contentBasePublicPath: `${CONTENT_PATH}/`,
         index: 'index.html',
         before: (app) => {
             let rootPage = '';
@@ -111,9 +116,11 @@ const config: Configuration = {
                 if (!rootPage) {
                     rootPage = Mustache.render(templates[ROOT_TEMPLATE_NAME]!.content, {
                         title: 'WebGL Playground',
-                        bootstrap_url: '/static/bootstrap.min.css',
-                        bundle_url: '/assets/index.js',
-                        playgrounds: Object.entries(playgrounds).map(([name, { title }]) => ({ url: `/playground/${name}/`, title })),
+                        bootstrap_url: BOOTSTRAP_PATH,
+                        bundle_url: `${ASSETS_PATH}/index.js`,
+                        playgrounds: Object.entries(playgrounds).map(
+                            ([name, { title }]) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
+                        ),
                     });
                 }
                 return rootPage;
@@ -125,9 +132,9 @@ const config: Configuration = {
                     const playground = playgrounds[name]!;
                     content = Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
                         title: playground.title,
-                        bootstrap_url: '/static/bootstrap.min.css',
-                        bundle_url: `/assets/${name}.js`,
-                        worker_url: playground.hasWorker ? `/assets/${name}_worker.js` : null,
+                        bootstrap_url: BOOTSTRAP_PATH,
+                        bundle_url: `${ASSETS_PATH}/${name}.js`,
+                        worker_url: playground.hasWorker ? `${ASSETS_PATH}/${name}_worker.js` : null,
                         custom_markup: playground.hasMarkup ? templates[name]!.content : null,
                     });
                     playgroundPages.set(name, content);
@@ -139,7 +146,7 @@ const config: Configuration = {
                 res.send(getRootPage());
             });
             Object.keys(playgrounds).forEach((name) => {
-                app.get(`/playground/${name}/`, (_req, res) => {
+                app.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
                     res.send(getPlaygroundPage(name));
                 });
             });
