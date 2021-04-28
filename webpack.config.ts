@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import { Compiler, Configuration, EntryObject } from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import Mustache from 'mustache';
 
 interface Playground {
@@ -85,10 +84,7 @@ const config: Configuration = {
         contentBase: path.join(__dirname, './static'),
         contentBasePublicPath: '/static/',
         index: 'index.html',
-        before: (app, _server, compiler) => {
-            let rootSource: string;
-            const playgroundSources: Record<string, string> = {};
-
+        before: (app) => {
             let rootPage = '';
             const playgroundPages = new Map<string, string>();
 
@@ -108,13 +104,6 @@ const config: Configuration = {
                 }
                 fs.watch(path, readTemplate);
                 readTemplate();
-            });
-
-            compiler.hooks.emit.tap('my-test', ({ assets }) => {
-                rootSource = assets['index.html'].source() as string;
-                playgrounds.forEach(({ name }) => {
-                    playgroundSources[name] = assets[`${name}.html`].source() as string;
-                });
             });
 
             function getRootPage(): string {
@@ -145,24 +134,13 @@ const config: Configuration = {
                 return content;
             }
 
-            // compiler.hooks.afterEmit.tapAsync('write-file-webpack-plugin', handleAfterEmit);
-            // compilation.assets
             app.get('/', (_req, res) => {
-                res.send(rootSource);
-            });
-            app.get('/root/', (_req, res) => {
                 res.send(getRootPage());
             });
             playgrounds.forEach(({ name }) => {
                 app.get(`/playground/${name}/`, (_req, res) => {
-                    res.send(playgroundSources[name]);
-                });
-                app.get(`/playground_/${name}/`, (_req, res) => {
                     res.send(getPlaygroundPage(name));
                 });
-            });
-            app.get('/test', (_req, res) => {
-                res.json({ message: 'Hello' });
             });
         },
     },
@@ -189,54 +167,6 @@ const config: Configuration = {
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            title: 'WebGL playground',
-            filename: 'index.html',
-            inject: false,
-            template: path.join(__dirname, './templates/index.html'),
-            templateParameters: {
-                title: 'WebGL Playground',
-                bootstrap_url: '/static/bootstrap.min.css',
-                bundle_url: '/assets/index.js',
-                playgrounds,
-            },
-        }),
-        new HtmlWebpackPlugin({
-            title: '01 Simple Rects',
-            filename: '01_simple_rects.html',
-            inject: false,
-            template: path.join(__dirname, './templates/playground.html'),
-            templateParameters: {
-                title: '01 Simple Rects',
-                bootstrap_url: '/static/bootstrap.min.css',
-                bundle_url: '/assets/01_simple_rects.js',
-                worker_url: null,
-            },
-        }),
-        new HtmlWebpackPlugin({
-            title: '02 Basic Texture',
-            filename: '02_basic_texture.html',
-            inject: false,
-            template: path.join(__dirname, './templates/playground.html'),
-            templateParameters: {
-                title: '02 Basic Texture',
-                bootstrap_url: '/static/bootstrap.min.css',
-                bundle_url: '/assets/02_basic_texture.js',
-                worker_url: null,
-            },
-        }),
-        new HtmlWebpackPlugin({
-            title: '03 Worker',
-            filename: '03_worker.html',
-            inject: false,
-            template: path.join(__dirname, './templates/playground.html'),
-            templateParameters: {
-                title: '03 Worker',
-                bootstrap_url: '/static/bootstrap.min.css',
-                bundle_url: '/assets/03_worker.js',
-                worker_url: '/assets/03_worker_worker.js',
-            },
-        }),
         {
             apply(compiler: Compiler): void {
                 compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
