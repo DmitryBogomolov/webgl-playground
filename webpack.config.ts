@@ -94,34 +94,19 @@ const config: Configuration = {
             let rootPage = '';
             const playgroundPages = new Map<string, string>();
 
-            Object.entries(templates).forEach(([name, { path }]) => {
-                function readTemplate(): void {
-                    fs.readFile(path, 'utf8', (_err, data) => {
-                        templates[name]!.content = data;
-                        // Simple depedencies.
-                        if (name === ROOT_TEMPLATE_NAME) {
-                            rootPage = '';
-                        } else if (name === PLAYGROUND_TEMPLATE_NAME) {
-                            playgroundPages.clear();
-                        } else {
-                            playgroundPages.delete(name);
-                        }
-                    });
+            watchTemplates((name) => {
+                if (name === ROOT_TEMPLATE_NAME) {
+                    rootPage = '';
+                } else if (name === PLAYGROUND_TEMPLATE_NAME) {
+                    playgroundPages.clear();
+                } else {
+                    playgroundPages.delete(name);
                 }
-                fs.watch(path, readTemplate);
-                readTemplate();
             });
 
             function getRootPage(): string {
                 if (!rootPage) {
-                    rootPage = Mustache.render(templates[ROOT_TEMPLATE_NAME]!.content, {
-                        title: 'WebGL Playground',
-                        bootstrap_url: BOOTSTRAP_PATH,
-                        bundle_url: `${ASSETS_PATH}/index.js`,
-                        playgrounds: Object.entries(playgrounds).map(
-                            ([name, { title }]) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
-                        ),
-                    });
+                    rootPage = renderRootPage();
                 }
                 return rootPage;
             }
@@ -129,14 +114,7 @@ const config: Configuration = {
             function getPlaygroundPage(name: string): string {
                 let content = playgroundPages.get(name);
                 if (!content) {
-                    const playground = playgrounds[name]!;
-                    content = Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
-                        title: playground.title,
-                        bootstrap_url: BOOTSTRAP_PATH,
-                        bundle_url: `${ASSETS_PATH}/${name}.js`,
-                        worker_url: playground.hasWorker ? `${ASSETS_PATH}/${name}_worker.js` : null,
-                        custom_markup: playground.hasMarkup ? templates[name]!.content : null,
-                    });
+                    content = renderPlaygroundPage(name);
                     playgroundPages.set(name, content);
                 }
                 return content;
@@ -186,5 +164,40 @@ const config: Configuration = {
         },
     ],
 };
+
+function renderRootPage(): string {
+    return Mustache.render(templates[ROOT_TEMPLATE_NAME]!.content, {
+        title: 'WebGL Playground',
+        bootstrap_url: BOOTSTRAP_PATH,
+        bundle_url: `${ASSETS_PATH}/index.js`,
+        playgrounds: Object.entries(playgrounds).map(
+            ([name, { title }]) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
+        ),
+    });
+}
+
+function renderPlaygroundPage(name: string): string {
+    const playground = playgrounds[name]!;
+    return Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
+        title: playground.title,
+        bootstrap_url: BOOTSTRAP_PATH,
+        bundle_url: `${ASSETS_PATH}/${name}.js`,
+        worker_url: playground.hasWorker ? `${ASSETS_PATH}/${name}_worker.js` : null,
+        custom_markup: playground.hasMarkup ? templates[name]!.content : null,
+    });
+}
+
+function watchTemplates(onChange: (name: string) => void): void {
+    Object.entries(templates).forEach(([name, { path }]) => {
+        function readTemplate(): void {
+            fs.readFile(path, 'utf8', (_err, data) => {
+                templates[name]!.content = data;
+                onChange(name);
+            });
+        }
+        fs.watch(path, readTemplate);
+        readTemplate();
+    });
+}
 
 export default config;
