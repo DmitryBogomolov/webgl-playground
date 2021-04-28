@@ -12,23 +12,41 @@ interface Playground {
     readonly hasMarkup: boolean;
 }
 
+interface Template {
+    readonly path: string;
+    content: string;
+}
+
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const PLAYGROUND_DIR = path.join(__dirname, 'playground');
 
+const templates = new Map<string, Template>();
+templates.set('index', { path: path.join(TEMPLATES_DIR, 'index_.html'), content: '' });
+templates.set('playground', { path: path.join(TEMPLATES_DIR, 'playground_.html'), content: '' });
+
 function capitalizeWord(word: string): string {
     return word[0].toUpperCase() + word.slice(1);
+}
+
+function capitalizeName(name: string): string {
+    return name.replace(/_/g, ' ').replace(/\w\S*/g, capitalizeWord);
 }
 
 const playgrounds: Playground[] = [];
 fs.readdirSync(PLAYGROUND_DIR).forEach((dirName) => {
     const currentDir = path.join(PLAYGROUND_DIR, dirName);
     if (fs.existsSync(path.join(currentDir, 'index.ts'))) {
+        const markupPath = path.join(currentDir, 'markup.html');
+        const hasMarkup = fs.existsSync(markupPath);
         playgrounds.push({
             name: dirName,
-            title: dirName.replace(/_/g, ' ').replace(/\w\S*/g, capitalizeWord),
+            title: capitalizeName(dirName),
             hasWorker: fs.existsSync(path.join(currentDir, 'worker.ts')),
-            hasMarkup: fs.existsSync(path.join(currentDir, 'markup.html')),
+            hasMarkup,
         });
+        if (hasMarkup) {
+            templates.set(dirName, { path: markupPath, content: '' });
+        }
     }
 });
 
@@ -71,6 +89,27 @@ const config: Configuration = {
             let rootSource: string;
             const playgroundSources: Record<string, string> = {};
 
+            let rootPage = '';
+            const playgroundPages = new Map<string, string>();
+
+            templates.forEach(({ path }, name) => {
+                function readTemplate(): void {
+                    fs.readFile(path, 'utf8', (_err, data) => {
+                        templates.get(name)!.content = data;
+                        // Simple depedencies.
+                        if (name === 'index') {
+                            rootPage = '';
+                        } else if (name === 'playground') {
+                            playgroundPages.clear();
+                        } else {
+                            playgroundPages.delete(name);
+                        }
+                    });
+                }
+                fs.watch(path, readTemplate);
+                readTemplate();
+            });
+
             compiler.hooks.emit.tap('my-test', ({ assets }) => {
                 rootSource = assets['index.html'].source() as string;
                 playgrounds.forEach(({ name }) => {
@@ -78,40 +117,32 @@ const config: Configuration = {
                 });
             });
 
-            let rootContent = '';
-
-            fs.watch(path.join(TEMPLATES_DIR, 'index_.html'), updateRoot);
-            updateRoot();
-
-            function updateRoot(): void {
-                fs.promises.readFile(path.join(TEMPLATES_DIR, 'index_.html'), 'utf8').then((template) => {
-                    rootContent = Mustache.render(template, {
+            function getRootPage(): string {
+                if (!rootPage) {
+                    rootPage = Mustache.render(templates.get('index')!.content, {
                         title: 'WebGL Playground',
                         bootstrap_url: '/static/bootstrap.min.css',
                         bundle_url: '/assets/index.js',
                         playgrounds: playgrounds.map(({ name, title }) => ({ url: `/playground/${name}/`, title })),
                     });
-                });
+                }
+                return rootPage;
             }
 
-            const playgroundContents = new Map<string, string>();
-
-            fs.watch(path.join(TEMPLATES_DIR, 'playground_.html'), updatePlayground);
-            updatePlayground();
-
-            function updatePlayground(): void {
-                fs.promises.readFile(path.join(TEMPLATES_DIR, 'playground_.html'), 'utf8').then((template) => {
-                    playgrounds.forEach(({ name, title, hasWorker, hasMarkup }) => {
-                        const content = Mustache.render(template, {
-                            title,
-                            bootstrap_url: '/static/bootstrap.min.css',
-                            bundle_url: `/assets/${name}.js`,
-                            worker_url: hasWorker ? `/assets/${name}_worker.js` : null,
-                            custom_markup: hasMarkup ? fs.readFileSync(path.join(PLAYGROUND_DIR, name, 'markup.html'), 'utf8') : null,
-                        });
-                        playgroundContents.set(name, content);
+            function getPlaygroundPage(name: string): string {
+                let content = playgroundPages.get(name);
+                if (!content) {
+                    const playground = playgrounds.find((playground) => playground.name === name)!;
+                    content = Mustache.render(templates.get('playground')!.content, {
+                        title: playground.title,
+                        bootstrap_url: '/static/bootstrap.min.css',
+                        bundle_url: `/assets/${name}.js`,
+                        worker_url: playground.hasWorker ? `/assets/${name}_worker.js` : null,
+                        custom_markup: playground.hasMarkup ? templates.get(name)!.content : null,
                     });
-                });
+                    playgroundPages.set(name, content);
+                }
+                return content;
             }
 
             // compiler.hooks.afterEmit.tapAsync('write-file-webpack-plugin', handleAfterEmit);
@@ -120,14 +151,14 @@ const config: Configuration = {
                 res.send(rootSource);
             });
             app.get('/root/', (_req, res) => {
-                res.send(rootContent);
+                res.send(getRootPage());
             });
             playgrounds.forEach(({ name }) => {
                 app.get(`/playground/${name}/`, (_req, res) => {
                     res.send(playgroundSources[name]);
                 });
                 app.get(`/playground_/${name}/`, (_req, res) => {
-                    res.send(playgroundContents.get(name));
+                    res.send(getPlaygroundPage(name));
                 });
             });
             app.get('/test', (_req, res) => {
@@ -207,16 +238,10 @@ const config: Configuration = {
             },
         }),
         {
-            apply(compiler: Compiler) {
-                compiler.hooks.afterCompile.tap('CustomWatch', (compilation) => {
-                    compilation.fileDependencies.addAll([
-                        path.join(TEMPLATES_DIR, 'index_.html'),
-                        path.join(TEMPLATES_DIR, 'playground_.html'),
-                    ]);
-                    playgrounds.forEach(({ name, hasMarkup }) => {
-                        if (hasMarkup) {
-                            compilation.fileDependencies.add(path.join(PLAYGROUND_DIR, name, 'markup.html'));
-                        }
+            apply(compiler: Compiler): void {
+                compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
+                    templates.forEach(({ path }) => {
+                        compilation.fileDependencies.add(path);
                     });
                 });
             },
