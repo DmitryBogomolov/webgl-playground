@@ -11,7 +11,7 @@ test:
 	@npm test
 
 dev:
-	@npm run dev2
+	@npm run dev
 
 
 .PHONE: install check lint test dev
