@@ -5,10 +5,7 @@
   "private": true,
   "scripts": {
     "check": "tsc -p tsconfig.check.json",
-    "dev": "ts-node --project ./server/tsconfig.json ./server/index.ts",
-    "dev2": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig.devserver.json webpack serve",
-    "build:server": "tsc --project ./server",
-    "run:server": "node ./dist/server/index.js",
+    "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig.devserver.json webpack serve",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint --fix",
     "test": "jest"
