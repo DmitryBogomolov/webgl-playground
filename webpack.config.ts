@@ -20,8 +20,8 @@ const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const PLAYGROUND_DIR = path.join(__dirname, 'playground');
 
 const templates = new Map<string, Template>();
-templates.set('index', { path: path.join(TEMPLATES_DIR, 'index_.html'), content: '' });
-templates.set('playground', { path: path.join(TEMPLATES_DIR, 'playground_.html'), content: '' });
+templates.set('index', { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' });
+templates.set('playground', { path: path.join(TEMPLATES_DIR, 'playground.html'), content: '' });
 
 function capitalizeWord(word: string): string {
     return word[0].toUpperCase() + word.slice(1);
@@ -54,9 +54,9 @@ const entry: EntryObject = {
 };
 
 playgrounds.forEach((playground) => {
-    entry[playground.name] = path.join(PLAYGROUND_DIR, playground.name, '/index.ts');
+    entry[playground.name] = path.join(PLAYGROUND_DIR, playground.name, 'index.ts');
     if (playground.hasWorker) {
-        entry[playground.name + '_worker'] = path.join(PLAYGROUND_DIR, playground.name + '/worker.ts');
+        entry[playground.name + '_worker'] = path.join(PLAYGROUND_DIR, playground.name, 'worker.ts');
     }
 });
 
