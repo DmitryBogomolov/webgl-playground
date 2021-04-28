@@ -1,6 +1,9 @@
 install:
 	@npm i
 
+check:
+	@npm run check
+
 lint:
 	@npm run lint
 
@@ -11,4 +14,4 @@ dev:
 	@npm run dev
 
 
-.PHONE: install lint test dev
+.PHONE: install check lint test dev

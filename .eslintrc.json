@@ -30,8 +30,10 @@
         "linebreak-style": ["error", "unix"],
         "max-len": ["error", { "code": 120 }],
         "quotes": ["error", "single"],
+        "eqeqeq": "error",
         "no-trailing-spaces": "error",
         "key-spacing": "error",
+        "arrow-spacing": "error",
         "arrow-parens": ["error"],
         "space-in-parens": ["error"],
 
