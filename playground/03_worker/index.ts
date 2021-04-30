@@ -33,8 +33,6 @@ function initData(context: Context, program: Program): { vao: VertexArrayObject,
         { name: 'a_position', type: 'float2' },
     ]);
 
-    program.setupVertexAttributes(schema);
-
     const vertexData = new ArrayBuffer(4 * schema.vertexSize);
     writeVertices(new FluentVertexWriter(vertexData, schema), [[-1, -1], [+1, -1], [+1, +1], [-1, +1]], (vertex) => ({
         a_position: vertex,
@@ -52,8 +50,8 @@ function initData(context: Context, program: Program): { vao: VertexArrayObject,
     const vao = context.createVertexArrayObject();
     context.bindVertexArrayObject(vao);
     context.bindVertexBuffer(vertexBuffer);
-    context.bindIndexBuffer(indexBuffer);
     program.setupVertexAttributes(schema);
+    context.bindIndexBuffer(indexBuffer);
     context.bindVertexArrayObject(null);
 
     return {
