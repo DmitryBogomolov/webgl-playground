@@ -8,3 +8,6 @@ export { Program } from './program';
 export { VertexSchema } from './vertex-schema';
 export { VertexWriter, FluentVertexWriter, writeVertices } from './vertex-writer';
 export { WorkerMessenger, setWorkerMessageHandler, postWorkerMessage } from './worker';
+export { Runtime_ } from './runtime_';
+export { Program_, EMPTY_PROGRAM } from './program_';
+export { Primitive_ } from './primitive_';
