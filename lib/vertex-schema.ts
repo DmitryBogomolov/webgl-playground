@@ -8,7 +8,15 @@ const {
 } = contextConstants;
 
 // byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234]
-const BYTE_SIZES: Record<string, number> = {
+type FieldType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
+type ByteSizeMap = {
+    readonly [key in FieldType]: number;
+}
+type GlTypeMap = {
+    readonly [key in FieldType]: number;
+}
+
+const BYTE_SIZES: ByteSizeMap = {
     byte: 1,
     ubyte: 1,
     short: 2,
@@ -16,7 +24,7 @@ const BYTE_SIZES: Record<string, number> = {
     float: 4,
 };
 
-const GL_TYPES: Record<string, number> = {
+const GL_TYPES: GlTypeMap = {
     byte: BYTE,
     ubyte: UNSIGNED_BYTE,
     short: SHORT,
@@ -24,8 +32,8 @@ const GL_TYPES: Record<string, number> = {
     float: FLOAT,
 };
 
-function parseType(value: string): string {
-    return value.substr(0, value.length - 1);
+function parseType(value: string): FieldType {
+    return value.substr(0, value.length - 1) as FieldType;
 }
 
 function parseSize(value: string): number {
@@ -48,7 +56,7 @@ export interface ParseSchemaOptions {
 
 export interface MetaDesc {
     readonly name: string;
-    readonly type: string;
+    readonly type: FieldType;
     readonly size: number;
     readonly bytes: number;
     readonly normalized: boolean;
