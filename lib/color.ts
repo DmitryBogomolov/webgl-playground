@@ -1,3 +1,4 @@
+// TODO: Add more colors.
 export const BLACK = color(0, 0, 0);
 export const WHITE = color(1, 1, 1);
 

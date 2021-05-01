@@ -14,6 +14,7 @@ const {
 type v2 = Readonly<[number, number]>;
 type v3 = Readonly<[number, number, number]>;
 type v4 = Readonly<[number, number, number, number]>;
+// TODO: Support Color type.
 export type UniformValue = number | v2 | v3 | v4;
 
 type UniformSetter = (ctx: WebGLRenderingContext, location: WebGLUniformLocation, value: UniformValue) => void;
@@ -109,7 +110,7 @@ export class Program_ implements ProgramBase_ {
         const gl = this._runtime.gl;
         const shader = gl.createShader(type)!;
         if (!shader) {
-            throw raiseError(this._logger, 'Failed to create shader');
+            throw raiseError(this._logger, 'Failed to create shader.');
         }
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
@@ -171,12 +172,11 @@ export class Program_ implements ProgramBase_ {
     }
 
     setupVertexAttributes(): void {
-        const schema = this._schema;
-        this._logger.log('setup_vertex_attributes', schema.items.length);
+        this._logger.log('setup_vertex_attributes');
         const gl = this._runtime.gl;
         const attributes = this._attributes;
-        const stride = schema.vertexSize;
-        schema.items.forEach((item) => {
+        const stride = this._schema.vertexSize;
+        for (const item of this._schema.items) {
             const attr = attributes[item.name];
             if (!attr) {
                 throw raiseError(this._logger, `attribute "${item.name}" is unknown`);
@@ -187,11 +187,12 @@ export class Program_ implements ProgramBase_ {
                 attr.location, item.size, item.gltype, item.normalized, stride, item.offset,
             );
             gl.enableVertexAttribArray(attr.location);
-        });
+        }
     }
 
     setUniforms(uniforms: UniformValues): void {
         this._logger.log('set_uniforms', uniforms);
+        const gl = this._runtime.gl;
         for (const [name, value] of Object.entries(uniforms)) {
             const attr = this._uniforms[name];
             if (!attr) {
@@ -201,7 +202,7 @@ export class Program_ implements ProgramBase_ {
             if (!setter) {
                 throw raiseError(this._logger, `uniform "${name}" setter is not found`);
             }
-            setter(this._runtime.gl, attr.location, value);
+            setter(gl, attr.location, value);
         }
     }
 }

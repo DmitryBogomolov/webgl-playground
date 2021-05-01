@@ -3,10 +3,11 @@ import { Logger, generateId } from './utils';
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
-    private readonly _logger = new Logger(generateId('RenderLoop'));
+    private readonly _id = generateId('RenderLoop');
+    private readonly _logger = new Logger(this._id);
     private readonly _renderFrame: FrameRequestCallback;
-    private _requestId: number = 0;
-    private _timestamp: number = NaN;
+    private _requestId = 0;
+    private _timestamp = NaN;
 
     constructor(renderFrame: RenderFrameCallback) {
         this._renderFrame = (timestamp) => {
