@@ -3,7 +3,11 @@ import { MetaDesc, VertexSchema } from './vertex-schema';
 
 type Normalizer = (value: number) => number;
 
-const normalizers: Record<string, Normalizer> = {
+interface NormalizersMap {
+    readonly [key: string]: Normalizer;
+}
+
+const normalizers: NormalizersMap = {
     byte: (value) => Math.round(value * 0x7F),
     ubyte: (value) => Math.round(value * 0xFF),
     short: (value) => Math.round(value * 0x7FFF),
@@ -14,9 +18,11 @@ function eigen<T>(value: T): T {
     return value;
 }
 
-type FieldMap = Record<string, MetaDesc>;
+interface FieldsMap {
+    readonly [key: string]: MetaDesc;
+}
 
-function buildMap(schema: VertexSchema): FieldMap {
+function buildMap(schema: VertexSchema): FieldsMap {
     const result: Record<string, MetaDesc> = {};
     schema.items.forEach((meta) => {
         result[meta.name] = meta;
@@ -39,7 +45,7 @@ function wrapBuffer(buffer: VertexWriterSource): ArrayBufferSite {
 abstract class BaseVertexWriter<T = never> {
     protected readonly _logger: Logger;
     protected readonly _schema: VertexSchema;
-    protected readonly _byName: FieldMap;
+    protected readonly _byName: FieldsMap;
     protected readonly _impl: Record<string, T> = {};
 
     constructor(_source: VertexWriterSource, schema: VertexSchema) {
@@ -58,7 +64,7 @@ abstract class BaseVertexWriter<T = never> {
 
     protected abstract _write(impl: T, position: number, i: number, meta: MetaDesc, value: number): void;
 
-    writeField(vertexIndex: number, fieldName: string, value: number[]): void {
+    writeField(vertexIndex: number, fieldName: string, value: ReadonlyArray<number>): void {
         const meta = this._byName[fieldName];
         const position = this._getPosition(vertexIndex, meta);
         const normalize = meta.normalized ? normalizers[meta.type] : eigen;
@@ -70,8 +76,11 @@ abstract class BaseVertexWriter<T = never> {
 }
 
 type DataViewCaller = (dv: DataView, offset: number, value: number) => void;
+interface DataViewCallersMap {
+    readonly [key: string]: DataViewCaller;
+}
 
-const dataViewCallers: Record<string, DataViewCaller> = {
+const dataViewCallers: DataViewCallersMap = {
     byte: (dv, offset, value) => dv.setInt8(offset, value),
     ubyte: (dv, offset, value) => dv.setUint8(offset, value),
     short: (dv, offset, value) => dv.setInt16(offset, value, true),
@@ -96,8 +105,11 @@ export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
 
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
+interface ViewMakersMap {
+    readonly [key: string]: ArrayMaker;
+}
 
-const viewMakers: Record<string, ArrayMaker> = {
+const viewMakers: ViewMakersMap = {
     byte: (buffer, offset, length) => new Int8Array(buffer, offset, length),
     ubyte: (buffer, offset, length) => new Uint8Array(buffer, offset, length),
     short: (buffer, offset, length) => new Int16Array(buffer, offset, length / 2),
@@ -125,7 +137,9 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
     }
 }
 
-type VertexDesc = Record<string, number[]>;
+interface VertexDesc {
+    readonly [name: string]: ReadonlyArray<number>;
+}
 type VertexTransformer<T> = (vertex: T, index: number) => VertexDesc;
 
 export function writeVertices<T>(
