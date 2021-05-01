@@ -8,15 +8,9 @@ const {
 } = contextConstants;
 
 // byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234]
-type FieldType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
-type ByteSizeMap = {
-    readonly [key in FieldType]: number;
-}
-type GlTypeMap = {
-    readonly [key in FieldType]: number;
-}
+export type FieldType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
 
-const BYTE_SIZES: ByteSizeMap = {
+const BYTE_SIZES: { readonly [key in FieldType]: number } = {
     byte: 1,
     ubyte: 1,
     short: 2,
@@ -24,7 +18,7 @@ const BYTE_SIZES: ByteSizeMap = {
     float: 4,
 };
 
-const GL_TYPES: GlTypeMap = {
+const GL_TYPES: { readonly [key in FieldType]: number } = {
     byte: BYTE,
     ubyte: UNSIGNED_BYTE,
     short: SHORT,
