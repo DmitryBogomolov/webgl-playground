@@ -33,7 +33,6 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
         fragmentShader: fragmentShaderSource,
         schema,
     });
-
     const primitive = new Primitive_(runtime);
 
     const c1 = [1, 0, 0]; // red

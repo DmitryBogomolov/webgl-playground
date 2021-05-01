@@ -1,4 +1,4 @@
-import { ProgramBase_, EMPTY_PROGRAM } from './program_';
+import { ProgramBase_, EMPTY_PROGRAM, UniformValues } from './program_';
 import { Runtime_ } from './runtime_';
 import { Logger, raiseError, generateId } from './utils';
 
@@ -18,7 +18,6 @@ export class Primitive_ {
         this._vao = this._createVao();
         this._vertexBuffer = this._createBuffer();
         this._indexBuffer = this._createBuffer();
-        this._setup();
     }
 
     dispose(): void {
@@ -44,22 +43,13 @@ export class Primitive_ {
         return buffer;
     }
 
-    private _setup(): void {
-        const gl = this._runtime.gl;
-        const vao = this._runtime.vao;
-        vao.bindVertexArrayOES(this._vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        vao.bindVertexArrayOES(null);
-    }
-
     setData(vertexData: BufferSource, indexData: Uint16Array): void {
         this._logger.log(`set_data(vertex: ${vertexData.byteLength}, index: ${indexData.length * 2})`);
         const gl = this._runtime.gl;
         const vao = this._runtime.vao;
         vao.bindVertexArrayOES(this._vao);
-        // gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexData, gl.STATIC_DRAW);
         vao.bindVertexArrayOES(null);
@@ -67,7 +57,7 @@ export class Primitive_ {
     }
 
     setProgram(program: ProgramBase_): void {
-        this._logger.log(`set_program()`);
+        this._logger.log('set_program()');
         this._program = program;
         const vao = this._runtime.vao;
         vao.bindVertexArrayOES(this._vao);
@@ -75,11 +65,14 @@ export class Primitive_ {
         vao.bindVertexArrayOES(null);
     }
 
-    draw(): void {
+    draw(uniforms?: UniformValues): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vao;
-        vao.bindVertexArrayOES(this._vao);
         gl.useProgram(this._program.program);
+        if (uniforms) {
+            this._program.setUniforms(uniforms);
+        }
+        vao.bindVertexArrayOES(this._vao);
         gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0);
         vao.bindVertexArrayOES(null);
     }

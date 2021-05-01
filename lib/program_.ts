@@ -15,12 +15,18 @@ type v2 = Readonly<[number, number]>;
 type v3 = Readonly<[number, number, number]>;
 type v4 = Readonly<[number, number, number, number]>;
 export type UniformValue = number | v2 | v3 | v4;
+
 type UniformSetter = (ctx: WebGLRenderingContext, location: WebGLUniformLocation, value: UniformValue) => void;
 
 interface UniformSettersMap {
     readonly [key: number]: UniformSetter;
 }
 
+export interface UniformValues {
+    readonly [name: string]: UniformValue;
+}
+
+// TODO: Add actual type verification here (like Number.isFinite, Array.isArray, etc...).
 const uniformSetters: UniformSettersMap = {
     [FLOAT]: (ctx, location, value) => ctx.uniform1f(location, value as number),
     [FLOAT_VEC2]: (ctx, location, value) => ctx.uniform2fv(location, value as v2),
@@ -58,6 +64,7 @@ export interface ProgramOptions {
 export interface ProgramBase_ {
     readonly program: WebGLProgram | null;
     setupVertexAttributes(): void;
+    setUniforms(uniforms: UniformValues): void;
 }
 
 export class Program_ implements ProgramBase_ {
@@ -165,7 +172,7 @@ export class Program_ implements ProgramBase_ {
 
     setupVertexAttributes(): void {
         const schema = this._schema;
-        this._logger.log(`setup_vertex_attributes(${schema.items.length})`);
+        this._logger.log('setup_vertex_attributes', schema.items.length);
         const gl = this._runtime.gl;
         const attributes = this._attributes;
         const stride = schema.vertexSize;
@@ -183,21 +190,24 @@ export class Program_ implements ProgramBase_ {
         });
     }
 
-    setUniform(name: string, value: UniformValue): void {
-        this._logger.log(`set_uniform(${name},${value})`);
-        const attr = this._uniforms[name];
-        if (!attr) {
-            throw raiseError(this._logger, `uniform "${name}" is unknown`);
+    setUniforms(uniforms: UniformValues): void {
+        this._logger.log('set_uniforms', uniforms);
+        for (const [name, value] of Object.entries(uniforms)) {
+            const attr = this._uniforms[name];
+            if (!attr) {
+                throw raiseError(this._logger, `uniform "${name}" is unknown`);
+            }
+            const setter = uniformSetters[attr.type];
+            if (!setter) {
+                throw raiseError(this._logger, `uniform "${name}" setter is not found`);
+            }
+            setter(this._runtime.gl, attr.location, value);
         }
-        const setter = uniformSetters[attr.type];
-        if (!setter) {
-            throw raiseError(this._logger, `uniform "${name}" setter is not found`);
-        }
-        setter(this._runtime.gl, attr.location, value);
     }
 }
 
 export const EMPTY_PROGRAM: ProgramBase_ = {
     program: null,
-    setupVertexAttributes() { /* nothing */ },
+    setupVertexAttributes() { /* empty */ },
+    setUniforms() { /* empty */ },
 };
