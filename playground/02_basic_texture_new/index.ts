@@ -85,10 +85,10 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
 
 function generateTextureData(): ImageData {
     const pixels = [
-        colors.BLACK,   colors.BLUE,    colors.GREEN,   colors.CYAN,
-        colors.RED,     colors.MAGENTA, colors.YELLOW,  colors.WHITE,
-        colors.WHITE,   colors.YELLOW,  colors.MAGENTA, colors.RED,
-        colors.CYAN,    colors.GREEN,   colors.BLUE,    colors.BLACK,
+        colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
+        colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
+        colors.WHITE, colors.YELLOW, colors.MAGENTA, colors.RED,
+        colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
     ];
     const data = new Uint8ClampedArray(16 * 4);
     let i = 0;
