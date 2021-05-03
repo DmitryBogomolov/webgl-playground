@@ -6,8 +6,8 @@ import {
     Runtime_,
     Program_,
     Primitive_,
-    writeVertices,
     generateDefaultIndexes, logSilenced,
+    colors, color2array,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -35,10 +35,10 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     });
     const primitive = new Primitive_(runtime);
 
-    const c1 = [1, 0, 0]; // red
-    const c2 = [1, 1, 0]; // yellow
-    const c3 = [0, 1, 0]; // green
-    const c4 = [0, 1, 1]; // cyan
+    const c1 = colors.RED;
+    const c2 = colors.YELLOW;
+    const c3 = colors.GREEN;
+    const c4 = colors.CYAN;
     const vertices = [
         // bottom-left
         { position: [-1, +0], color: c1 },
@@ -59,10 +59,12 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
-    writeVertices(new VertexWriter(vertexData, schema), vertices, (vertex) => ({
-        a_position: vertex.position,
-        a_color: vertex.color,
-    }));
+    const writer = new VertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeField(i, 'a_position', vertex.position);
+        writer.writeField(i, 'a_color', color2array(vertex.color));
+    }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
     primitive.setData(vertexData, indexData);

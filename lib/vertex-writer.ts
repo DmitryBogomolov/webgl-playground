@@ -137,6 +137,7 @@ interface VertexDesc {
 }
 type VertexTransformer<T> = (vertex: T, index: number) => VertexDesc;
 
+// TODO: Remove it.
 export function writeVertices<T>(
     writer: BaseVertexWriter<unknown>, vertices: ReadonlyArray<T>, func: VertexTransformer<T>,
 ): void {

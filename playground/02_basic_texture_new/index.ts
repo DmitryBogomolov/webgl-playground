@@ -3,7 +3,6 @@ import {
     logSilenced,
     VertexSchema,
     FluentVertexWriter,
-    writeVertices,
     RenderLoop,
     Runtime_,
     Primitive_,
@@ -71,10 +70,12 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
         { position: [-1, +1], texcoord: [0, 1] },
     ];
     const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    writeVertices(new FluentVertexWriter(vertexData, schema), vertices, (vertex) => ({
-        a_position: vertex.position,
-        a_texcoord: vertex.texcoord,
-    }));
+    const writer = new FluentVertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeField(i, 'a_position', vertex.position);
+        writer.writeField(i, 'a_texcoord', vertex.texcoord);
+    }
     const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,

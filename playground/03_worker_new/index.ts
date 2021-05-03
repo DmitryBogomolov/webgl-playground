@@ -2,10 +2,8 @@ import {
     RenderLoop,
     FluentVertexWriter,
     VertexSchema,
-    writeVertices,
     WorkerMessenger,
-    color,
-    Color,
+    color, Color, color2array,
     logSilenced,
     Runtime_,
     Primitive_,
@@ -39,10 +37,14 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     });
     const primitive = new Primitive_(runtime);
 
+    const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
+
     const vertexData = new ArrayBuffer(4 * schema.vertexSize);
-    writeVertices(new FluentVertexWriter(vertexData, schema), [[-1, -1], [+1, -1], [+1, +1], [-1, +1]], (vertex) => ({
-        a_position: vertex,
-    }));
+    const writer = new FluentVertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeField(i, 'a_position', vertex);
+    }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
     primitive.setData(vertexData, indexData);
@@ -88,7 +90,7 @@ const loop = new RenderLoop((delta) => {
     runtime.clearColor();
     primitive.draw({
         'u_scale': scale,
-        'u_color': [clr.r, clr.g, clr.b, clr.a],
+        'u_color': color2array(clr),
     });
 });
 loop.start();
