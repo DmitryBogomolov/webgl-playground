@@ -14,7 +14,7 @@ export function color2array({ r, g, b, a }: Color): [number, number, number, num
 }
 
 export const colors = {
-/** (0, 0, 0) */
+    /** (0, 0, 0) */
     BLACK: color(0, 0, 0),
     /** (0, 0, 1) */
     BLUE: color(0, 0, 1),
