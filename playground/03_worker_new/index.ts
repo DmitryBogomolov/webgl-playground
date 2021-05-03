@@ -22,6 +22,7 @@ import fragmentShaderSource from './shader.frag';
  * On each frame message is sent to worker thread. Worker thread from time to time
  * sends message back - with scale or color parameter.
  */
+export type DESCRIPTION = never;
 
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;

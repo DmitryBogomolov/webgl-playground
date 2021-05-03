@@ -26,6 +26,7 @@ import fragmentShaderSource from './shader.frag';
  * First two rows have colors from black to white.
  * Last two rows have same colors in reverse order.
  */
+export type DESCRIPTION = never;
 
 type TexCoord = Readonly<[number, number]>;
 

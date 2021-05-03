@@ -15,6 +15,7 @@ import fragmentShaderSource from './shader.frag';
 /**
  * Just four triangles of different colors.
  */
+export type DESCRIPTION = never;
 
 function makePrimitive(runtime: Runtime_): Primitive_ {
     const schema = new VertexSchema([
