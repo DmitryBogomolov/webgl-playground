@@ -1,4 +1,4 @@
-import { BLACK, Color } from './color';
+import { colors, Color } from './color';
 import { generateId, Logger, raiseError } from './utils';
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
@@ -65,9 +65,9 @@ export class Runtime_ {
 
     private _setup(): void {
         const gl = this.gl;
-        const color = BLACK;
+        const { r, g, b, a } = colors.BLACK;
         gl.viewport(0, 0, this._canvas.width, this._canvas.height);
-        gl.clearColor(color.r, color.g, color.b, color.a);
+        gl.clearColor(r, g, b, a);
     }
 
     clearColor(): void {
@@ -75,8 +75,8 @@ export class Runtime_ {
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    setClearColor(color: Color): void {
-        this._logger.log('set_clear_color', `${color.r} ${color.g} ${color.b} ${color.a}`);
-        this.gl.clearColor(color.r, color.g, color.b, color.a);
+    setClearColor({ r, g, b, a }: Color): void {
+        this._logger.log('set_clear_color', `${r} ${g} ${b} ${a}`);
+        this.gl.clearColor(r, g, b, a);
     }
 }

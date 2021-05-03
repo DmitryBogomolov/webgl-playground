@@ -1,5 +1,5 @@
 import {
-    color,
+    color, colors,
     logSilenced,
     VertexSchema,
     FluentVertexWriter,
@@ -8,7 +8,7 @@ import {
     Runtime_,
     Primitive_,
     Program_,
-    Texture_, TextureFilterValues, UniformValue,
+    Texture_, TextureFilterValues, UniformValue, color2array,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -86,17 +86,13 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
 function generateTextureData(): ImageData {
     const schema = new VertexSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
     const pixels = [
-        // black, blue, green, cyan,
-        [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
-        // red, magenta, yellow, white,
-        [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
-        // white, yellow, magenta, red,
-        [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
-        // cyan, green, blue, black,
-        [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
+        colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
+        colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
+        colors.WHITE, colors.YELLOW, colors.MAGENTA, colors.RED,
+        colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
     ];
     const buffer = new ArrayBuffer(pixels.length * schema.vertexSize);
-    writeVertices(new FluentVertexWriter(buffer, schema), pixels, (pixel) => ({ tex: [...pixel, 1] }));
+    writeVertices(new FluentVertexWriter(buffer, schema), pixels, (pixel) => ({ tex: color2array(pixel) }));
     return {
         width: 4,
         height: 4,

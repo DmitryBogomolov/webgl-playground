@@ -4,9 +4,8 @@ import { Program } from './program';
 import { VertexBuffer, IndexBuffer } from './buffer';
 import { VertexArrayObject } from './vertex-array-object';
 import { Texture } from './texture';
-import { BLACK } from './color';
 import { generateId, Logger, raiseError } from './utils';
-import { Color } from './color';
+import { Color, colors } from './color';
 
 const {
     TRIANGLES,
@@ -54,7 +53,7 @@ export class Context implements ContextView {
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
 
         this.setViewport(0, 0, this._canvas.width, this._canvas.height);
-        this.setClearColor(BLACK);
+        this.setClearColor(colors.BLACK);
     }
 
     private readonly _handleContextLost: EventListener = () => {
