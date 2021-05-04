@@ -1,7 +1,5 @@
 import { Logger, raiseError, generateId } from './utils';
-import { MetaDesc, FieldType, VertexSchema } from './vertex-schema';
-
-type FieldTypeMap<T> = { readonly [key in FieldType]: T };
+import { MetaDesc, FieldType, VertexSchema, FieldTypeMap } from './vertex-schema';
 
 type Normalizer = (value: number) => number;
 

@@ -10,7 +10,9 @@ const {
 // byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234]
 export type FieldType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
 
-const BYTE_SIZES: { readonly [key in FieldType]: number } = {
+export type FieldTypeMap<T> = { readonly [key in FieldType]: T };
+
+const BYTE_SIZES: FieldTypeMap<number> = {
     byte: 1,
     ubyte: 1,
     short: 2,
@@ -18,7 +20,7 @@ const BYTE_SIZES: { readonly [key in FieldType]: number } = {
     float: 4,
 };
 
-const GL_TYPES: { readonly [key in FieldType]: number } = {
+const GL_TYPES: FieldTypeMap<number> = {
     byte: BYTE,
     ubyte: UNSIGNED_BYTE,
     short: SHORT,
