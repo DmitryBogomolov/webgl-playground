@@ -47,6 +47,7 @@ abstract class BaseVertexWriter<T = never> {
     protected readonly _byName: FieldsMap;
     protected readonly _impl = {} as unknown as FieldTypeMap<T>;
 
+    // TODO: Remove first argument.
     constructor(_source: VertexWriterSource, schema: VertexSchema) {
         this._logger = new Logger(generateId('VertexWriter'));
         this._schema = schema;
@@ -57,6 +58,7 @@ abstract class BaseVertexWriter<T = never> {
         return this._schema.vertexSize * vertexIndex + meta.offset;
     }
 
+    // TODO: Remove it.
     schema(): VertexSchema {
         return this._schema;
     }
