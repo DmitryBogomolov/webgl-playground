@@ -74,8 +74,8 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
     const writer = new FluentVertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_texcoord', vertex.texcoord);
+        writer.writeAttribute(i, 'a_position', vertex.position);
+        writer.writeAttribute(i, 'a_texcoord', vertex.texcoord);
     }
     const indexData = new Uint16Array([
         0, 1, 2,

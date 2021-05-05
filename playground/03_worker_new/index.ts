@@ -44,7 +44,7 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     const writer = new FluentVertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeField(i, 'a_position', vertex);
+        writer.writeAttribute(i, 'a_position', vertex);
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 

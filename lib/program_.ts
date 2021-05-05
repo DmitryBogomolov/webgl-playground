@@ -176,16 +176,14 @@ export class Program_ implements ProgramBase_ {
         const gl = this._runtime.gl;
         const attributes = this._attributes;
         const stride = this._schema.vertexSize;
-        for (const item of this._schema.items) {
+        for (const item of this._schema.attributes) {
             const attr = attributes[item.name];
             if (!attr) {
                 throw raiseError(this._logger, `attribute "${item.name}" is unknown`);
             }
             // TODO: Validate type and size (if it is possible).
             // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getActiveUniform
-            gl.vertexAttribPointer(
-                attr.location, item.size, item.gltype, item.normalized, stride, item.offset,
-            );
+            gl.vertexAttribPointer(attr.location, item.size, item.gltype, item.normalized, stride, item.offset);
             gl.enableVertexAttribArray(attr.location);
         }
     }

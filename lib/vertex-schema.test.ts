@@ -6,7 +6,7 @@ describe('vertex schema', () => {
         it('parse empty list', () => {
             const schema = new VertexSchema([]);
 
-            expect(schema.items).toEqual([]);
+            expect(schema.attributes).toEqual([]);
             expect(schema.vertexSize).toEqual(0);
             expect(schema.isPacked).toEqual(false);
         });
@@ -46,7 +46,7 @@ describe('vertex schema', () => {
                 bytes: 2,
                 normalized: false,
             };
-            expect(schema.items).toEqual([item1, item2, item3]);
+            expect(schema.attributes).toEqual([item1, item2, item3]);
             expect(schema.vertexSize).toEqual(24);
             expect(schema.isPacked).toEqual(false);
         });
@@ -86,7 +86,7 @@ describe('vertex schema', () => {
                 bytes: 2,
                 normalized: false,
             };
-            expect(schema.items).toEqual([item1, item2, item3]);
+            expect(schema.attributes).toEqual([item1, item2, item3]);
             expect(schema.vertexSize).toEqual(23);
             expect(schema.isPacked).toEqual(true);
         });

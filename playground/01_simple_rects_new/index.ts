@@ -63,8 +63,8 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     const writer = new VertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeField(i, 'a_position', vertex.position);
-        writer.writeField(i, 'a_color', color2array(vertex.color));
+        writer.writeAttribute(i, 'a_position', vertex.position);
+        writer.writeAttribute(i, 'a_color', color2array(vertex.color));
     }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 

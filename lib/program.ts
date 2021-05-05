@@ -153,11 +153,11 @@ export class Program extends BaseWrapper<WebGLProgram> {
     }
 
     setupVertexAttributes(schema: VertexSchema): void {
-        this._logger.log(`setup_vertex_attributes(${schema.items.length})`);
+        this._logger.log(`setup_vertex_attributes(${schema.attributes.length})`);
         const ctx = this._context.handle();
         const attributes = this._attributes;
         const stride = schema.vertexSize;
-        schema.items.forEach((item) => {
+        schema.attributes.forEach((item) => {
             const attr = attributes[item.name];
             if (!attr) {
                 throw raiseError(this._logger, `attribute "${item.name}" is unknown`);

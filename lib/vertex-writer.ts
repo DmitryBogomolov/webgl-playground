@@ -1,9 +1,9 @@
 import { Logger, raiseError, generateId } from './utils';
-import { MetaDesc, FieldType, VertexSchema, FieldTypeMap } from './vertex-schema';
+import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
 
 type Normalizer = (value: number) => number;
 
-const normalizers: FieldTypeMap<Normalizer> = {
+const normalizers: AttributeTypeMap<Normalizer> = {
     byte: (value) => Math.round(value * 0x7F),
     ubyte: (value) => Math.round(value * 0xFF),
     short: (value) => Math.round(value * 0x7FFF),
@@ -15,13 +15,13 @@ function eigen<T>(value: T): T {
     return value;
 }
 
-interface FieldsMap {
-    readonly [key: string]: MetaDesc;
+interface AttributesMap {
+    readonly [key: string]: Attribute;
 }
 
-function buildMap(schema: VertexSchema): FieldsMap {
-    const result: Record<string, MetaDesc> = {};
-    schema.items.forEach((meta) => {
+function buildMap(schema: VertexSchema): AttributesMap {
+    const result: Record<string, Attribute> = {};
+    schema.attributes.forEach((meta) => {
         result[meta.name] = meta;
     });
     return result;
@@ -40,20 +40,20 @@ function wrapBuffer(buffer: VertexWriterSource): ArrayBufferSite {
 }
 
 abstract class BaseVertexWriter<T = never> {
-    protected readonly _logger: Logger;
+    private readonly _id = generateId('VertexWriter');
+    protected readonly _logger = new Logger(this._id);
     protected readonly _schema: VertexSchema;
-    protected readonly _byName: FieldsMap;
-    protected readonly _impl = {} as unknown as FieldTypeMap<T>;
+    protected readonly _attributes: AttributesMap;
+    protected readonly _impl = {} as unknown as AttributeTypeMap<T>;
 
     // TODO: Remove first argument.
     constructor(_source: VertexWriterSource, schema: VertexSchema) {
-        this._logger = new Logger(generateId('VertexWriter'));
         this._schema = schema;
-        this._byName = buildMap(schema);
+        this._attributes = buildMap(schema);
     }
 
-    private _getPosition(vertexIndex: number, meta: MetaDesc): number {
-        return this._schema.vertexSize * vertexIndex + meta.offset;
+    private _getPosition(vertexIndex: number, attr: Attribute): number {
+        return this._schema.vertexSize * vertexIndex + attr.offset;
     }
 
     // TODO: Remove it.
@@ -61,22 +61,24 @@ abstract class BaseVertexWriter<T = never> {
         return this._schema;
     }
 
-    protected abstract _write(impl: T, position: number, i: number, meta: MetaDesc, value: number): void;
+    protected abstract _writeComponent(
+        impl: T, position: number, index: number, attr: Attribute, value: number
+    ): void;
 
-    writeField(vertexIndex: number, fieldName: string, value: ReadonlyArray<number>): void {
-        const meta = this._byName[fieldName];
-        const position = this._getPosition(vertexIndex, meta);
-        const normalize = meta.normalized ? normalizers[meta.type] : eigen;
-        const impl = this._impl[meta.type];
-        for (let i = 0; i < meta.size; ++i) {
-            this._write(impl, position, i, meta, normalize(value[i]));
+    writeAttribute(vertexIndex: number, attributeName: string, attributeValue: ReadonlyArray<number>): void {
+        const attr = this._attributes[attributeName];
+        const position = this._getPosition(vertexIndex, attr);
+        const normalize = attr.normalized ? normalizers[attr.type] : eigen;
+        const impl = this._impl[attr.type];
+        for (let i = 0; i < attr.size; ++i) {
+            this._writeComponent(impl, position, i, attr, normalize(attributeValue[i]));
         }
     }
 }
 
 type DataViewCaller = (dv: DataView, offset: number, value: number) => void;
 
-const dataViewCallers: FieldTypeMap<DataViewCaller> = {
+const dataViewCallers: AttributeTypeMap<DataViewCaller> = {
     byte: (dv, offset, value) => dv.setInt8(offset, value),
     ubyte: (dv, offset, value) => dv.setUint8(offset, value),
     short: (dv, offset, value) => dv.setInt16(offset, value, true),
@@ -94,15 +96,17 @@ export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
         Object.assign(this._impl, dataViewCallers);
     }
 
-    protected _write(write: DataViewCaller, position: number, i: number, meta: MetaDesc, value: number): void {
-        write(this._dv, position + i * meta.bytes, value);
+    protected _writeComponent(
+        write: DataViewCaller, position: number, index: number, attr: Attribute, value: number
+    ): void {
+        write(this._dv, position + index * attr.bytes, value);
     }
 }
 
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
 
-const viewMakers: FieldTypeMap<ArrayMaker> = {
+const viewMakers: AttributeTypeMap<ArrayMaker> = {
     byte: (buffer, offset, length) => new Int8Array(buffer, offset, length),
     ubyte: (buffer, offset, length) => new Uint8Array(buffer, offset, length),
     short: (buffer, offset, length) => new Int16Array(buffer, offset, length / 2),
@@ -117,8 +121,8 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
             throw raiseError(this._logger, 'not for packed schema');
         }
         const { buffer, offset, length } = wrapBuffer(source);
-        const impl: Partial<Record<FieldType, TypedArray>> = {};
-        this._schema.items.forEach((meta) => {
+        const impl: Partial<Record<AttributeType, TypedArray>> = {};
+        this._schema.attributes.forEach((meta) => {
             const type = meta.type;
             if (!impl[type]) {
                 impl[type] = viewMakers[type](buffer, offset, length);
@@ -127,8 +131,10 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
         Object.assign(this._impl, impl);
     }
 
-    protected _write(view: TypedArray, position: number, i: number, meta: MetaDesc, value: number): void {
-        view[position / meta.bytes + i] = value;
+    protected _writeComponent(
+        view: TypedArray, position: number, index: number, attr: Attribute, value: number
+    ): void {
+        view[position / attr.bytes + index] = value;
     }
 }
 
@@ -141,12 +147,12 @@ type VertexTransformer<T> = (vertex: T, index: number) => VertexDesc;
 export function writeVertices<T>(
     writer: BaseVertexWriter<unknown>, vertices: ReadonlyArray<T>, func: VertexTransformer<T>,
 ): void {
-    const names = writer.schema().items.map((item) => item.name);
+    const names = writer.schema().attributes.map((item) => item.name);
     vertices.forEach((vertex, i) => {
         const data = func(vertex, i);
         names.forEach((name) => {
             if (name in data) {
-                writer.writeField(i, name, data[name]);
+                writer.writeAttribute(i, name, data[name]);
             }
         });
     });

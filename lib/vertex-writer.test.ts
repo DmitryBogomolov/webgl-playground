@@ -17,15 +17,15 @@ describe('vertex writer', () => {
             const dv = new DataView(new ArrayBuffer(100));
             const writer = new VertexWriter(dv.buffer, schema);
 
-            writer.writeField(0, 'f1', [1.2, 2.3]);
-            writer.writeField(0, 'f2', [1200]);
-            writer.writeField(0, 'f3', [1, 2, 3]);
-            writer.writeField(1, 'f1', [2.3, 2.1]);
-            writer.writeField(1, 'f2', [1300]);
-            writer.writeField(1, 'f3', [2, 3, 4]);
-            writer.writeField(2, 'f1', [4.1, 3.1]);
-            writer.writeField(2, 'f2', [1400]);
-            writer.writeField(2, 'f3', [4, 2, 1]);
+            writer.writeAttribute(0, 'f1', [1.2, 2.3]);
+            writer.writeAttribute(0, 'f2', [1200]);
+            writer.writeAttribute(0, 'f3', [1, 2, 3]);
+            writer.writeAttribute(1, 'f1', [2.3, 2.1]);
+            writer.writeAttribute(1, 'f2', [1300]);
+            writer.writeAttribute(1, 'f3', [2, 3, 4]);
+            writer.writeAttribute(2, 'f1', [4.1, 3.1]);
+            writer.writeAttribute(2, 'f2', [1400]);
+            writer.writeAttribute(2, 'f3', [4, 2, 1]);
 
             let offset = 0;
             expect(dv.getFloat32(offset + 0, true)).toBeCloseTo(1.2);
@@ -58,15 +58,15 @@ describe('vertex writer', () => {
             const dv = new DataView(new ArrayBuffer(100));
             const writer = new FluentVertexWriter(dv.buffer, schema);
 
-            writer.writeField(0, 'f1', [1.2, 2.3]);
-            writer.writeField(0, 'f2', [1200]);
-            writer.writeField(0, 'f3', [1, 2, 3]);
-            writer.writeField(1, 'f1', [2.3, 2.1]);
-            writer.writeField(1, 'f2', [1300]);
-            writer.writeField(1, 'f3', [2, 3, 4]);
-            writer.writeField(2, 'f1', [4.1, 3.1]);
-            writer.writeField(2, 'f2', [1400]);
-            writer.writeField(2, 'f3', [4, 2, 1]);
+            writer.writeAttribute(0, 'f1', [1.2, 2.3]);
+            writer.writeAttribute(0, 'f2', [1200]);
+            writer.writeAttribute(0, 'f3', [1, 2, 3]);
+            writer.writeAttribute(1, 'f1', [2.3, 2.1]);
+            writer.writeAttribute(1, 'f2', [1300]);
+            writer.writeAttribute(1, 'f3', [2, 3, 4]);
+            writer.writeAttribute(2, 'f1', [4.1, 3.1]);
+            writer.writeAttribute(2, 'f2', [1400]);
+            writer.writeAttribute(2, 'f3', [4, 2, 1]);
 
             let offset = 0;
             expect(dv.getFloat32(offset + 0, true)).toBeCloseTo(1.2);
