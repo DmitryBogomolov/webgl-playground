@@ -67,6 +67,13 @@ abstract class BaseVertexWriter<T = never> {
 
     writeAttribute(vertexIndex: number, attributeName: string, attributeValue: ReadonlyArray<number>): void {
         const attr = this._attributes[attributeName];
+        if (!attr) {
+            throw raiseError(this._logger, `attribute "${attributeName}" is unknown`);
+        }
+        if (attr.size !== attributeValue.length) {
+            throw raiseError(this._logger,
+                `attribute "${attributeName}" size is ${attr.size} but value is [${attributeValue}]`);
+        }
         const position = this._getPosition(vertexIndex, attr);
         const normalize = attr.normalized ? normalizers[attr.type] : eigen;
         const impl = this._impl[attr.type];
@@ -97,7 +104,7 @@ export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
     }
 
     protected _writeComponent(
-        write: DataViewCaller, position: number, index: number, attr: Attribute, value: number
+        write: DataViewCaller, position: number, index: number, attr: Attribute, value: number,
     ): void {
         write(this._dv, position + index * attr.bytes, value);
     }
@@ -132,7 +139,7 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
     }
 
     protected _writeComponent(
-        view: TypedArray, position: number, index: number, attr: Attribute, value: number
+        view: TypedArray, position: number, index: number, attr: Attribute, value: number,
     ): void {
         view[position / attr.bytes + index] = value;
     }
