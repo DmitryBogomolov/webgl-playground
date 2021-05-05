@@ -1,4 +1,4 @@
-import { ProgramBase_, EMPTY_PROGRAM, UniformValues } from './program_';
+import { Program_, EMPTY_PROGRAM, UniformValues } from './program_';
 import { Runtime_ } from './runtime_';
 import { Logger, raiseError, generateId } from './utils';
 
@@ -9,7 +9,7 @@ export class Primitive_ {
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
-    private _program: ProgramBase_ = EMPTY_PROGRAM;
+    private _program: Program_ = EMPTY_PROGRAM;
     private _indexCount: number = 0;
 
     constructor(runtime: Runtime_) {
@@ -56,7 +56,7 @@ export class Primitive_ {
         this._indexCount = indexData.length;
     }
 
-    setProgram(program: ProgramBase_): void {
+    setProgram(program: Program_): void {
         this._logger.log('set_program');
         this._program = program;
         const vao = this._runtime.vao;

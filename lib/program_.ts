@@ -62,13 +62,7 @@ export interface ProgramOptions {
     readonly schema: VertexSchema;
 }
 
-export interface ProgramBase_ {
-    readonly program: WebGLProgram | null;
-    setupVertexAttributes(): void;
-    setUniforms(uniforms: UniformValues): void;
-}
-
-export class Program_ implements ProgramBase_ {
+export class Program_ {
     private readonly _id = generateId('Program');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime_;
@@ -205,8 +199,8 @@ export class Program_ implements ProgramBase_ {
     }
 }
 
-export const EMPTY_PROGRAM: ProgramBase_ = {
+export const EMPTY_PROGRAM = {
     program: null,
     setupVertexAttributes() { /* empty */ },
     setUniforms() { /* empty */ },
-};
+} as unknown as Program_;
