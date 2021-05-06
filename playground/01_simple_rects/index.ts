@@ -1,12 +1,13 @@
 import {
-    Context, RenderLoop,
+    RenderLoop,
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
     VertexSchema,
-    VertexArrayObject,
-    Program,
-    writeVertices,
+    Runtime_,
+    Program_,
+    Primitive_,
     generateDefaultIndexes, logSilenced,
+    colors, color2array,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -14,19 +15,31 @@ import fragmentShaderSource from './shader.frag';
 /**
  * Just four triangles of different colors.
  */
+export type DESCRIPTION = never;
 
-interface State {
-    readonly context: Context;
-    readonly program: Program;
-    readonly vao: VertexArrayObject;
-    readonly indexCount: number;
-}
+function makePrimitive(runtime: Runtime_): Primitive_ {
+    const schema = new VertexSchema([
+        {
+            name: 'a_position',
+            type: 'float2',
+        },
+        {
+            name: 'a_color',
+            type: 'ubyte4',
+            normalized: true,
+        },
+    ]);
+    const program = new Program_(runtime, {
+        vertexShader: vertexShaderSource,
+        fragmentShader: fragmentShaderSource,
+        schema,
+    });
+    const primitive = new Primitive_(runtime);
 
-function initData(context: Context, program: Program): Pick<State, 'vao' | 'indexCount'> {
-    const c1 = [1, 0, 0]; // red
-    const c2 = [1, 1, 0]; // yellow
-    const c3 = [0, 1, 0]; // green
-    const c4 = [0, 1, 1]; // cyan
+    const c1 = colors.RED;
+    const c2 = colors.YELLOW;
+    const c3 = colors.GREEN;
+    const c4 = colors.CYAN;
     const vertices = [
         // bottom-left
         { position: [-1, +0], color: c1 },
@@ -46,74 +59,28 @@ function initData(context: Context, program: Program): Pick<State, 'vao' | 'inde
         { position: [-1, +0], color: c4 },
     ];
 
-    const schema = new VertexSchema([
-        {
-            name: 'a_position',
-            type: 'float2',
-        },
-        {
-            name: 'a_color',
-            type: 'ubyte3',
-            normalized: true,
-        },
-    ]);
-
     const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
-    writeVertices(new VertexWriter(vertexData, schema), vertices, (vertex) => ({
-        a_position: vertex.position,
-        a_color: vertex.color,
-    }));
-
+    const writer = new VertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeAttribute(i, 'a_position', vertex.position);
+        writer.writeAttribute(i, 'a_color', color2array(vertex.color));
+    }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
-    const vertexBuffer = context.createVertexBuffer();
-    context.bindVertexBuffer(vertexBuffer);
-    vertexBuffer.setData(vertexData);
+    primitive.setData(vertexData, indexData);
+    primitive.setProgram(program);
 
-    const indexBuffer = context.createIndexBuffer();
-    context.bindIndexBuffer(indexBuffer);
-    indexBuffer.setData(indexData);
-
-    const vao = context.createVertexArrayObject();
-    context.bindVertexArrayObject(vao);
-    context.bindVertexBuffer(vertexBuffer);
-    context.bindIndexBuffer(indexBuffer);
-    program.setupVertexAttributes(schema);
-    context.bindVertexArrayObject(null);
-
-    return {
-        vao,
-        indexCount: indexData.length,
-    };
+    return primitive;
 }
 
-function init(): State {
-    // eslint-disable-next-line no-undef
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const context = new Context(container);
-
-    const program = context.createProgram();
-    program.setSources(vertexShaderSource, fragmentShaderSource);
-
-    const { vao, indexCount } = initData(context, program);
-
-    return {
-        context,
-        program,
-        vao,
-        indexCount,
-    };
-}
-
-function render({ context, program, vao, indexCount }: State): void {
-    context.clearColor();
-    context.useProgram(program);
-    context.bindVertexArrayObject(vao);
-    context.drawElements(indexCount);
-    context.bindVertexArrayObject(null);
-}
-
-const state = init();
-const loop = new RenderLoop(() => render(state));
+// eslint-disable-next-line no-undef
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+const runtime = new Runtime_(container);
+const primitive = makePrimitive(runtime);
+const loop = new RenderLoop(() => {
+    runtime.clearColor();
+    primitive.draw();
+});
 loop.start();
 logSilenced(true);

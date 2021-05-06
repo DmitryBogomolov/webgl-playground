@@ -1,15 +1,13 @@
 import {
-    Context, RenderLoop,
+    RenderLoop,
     FluentVertexWriter,
     VertexSchema,
-    writeVertices,
     WorkerMessenger,
-    color,
-    Color,
+    color, Color, color2array,
     logSilenced,
-    RenderFrameCallback,
-    Program,
-    VertexArrayObject,
+    Runtime_,
+    Primitive_,
+    Program_,
 } from 'lib';
 import {
     TYPE_SCALE,
@@ -24,94 +22,77 @@ import fragmentShaderSource from './shader.frag';
  * On each frame message is sent to worker thread. Worker thread from time to time
  * sends message back - with scale or color parameter.
  */
+export type DESCRIPTION = never;
 
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
-function initData(context: Context, program: Program): { vao: VertexArrayObject, indexCount: number } {
+function makePrimitive(runtime: Runtime_): Primitive_ {
     const schema = new VertexSchema([
         { name: 'a_position', type: 'float2' },
     ]);
+    const program = new Program_(runtime, {
+        vertexShader: vertexShaderSource,
+        fragmentShader: fragmentShaderSource,
+        schema,
+    });
+    const primitive = new Primitive_(runtime);
+
+    const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
 
     const vertexData = new ArrayBuffer(4 * schema.vertexSize);
-    writeVertices(new FluentVertexWriter(vertexData, schema), [[-1, -1], [+1, -1], [+1, +1], [-1, +1]], (vertex) => ({
-        a_position: vertex,
-    }));
+    const writer = new FluentVertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeAttribute(i, 'a_position', vertex);
+    }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
-    const vertexBuffer = context.createVertexBuffer();
-    context.bindVertexBuffer(vertexBuffer);
-    vertexBuffer.setData(vertexData);
+    primitive.setData(vertexData, indexData);
+    primitive.setProgram(program);
 
-    const indexBuffer = context.createIndexBuffer();
-    context.bindIndexBuffer(indexBuffer);
-    indexBuffer.setData(indexData);
-
-    const vao = context.createVertexArrayObject();
-    context.bindVertexArrayObject(vao);
-    context.bindVertexBuffer(vertexBuffer);
-    program.setupVertexAttributes(schema);
-    context.bindIndexBuffer(indexBuffer);
-    context.bindVertexArrayObject(null);
-
-    return {
-        vao,
-        indexCount: indexData.length,
-    };
+    return primitive;
 }
 
-function init(): RenderFrameCallback {
-    // eslint-disable-next-line no-undef
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const context = new Context(container);
-    context.setClearColor(color(0.8, 0.8, 0.8));
+// eslint-disable-next-line no-undef
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+const runtime = new Runtime_(container);
+runtime.setClearColor(color(0.8, 0.8, 0.8));
+const primitive = makePrimitive(runtime);
 
-    const program = context.createProgram();
-    program.setSources(vertexShaderSource, fragmentShaderSource);
+let clr = color(0, 0, 0, 1);
+let scale = 0;
 
-    const { vao, indexCount } = initData(context, program);
+// eslint-disable-next-line no-undef
+const worker = new WorkerMessenger(WORKER_URL, {
+    [TYPE_SCALE](payload) {
+        scale = payload as number;
+    },
+    [TYPE_COLOR](payload) {
+        clr = payload as Color;
+    },
+});
 
-    let clr = color(0, 0, 0, 1);
-    let scale = 0;
+let scaleDelta = 0;
+let colorDelta = 0;
 
-    // eslint-disable-next-line no-undef
-    const worker = new WorkerMessenger(WORKER_URL, {
-        [TYPE_SCALE](payload) {
-            scale = payload as number;
-        },
-        [TYPE_COLOR](payload) {
-            clr = payload as Color;
-        },
-    });
-
-    let scaleDelta = 0;
-    let colorDelta = 0;
-
-    function render(delta: number): void {
-        scaleDelta += delta;
-        colorDelta += delta;
-        if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            worker.post(TYPE_SCALE, scaleDelta / 1000);
-            scaleDelta = 0;
-        }
-        if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            worker.post(TYPE_COLOR, colorDelta / 1000);
-            colorDelta = 0;
-        }
-
-        context.clearColor();
-        context.useProgram(program);
-        program.setUniform('u_scale', scale);
-        program.setUniform('u_color', [clr.r, clr.g, clr.b, clr.a]);
-        context.bindVertexArrayObject(vao);
-        context.drawElements(indexCount);
-        context.bindVertexArrayObject(null);
+const loop = new RenderLoop((delta) => {
+    scaleDelta += delta;
+    colorDelta += delta;
+    if (scaleDelta > SCALE_UPDATE_INTERVAL) {
+        worker.post(TYPE_SCALE, scaleDelta / 1000);
+        scaleDelta = 0;
+    }
+    if (colorDelta > COLOR_UPDATE_INTERVAL) {
+        worker.post(TYPE_COLOR, colorDelta / 1000);
+        colorDelta = 0;
     }
 
-    return render;
-}
-
-const render = init();
-const loop = new RenderLoop(render);
+    runtime.clearColor();
+    primitive.draw({
+        'u_scale': scale,
+        'u_color': color2array(clr),
+    });
+});
 loop.start();
 logSilenced(true);
