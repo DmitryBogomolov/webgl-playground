@@ -3,7 +3,7 @@ import { VertexWriter, FluentVertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
     const schema = {
-        items: [
+        attributes: [
             { name: 'f1', type: 'float', size: 2, bytes: 4, offset: 0 },
             { name: 'f2', type: 'short', size: 1, bytes: 2, offset: 8 },
             { name: 'f3', type: 'ubyte', size: 3, bytes: 1, offset: 12 },
@@ -13,7 +13,7 @@ describe('vertex writer', () => {
     } as unknown as VertexSchema;
 
     describe('VertexWriter', () => {
-        it('write fields', () => {
+        it('write attributes', () => {
             const dv = new DataView(new ArrayBuffer(100));
             const writer = new VertexWriter(dv.buffer, schema);
 
@@ -54,7 +54,7 @@ describe('vertex writer', () => {
     });
 
     describe('FluentVertexWriter', () => {
-        it('write fields', () => {
+        it('write attributes', () => {
             const dv = new DataView(new ArrayBuffer(100));
             const writer = new FluentVertexWriter(dv.buffer, schema);
 

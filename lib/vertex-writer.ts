@@ -46,19 +46,13 @@ abstract class BaseVertexWriter<T = never> {
     protected readonly _attributes: AttributesMap;
     protected readonly _impl = {} as unknown as AttributeTypeMap<T>;
 
-    // TODO: Remove first argument.
-    constructor(_source: VertexWriterSource, schema: VertexSchema) {
+    constructor(schema: VertexSchema) {
         this._schema = schema;
         this._attributes = buildMap(schema);
     }
 
     private _getPosition(vertexIndex: number, attr: Attribute): number {
         return this._schema.vertexSize * vertexIndex + attr.offset;
-    }
-
-    // TODO: Remove it.
-    schema(): VertexSchema {
-        return this._schema;
     }
 
     protected abstract _writeComponent(
@@ -97,7 +91,7 @@ export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
     private readonly _dv: DataView;
 
     constructor(source: VertexWriterSource, schema: VertexSchema) {
-        super(source, schema);
+        super(schema);
         const { buffer, offset, length } = wrapBuffer(source);
         this._dv = new DataView(buffer, offset, length);
         Object.assign(this._impl, dataViewCallers);
@@ -123,7 +117,7 @@ const viewMakers: AttributeTypeMap<ArrayMaker> = {
 
 export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
     constructor(source: VertexWriterSource, schema: VertexSchema) {
-        super(source, schema);
+        super(schema);
         if (this._schema.isPacked) {
             throw raiseError(this._logger, 'not for packed schema');
         }
@@ -143,24 +137,4 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
     ): void {
         view[position / attr.bytes + index] = value;
     }
-}
-
-interface VertexDesc {
-    readonly [name: string]: ReadonlyArray<number>;
-}
-type VertexTransformer<T> = (vertex: T, index: number) => VertexDesc;
-
-// TODO: Remove it.
-export function writeVertices<T>(
-    writer: BaseVertexWriter<unknown>, vertices: ReadonlyArray<T>, func: VertexTransformer<T>,
-): void {
-    const names = writer.schema().attributes.map((item) => item.name);
-    vertices.forEach((vertex, i) => {
-        const data = func(vertex, i);
-        names.forEach((name) => {
-            if (name in data) {
-                writer.writeAttribute(i, name, data[name]);
-            }
-        });
-    });
 }
