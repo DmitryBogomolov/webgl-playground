@@ -1,7 +1,7 @@
-import { Runtime_ } from './runtime_';
+import { Runtime } from './runtime';
 
 describe('runtime', () => {
-    describe('Runtime_', () => {
+    describe('Runtime', () => {
         let container: HTMLElement;
         let canvas: HTMLCanvasElement;
         let ctx: WebGLRenderingContext;
@@ -32,7 +32,7 @@ describe('runtime', () => {
         });
 
         it('create runtime', () => {
-            new Runtime_(container);
+            new Runtime(container);
         });
     });
 });

@@ -5,9 +5,9 @@ import {
     WorkerMessenger,
     color, Color, color2array,
     logSilenced,
-    Runtime_,
-    Primitive_,
-    Program_,
+    Runtime,
+    Primitive,
+    Program,
 } from 'lib';
 import {
     TYPE_SCALE,
@@ -27,16 +27,16 @@ export type DESCRIPTION = never;
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
-function makePrimitive(runtime: Runtime_): Primitive_ {
+function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float2' },
     ]);
-    const program = new Program_(runtime, {
+    const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
         schema,
     });
-    const primitive = new Primitive_(runtime);
+    const primitive = new Primitive(runtime);
 
     const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
 
@@ -56,7 +56,7 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
 
 // eslint-disable-next-line no-undef
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-const runtime = new Runtime_(container);
+const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 const primitive = makePrimitive(runtime);
 

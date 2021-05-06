@@ -1,6 +1,6 @@
 import { contextConstants } from './context-constants';
-import { Program_, EMPTY_PROGRAM, UniformValues } from './program_';
-import { Runtime_ } from './runtime_';
+import { Program, EMPTY_PROGRAM, UniformValues } from './program';
+import { Runtime } from './runtime';
 import { Logger, raiseError, generateId } from './utils';
 
 const {
@@ -8,17 +8,17 @@ const {
     STATIC_DRAW, TRIANGLES, UNSIGNED_SHORT,
 } = contextConstants;
 
-export class Primitive_ {
+export class Primitive {
     private readonly _id = generateId('Primitve');
     private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime_;
+    private readonly _runtime: Runtime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
-    private _program: Program_ = EMPTY_PROGRAM;
+    private _program: Program = EMPTY_PROGRAM;
     private _indexCount: number = 0;
 
-    constructor(runtime: Runtime_) {
+    constructor(runtime: Runtime) {
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();
@@ -62,7 +62,7 @@ export class Primitive_ {
         this._indexCount = indexData.length;
     }
 
-    setProgram(program: Program_): void {
+    setProgram(program: Program): void {
         this._logger.log('set_program');
         this._program = program;
         const vao = this._runtime.vaoExt;

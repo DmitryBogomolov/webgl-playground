@@ -3,9 +3,9 @@ import {
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
     parseVertexSchema,
-    Runtime_,
-    Program_,
-    Primitive_,
+    Runtime,
+    Program,
+    Primitive,
     generateDefaultIndexes, logSilenced,
     colors, color2array,
 } from 'lib';
@@ -17,7 +17,7 @@ import fragmentShaderSource from './shader.frag';
  */
 export type DESCRIPTION = never;
 
-function makePrimitive(runtime: Runtime_): Primitive_ {
+function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         {
             name: 'a_position',
@@ -29,12 +29,12 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
             normalized: true,
         },
     ]);
-    const program = new Program_(runtime, {
+    const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
         schema,
     });
-    const primitive = new Primitive_(runtime);
+    const primitive = new Primitive(runtime);
 
     const c1 = colors.RED;
     const c2 = colors.YELLOW;
@@ -76,7 +76,7 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
 
 // eslint-disable-next-line no-undef
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-const runtime = new Runtime_(container);
+const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const loop = new RenderLoop(() => {
     runtime.clearColor();

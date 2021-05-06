@@ -1,14 +1,14 @@
-import { Program_ } from './program_';
-import { Runtime_ } from './runtime_';
+import { Program } from './program';
+import { Runtime } from './runtime';
 import { VertexSchema } from './vertex-schema';
 
 describe('program', () => {
-    describe('Program_', () => {
+    describe('Program', () => {
         let program: WebGLProgram;
         let vShader: WebGLShader;
         let fShader: WebGLShader;
         let ctx: WebGLRenderingContext;
-        let runtime: Runtime_;
+        let runtime: Runtime;
         let createProgram: jest.Mock;
         let createShader: jest.Mock;
         let useProgram: jest.Mock;
@@ -45,11 +45,11 @@ describe('program', () => {
             } as unknown as WebGLRenderingContext;
             runtime = {
                 gl: ctx,
-            } as unknown as Runtime_;
+            } as unknown as Runtime;
         });
 
         it('create program', () => {
-            new Program_(runtime, {
+            new Program(runtime, {
                 vertexShader: 'vertex-shader-source',
                 fragmentShader: 'fragment-shader-source',
                 schema: {} as unknown as VertexSchema,

@@ -1,11 +1,11 @@
-import { Texture_ } from './texture_';
-import { Runtime_ } from './runtime_';
+import { Texture } from './texture';
+import { Runtime } from './runtime';
 
 describe('texture', () => {
-    describe('Texture_', () => {
+    describe('Texture', () => {
         let texture: WebGLTexture;
         let ctx: WebGLRenderingContext;
-        let runtime: Runtime_;
+        let runtime: Runtime;
         let createTexture: jest.Mock;
         let bindTexture: jest.Mock;
         let activeTexture: jest.Mock;
@@ -22,11 +22,11 @@ describe('texture', () => {
             } as unknown as WebGLRenderingContext;
             runtime = {
                 gl: ctx,
-            } as unknown as Runtime_;
+            } as unknown as Runtime;
         });
 
         it('create texture', () => {
-            new Texture_(runtime);
+            new Texture(runtime);
             expect(createTexture.mock.calls).toEqual([
                 [],
             ]);

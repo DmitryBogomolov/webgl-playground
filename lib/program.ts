@@ -1,7 +1,7 @@
 import { VertexSchema } from './vertex-schema';
 import { contextConstants } from './context-constants';
 import { generateId, Logger, raiseError } from './utils';
-import { Runtime_ } from './runtime_';
+import { Runtime } from './runtime';
 
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
@@ -122,10 +122,10 @@ export interface ProgramOptions {
     readonly schema: VertexSchema;
 }
 
-export class Program_ {
+export class Program {
     private readonly _id = generateId('Program');
     private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime_;
+    private readonly _runtime: Runtime;
     readonly program: WebGLProgram;
     private readonly _vertexShader: WebGLShader;
     private readonly _fragmentShader: WebGLShader;
@@ -133,7 +133,7 @@ export class Program_ {
     private _attributes: AttributesMap = {};
     private _uniforms: UniformsMap = {};
 
-    constructor(runtime: Runtime_, options: ProgramOptions) {
+    constructor(runtime: Runtime, options: ProgramOptions) {
         this._logger.log('init');
         this._runtime = runtime;
         this.program = this._createProgram();
@@ -266,4 +266,4 @@ export const EMPTY_PROGRAM = {
     program: null,
     setupVertexAttributes() { /* empty */ },
     setUniforms() { /* empty */ },
-} as unknown as Program_;
+} as unknown as Program;

@@ -1,14 +1,14 @@
-import { Primitive_ } from './primitive_';
-import { Runtime_ } from './runtime_';
+import { Primitive } from './primitive';
+import { Runtime } from './runtime';
 
 describe('primitive', () => {
-    describe('Primitive_', () => {
+    describe('Primitive', () => {
         let vao: WebGLVertexArrayObjectOES;
         let vertexBuffer: WebGLBuffer;
         let indexBuffer: WebGLBuffer;
         let ctx: WebGLRenderingContext;
         let vaoExt: OES_vertex_array_object;
-        let runtime: Runtime_;
+        let runtime: Runtime;
         let createVertexArrayOES: jest.Mock;
         let createBuffer: jest.Mock;
 
@@ -27,11 +27,11 @@ describe('primitive', () => {
             runtime = {
                 gl: ctx,
                 vaoExt,
-            } as unknown as Runtime_;
+            } as unknown as Runtime;
         });
 
         it('create primitive', () => {
-            new Primitive_(runtime);
+            new Primitive(runtime);
             expect(createVertexArrayOES.mock.calls).toEqual([
                 [],
             ]);

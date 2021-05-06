@@ -1,4 +1,4 @@
-import { Runtime_ } from './runtime_';
+import { Runtime } from './runtime';
 import { contextConstants } from './context-constants';
 import { generateId, Logger, raiseError } from './utils';
 
@@ -44,13 +44,13 @@ const PARAM_VALUE_MAP: ParamValueMap = {
     clamp_to_edge: CLAMP_TO_EDGE,
 };
 
-export class Texture_ {
+export class Texture {
     private readonly _id = generateId('Texture');
     private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime_;
+    private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
 
-    constructor(runtime: Runtime_) {
+    constructor(runtime: Runtime) {
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();

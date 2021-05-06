@@ -15,7 +15,7 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
     return canvas;
 }
 
-export class Runtime_ {
+export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;

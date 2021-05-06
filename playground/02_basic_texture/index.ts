@@ -4,10 +4,10 @@ import {
     VertexSchema, parseVertexSchema,
     FluentVertexWriter,
     RenderLoop,
-    Runtime_,
-    Primitive_,
-    Program_, UniformValue,
-    Texture_, TextureFilterValues,
+    Runtime,
+    Primitive,
+    Program, UniformValue,
+    Texture, TextureFilterValues,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -107,7 +107,7 @@ function generateTextureData(): ImageData {
     };
 }
 
-function makePrimitive(runtime: Runtime_): Primitive_ {
+function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         {
             name: 'a_position',
@@ -118,14 +118,14 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
             type: 'float2',
         },
     ]);
-    const program = new Program_(runtime, {
+    const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
         schema,
     });
     const { vertexData, indexData } = generateVertices(schema);
 
-    const primitive = new Primitive_(runtime);
+    const primitive = new Primitive(runtime);
 
     primitive.setData(vertexData, indexData);
     primitive.setProgram(program);
@@ -133,9 +133,9 @@ function makePrimitive(runtime: Runtime_): Primitive_ {
     return primitive;
 }
 
-function makeTexture(runtime: Runtime_): Texture_ {
+function makeTexture(runtime: Runtime): Texture {
     const data = generateTextureData();
-    const texture = new Texture_(runtime);
+    const texture = new Texture(runtime);
     texture.setParameters({
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
@@ -145,7 +145,7 @@ function makeTexture(runtime: Runtime_): Texture_ {
 }
 
 // eslint-disable-next-line no-undef
-const runtime = new Runtime_(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
+const runtime = new Runtime(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 
 let texcoord: TexCoord = [0, 0];
