@@ -20,13 +20,13 @@ export class Runtime_ {
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
     readonly gl: WebGLRenderingContext;
-    readonly vao: OES_vertex_array_object;
+    readonly vaoExt: OES_vertex_array_object;
 
     constructor(container: HTMLElement) {
         this._logger.log('init');
         this._canvas = createCanvas(container);
         this.gl = this._getContext();
-        this.vao = this._getVaoExt();
+        this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this._setup();
