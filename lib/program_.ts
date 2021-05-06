@@ -8,16 +8,40 @@ const {
     COMPILE_STATUS, LINK_STATUS,
     ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS,
     FLOAT, FLOAT_VEC2, FLOAT_VEC3, FLOAT_VEC4,
+    INT, INT_VEC2, INT_VEC3, INT_VEC4,
+    BOOL, BOOL_VEC2, BOOL_VEC3, BOOL_VEC4,
+    FLOAT_MAT2, FLOAT_MAT3, FLOAT_MAT4,
     SAMPLER_2D,
 } = contextConstants;
 
-type v2 = Readonly<[number, number]>;
-type v3 = Readonly<[number, number, number]>;
-type v4 = Readonly<[number, number, number, number]>;
-// TODO: Support Color type.
+type v2 = readonly [number, number];
+type v3 = readonly [number, number, number];
+type v4 = readonly [number, number, number, number];
 export type UniformValue = number | v2 | v3 | v4;
 
-type UniformSetter = (ctx: WebGLRenderingContext, location: WebGLUniformLocation, value: UniformValue) => void;
+interface ShaderAttribute {
+    readonly info: WebGLActiveInfo;
+    readonly location: number;
+    readonly type: ShaderType;
+    readonly size: number;
+}
+
+interface ShaderUniform {
+    readonly info: WebGLActiveInfo;
+    readonly location: WebGLUniformLocation;
+    readonly type: ShaderType;
+    readonly size: number;
+}
+
+type UniformSetter = (
+    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: UniformValue
+) => void;
+
+type ShaderType = 'float' | 'int' | 'bool' | 'sampler';
+
+interface ShaderTypesMap {
+    readonly [key: number]: { type: ShaderType, size: number };
+}
 
 interface UniformSettersMap {
     readonly [key: number]: UniformSetter;
@@ -27,33 +51,69 @@ export interface UniformValues {
     readonly [name: string]: UniformValue;
 }
 
-// TODO: Add actual type verification here (like Number.isFinite, Array.isArray, etc...).
-const uniformSetters: UniformSettersMap = {
-    [FLOAT]: (ctx, location, value) => ctx.uniform1f(location, value as number),
-    [FLOAT_VEC2]: (ctx, location, value) => ctx.uniform2fv(location, value as v2),
-    [FLOAT_VEC3]: (ctx, location, value) => ctx.uniform3fv(location, value as v3),
-    [FLOAT_VEC4]: (ctx, location, value) => ctx.uniform4fv(location, value as v4),
-    [SAMPLER_2D]: (ctx, location, value) => ctx.uniform1i(location, value as number),
+const shaderTypes: ShaderTypesMap = {
+    [FLOAT]: { type: 'float', size: 1 },
+    [FLOAT_VEC2]: { type: 'float', size: 2 },
+    [FLOAT_VEC3]: { type: 'float', size: 3 },
+    [FLOAT_VEC4]: { type: 'float', size: 4 },
+    [INT]: { type: 'int', size: 1 },
+    [INT_VEC2]: { type: 'int', size: 2 },
+    [INT_VEC3]: { type: 'int', size: 3 },
+    [INT_VEC4]: { type: 'int', size: 4 },
+    [BOOL]: { type: 'bool', size: 1 },
+    [BOOL_VEC2]: { type: 'bool', size: 2 },
+    [BOOL_VEC3]: { type: 'bool', size: 3 },
+    [BOOL_VEC4]: { type: 'bool', size: 4 },
+    [FLOAT_MAT2]: { type: 'float', size: 4 },
+    [FLOAT_MAT3]: { type: 'float', size: 9 },
+    [FLOAT_MAT4]: { type: 'float', size: 16 },
+    [SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
-interface AttributeDesc {
-    readonly location: number;
-    readonly size: number;
-    readonly type: number;
-}
-
-interface UniformDesc {
-    readonly location: WebGLUniformLocation;
-    readonly size: number;
-    readonly type: number;
-}
+const uniformSetters: UniformSettersMap = {
+    [FLOAT]: (logger, gl, { location }, value) => {
+        if (typeof value === 'number') {
+            gl.uniform1f(location, value);
+        } else {
+            throw raiseError(logger, `bad value for "float" uniform: "${value}"`);
+        }
+    },
+    [FLOAT_VEC2]: (logger, gl, { location }, value) => {
+        if (Array.isArray(value) && value.length === 2) {
+            gl.uniform2fv(location, value);
+        } else {
+            throw raiseError(logger, `bad value for "vec2" uniform: "${value}"`);
+        }
+    },
+    [FLOAT_VEC3]: (logger, gl, { location }, value) => {
+        if (Array.isArray(value) && value.length === 3) {
+            gl.uniform3fv(location, value);
+        } else {
+            throw raiseError(logger, `bad value for "vec3" uniform: "${value}"`);
+        }
+    },
+    [FLOAT_VEC4]: (logger, gl, { location }, value) => {
+        if (Array.isArray(value) && value.length === 4) {
+            gl.uniform4fv(location, value);
+        } else {
+            throw raiseError(logger, `bad value for "vec4" uniform: "${value}"`);
+        }
+    },
+    [SAMPLER_2D]: (logger, gl, { location }, value) => {
+        if (typeof value === 'number') {
+            gl.uniform1i(location, value);
+        } else {
+            throw raiseError(logger, `bad value for "sampler2D" uniform: "${value}"`);
+        }
+    },
+};
 
 interface AttributesMap {
-    readonly [key: string]: AttributeDesc;
+    readonly [key: string]: ShaderAttribute;
 }
 
 interface UniformsMap {
-    readonly [key: string]: UniformDesc;
+    readonly [key: string]: ShaderUniform;
 }
 
 export interface ProgramOptions {
@@ -95,7 +155,7 @@ export class Program_ {
     private _createProgram(): WebGLProgram {
         const program = this._runtime.gl.createProgram();
         if (!program) {
-            throw raiseError(this._logger, 'Failed to create program.');
+            throw raiseError(this._logger, 'failed to create program');
         }
         return program;
     }
@@ -104,7 +164,7 @@ export class Program_ {
         const gl = this._runtime.gl;
         const shader = gl.createShader(type)!;
         if (!shader) {
-            throw raiseError(this._logger, 'Failed to create shader.');
+            throw raiseError(this._logger, 'failed to create shader');
         }
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
@@ -135,14 +195,14 @@ export class Program_ {
     private _collectAttributes(): AttributesMap {
         const gl = this._runtime.gl;
         const count = gl.getProgramParameter(this.program, ACTIVE_ATTRIBUTES) as number;
-        const attributes: Record<string, AttributeDesc> = {};
+        const attributes: Record<string, ShaderAttribute> = {};
         for (let i = 0; i < count; ++i) {
-            const { name, size, type } = gl.getActiveAttrib(this.program, i)!;
-            const location = gl.getAttribLocation(this.program, name);
-            attributes[name] = {
+            const info = gl.getActiveAttrib(this.program, i)!;
+            const location = gl.getAttribLocation(this.program, info.name);
+            attributes[info.name] = {
+                info,
                 location,
-                size,
-                type,
+                ...shaderTypes[info.type],
             };
         }
         return attributes;
@@ -152,14 +212,14 @@ export class Program_ {
         const gl = this._runtime.gl;
         const program = this.program;
         const count = gl.getProgramParameter(program, ACTIVE_UNIFORMS) as number;
-        const uniforms: Record<string, UniformDesc> = {};
+        const uniforms: Record<string, ShaderUniform> = {};
         for (let i = 0; i < count; ++i) {
-            const { name, size, type } = gl.getActiveUniform(program, i)!;
-            const location = gl.getUniformLocation(program, name)!;
-            uniforms[name] = {
+            const info = gl.getActiveUniform(program, i)!;
+            const location = gl.getUniformLocation(program, info.name)!;
+            uniforms[info.name] = {
+                info,
                 location,
-                size,
-                type,
+                ...shaderTypes[info.type],
             };
         }
         return uniforms;
@@ -168,17 +228,20 @@ export class Program_ {
     setupVertexAttributes(): void {
         this._logger.log('setup_vertex_attributes');
         const gl = this._runtime.gl;
-        const attributes = this._attributes;
         const stride = this._schema.vertexSize;
-        for (const item of this._schema.attributes) {
-            const attr = attributes[item.name];
-            if (!attr) {
-                throw raiseError(this._logger, `attribute "${item.name}" is unknown`);
+        for (const attr of this._schema.attributes) {
+            const shaderAttr = this._attributes[attr.name];
+            if (!shaderAttr) {
+                throw raiseError(this._logger, `attribute "${attr.name}" is unknown`);
             }
-            // TODO: Validate type and size (if it is possible).
-            // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getActiveUniform
-            gl.vertexAttribPointer(attr.location, item.size, item.gltype, item.normalized, stride, item.offset);
-            gl.enableVertexAttribArray(attr.location);
+            // Is there a way to validate type?
+            // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
+            if (attr.size !== shaderAttr.size) {
+                throw raiseError(this._logger,
+                    `attribute "${attr.name}" size is ${attr.size} but shader size is ${shaderAttr.size}`);
+            }
+            gl.vertexAttribPointer(shaderAttr.location, attr.size, attr.gltype, attr.normalized, stride, attr.offset);
+            gl.enableVertexAttribArray(shaderAttr.location);
         }
     }
 
@@ -190,11 +253,11 @@ export class Program_ {
             if (!attr) {
                 throw raiseError(this._logger, `uniform "${name}" is unknown`);
             }
-            const setter = uniformSetters[attr.type];
+            const setter = uniformSetters[attr.info.type];
             if (!setter) {
                 throw raiseError(this._logger, `uniform "${name}" setter is not found`);
             }
-            setter(gl, attr.location, value);
+            setter(this._logger, gl, attr, value);
         }
     }
 }
