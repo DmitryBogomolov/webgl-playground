@@ -1,10 +1,6 @@
 export * from './utils';
 export * from './color';
-export { Context } from './context';
 export * from './render-loop';
-export { VertexBuffer, IndexBuffer } from './buffer';
-export { VertexArrayObject } from './vertex-array-object';
-export { Program } from './program';
 export * from './vertex-schema';
 export * from './vertex-writer';
 export * from './worker';

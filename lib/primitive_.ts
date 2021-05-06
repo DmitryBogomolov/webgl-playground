@@ -1,6 +1,12 @@
+import { contextConstants } from './context-constants';
 import { Program_, EMPTY_PROGRAM, UniformValues } from './program_';
 import { Runtime_ } from './runtime_';
 import { Logger, raiseError, generateId } from './utils';
+
+const {
+    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
+    STATIC_DRAW, TRIANGLES, UNSIGNED_SHORT,
+} = contextConstants;
 
 export class Primitive_ {
     private readonly _id = generateId('Primitve');
@@ -48,10 +54,10 @@ export class Primitive_ {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         vao.bindVertexArrayOES(this._vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexData, gl.STATIC_DRAW);
+        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
+        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.bufferData(ARRAY_BUFFER, vertexData, STATIC_DRAW);
+        gl.bufferData(ELEMENT_ARRAY_BUFFER, indexData, STATIC_DRAW);
         vao.bindVertexArrayOES(null);
         this._indexCount = indexData.length;
     }
@@ -73,7 +79,7 @@ export class Primitive_ {
             this._program.setUniforms(uniforms);
         }
         vao.bindVertexArrayOES(this._vao);
-        gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
         vao.bindVertexArrayOES(null);
     }
 }
