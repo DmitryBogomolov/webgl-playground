@@ -2,7 +2,7 @@ import {
     RenderLoop,
     VertexWriter,
     // FluentVertexWriter as VertexWriter,
-    VertexSchema,
+    parseVertexSchema,
     Runtime_,
     Program_,
     Primitive_,
@@ -18,7 +18,7 @@ import fragmentShaderSource from './shader.frag';
 export type DESCRIPTION = never;
 
 function makePrimitive(runtime: Runtime_): Primitive_ {
-    const schema = new VertexSchema([
+    const schema = parseVertexSchema([
         {
             name: 'a_position',
             type: 'float2',

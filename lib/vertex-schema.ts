@@ -1,4 +1,4 @@
-import { Logger, raiseError, generateId } from './utils';
+import { Logger, raiseError } from './utils';
 import { contextConstants } from './context-constants';
 
 const {
@@ -60,44 +60,48 @@ export interface Attribute {
     readonly gltype: number;
 }
 
-// TODO: Replace it with function.
-export class VertexSchema {
-    private readonly _logger: Logger;
+export interface VertexSchema {
     readonly isPacked: boolean;
-    readonly attributes: ReadonlyArray<Attribute>;
     readonly vertexSize: number;
+    readonly attributes: ReadonlyArray<Attribute>;
+}
 
-    constructor(attributes: ReadonlyArray<AttributeOptions>, options: ParseSchemaOptions = {}) {
-        this._logger = new Logger(generateId('VertexSchema'));
-        let totalSize = 0;
-        this.isPacked = !!options.packed;
-        const items: Attribute[] = [];
-        attributes.forEach((field, i) => {
-            if (!field.name) {
-                throw raiseError(this._logger, `item ${i} "name" is not defined`);
-            }
-            const type = parseType(field.type);
-            const size = parseSize(field.type);
-            const bytes = BYTE_SIZES[type];
-            if (!(bytes > 0)) {
-                throw raiseError(this._logger, `item "${field.name}" type name is not valid`);
-            }
-            if (!(1 <= size && size <= 4)) {
-                throw raiseError(this._logger, `item "${field.name}" type size is not valid`);
-            }
-            items.push({
-                name: field.name,
-                type,
-                size,
-                bytes,
-                normalized: type !== 'float' && !!field.normalized,
-                offset: totalSize,
-                gltype: GL_TYPES[type],
-            });
-            const byteSize = bytes * size;
-            totalSize += byteSize + (this.isPacked ? 0 : getAlignBytes(byteSize));
+const logger = new Logger('VertexSchema');
+
+export function parseVertexSchema(
+    attributes: ReadonlyArray<AttributeOptions>, options: ParseSchemaOptions = {},
+): VertexSchema {
+    let totalSize = 0;
+    const isPacked = !!options.packed;
+    const items: Attribute[] = [];
+    attributes.forEach((field, i) => {
+        if (!field.name) {
+            throw raiseError(logger, `item ${i} "name" is not defined`);
+        }
+        const type = parseType(field.type);
+        const size = parseSize(field.type);
+        const bytes = BYTE_SIZES[type];
+        if (!(bytes > 0)) {
+            throw raiseError(logger, `item "${field.name}" type name is not valid`);
+        }
+        if (!(1 <= size && size <= 4)) {
+            throw raiseError(logger, `item "${field.name}" type size is not valid`);
+        }
+        items.push({
+            name: field.name,
+            type,
+            size,
+            bytes,
+            normalized: type !== 'float' && !!field.normalized,
+            offset: totalSize,
+            gltype: GL_TYPES[type],
         });
-        this.attributes = items;
-        this.vertexSize = totalSize + (this.isPacked ? 0 : getAlignBytes(totalSize));
-    }
+        const byteSize = bytes * size;
+        totalSize += byteSize + (isPacked ? 0 : getAlignBytes(byteSize));
+    });
+    return {
+        isPacked,
+        vertexSize: totalSize + (isPacked ? 0 : getAlignBytes(totalSize)),
+        attributes: items,
+    };
 }

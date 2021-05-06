@@ -1,13 +1,13 @@
 import {
     color, colors,
     logSilenced,
-    VertexSchema,
+    VertexSchema, parseVertexSchema,
     FluentVertexWriter,
     RenderLoop,
     Runtime_,
     Primitive_,
-    Program_,
-    Texture_, TextureFilterValues, UniformValue,
+    Program_, UniformValue,
+    Texture_, TextureFilterValues,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -108,7 +108,7 @@ function generateTextureData(): ImageData {
 }
 
 function makePrimitive(runtime: Runtime_): Primitive_ {
-    const schema = new VertexSchema([
+    const schema = parseVertexSchema([
         {
             name: 'a_position',
             type: 'float2',

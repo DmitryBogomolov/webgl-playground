@@ -1,7 +1,7 @@
 import {
     RenderLoop,
     FluentVertexWriter,
-    VertexSchema,
+    parseVertexSchema,
     WorkerMessenger,
     color, Color, color2array,
     logSilenced,
@@ -28,7 +28,7 @@ const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
 function makePrimitive(runtime: Runtime_): Primitive_ {
-    const schema = new VertexSchema([
+    const schema = parseVertexSchema([
         { name: 'a_position', type: 'float2' },
     ]);
     const program = new Program_(runtime, {

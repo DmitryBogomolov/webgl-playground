@@ -2,15 +2,15 @@ import { VertexSchema } from './vertex-schema';
 import { VertexWriter, FluentVertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
-    const schema = {
+    const schema: VertexSchema = {
         attributes: [
-            { name: 'f1', type: 'float', size: 2, bytes: 4, offset: 0 },
-            { name: 'f2', type: 'short', size: 1, bytes: 2, offset: 8 },
-            { name: 'f3', type: 'ubyte', size: 3, bytes: 1, offset: 12 },
+            { name: 'f1', type: 'float', size: 2, bytes: 4, offset: 0, normalized: false, gltype: 0 },
+            { name: 'f2', type: 'short', size: 1, bytes: 2, offset: 8, normalized: false, gltype: 0 },
+            { name: 'f3', type: 'ubyte', size: 3, bytes: 1, offset: 12, normalized: false, gltype: 0 },
         ],
         vertexSize: 16,
         isPacked: false,
-    } as unknown as VertexSchema;
+    };
 
     describe('VertexWriter', () => {
         it('write attributes', () => {

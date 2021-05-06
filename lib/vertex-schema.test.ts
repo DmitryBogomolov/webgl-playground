@@ -1,10 +1,10 @@
-import { VertexSchema } from './vertex-schema';
+import { parseVertexSchema } from './vertex-schema';
 import './no-console-in-tests';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {
         it('parse empty list', () => {
-            const schema = new VertexSchema([]);
+            const schema = parseVertexSchema([]);
 
             expect(schema.attributes).toEqual([]);
             expect(schema.vertexSize).toEqual(0);
@@ -12,7 +12,7 @@ describe('vertex schema', () => {
         });
 
         it('parse', () => {
-            const schema = new VertexSchema([
+            const schema = parseVertexSchema([
                 { name: 'field1', type: 'float4' },
                 { name: 'field2', type: 'byte3', normalized: true },
                 { name: 'field3', type: 'ushort2' },
@@ -52,7 +52,7 @@ describe('vertex schema', () => {
         });
 
         it('parse packed', () => {
-            const schema = new VertexSchema([
+            const schema = parseVertexSchema([
                 { name: 'field1', type: 'float4' },
                 { name: 'field2', type: 'byte3', normalized: true },
                 { name: 'field3', type: 'ushort2' },
