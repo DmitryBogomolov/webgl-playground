@@ -1,72 +1,97 @@
-import { BaseWrapper } from './base-wrapper';
+import { Runtime } from './runtime';
 import { contextConstants } from './context-constants';
-import { ContextView } from './context-view';
+import { generateId, Logger, raiseError } from './utils';
 
 const {
     TEXTURE_2D, TEXTURE0,
     TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
     UNPACK_FLIP_Y_WEBGL,
-    CLAMP_TO_EDGE, NEAREST, LINEAR,
+    REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
     RGBA, UNSIGNED_BYTE,
 } = contextConstants;
 
-const PARAM_NAME_MAP: Record<string, number> = {
-    'wrap-s': TEXTURE_WRAP_S,
-    'wrap-t': TEXTURE_WRAP_T,
-    'min-filter': TEXTURE_MIN_FILTER,
-    'mag-filter': TEXTURE_MAG_FILTER,
+export type TextureWrapValues = 'repeat' | 'clamp_to_edge';
+export type TextureFilterValues = 'nearest' | 'linear';
+
+export interface TextureParameters {
+    readonly wrap_s?: TextureWrapValues;
+    readonly wrap_t?: TextureWrapValues;
+    readonly min_filter?: TextureFilterValues;
+    readonly mag_filter?: TextureFilterValues;
+}
+
+type Names = keyof TextureParameters;
+type ParamNameMap = {
+    readonly [key in Names]: number;
+};
+type Values = TextureWrapValues | TextureFilterValues;
+type ParamValueMap = {
+    readonly [key in Values]: number;
 };
 
-const PARAM_VALUE_MAP: Record<string, number> = {
-    'clamp-to-edge': CLAMP_TO_EDGE,
-    'nearest': NEAREST,
-    'linear': LINEAR,
+const PARAM_NAME_MAP: ParamNameMap = {
+    wrap_s: TEXTURE_WRAP_S,
+    wrap_t: TEXTURE_WRAP_T,
+    min_filter: TEXTURE_MIN_FILTER,
+    mag_filter: TEXTURE_MAG_FILTER,
 };
 
-export class Texture extends BaseWrapper<WebGLTexture> {
-    protected _createHandle(): WebGLTexture {
-        return this._context.handle().createTexture()!;
+const PARAM_VALUE_MAP: ParamValueMap = {
+    nearest: NEAREST,
+    linear: LINEAR,
+    repeat: REPEAT,
+    clamp_to_edge: CLAMP_TO_EDGE,
+};
+
+export class Texture {
+    private readonly _id = generateId('Texture');
+    private readonly _logger = new Logger(this._id);
+    private readonly _runtime: Runtime;
+    private readonly _texture: WebGLTexture;
+
+    constructor(runtime: Runtime) {
+        this._logger.log('init');
+        this._runtime = runtime;
+        this._texture = this._createTexture();
     }
 
-    protected _destroyHandle(): void {
-        this._context.handle().deleteTexture(this._handle);
+    dispose(): void {
+        this._logger.log('dispose');
+        this._runtime.gl.deleteTexture(this._texture);
     }
 
-    static contextMethods = {
-        createTexture(ctx: ContextView): Texture {
-            return new Texture(ctx);
-        },
+    private _createTexture(): WebGLTexture {
+        const texture = this._runtime.gl.createTexture();
+        if (!texture) {
+            throw raiseError(this._logger, 'Failed to create texture.');
+        }
+        return texture;
+    }
 
-        bindTexture(ctx: ContextView, target: Texture | null): void {
-            ctx.logCall('bind_texture', target ? target.id() : null);
-            ctx.handle().bindTexture(TEXTURE_2D, target ? target.handle() : null);
-        },
+    setImageData({ data, width, height }: ImageData, unpackFlipY: boolean = false): void {
+        this._logger.log('set_image_data', width, height, data.length);
+        const gl = this._runtime.gl;
+        gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipY);
+        gl.bindTexture(TEXTURE_2D, this._texture);
+        gl.texImage2D(TEXTURE_2D, 0, RGBA, width, height, 0, RGBA, UNSIGNED_BYTE, data);
+    }
 
-        activeTexture(ctx: ContextView, unit: number): void {
-            ctx.logCall('active_texture', unit);
-            ctx.handle().activeTexture(TEXTURE0 + unit);
-        },
+    setParameters(params: TextureParameters): void {
+        this._logger.log('set_parameters', params);
+        const gl = this._runtime.gl;
+        gl.bindTexture(TEXTURE_2D, this._texture);
+        for (const [name, value] of Object.entries(params)) {
+            const pname = PARAM_NAME_MAP[name as Names];
+            const pvalue = PARAM_VALUE_MAP[value as Values];
+            gl.texParameteri(TEXTURE_2D, pname, pvalue);
+        }
+    }
 
-        setTextureParameters(ctx: ContextView, params: Record<string, string>): void {
-            const keys = Object.keys(params);
-            ctx.logCall('set_texture_parameters', keys);
-            const handle = ctx.handle();
-            keys.forEach((name) => {
-                const value = params[name];
-                handle.texParameteri(TEXTURE_2D, PARAM_NAME_MAP[name], PARAM_VALUE_MAP[value]);
-            });
-        },
-
-        setTextureImage(ctx: ContextView, width: number, height: number, data: ArrayBufferView | null): void {
-            ctx.logCall('set_texture_image', `${width},${height},${data ? data.byteLength : null}`);
-            ctx.handle().texImage2D(TEXTURE_2D, 0, RGBA, width, height, 0, RGBA, UNSIGNED_BYTE, data);
-        },
-
-        setUnpackFlipY(ctx: ContextView, value: number | boolean): void {
-            ctx.logCall('set_unpack_flip_y', value);
-            ctx.handle().pixelStorei(UNPACK_FLIP_Y_WEBGL, value);
-        },
-    };
-
+    setUnit(unit: number): void {
+        this._logger.log('set_unit', unit);
+        const gl = this._runtime.gl;
+        gl.activeTexture(TEXTURE0 + unit);
+        gl.bindTexture(TEXTURE_2D, this._texture);
+    }
 }

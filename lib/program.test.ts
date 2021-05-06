@@ -1,44 +1,80 @@
 import { Program } from './program';
-import './no-console-in-tests';
-import { ContextView } from './context-view';
+import { Runtime } from './runtime';
+import { VertexSchema } from './vertex-schema';
 
 describe('program', () => {
     describe('Program', () => {
         let program: WebGLProgram;
+        let vShader: WebGLShader;
+        let fShader: WebGLShader;
         let ctx: WebGLRenderingContext;
-        let context: ContextView;
+        let runtime: Runtime;
         let createProgram: jest.Mock;
+        let createShader: jest.Mock;
         let useProgram: jest.Mock;
+        let shaderSource: jest.Mock;
+        let compileShader: jest.Mock;
+        let getShaderParameter: jest.Mock;
+        let attachShader: jest.Mock;
+        let linkProgram: jest.Mock;
+        let getProgramParameter: jest.Mock;
 
         beforeEach(() => {
             program = { tag: 'test-program' };
+            vShader = { tag: 'vertex-shader' };
+            fShader = { tag: 'fragment-shader' };
             createProgram = jest.fn().mockReturnValue(program);
+            createShader = jest.fn().mockReturnValueOnce(vShader).mockReturnValueOnce(fShader);
             useProgram = jest.fn();
+            shaderSource = jest.fn();
+            compileShader = jest.fn();
+            getShaderParameter = jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(true);
+            attachShader = jest.fn();
+            linkProgram = jest.fn();
+            getProgramParameter = jest.fn().mockReturnValueOnce(true);
             ctx = {
                 createProgram,
+                createShader,
                 useProgram,
+                shaderSource,
+                compileShader,
+                getShaderParameter,
+                attachShader,
+                linkProgram,
+                getProgramParameter,
             } as unknown as WebGLRenderingContext;
-            context = {
-                logCall() { /* empty */ },
-                handle() { return ctx; },
-            } as unknown as ContextView;
-        });
-
-        it('has proper handle', () => {
-            expect(new Program(context).handle()).toBe(program);
+            runtime = {
+                gl: ctx,
+            } as unknown as Runtime;
         });
 
         it('create program', () => {
-            expect(Program.contextMethods.createProgram(context) instanceof Program).toEqual(true);
-        });
-
-        it('use program', () => {
-            Program.contextMethods.useProgram(context, new Program(context));
-            Program.contextMethods.useProgram(context, null);
-
-            expect(useProgram.mock.calls).toEqual([
+            new Program(runtime, {
+                vertexShader: 'vertex-shader-source',
+                fragmentShader: 'fragment-shader-source',
+                schema: {} as unknown as VertexSchema,
+            });
+            expect(createProgram.mock.calls).toEqual([
+                [],
+            ]);
+            expect(createShader.mock.calls).toEqual([
+                [WebGLRenderingContext.prototype.VERTEX_SHADER],
+                [WebGLRenderingContext.prototype.FRAGMENT_SHADER],
+            ]);
+            expect(shaderSource.mock.calls).toEqual([
+                [vShader, 'vertex-shader-source'],
+                [fShader, 'fragment-shader-source'],
+            ]);
+            expect(compileShader.mock.calls).toEqual([
+                [vShader],
+                [fShader],
+            ]);
+            expect(attachShader.mock.calls).toEqual([
+                [program, vShader],
+                [program, fShader],
+            ]);
+            expect(linkProgram.mock.calls).toEqual([
                 [program],
-                [null],
             ]);
         });
     });

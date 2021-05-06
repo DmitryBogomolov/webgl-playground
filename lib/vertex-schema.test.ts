@@ -1,18 +1,17 @@
-import { VertexSchema } from './vertex-schema';
-import './no-console-in-tests';
+import { parseVertexSchema } from './vertex-schema';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {
         it('parse empty list', () => {
-            const schema = new VertexSchema([]);
+            const schema = parseVertexSchema([]);
 
-            expect(schema.items).toEqual([]);
+            expect(schema.attributes).toEqual([]);
             expect(schema.vertexSize).toEqual(0);
             expect(schema.isPacked).toEqual(false);
         });
 
         it('parse', () => {
-            const schema = new VertexSchema([
+            const schema = parseVertexSchema([
                 { name: 'field1', type: 'float4' },
                 { name: 'field2', type: 'byte3', normalized: true },
                 { name: 'field3', type: 'ushort2' },
@@ -46,13 +45,13 @@ describe('vertex schema', () => {
                 bytes: 2,
                 normalized: false,
             };
-            expect(schema.items).toEqual([item1, item2, item3]);
+            expect(schema.attributes).toEqual([item1, item2, item3]);
             expect(schema.vertexSize).toEqual(24);
             expect(schema.isPacked).toEqual(false);
         });
 
         it('parse packed', () => {
-            const schema = new VertexSchema([
+            const schema = parseVertexSchema([
                 { name: 'field1', type: 'float4' },
                 { name: 'field2', type: 'byte3', normalized: true },
                 { name: 'field3', type: 'ushort2' },
@@ -86,7 +85,7 @@ describe('vertex schema', () => {
                 bytes: 2,
                 normalized: false,
             };
-            expect(schema.items).toEqual([item1, item2, item3]);
+            expect(schema.attributes).toEqual([item1, item2, item3]);
             expect(schema.vertexSize).toEqual(23);
             expect(schema.isPacked).toEqual(true);
         });

@@ -1,4 +1,4 @@
-import { Logger, raiseError, generateId } from './utils';
+import { Logger, raiseError } from './utils';
 import { contextConstants } from './context-constants';
 
 const {
@@ -7,8 +7,11 @@ const {
     FLOAT,
 } = contextConstants;
 
-// byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234]
-const BYTE_SIZES: Record<string, number> = {
+export type AttributeType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
+
+export type AttributeTypeMap<T> = { readonly [key in AttributeType]: T };
+
+const BYTE_SIZES: AttributeTypeMap<number> = {
     byte: 1,
     ubyte: 1,
     short: 2,
@@ -16,7 +19,7 @@ const BYTE_SIZES: Record<string, number> = {
     float: 4,
 };
 
-const GL_TYPES: Record<string, number> = {
+const GL_TYPES: AttributeTypeMap<number> = {
     byte: BYTE,
     ubyte: UNSIGNED_BYTE,
     short: SHORT,
@@ -24,8 +27,8 @@ const GL_TYPES: Record<string, number> = {
     float: FLOAT,
 };
 
-function parseType(value: string): string {
-    return value.substr(0, value.length - 1);
+function parseType(value: string): AttributeType {
+    return value.substr(0, value.length - 1) as AttributeType;
 }
 
 function parseSize(value: string): number {
@@ -36,8 +39,9 @@ function getAlignBytes(value: number): number {
     return value & 3 ? (value | 3) + 1 - value : 0;
 }
 
-export interface FieldDesc {
+export interface AttributeOptions {
     readonly name: string;
+    /** byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234] */
     readonly type: string;
     readonly normalized?: boolean;
 }
@@ -46,9 +50,9 @@ export interface ParseSchemaOptions {
     readonly packed?: boolean;
 }
 
-export interface MetaDesc {
+export interface Attribute {
     readonly name: string;
-    readonly type: string;
+    readonly type: AttributeType;
     readonly size: number;
     readonly bytes: number;
     readonly normalized: boolean;
@@ -56,46 +60,48 @@ export interface MetaDesc {
     readonly gltype: number;
 }
 
-export class VertexSchema {
-    private readonly _logger: Logger;
+export interface VertexSchema {
     readonly isPacked: boolean;
-    readonly items: ReadonlyArray<MetaDesc>;
     readonly vertexSize: number;
+    readonly attributes: ReadonlyArray<Attribute>;
+}
 
-    constructor(fields: ReadonlyArray<FieldDesc>, options: ParseSchemaOptions = {}) {
-        this._logger = new Logger(generateId('VertexSchema'));
-        let totalSize = 0;
-        this.isPacked = !!options.packed;
-        const items: MetaDesc[] = [];
-        fields.forEach((field, i) => {
-            if (!field.name) {
-                throw raiseError(this._logger, `item ${i} "name" is not defined`);
-            }
-            const type = parseType(field.type);
-            const size = parseSize(field.type);
-            const bytes = BYTE_SIZES[type];
-            if (!(bytes > 0)) {
-                throw raiseError(this._logger, `item "${field.name}" type name is not valid`);
-            }
-            if (!(1 <= size && size <= 4)) {
-                throw raiseError(this._logger, `item "${field.name}" type size is not valid`);
-            }
-            items.push({
-                name: field.name,
-                type,
-                size,
-                bytes,
-                normalized: type !== 'float' && !!field.normalized,
-                offset: totalSize,
-                gltype: GL_TYPES[type],
-            });
-            const byteSize = bytes * size;
-            totalSize += byteSize + (this.isPacked ? 0 : getAlignBytes(byteSize));
+const logger = new Logger('VertexSchema');
+
+export function parseVertexSchema(
+    attributes: ReadonlyArray<AttributeOptions>, options: ParseSchemaOptions = {},
+): VertexSchema {
+    let totalSize = 0;
+    const isPacked = !!options.packed;
+    const items: Attribute[] = [];
+    attributes.forEach((field, i) => {
+        if (!field.name) {
+            throw raiseError(logger, `item ${i} "name" is not defined`);
+        }
+        const type = parseType(field.type);
+        const size = parseSize(field.type);
+        const bytes = BYTE_SIZES[type];
+        if (!(bytes > 0)) {
+            throw raiseError(logger, `item "${field.name}" type name is not valid`);
+        }
+        if (!(1 <= size && size <= 4)) {
+            throw raiseError(logger, `item "${field.name}" type size is not valid`);
+        }
+        items.push({
+            name: field.name,
+            type,
+            size,
+            bytes,
+            normalized: type !== 'float' && !!field.normalized,
+            offset: totalSize,
+            gltype: GL_TYPES[type],
         });
-        this.items = items;
-        this.vertexSize = totalSize + (this.isPacked ? 0 : getAlignBytes(totalSize));
-        this._logger.log(
-            `parsed(fields: ${this.items.length}, vertex_size: ${this.vertexSize}${this.isPacked ? ', packed' : ''})`,
-        );
-    }
+        const byteSize = bytes * size;
+        totalSize += byteSize + (isPacked ? 0 : getAlignBytes(byteSize));
+    });
+    return {
+        isPacked,
+        vertexSize: totalSize + (isPacked ? 0 : getAlignBytes(totalSize)),
+        attributes: items,
+    };
 }

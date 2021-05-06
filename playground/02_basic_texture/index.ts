@@ -1,12 +1,13 @@
 import {
-    Context,
-    color,
+    color, colors,
     logSilenced,
-    VertexSchema,
+    VertexSchema, parseVertexSchema,
     FluentVertexWriter,
-    writeVertices,
     RenderLoop,
-    RenderFrameCallback,
+    Runtime,
+    Primitive,
+    Program, UniformValue,
+    Texture, TextureFilterValues,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -25,6 +26,9 @@ import fragmentShaderSource from './shader.frag';
  * First two rows have colors from black to white.
  * Last two rows have same colors in reverse order.
  */
+export type DESCRIPTION = never;
+
+type TexCoord = Readonly<[number, number]>;
 
 function attachHandlers(initial: TexCoord, handleChange: (val: TexCoord) => void): void {
     const uInput = document.querySelector<HTMLInputElement>('#u-coord-input')!;
@@ -67,10 +71,12 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
         { position: [-1, +1], texcoord: [0, 1] },
     ];
     const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    writeVertices(new FluentVertexWriter(vertexData, schema), vertices, (vertex) => ({
-        a_position: vertex.position,
-        a_texcoord: vertex.texcoord,
-    }));
+    const writer = new FluentVertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeAttribute(i, 'a_position', vertex.position);
+        writer.writeAttribute(i, 'a_texcoord', vertex.texcoord);
+    }
     const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
@@ -79,41 +85,30 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
     return { vertexData, indexData };
 }
 
-function generateTextureData(): { size: [number, number], data: Uint8Array } {
-    const schema = new VertexSchema([{ name: 'tex', type: 'ubyte4', normalized: true }]);
+function generateTextureData(): ImageData {
     const pixels = [
-        // black, blue, green, cyan,
-        [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
-        // red, magenta, yellow, white,
-        [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
-        // white, yellow, magenta, red,
-        [1, 1, 1], [1, 1, 0], [1, 0, 1], [1, 0, 0],
-        // cyan, green, blue, black,
-        [0, 1, 1], [0, 1, 0], [0, 0, 1], [0, 0, 0],
+        colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
+        colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
+        colors.WHITE, colors.YELLOW, colors.MAGENTA, colors.RED,
+        colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
     ];
-    const buffer = new ArrayBuffer(pixels.length * schema.vertexSize);
-    writeVertices(new FluentVertexWriter(buffer, schema), pixels, (pixel) => ({ tex: [...pixel, 1] }));
+    const data = new Uint8ClampedArray(16 * 4);
+    let i = 0;
+    for (const { r, g, b, a } of pixels) {
+        data[i++] = r * 0xFF;
+        data[i++] = g * 0xFF;
+        data[i++] = b * 0xFF;
+        data[i++] = a * 0xFF;
+    }
     return {
-        size: [4, 4],
-        data: new Uint8Array(buffer),
+        width: 4,
+        height: 4,
+        data,
     };
 }
 
-type TexCoord = Readonly<[number, number]>;
-type TexDir = Readonly<[number, number]>;
-
-function init(): RenderFrameCallback {
-    let texcoord: TexCoord = [0, 0];
-    attachHandlers(texcoord, (arg) => {
-        texcoord = arg;
-    });
-
-    // eslint-disable-next-line no-undef
-    const context = new Context(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
-
-    context.setClearColor(color(0.8, 0.8, 0.8));
-
-    const schema = new VertexSchema([
+function makePrimitive(runtime: Runtime): Primitive {
+    const schema = parseVertexSchema([
         {
             name: 'a_position',
             type: 'float2',
@@ -123,75 +118,74 @@ function init(): RenderFrameCallback {
             type: 'float2',
         },
     ]);
-
+    const program = new Program(runtime, {
+        vertexShader: vertexShaderSource,
+        fragmentShader: fragmentShaderSource,
+        schema,
+    });
     const { vertexData, indexData } = generateVertices(schema);
 
-    const vao = context.createVertexArrayObject();
-    context.bindVertexArrayObject(vao);
+    const primitive = new Primitive(runtime);
 
-    const vertexBuffer = context.createVertexBuffer();
-    context.bindVertexBuffer(vertexBuffer);
-    vertexBuffer.setData(vertexData);
+    primitive.setData(vertexData, indexData);
+    primitive.setProgram(program);
 
-    const indexBuffer = context.createIndexBuffer();
-    context.bindIndexBuffer(indexBuffer);
-    indexBuffer.setData(indexData);
-
-    const program = context.createProgram();
-    program.setSources(vertexShaderSource, fragmentShaderSource);
-    program.setupVertexAttributes(schema);
-
-    context.bindVertexArrayObject(null);
-
-    const texData = generateTextureData();
-    context.setUnpackFlipY(true);
-
-    const texture = context.createTexture();
-    context.activeTexture(0);
-    context.bindTexture(texture);
-    context.setTextureParameters({
-        'wrap-s': 'clamp-to-edge',
-        'wrap-t': 'clamp-to-edge',
-        'min-filter': 'nearest',
-        'mag-filter': 'nearest',
-    });
-    context.setTextureImage(texData.size[0], texData.size[1], texData.data);
-
-    function drawRect(dir: TexDir, filter: string, texcoord: TexCoord | null): void {
-        program.setUniform('u_dir', dir);
-        program.setUniform('u_flag', texcoord ? 1 : 0);
-        if (texcoord) {
-            program.setUniform('u_texcoord', texcoord);
-        }
-
-        context.setTextureParameters({
-            'min-filter': filter,
-            'mag-filter': filter,
-        });
-        context.drawElements(indexData.length);
-    }
-
-    const DIR_TL: TexDir = [-1, +1];
-    const DIR_TR: TexDir = [+1, +1];
-    const DIR_BL: TexDir = [-1, -1];
-    const DIR_BR: TexDir = [+1, -1];
-
-    return () => {
-        context.clearColor();
-        context.useProgram(program);
-        program.setUniform('u_texture', 0);
-        context.bindVertexArrayObject(vao);
-
-        drawRect(DIR_TL, 'nearest', null);
-        drawRect(DIR_TR, 'linear', null);
-        drawRect(DIR_BL, 'nearest', texcoord);
-        drawRect(DIR_BR, 'linear', texcoord);
-
-        context.bindVertexArrayObject(null);
-    };
+    return primitive;
 }
 
-const render = init();
-const loop = new RenderLoop(render);
+function makeTexture(runtime: Runtime): Texture {
+    const data = generateTextureData();
+    const texture = new Texture(runtime);
+    texture.setParameters({
+        wrap_s: 'clamp_to_edge',
+        wrap_t: 'clamp_to_edge',
+    });
+    texture.setImageData(data, true);
+    return texture;
+}
+
+// eslint-disable-next-line no-undef
+const runtime = new Runtime(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
+runtime.setClearColor(color(0.8, 0.8, 0.8));
+
+let texcoord: TexCoord = [0, 0];
+attachHandlers(texcoord, (arg) => {
+    texcoord = arg;
+});
+
+const primitive = makePrimitive(runtime);
+const texture = makeTexture(runtime);
+
+type Offset = Readonly<[number, number]>;
+
+const DIR_TL: Offset = [-1, +1];
+const DIR_TR: Offset = [+1, +1];
+const DIR_BL: Offset = [-1, -1];
+const DIR_BR: Offset = [+1, -1];
+
+const loop = new RenderLoop(() => {
+    function drawRect(dir: Offset, filter: TextureFilterValues, texcoord: TexCoord | null): void {
+        texture.setParameters({
+            min_filter: filter,
+            mag_filter: filter,
+        });
+        texture.setUnit(1);
+        const uniforms: Record<string, UniformValue> = {
+            'u_dir': dir,
+            'u_flag': texcoord ? 1 : 0,
+            'u_texture': 1,
+        };
+        if (texcoord) {
+            uniforms['u_texcoord'] = texcoord;
+        }
+        primitive.draw(uniforms);
+    }
+
+    runtime.clearColor();
+    drawRect(DIR_TL, 'nearest', null);
+    drawRect(DIR_TR, 'linear', null);
+    drawRect(DIR_BL, 'nearest', texcoord);
+    drawRect(DIR_BR, 'linear', texcoord);
+});
 loop.start();
 logSilenced(true);
