@@ -1,6 +1,5 @@
 import { Texture_ } from './texture_';
 import { Runtime_ } from './runtime_';
-import './no-console-in-tests';
 
 describe('texture', () => {
     describe('Texture_', () => {

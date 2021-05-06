@@ -1,6 +1,5 @@
 import { VertexBuffer, IndexBuffer } from './buffer';
 import { ContextView } from './context-view';
-import './no-console-in-tests';
 
 describe('buffer', () => {
     let buffer: WebGLBuffer;

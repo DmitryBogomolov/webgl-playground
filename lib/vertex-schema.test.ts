@@ -1,5 +1,4 @@
 import { parseVertexSchema } from './vertex-schema';
-import './no-console-in-tests';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {

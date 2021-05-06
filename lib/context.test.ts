@@ -1,5 +1,4 @@
 import { Context } from './context';
-import './no-console-in-tests';
 
 describe('context', () => {
     describe('Context', () => {

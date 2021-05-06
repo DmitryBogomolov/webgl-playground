@@ -1,6 +1,5 @@
 import { Primitive_ } from './primitive_';
 import { Runtime_ } from './runtime_';
-import './no-console-in-tests';
 
 describe('primitive', () => {
     describe('Primitive_', () => {

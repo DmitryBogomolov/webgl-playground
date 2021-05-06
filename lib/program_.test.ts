@@ -1,7 +1,6 @@
 import { Program_ } from './program_';
 import { Runtime_ } from './runtime_';
 import { VertexSchema } from './vertex-schema';
-import './no-console-in-tests';
 
 describe('program', () => {
     describe('Program_', () => {

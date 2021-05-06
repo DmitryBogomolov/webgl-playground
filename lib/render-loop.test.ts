@@ -1,5 +1,4 @@
 import { RenderLoop } from './render-loop';
-import './no-console-in-tests';
 
 describe('render loop', () => {
     describe('RenderLoop', () => {

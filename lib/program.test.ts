@@ -1,5 +1,4 @@
 import { Program } from './program';
-import './no-console-in-tests';
 import { ContextView } from './context-view';
 
 describe('program', () => {

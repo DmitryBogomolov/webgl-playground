@@ -1,5 +1,4 @@
 import { Runtime_ } from './runtime_';
-import './no-console-in-tests';
 
 describe('runtime', () => {
     describe('Runtime_', () => {

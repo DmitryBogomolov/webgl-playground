@@ -1,5 +1,4 @@
 import { VertexArrayObject } from './vertex-array-object';
-import './no-console-in-tests';
 import { ContextView } from './context-view';
 
 describe('vertex array object', () => {

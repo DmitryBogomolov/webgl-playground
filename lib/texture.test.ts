@@ -1,5 +1,4 @@
 import { Texture } from './texture';
-import './no-console-in-tests';
 import { ContextView } from './context-view';
 
 describe('texture', () => {
