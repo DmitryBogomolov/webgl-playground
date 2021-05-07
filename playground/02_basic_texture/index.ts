@@ -65,17 +65,16 @@ function attachHandlers(initial: TexCoord, handleChange: (val: TexCoord) => void
 
 function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, indexData: Uint16Array } {
     const vertices = [
-        { position: [-1, -1], texcoord: [0, 0] },
-        { position: [+1, -1], texcoord: [1, 0] },
-        { position: [+1, +1], texcoord: [1, 1] },
-        { position: [-1, +1], texcoord: [0, 1] },
+        { position: [-1, -1] },
+        { position: [+1, -1] },
+        { position: [+1, +1] },
+        { position: [-1, +1] },
     ];
     const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
     const writer = new FluentVertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex.position);
-        writer.writeAttribute(i, 'a_texcoord', vertex.texcoord);
     }
     const indexData = new Uint16Array([
         0, 1, 2,
@@ -111,10 +110,6 @@ function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         {
             name: 'a_position',
-            type: 'float2',
-        },
-        {
-            name: 'a_texcoord',
             type: 'float2',
         },
     ]);
