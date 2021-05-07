@@ -6,7 +6,7 @@ import {
     RenderLoop,
     Runtime,
     Primitive,
-    Program, UniformValue,
+    Program,
     Texture, TextureFilterValues,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
@@ -151,36 +151,33 @@ attachHandlers(texcoord, (arg) => {
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-type Offset = Readonly<[number, number]>;
+type Position = readonly [number, number, number, number];
 
-const DIR_TL: Offset = [-1, +1];
-const DIR_TR: Offset = [+1, +1];
-const DIR_BL: Offset = [-1, -1];
-const DIR_BR: Offset = [+1, -1];
+const POS_TL: Position = [-1.00, +0.05, -0.05, +1.00];
+const POS_TR: Position = [+0.05, +0.05, +1.00, +1.00];
+const POS_BL: Position = [-1.00, -1.00, -0.05, -0.05];
+const POS_BR: Position = [+0.05, -1.00, +1.00, -0.05];
 
 const loop = new RenderLoop(() => {
-    function drawRect(dir: Offset, filter: TextureFilterValues, texcoord: TexCoord | null): void {
+    function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
         texture.setParameters({
             min_filter: filter,
             mag_filter: filter,
         });
         texture.setUnit(1);
-        const uniforms: Record<string, UniformValue> = {
-            'u_dir': dir,
+        primitive.draw({
+            'u_position': pos,
             'u_flag': texcoord ? 1 : 0,
             'u_texture': 1,
-        };
-        if (texcoord) {
-            uniforms['u_texcoord'] = texcoord;
-        }
-        primitive.draw(uniforms);
+            ...(texcoord ? { 'u_texcoord': texcoord } : null),
+        });
     }
 
     runtime.clearColor();
-    drawRect(DIR_TL, 'nearest', null);
-    drawRect(DIR_TR, 'linear', null);
-    drawRect(DIR_BL, 'nearest', texcoord);
-    drawRect(DIR_BR, 'linear', texcoord);
+    drawRect(POS_TL, 'nearest', null);
+    drawRect(POS_TR, 'linear', null);
+    drawRect(POS_BL, 'nearest', texcoord);
+    drawRect(POS_BR, 'linear', texcoord);
 });
 loop.start();
 logSilenced(true);
