@@ -246,7 +246,7 @@ export class Program {
     }
 
     setUniforms(uniforms: UniformValues): void {
-        this._logger.log('set_uniforms', uniforms);
+        this._logger.log('set_uniforms({0})', uniforms);
         const gl = this._runtime.gl;
         for (const [name, value] of Object.entries(uniforms)) {
             const attr = this._uniforms[name];

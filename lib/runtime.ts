@@ -76,7 +76,7 @@ export class Runtime {
     }
 
     setClearColor({ r, g, b, a }: Color): void {
-        this._logger.log('set_clear_color', `${r} ${g} ${b} ${a}`);
+        this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
     }
 }

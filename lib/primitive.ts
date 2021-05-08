@@ -50,7 +50,7 @@ export class Primitive {
     }
 
     setData(vertexData: BufferSource, indexData: Uint16Array): void {
-        this._logger.log('set_data', `vertex: ${vertexData.byteLength}`, `index: ${indexData.length * 2}`);
+        this._logger.log('set_data(vertex: {0}, index: {1})', vertexData.byteLength, indexData.length / 2);
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         vao.bindVertexArrayOES(this._vao);

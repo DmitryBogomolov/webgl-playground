@@ -70,7 +70,7 @@ export class Texture {
     }
 
     setImageData({ data, width, height }: ImageData, unpackFlipY: boolean = false): void {
-        this._logger.log('set_image_data', width, height, data.length);
+        this._logger.log('set_image_data(width: {0}, height: {1}, size: {2})', width, height, data.length);
         const gl = this._runtime.gl;
         gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipY);
         gl.bindTexture(TEXTURE_2D, this._texture);
@@ -78,7 +78,7 @@ export class Texture {
     }
 
     setParameters(params: TextureParameters): void {
-        this._logger.log('set_parameters', params);
+        this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
         gl.bindTexture(TEXTURE_2D, this._texture);
         for (const [name, value] of Object.entries(params)) {
@@ -89,7 +89,7 @@ export class Texture {
     }
 
     setUnit(unit: number): void {
-        this._logger.log('set_unit', unit);
+        this._logger.log('set_unit({0})', unit);
         const gl = this._runtime.gl;
         gl.activeTexture(TEXTURE0 + unit);
         gl.bindTexture(TEXTURE_2D, this._texture);
