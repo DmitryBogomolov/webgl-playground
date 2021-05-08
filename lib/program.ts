@@ -126,12 +126,12 @@ export class Program {
     private readonly _id = generateId('Program');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
-    readonly program: WebGLProgram;
     private readonly _vertexShader: WebGLShader;
     private readonly _fragmentShader: WebGLShader;
     private readonly _schema: VertexSchema;
-    private _attributes: AttributesMap = {};
-    private _uniforms: UniformsMap = {};
+    private readonly _attributes: AttributesMap = {};
+    private readonly _uniforms: UniformsMap = {};
+    readonly program: WebGLProgram;
 
     constructor(runtime: Runtime, options: ProgramOptions) {
         this._logger.log('init');
