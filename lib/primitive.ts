@@ -1,7 +1,7 @@
 import { contextConstants } from './context-constants';
 import { Program, EMPTY_PROGRAM, UniformValues } from './program';
 import { Runtime } from './runtime';
-import { Logger, raiseError, generateId } from './utils';
+import { Logger, generateId } from './utils';
 
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
@@ -36,7 +36,7 @@ export class Primitive {
     private _createVao(): WebGLVertexArrayObjectOES {
         const vao = this._runtime.vaoExt.createVertexArrayOES();
         if (!vao) {
-            throw raiseError(this._logger, 'Failed to create vertex array object');
+            throw this._logger.error('failed to create vertex array object');
         }
         return vao;
     }
@@ -44,7 +44,7 @@ export class Primitive {
     private _createBuffer(): WebGLBuffer {
         const buffer = this._runtime.gl.createBuffer();
         if (!buffer) {
-            throw raiseError(this._logger, 'Failed to create buffer.');
+            throw this._logger.error('failed to create buffer');
         }
         return buffer;
     }

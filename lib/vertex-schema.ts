@@ -1,4 +1,4 @@
-import { Logger, raiseError } from './utils';
+import { Logger } from './utils';
 import { contextConstants } from './context-constants';
 
 const {
@@ -76,16 +76,16 @@ export function parseVertexSchema(
     const items: Attribute[] = [];
     attributes.forEach((field, i) => {
         if (!field.name) {
-            throw raiseError(logger, `item ${i} "name" is not defined`);
+            throw logger.error('item {0} "name" is not defined', i);
         }
         const type = parseType(field.type);
         const size = parseSize(field.type);
         const bytes = BYTE_SIZES[type];
         if (!(bytes > 0)) {
-            throw raiseError(logger, `item "${field.name}" type name is not valid`);
+            throw logger.error('item "{0}" type name is not valid', field.name);
         }
         if (!(1 <= size && size <= 4)) {
-            throw raiseError(logger, `item "${field.name}" type size is not valid`);
+            throw logger.error('item "{0}" type size is not valid', field.name);
         }
         items.push({
             name: field.name,

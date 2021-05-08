@@ -47,15 +47,11 @@ export class Logger {
         return message;
     }
 
-    error(format: string, ...params: unknown[]): string {
+    error(format: string, ...params: unknown[]): Error {
         const message = this._wrap(format, ...params);
         isLogSilenced || console.error(message);
-        return message;
+        throw new Error(message);
     }
-}
-
-export function raiseError(logger: Logger, format: string, ...params: any[]): Error {
-    return new Error(logger.error(format, ...params));
 }
 
 export function generateDefaultIndexes(vertexCount: number): number[] {

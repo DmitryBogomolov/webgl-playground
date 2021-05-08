@@ -1,6 +1,6 @@
 import { Runtime } from './runtime';
 import { contextConstants } from './context-constants';
-import { generateId, Logger, raiseError } from './utils';
+import { generateId, Logger } from './utils';
 
 const {
     TEXTURE_2D, TEXTURE0,
@@ -64,7 +64,7 @@ export class Texture {
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl.createTexture();
         if (!texture) {
-            throw raiseError(this._logger, 'Failed to create texture.');
+            throw this._logger.error('failed to create texture');
         }
         return texture;
     }

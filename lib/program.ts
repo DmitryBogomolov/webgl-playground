@@ -1,6 +1,6 @@
 import { VertexSchema } from './vertex-schema';
 import { contextConstants } from './context-constants';
-import { generateId, Logger, raiseError } from './utils';
+import { generateId, Logger } from './utils';
 import { Runtime } from './runtime';
 
 const {
@@ -75,35 +75,35 @@ const uniformSetters: UniformSettersMap = {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
         } else {
-            throw raiseError(logger, `bad value for "float" uniform: "${value}"`);
+            throw logger.error('bad value for "float" uniform: {0}', value);
         }
     },
     [FLOAT_VEC2]: (logger, gl, { location }, value) => {
         if (Array.isArray(value) && value.length === 2) {
             gl.uniform2fv(location, value);
         } else {
-            throw raiseError(logger, `bad value for "vec2" uniform: "${value}"`);
+            throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
     [FLOAT_VEC3]: (logger, gl, { location }, value) => {
         if (Array.isArray(value) && value.length === 3) {
             gl.uniform3fv(location, value);
         } else {
-            throw raiseError(logger, `bad value for "vec3" uniform: "${value}"`);
+            throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
     [FLOAT_VEC4]: (logger, gl, { location }, value) => {
         if (Array.isArray(value) && value.length === 4) {
             gl.uniform4fv(location, value);
         } else {
-            throw raiseError(logger, `bad value for "vec4" uniform: "${value}"`);
+            throw logger.error('bad value for "vec4" uniform: {0}', value);
         }
     },
     [SAMPLER_2D]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw raiseError(logger, `bad value for "sampler2D" uniform: "${value}"`);
+            throw logger.error('bad value for "sampler2D" uniform: {0}', value);
         }
     },
 };
@@ -155,7 +155,7 @@ export class Program {
     private _createProgram(): WebGLProgram {
         const program = this._runtime.gl.createProgram();
         if (!program) {
-            throw raiseError(this._logger, 'failed to create program');
+            throw this._logger.error('failed to create program');
         }
         return program;
     }
@@ -164,14 +164,14 @@ export class Program {
         const gl = this._runtime.gl;
         const shader = gl.createShader(type)!;
         if (!shader) {
-            throw raiseError(this._logger, 'failed to create shader');
+            throw this._logger.error('failed to create shader');
         }
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader, COMPILE_STATUS)) {
             const info = gl.getShaderInfoLog(shader)!;
             gl.deleteShader(shader);
-            throw raiseError(this._logger, info);
+            throw this._logger.error(info);
         }
         gl.attachShader(this.program, shader);
         return shader;
@@ -188,7 +188,7 @@ export class Program {
         gl.linkProgram(this.program);
         if (!gl.getProgramParameter(this.program, LINK_STATUS)) {
             const info = gl.getProgramInfoLog(this.program)!;
-            throw raiseError(this._logger, info);
+            throw this._logger.error(info);
         }
     }
 
@@ -232,13 +232,13 @@ export class Program {
         for (const attr of this._schema.attributes) {
             const shaderAttr = this._attributes[attr.name];
             if (!shaderAttr) {
-                throw raiseError(this._logger, `attribute "${attr.name}" is unknown`);
+                throw this._logger.error('attribute "{0}" is unknown', attr.name);
             }
             // Is there a way to validate type?
             // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
             if (attr.size !== shaderAttr.size) {
-                throw raiseError(this._logger,
-                    `attribute "${attr.name}" size is ${attr.size} but shader size is ${shaderAttr.size}`);
+                throw this._logger.error(
+                    'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size);
             }
             gl.vertexAttribPointer(shaderAttr.location, attr.size, attr.gltype, attr.normalized, stride, attr.offset);
             gl.enableVertexAttribArray(shaderAttr.location);
@@ -251,11 +251,11 @@ export class Program {
         for (const [name, value] of Object.entries(uniforms)) {
             const attr = this._uniforms[name];
             if (!attr) {
-                throw raiseError(this._logger, `uniform "${name}" is unknown`);
+                throw this._logger.error('uniform "{0}" is unknown', name);
             }
             const setter = uniformSetters[attr.info.type];
             if (!setter) {
-                throw raiseError(this._logger, `uniform "${name}" setter is not found`);
+                throw this._logger.error('uniform "{0}" setter is not found', name);
             }
             setter(this._logger, gl, attr, value);
         }
