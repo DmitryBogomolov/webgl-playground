@@ -145,10 +145,6 @@ const config: Configuration = {
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.(png|svg|jpg|gif)$/,
-                use: ['file-loader'],
-            },
-            {
                 test: /\.(vert|frag)$/,
                 use: ['raw-loader'],
             },
