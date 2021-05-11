@@ -25,7 +25,7 @@ export const colors = {
     /** (1, 0, 0) */
     RED: color(1, 0, 0),
     /** (1, 0, 1) */
-    MAGENTA: color(1, 0, 0),
+    MAGENTA: color(1, 0, 1),
     /** (1, 1, 0) */
     YELLOW: color(1, 1, 0),
     /** (1, 1, 1) */
