@@ -7,7 +7,7 @@ import {
     Runtime,
     Primitive,
     Program,
-    Texture, TextureFilterValues,
+    Texture, TextureFilterValues, TextureData,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -84,7 +84,7 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
     return { vertexData, indexData };
 }
 
-function generateTextureData(): ImageData {
+function generateTextureData(): TextureData {
     const pixels = [
         colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
         colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
@@ -100,8 +100,7 @@ function generateTextureData(): ImageData {
         data[i++] = a * 0xFF;
     }
     return {
-        width: 4,
-        height: 4,
+        size: [4, 4],
         data,
     };
 }
