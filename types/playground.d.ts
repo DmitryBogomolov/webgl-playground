@@ -8,5 +8,13 @@ declare module '*.frag' {
     export default data;
 }
 
+declare module '*.css' {
+    interface Fields {
+        readonly [key: string]: string;
+    }
+    declare const data: Fields;
+    export default data;
+}
+
 declare const PLAYGROUND_ROOT: string;
 declare const WORKER_URL: string;
