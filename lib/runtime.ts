@@ -3,8 +3,11 @@ import { generateId, Logger } from './utils';
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
+    canvas.style.display = 'inline-block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.style.border = 'none';
+    canvas.style.backgroundColor = 'black';
     container.appendChild(canvas);
 
     const width = Math.floor(devicePixelRatio * canvas.clientWidth);
@@ -40,7 +43,11 @@ export class Runtime {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl');
+        const context = this._canvas.getContext('webgl', {
+            alpha: false,
+            antialias: false,
+            premultipliedAlpha: false,
+        });
         if (!context) {
             throw this._logger.error('failed to get webgl context');
         }
