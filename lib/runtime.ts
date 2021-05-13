@@ -3,6 +3,7 @@ import { generateId, Logger } from './utils';
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
     canvas.style.display = 'inline-block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
