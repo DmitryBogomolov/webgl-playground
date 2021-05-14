@@ -7,7 +7,7 @@ import {
     Runtime,
     Primitive,
     Program,
-    Texture, TextureFilterValues, TextureData,
+    Texture, TextureFilterValues, TextureData, color2hex,
 } from 'lib';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
@@ -27,6 +27,44 @@ import fragmentShaderSource from './shader.frag';
  * Last two rows have same colors in reverse order.
  */
 export type DESCRIPTION = never;
+
+interface Control {
+    draw(): void;
+}
+
+const pixels = [
+    colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
+    colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
+    colors.WHITE, colors.YELLOW, colors.MAGENTA, colors.RED,
+    colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
+];
+
+const TEXTURE_SIZE = 4;
+
+function makeControl(): Control {
+    const canvas = document.querySelector<HTMLCanvasElement>('#control-canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const width = canvas.width = canvas.clientWidth * devicePixelRatio;
+    const height = canvas.height = canvas.clientHeight * devicePixelRatio;
+    const xMin = 0;
+    const xMax = width;
+    const yMin = 0;
+    const yMax = height;
+    const dw = (xMax - xMin) / TEXTURE_SIZE;
+    const dh = (yMax - yMin) / TEXTURE_SIZE;
+
+    return {
+        draw() {
+            for (let row = 0; row < TEXTURE_SIZE; ++row) {
+                for (let col = 0; col < TEXTURE_SIZE; ++col) {
+                    const clr = pixels[row * TEXTURE_SIZE + col];
+                    ctx.fillStyle = color2hex(clr);
+                    ctx.fillRect(col * dw, row * dh, dw, dh);
+                }
+            }
+        }
+    };
+}
 
 type TexCoord = Readonly<[number, number]>;
 
@@ -85,12 +123,6 @@ function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, inde
 }
 
 function generateTextureData(): TextureData {
-    const pixels = [
-        colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
-        colors.RED, colors.MAGENTA, colors.YELLOW, colors.WHITE,
-        colors.WHITE, colors.YELLOW, colors.MAGENTA, colors.RED,
-        colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
-    ];
     const data = new Uint8ClampedArray(16 * 4);
     let i = 0;
     for (const { r, g, b, a } of pixels) {
@@ -100,7 +132,7 @@ function generateTextureData(): TextureData {
         data[i++] = a * 0xFF;
     }
     return {
-        size: [4, 4],
+        size: [TEXTURE_SIZE, TEXTURE_SIZE],
         data,
     };
 }
@@ -138,24 +170,35 @@ function makeTexture(runtime: Runtime): Texture {
     return texture;
 }
 
-// eslint-disable-next-line no-undef
-const runtime = new Runtime(document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!);
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+document.querySelector('#for-background')!.appendChild(container);
+
+const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 
 let texcoord: TexCoord = [0, 0];
-attachHandlers(texcoord, (arg) => {
-    texcoord = arg;
-});
+// attachHandlers(texcoord, (arg) => {
+//     texcoord = arg;
+// });
 
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
 type Position = readonly [number, number, number, number];
 
-const POS_TL: Position = [-1.00, +0.05, -0.05, +1.00];
-const POS_TR: Position = [+0.05, +0.05, +1.00, +1.00];
-const POS_BL: Position = [-1.00, -1.00, -0.05, -0.05];
-const POS_BR: Position = [+0.05, -1.00, +1.00, -0.05];
+const uvWidth = document.querySelector('#label-uv')!.clientWidth;
+const customWidth = document.querySelector('#label-custom')!.clientWidth;
+const ratio = uvWidth / (uvWidth + customWidth) * 2 - 1;
+// TODO: Take size from "Runtime" and calculate for 2 pixels.
+const OFFSET = 0.1;
+
+const LOC_NEAREST_UV: Position = [-1 + OFFSET, +OFFSET, ratio - OFFSET, +1 - OFFSET];
+const LOC_LINEAR_UV: Position = [-1 + OFFSET, -1 + OFFSET, ratio - OFFSET, -OFFSET];
+const LOC_NEAREST_CUSTOM: Position = [ratio + OFFSET, +OFFSET, +1 - OFFSET, +1 -OFFSET];
+const LOC_LINEAR_CUSTOM: Position = [ratio + OFFSET, -1 + OFFSET, +1 - OFFSET, -OFFSET];
+
+const control = makeControl();
+control.draw();
 
 const loop = new RenderLoop(() => {
     function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
@@ -173,10 +216,10 @@ const loop = new RenderLoop(() => {
     }
 
     runtime.clearColor();
-    drawRect(POS_TL, 'nearest', null);
-    drawRect(POS_TR, 'linear', null);
-    drawRect(POS_BL, 'nearest', texcoord);
-    drawRect(POS_BR, 'linear', texcoord);
+    drawRect(LOC_NEAREST_UV, 'nearest', null);
+    drawRect(LOC_LINEAR_UV, 'linear', null);
+    drawRect(LOC_NEAREST_CUSTOM, 'nearest', texcoord);
+    drawRect(LOC_LINEAR_CUSTOM, 'linear', texcoord);
 });
 loop.start();
 logSilenced(true);
