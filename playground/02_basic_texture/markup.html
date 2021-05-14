@@ -16,6 +16,7 @@
     .control-container {
         position: relative;
         height: 100%;
+        border: 1px solid black;
     }
     #control-canvas {
         position: absolute;
@@ -69,7 +70,7 @@
                 <div class="row-text-cell" style="flex: 1 1 20%;" id="label-custom">Custom</div>
             </div>
             <div>
-                <div id="for-background"></div>
+                <div id="placeholder"></div>
             </div>
         </div>
     </div>
@@ -80,16 +81,10 @@
         </div>
     </div>
 </div>
-<!-- <div class="controls border bg-info">
-    <div>
-        <label for="u-coord-input">U coord</label>
-        <input id="u-coord-input" type="range" class="custom-range" min="0" max="1" step="0.05" />
-        <span id="u-coord-label">?</span>
-    </div>
-    <div>
-        <label for="v-coord-input">V coord</label>
-        <input id="v-coord-input" type="range" class="custom-range" min="0" max="1" step="0.05" />
-        <span id="v-coord-label">?</span>
-    </div>
-    <div id="test"></div>
-</div> -->
+<script>
+    {
+        const placeholder = document.querySelector('#placeholder');
+        const root = document.querySelector('#playground-root');
+        placeholder.appendChild(root);
+    }
+</script>
