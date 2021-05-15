@@ -18,12 +18,12 @@ import fragmentShaderSource from './shaders/shader.frag';
 /**
  * Four rectangles.
  *
- * Top rectangles are colored with texture.
- * Left one with *nearest* filter, right one with *linear*.
+ * Left rectangles are colored with texture.
+ * Top one with *nearest* filter, bottom one with *linear*.
  *
- * Bottom rectangles are colored with a colored samples from texture.
- * Left one with *nearest* filter, right one with *linear*.
- * Texture coordinates are taken from input controls.
+ * Right rectangles are colored with a colored samples from texture.
+ * Top one with *nearest* filter, bottom one with *linear*.
+ * Texture coordinates are taken from input canvas.
  *
  * Texture is custom 4x4 image.
  * First two rows have colors from black to white.
