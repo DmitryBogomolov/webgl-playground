@@ -9,13 +9,15 @@ import {
     generateDefaultIndexes, logSilenced,
     colors, color2array,
 } from 'lib';
-import vertexShaderSource from './shader.vert';
-import fragmentShaderSource from './shader.frag';
+import vertexShaderSource from './shaders/shader.vert';
+import fragmentShaderSource from './shaders/shader.frag';
 
 /**
  * Just four triangles of different colors.
  */
 export type DESCRIPTION = never;
+
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -74,8 +76,6 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-// eslint-disable-next-line no-undef
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const loop = new RenderLoop(() => {

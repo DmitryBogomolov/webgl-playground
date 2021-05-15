@@ -10,6 +10,20 @@ export function logSilenced(state: boolean): void {
     isLogSilenced = !!state;
 }
 
+export function formatStr(format: string, ...params: unknown[]): string {
+    return format.replace(/{(\d+)}/g, (_match, i: number) => {
+        const param = params[i];
+        const type = typeof param;
+        if (type === 'object') {
+            return JSON.stringify(param);
+        } else if (type === 'symbol') {
+            return (param as symbol).toString();
+        } else {
+            return param as string;
+        }
+    });
+}
+
 export class Logger {
     private readonly _prefix: string;
 
@@ -17,26 +31,27 @@ export class Logger {
         this._prefix = `[${name}]: `;
     }
 
-    private _wrap(message: string): string {
-        return this._prefix + message;
+    private _wrap(format: string, ...params: unknown[]): string {
+        return this._prefix + formatStr(format, ...params);
     }
 
-    log(message: string, ...params: any[]): void {
-        isLogSilenced || console.log(this._wrap(message), ...params);
+    log(format: string, ...params: unknown[]): string {
+        const message = this._wrap(format, ...params);
+        isLogSilenced || console.log(message);
+        return message;
     }
 
-    warn(message: string, ...params: any[]): void {
-        isLogSilenced || console.warn(this._wrap(message), ...params);
+    warn(format: string, ...params: unknown[]): string {
+        const message = this._wrap(format, ...params);
+        isLogSilenced || console.warn(message);
+        return message;
     }
 
-    error(message: string, ...params: any[]): void {
-        isLogSilenced || console.error(this._wrap(message), ...params);
+    error(format: string, ...params: unknown[]): Error {
+        const message = this._wrap(format, ...params);
+        isLogSilenced || console.error(message);
+        throw new Error(message);
     }
-}
-
-export function raiseError(logger: Logger, message: string, ...params: any[]): Error {
-    logger.error(message, ...params);
-    return new Error(message);
 }
 
 export function generateDefaultIndexes(vertexCount: number): number[] {

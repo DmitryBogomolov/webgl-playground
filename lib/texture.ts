@@ -1,6 +1,6 @@
 import { Runtime } from './runtime';
 import { contextConstants } from './context-constants';
-import { generateId, Logger, raiseError } from './utils';
+import { generateId, Logger } from './utils';
 
 const {
     TEXTURE_2D, TEXTURE0,
@@ -44,6 +44,15 @@ const PARAM_VALUE_MAP: ParamValueMap = {
     clamp_to_edge: CLAMP_TO_EDGE,
 };
 
+export interface TextureData {
+    readonly size: readonly [number, number];
+    readonly data: Uint8ClampedArray;
+}
+
+function isTextureData(source: TextureData | TexImageSource): source is TextureData {
+    return 'size' in source && 'data' in source;
+}
+
 export class Texture {
     private readonly _id = generateId('Texture');
     private readonly _logger = new Logger(this._id);
@@ -64,21 +73,27 @@ export class Texture {
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl.createTexture();
         if (!texture) {
-            throw raiseError(this._logger, 'Failed to create texture.');
+            throw this._logger.error('failed to create texture');
         }
         return texture;
     }
 
-    setImageData({ data, width, height }: ImageData, unpackFlipY: boolean = false): void {
-        this._logger.log('set_image_data', width, height, data.length);
+    setImageData(source: TextureData | TexImageSource, unpackFlipY: boolean = false): void {
         const gl = this._runtime.gl;
         gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipY);
         gl.bindTexture(TEXTURE_2D, this._texture);
-        gl.texImage2D(TEXTURE_2D, 0, RGBA, width, height, 0, RGBA, UNSIGNED_BYTE, data);
+        if (isTextureData(source)) {
+            const { size, data } = source;
+            this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
+            gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
+        } else {
+            this._logger.log('set_image_data(source: {0}', source);
+            gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
+        }
     }
 
     setParameters(params: TextureParameters): void {
-        this._logger.log('set_parameters', params);
+        this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
         gl.bindTexture(TEXTURE_2D, this._texture);
         for (const [name, value] of Object.entries(params)) {
@@ -89,7 +104,7 @@ export class Texture {
     }
 
     setUnit(unit: number): void {
-        this._logger.log('set_unit', unit);
+        this._logger.log('set_unit({0})', unit);
         const gl = this._runtime.gl;
         gl.activeTexture(TEXTURE0 + unit);
         gl.bindTexture(TEXTURE_2D, this._texture);

@@ -26,7 +26,7 @@ export class RenderLoop {
     start(): void {
         this._logger.log('start');
         if (this.isRunning()) {
-            this._logger.error('already running');
+            this._logger.warn('already running');
         }
         this._timestamp = NaN;
         this._requestRender();
@@ -35,7 +35,7 @@ export class RenderLoop {
     stop(): void {
         this._logger.log('stop');
         if (!this.isRunning()) {
-            this._logger.error('not running');
+            this._logger.warn('not running');
         }
         cancelAnimationFrame(this._requestId);
         this._requestId = 0;

@@ -1,7 +1,7 @@
 import { contextConstants } from './context-constants';
 import { Program, EMPTY_PROGRAM, UniformValues } from './program';
 import { Runtime } from './runtime';
-import { Logger, raiseError, generateId } from './utils';
+import { Logger, generateId } from './utils';
 
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
@@ -36,7 +36,7 @@ export class Primitive {
     private _createVao(): WebGLVertexArrayObjectOES {
         const vao = this._runtime.vaoExt.createVertexArrayOES();
         if (!vao) {
-            throw raiseError(this._logger, 'Failed to create vertex array object');
+            throw this._logger.error('failed to create vertex array object');
         }
         return vao;
     }
@@ -44,13 +44,13 @@ export class Primitive {
     private _createBuffer(): WebGLBuffer {
         const buffer = this._runtime.gl.createBuffer();
         if (!buffer) {
-            throw raiseError(this._logger, 'Failed to create buffer.');
+            throw this._logger.error('failed to create buffer');
         }
         return buffer;
     }
 
     setData(vertexData: BufferSource, indexData: Uint16Array): void {
-        this._logger.log('set_data', `vertex: ${vertexData.byteLength}`, `index: ${indexData.length * 2}`);
+        this._logger.log('set_data(vertex: {0}, index: {1})', vertexData.byteLength, indexData.length / 2);
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         vao.bindVertexArrayOES(this._vao);
@@ -74,7 +74,7 @@ export class Primitive {
     draw(uniforms?: UniformValues): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
-        gl.useProgram(this._program.program);
+        this._program.use();
         if (uniforms) {
             this._program.setUniforms(uniforms);
         }

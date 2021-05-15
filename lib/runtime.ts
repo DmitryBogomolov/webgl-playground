@@ -1,10 +1,14 @@
 import { colors, Color } from './color';
-import { generateId, Logger, raiseError } from './utils';
+import { generateId, Logger } from './utils';
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.display = 'inline-block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.style.border = 'none';
+    canvas.style.backgroundColor = 'black';
     container.appendChild(canvas);
 
     const width = Math.floor(devicePixelRatio * canvas.clientWidth);
@@ -40,9 +44,13 @@ export class Runtime {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl');
+        const context = this._canvas.getContext('webgl', {
+            alpha: false,
+            antialias: false,
+            premultipliedAlpha: false,
+        });
         if (!context) {
-            throw raiseError(this._logger, 'Failed to get webgl context.');
+            throw this._logger.error('failed to get webgl context');
         }
         return context;
     }
@@ -50,13 +58,13 @@ export class Runtime {
     private _getVaoExt(): OES_vertex_array_object {
         const ext = this.gl.getExtension('OES_vertex_array_object');
         if (!ext) {
-            throw raiseError(this._logger, 'Failed to get OES_vertex_array_object extension.');
+            throw this._logger.error('failed to get OES_vertex_array_object extension');
         }
         return ext;
     }
 
     private readonly _handleContextLost: EventListener = () => {
-        this._logger.error('context is lost');
+        this._logger.warn('context is lost');
     };
 
     private readonly _handleContextRestored: EventListener = () => {
@@ -76,7 +84,7 @@ export class Runtime {
     }
 
     setClearColor({ r, g, b, a }: Color): void {
-        this._logger.log('set_clear_color', `${r} ${g} ${b} ${a}`);
+        this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
     }
 }

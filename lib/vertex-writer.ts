@@ -1,4 +1,4 @@
-import { Logger, raiseError, generateId } from './utils';
+import { Logger, generateId } from './utils';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
 
 type Normalizer = (value: number) => number;
@@ -62,11 +62,11 @@ abstract class BaseVertexWriter<T = never> {
     writeAttribute(vertexIndex: number, attributeName: string, attributeValue: ReadonlyArray<number>): void {
         const attr = this._attributes[attributeName];
         if (!attr) {
-            throw raiseError(this._logger, `attribute "${attributeName}" is unknown`);
+            throw this._logger.error('attribute "{0}" is unknown', attributeName);
         }
         if (attr.size !== attributeValue.length) {
-            throw raiseError(this._logger,
-                `attribute "${attributeName}" size is ${attr.size} but value is [${attributeValue}]`);
+            throw this._logger.error(
+                'attribute "{0}" size is {1} but value is {2}', attributeName, attr.size, attributeValue);
         }
         const position = this._getPosition(vertexIndex, attr);
         const normalize = attr.normalized ? normalizers[attr.type] : eigen;
@@ -119,7 +119,7 @@ export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
     constructor(source: VertexWriterSource, schema: VertexSchema) {
         super(schema);
         if (this._schema.isPacked) {
-            throw raiseError(this._logger, 'not for packed schema');
+            throw this._logger.error('not for packed schema');
         }
         const { buffer, offset, length } = wrapBuffer(source);
         const impl: Partial<Record<AttributeType, TypedArray>> = {};

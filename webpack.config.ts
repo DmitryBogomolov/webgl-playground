@@ -3,6 +3,7 @@ import fs from 'fs';
 import { Compiler, Configuration, EntryObject } from 'webpack';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import Mustache from 'mustache';
 
 interface Playground {
@@ -142,11 +143,27 @@ const config: Configuration = {
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
-            },
-            {
-                test: /\.(png|svg|jpg|gif)$/,
-                use: ['file-loader'],
+                use: [
+                    {
+                        loader: MiniCssWebpackPlugin.loader,
+                        options: {
+                            esModule: true,
+                            modules: {
+                                // namedExport: true,
+                            },
+                        },
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            esModule: true,
+                            modules: {
+                                // namedExport: true,
+                                localIdentName: '[name]__[local]',
+                            },
+                        },
+                    },
+                ],
             },
             {
                 test: /\.(vert|frag)$/,
@@ -156,6 +173,7 @@ const config: Configuration = {
     },
     plugins: [
         new CleanWebpackPlugin(),
+        new MiniCssWebpackPlugin(),
         // Without it "[WDS] Nothing changed" (in browser console) is reported when template files are updated.
         // As a result hot reload does not happen and page content is not updated.
         // Somehow "HtmlWebpackPlugin" solves this.
@@ -177,6 +195,7 @@ function renderRootPage(): string {
         title: 'WebGL Playground',
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/index.js`,
+        styles_url: `${ASSETS_PATH}/index.css`,
         playgrounds: Object.entries(playgrounds).map(
             ([name, { title }]) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
         ),
@@ -189,6 +208,7 @@ function renderPlaygroundPage(name: string): string {
         title: playground.title,
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/${name}.js`,
+        styles_url: `${ASSETS_PATH}/${name}.css`,
         worker_url: playground.hasWorker ? `${ASSETS_PATH}/${name}_worker.js` : null,
         custom_markup: playground.hasMarkup ? templates[name]!.content : null,
     });

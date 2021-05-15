@@ -13,8 +13,8 @@ import {
     TYPE_SCALE,
     TYPE_COLOR,
 } from './message-types';
-import vertexShaderSource from './shader.vert';
-import fragmentShaderSource from './shader.frag';
+import vertexShaderSource from './shaders/shader.vert';
+import fragmentShaderSource from './shaders/shader.frag';
 
 /**
  * Web worker.
@@ -23,6 +23,8 @@ import fragmentShaderSource from './shader.frag';
  * sends message back - with scale or color parameter.
  */
 export type DESCRIPTION = never;
+
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
@@ -54,8 +56,6 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-// eslint-disable-next-line no-undef
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 const primitive = makePrimitive(runtime);
@@ -63,7 +63,6 @@ const primitive = makePrimitive(runtime);
 let clr = color(0, 0, 0, 1);
 let scale = 0;
 
-// eslint-disable-next-line no-undef
 const worker = new WorkerMessenger(WORKER_URL, {
     [TYPE_SCALE](payload) {
         scale = payload as number;
