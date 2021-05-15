@@ -24,6 +24,8 @@ import fragmentShaderSource from './shader.frag';
  */
 export type DESCRIPTION = never;
 
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+
 const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
@@ -54,8 +56,6 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-// eslint-disable-next-line no-undef
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 const primitive = makePrimitive(runtime);

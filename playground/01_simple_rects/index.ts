@@ -17,6 +17,8 @@ import fragmentShaderSource from './shader.frag';
  */
 export type DESCRIPTION = never;
 
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         {
@@ -74,8 +76,6 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-// eslint-disable-next-line no-undef
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const loop = new RenderLoop(() => {

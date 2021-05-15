@@ -1,7 +1,7 @@
 import {
     color,
     logSilenced,
-    VertexSchema, parseVertexSchema,
+    parseVertexSchema,
     FluentVertexWriter,
     RenderLoop,
     Runtime,
@@ -31,26 +31,7 @@ import fragmentShaderSource from './shader.frag';
  */
 export type DESCRIPTION = never;
 
-function generateVertices(schema: VertexSchema): { vertexData: ArrayBuffer, indexData: Uint16Array } {
-    const vertices = [
-        { position: [-1, -1] },
-        { position: [+1, -1] },
-        { position: [+1, +1] },
-        { position: [-1, +1] },
-    ];
-    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
-    for (let i = 0; i < vertices.length; ++i) {
-        const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vertex.position);
-    }
-    const indexData = new Uint16Array([
-        0, 1, 2,
-        2, 3, 0,
-    ]);
-
-    return { vertexData, indexData };
-}
+const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -64,7 +45,23 @@ function makePrimitive(runtime: Runtime): Primitive {
         fragmentShader: fragmentShaderSource,
         schema,
     });
-    const { vertexData, indexData } = generateVertices(schema);
+
+    const vertices = [
+        [-1, -1],
+        [+1, -1],
+        [+1, +1],
+        [-1, +1],
+    ];
+    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
+    const writer = new FluentVertexWriter(vertexData, schema);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+        writer.writeAttribute(i, 'a_position', vertex);
+    }
+    const indexData = new Uint16Array([
+        0, 1, 2,
+        2, 3, 0,
+    ]);
 
     const primitive = new Primitive(runtime);
 
@@ -84,18 +81,16 @@ function makeTexture(runtime: Runtime): Texture {
     return texture;
 }
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
+
+const primitive = makePrimitive(runtime);
+const texture = makeTexture(runtime);
 
 let texcoord: TexCoord = { u: 0.5, v: 0.5 };
 makeControl(texcoord, (tc) => {
     texcoord = tc;
 });
-
-const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime);
 
 const layout = doLayout(container);
 
