@@ -139,13 +139,12 @@ export class Program {
     private readonly _schema: VertexSchema;
     private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
-    // TODO: Make it private.
-    readonly program: WebGLProgram;
+    private readonly _program: WebGLProgram;
 
     constructor(runtime: Runtime, options: ProgramOptions) {
         this._logger.log('init');
         this._runtime = runtime;
-        this.program = this._createProgram();
+        this._program = this._createProgram();
         this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
         this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
         this._linkProgram();
@@ -158,7 +157,7 @@ export class Program {
         this._logger.log('dispose');
         this._deleteShader(this._vertexShader);
         this._deleteShader(this._fragmentShader);
-        this._runtime.gl.deleteProgram(this.program);
+        this._runtime.gl.deleteProgram(this._program);
     }
 
     private _createProgram(): WebGLProgram {
@@ -182,32 +181,32 @@ export class Program {
             gl.deleteShader(shader);
             throw this._logger.error(info);
         }
-        gl.attachShader(this.program, shader);
+        gl.attachShader(this._program, shader);
         return shader;
     }
 
     private _deleteShader(shader: WebGLShader): void {
         const gl = this._runtime.gl;
-        gl.detachShader(this.program, shader);
+        gl.detachShader(this._program, shader);
         gl.deleteShader(shader);
     }
 
     private _linkProgram(): void {
         const gl = this._runtime.gl;
-        gl.linkProgram(this.program);
-        if (!gl.getProgramParameter(this.program, LINK_STATUS)) {
-            const info = gl.getProgramInfoLog(this.program)!;
+        gl.linkProgram(this._program);
+        if (!gl.getProgramParameter(this._program, LINK_STATUS)) {
+            const info = gl.getProgramInfoLog(this._program)!;
             throw this._logger.error(info);
         }
     }
 
     private _collectAttributes(): AttributesMap {
         const gl = this._runtime.gl;
-        const count = gl.getProgramParameter(this.program, ACTIVE_ATTRIBUTES) as number;
+        const count = gl.getProgramParameter(this._program, ACTIVE_ATTRIBUTES) as number;
         const attributes: Record<string, ShaderAttribute> = {};
         for (let i = 0; i < count; ++i) {
-            const info = gl.getActiveAttrib(this.program, i)!;
-            const location = gl.getAttribLocation(this.program, info.name);
+            const info = gl.getActiveAttrib(this._program, i)!;
+            const location = gl.getAttribLocation(this._program, info.name);
             attributes[info.name] = {
                 info,
                 location,
@@ -219,7 +218,7 @@ export class Program {
 
     private _collectUniforms(): UniformsMap {
         const gl = this._runtime.gl;
-        const program = this.program;
+        const program = this._program;
         const count = gl.getProgramParameter(program, ACTIVE_UNIFORMS) as number;
         const uniforms: Record<string, ShaderUniform> = {};
         for (let i = 0; i < count; ++i) {
@@ -232,6 +231,12 @@ export class Program {
             };
         }
         return uniforms;
+    }
+
+    use(): void {
+        this._logger.log('use_program');
+        const gl = this._runtime.gl;
+        gl.useProgram(this._program);
     }
 
     setupVertexAttributes(): void {
