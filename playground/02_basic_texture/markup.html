@@ -66,8 +66,8 @@
         </div>
         <div class="display-main">
             <div class="row-cells">
-                <div class="row-text-cell" style="flex: 1 1 80%;" id="label-uv">UV</div>
-                <div class="row-text-cell" style="flex: 1 1 20%;" id="label-custom">Custom</div>
+                <div class="row-text-cell" style="flex: 1 1 80%;" id="uv-col">UV</div>
+                <div class="row-text-cell" style="flex: 1 1 20%;" id="custom-col">Custom</div>
             </div>
             <div>
                 <div id="placeholder"></div>
@@ -82,9 +82,6 @@
     </div>
 </div>
 <script>
-    {
-        const placeholder = document.querySelector('#placeholder');
-        const root = document.querySelector('#playground-root');
-        placeholder.appendChild(root);
-    }
+    document.querySelector('#placeholder').appendChild(document.querySelector('#playground-root'));
+    const [uvCol, customCol] = document.querySelectorAll('.display-main .row-cells .row-text-cell');
 </script>
