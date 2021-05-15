@@ -11,6 +11,7 @@ import {
 } from 'lib';
 import { textureData } from './image';
 import { TexCoord, makeControl } from './control';
+import { Position, doLayout } from './layout';
 import vertexShaderSource from './shader.vert';
 import fragmentShaderSource from './shader.frag';
 
@@ -96,18 +97,7 @@ makeControl(texcoord, (tc) => {
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-type Position = readonly [number, number, number, number];
-
-const uvWidth = document.querySelector('#uv-col')!.clientWidth;
-const customWidth = document.querySelector('#custom-col')!.clientWidth;
-const ratio = uvWidth / (uvWidth + customWidth) * 2 - 1;
-const X_OFFSET = 4 / container.clientWidth;
-const Y_OFFSET = 4 / container.clientHeight;
-
-const LOC_NEAREST_UV: Position = [-1 + X_OFFSET, +Y_OFFSET, ratio - X_OFFSET, +1 - Y_OFFSET];
-const LOC_LINEAR_UV: Position = [-1 + X_OFFSET, -1 + Y_OFFSET, ratio - X_OFFSET, -Y_OFFSET];
-const LOC_NEAREST_CUSTOM: Position = [ratio + X_OFFSET, +Y_OFFSET, +1 - X_OFFSET, +1 - Y_OFFSET];
-const LOC_LINEAR_CUSTOM: Position = [ratio + X_OFFSET, -1 + Y_OFFSET, +1 - X_OFFSET, -Y_OFFSET];
+const layout = doLayout(container);
 
 const loop = new RenderLoop(() => {
     function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
@@ -125,10 +115,10 @@ const loop = new RenderLoop(() => {
     }
 
     runtime.clearColor();
-    drawRect(LOC_NEAREST_UV, 'nearest', null);
-    drawRect(LOC_LINEAR_UV, 'linear', null);
-    drawRect(LOC_NEAREST_CUSTOM, 'nearest', texcoord);
-    drawRect(LOC_LINEAR_CUSTOM, 'linear', texcoord);
+    drawRect(layout.nearestUV, 'nearest', null);
+    drawRect(layout.linearUV, 'linear', null);
+    drawRect(layout.nearestCustom, 'nearest', texcoord);
+    drawRect(layout.linearCustom, 'linear', texcoord);
 });
 loop.start();
 logSilenced(true);
