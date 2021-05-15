@@ -13,8 +13,8 @@ import {
     TYPE_SCALE,
     TYPE_COLOR,
 } from './message-types';
-import vertexShaderSource from './shader.vert';
-import fragmentShaderSource from './shader.frag';
+import vertexShaderSource from './shaders/shader.vert';
+import fragmentShaderSource from './shaders/shader.frag';
 
 /**
  * Web worker.

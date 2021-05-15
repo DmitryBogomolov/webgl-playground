@@ -9,8 +9,8 @@ import {
     generateDefaultIndexes, logSilenced,
     colors, color2array,
 } from 'lib';
-import vertexShaderSource from './shader.vert';
-import fragmentShaderSource from './shader.frag';
+import vertexShaderSource from './shaders/shader.vert';
+import fragmentShaderSource from './shaders/shader.frag';
 
 /**
  * Just four triangles of different colors.

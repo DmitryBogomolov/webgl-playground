@@ -12,8 +12,8 @@ import {
 import { textureData } from './image';
 import { TexCoord, makeControl } from './control';
 import { Position, doLayout } from './layout';
-import vertexShaderSource from './shader.vert';
-import fragmentShaderSource from './shader.frag';
+import vertexShaderSource from './shaders/shader.vert';
+import fragmentShaderSource from './shaders/shader.frag';
 
 /**
  * Four rectangles.
