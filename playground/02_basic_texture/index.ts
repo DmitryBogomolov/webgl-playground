@@ -88,7 +88,7 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.8, 0.8, 0.8));
 
-let texcoord: TexCoord = [0, 0];
+let texcoord: TexCoord = { u: 0.5, v: 0.5 };
 makeControl(texcoord, (tc) => {
     texcoord = tc;
 });
@@ -118,9 +118,9 @@ const loop = new RenderLoop(() => {
         texture.setUnit(1);
         primitive.draw({
             'u_position': pos,
-            'u_flag': texcoord ? 1 : 0,
+            'u_useCustom': !!texcoord,
             'u_texture': 1,
-            ...(texcoord ? { 'u_texcoord': texcoord } : null),
+            ...(texcoord ? { 'u_texcoord': [texcoord.u, texcoord.v] } : null),
         });
     }
 

@@ -17,7 +17,7 @@ const {
 type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
-export type UniformValue = number | v2 | v3 | v4;
+export type UniformValue = boolean | number | v2 | v3 | v4;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -71,6 +71,14 @@ const shaderTypes: ShaderTypesMap = {
 };
 
 const uniformSetters: UniformSettersMap = {
+    [BOOL]: (logger, gl, { location }, value) => {
+        if (typeof value === 'boolean') {
+            gl.uniform1i(location, Number(value));
+        } else {
+            throw logger.error('bad value for "bool" uniform: {0}', value);
+        }
+
+    },
     [FLOAT]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
@@ -131,6 +139,7 @@ export class Program {
     private readonly _schema: VertexSchema;
     private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
+    // TODO: Make it private.
     readonly program: WebGLProgram;
 
     constructor(runtime: Runtime, options: ProgramOptions) {

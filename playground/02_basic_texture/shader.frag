@@ -2,14 +2,11 @@ precision mediump float;
 
 uniform sampler2D u_texture;
 uniform vec2 u_texcoord;
-uniform float u_flag;
+uniform bool u_useCustom;
 
 varying vec2 v_texcoord;
 
-// Texcoord is either taken from vertex attribute `v_texcoord` (`u_flag = 0`)
-// or from uniform `u_texcoord` (`u_flag = 1`).
-
 void main() {
-    vec2 texcoord = v_texcoord * (1.0 - u_flag) + u_texcoord * u_flag;
+    vec2 texcoord = u_useCustom ? u_texcoord : v_texcoord;
     gl_FragColor = texture2D(u_texture, texcoord);
 }

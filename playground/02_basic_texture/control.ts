@@ -1,7 +1,10 @@
 import { color2hex } from 'lib';
 import { TEXTURE_SIZE, pixels } from './image';
 
-export type TexCoord = readonly [number, number];
+export interface TexCoord {
+    readonly u: number;
+    readonly v: number;
+}
 
 export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void): void {
     const canvas = document.querySelector<HTMLCanvasElement>('#control-canvas')!;
@@ -14,8 +17,7 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
     const yMax = height - 40;
     const dx = (xMax - xMin) / TEXTURE_SIZE;
     const dy = (yMax - yMin) / TEXTURE_SIZE;
-    let u = initial[0];
-    let v = initial[1];
+    let { u, v } = initial;
 
     function handleDown(e: PointerEvent): void {
         document.addEventListener('pointerup', handleUp);
@@ -48,7 +50,7 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
         u = clamp((eventX - xMin) / (xMax - xMin), 0, 1);
         v = clamp((eventY - yMax) / (yMin - yMax), 0, 1);
         draw();
-        callback([u, v]);
+        callback({ u, v });
     }
 
     canvas.addEventListener('pointerdown', handleDown);
