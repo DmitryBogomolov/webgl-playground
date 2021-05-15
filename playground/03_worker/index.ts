@@ -63,7 +63,6 @@ const primitive = makePrimitive(runtime);
 let clr = color(0, 0, 0, 1);
 let scale = 0;
 
-// eslint-disable-next-line no-undef
 const worker = new WorkerMessenger(WORKER_URL, {
     [TYPE_SCALE](payload) {
         scale = payload as number;
