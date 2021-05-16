@@ -1,46 +1,38 @@
-import { colors, Color } from './color';
+import { contextConstants } from './context-constants';
+import { color, Color } from './color';
 import { generateId, Logger } from './utils';
 
-function createCanvas(container: HTMLElement): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    canvas.style.position = 'absolute';
-    canvas.style.display = 'inline-block';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.border = 'none';
-    canvas.style.backgroundColor = 'black';
-    container.appendChild(canvas);
-
-    const width = Math.floor(devicePixelRatio * canvas.clientWidth);
-    const height = Math.floor(devicePixelRatio * canvas.clientHeight);
-    canvas.width = width;
-    canvas.height = height;
-
-    return canvas;
-}
+const {
+    COLOR_BUFFER_BIT,
+    COLOR_CLEAR_VALUE,
+} = contextConstants;
 
 export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
+    private readonly _isOwnCanvas: boolean;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
-    constructor(container: HTMLElement) {
+    constructor(element: HTMLElement) {
         this._logger.log('init');
-        this._canvas = createCanvas(container);
+        this._isOwnCanvas = !(element instanceof HTMLCanvasElement);
+        this._canvas = this._isOwnCanvas ? createCanvas(element) : element as HTMLCanvasElement;
         this.gl = this._getContext();
         this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
-        this._setup();
+        this.adjustViewport();
     }
 
     dispose(): void {
         this._logger.log('dispose');
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        this._canvas.remove();
+        if (this._isOwnCanvas) {
+            this._canvas.remove();
+        }
     }
 
     private _getContext(): WebGLRenderingContext {
@@ -68,23 +60,45 @@ export class Runtime {
     };
 
     private readonly _handleContextRestored: EventListener = () => {
-        this._logger.log('context is restored');
+        this._logger.warn('context is restored');
     };
 
-    private _setup(): void {
-        const gl = this.gl;
-        const { r, g, b, a } = colors.BLACK;
-        gl.viewport(0, 0, this._canvas.width, this._canvas.height);
-        gl.clearColor(r, g, b, a);
+    adjustViewport(): void {
+        if (this._isOwnCanvas) {
+            setCanvasSize(this._canvas);
+        }
+        this.gl.viewport(0, 0, this._canvas.width, this._canvas.height);
     }
 
     clearColor(): void {
-        const gl = this.gl;
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        this._logger.log('clear_color');
+        this.gl.clear(COLOR_BUFFER_BIT);
+    }
+
+    getClearColor(): Color {
+        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
+        return color(r, g, b, a);
     }
 
     setClearColor({ r, g, b, a }: Color): void {
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
     }
+}
+
+function createCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.display = 'inline-block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.border = 'none';
+    canvas.style.backgroundColor = 'black';
+    container.appendChild(canvas);
+    return canvas;
+}
+
+function setCanvasSize(canvas: HTMLCanvasElement): void {
+    canvas.width = (devicePixelRatio * canvas.clientWidth) >>> 0;
+    canvas.height = (devicePixelRatio * canvas.clientHeight) >>> 0;
 }
