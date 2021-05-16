@@ -62,3 +62,12 @@ export function generateDefaultIndexes(vertexCount: number): number[] {
     }
     return data;
 }
+
+type Action = () => void;
+
+export function handleWindowResize(callback: Action): Action {
+    window.addEventListener('resize', callback);
+    return () => {
+        window.removeEventListener('resize', callback);
+    };
+}

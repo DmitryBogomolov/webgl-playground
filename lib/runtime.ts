@@ -1,5 +1,11 @@
-import { Color } from './color';
+import { contextConstants } from './context-constants';
+import { color, Color } from './color';
 import { generateId, Logger } from './utils';
+
+const {
+    COLOR_BUFFER_BIT,
+    COLOR_CLEAR_VALUE,
+} = contextConstants;
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
@@ -10,7 +16,6 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
     canvas.style.border = 'none';
     canvas.style.backgroundColor = 'black';
     container.appendChild(canvas);
-    setCanvasSize(canvas);
     return canvas;
 }
 
@@ -35,10 +40,7 @@ export class Runtime {
         this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
-        this._updateViewport();
-        if (this._isOwnCanvas) {
-            window.addEventListener('resize', this._handleWindowResize);
-        }
+        this.adjustViewport();
     }
 
     dispose(): void {
@@ -46,7 +48,6 @@ export class Runtime {
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         if (this._isOwnCanvas) {
-            window.removeEventListener('resize', this._handleWindowResize);
             this._canvas.remove();
         }
     }
@@ -79,19 +80,21 @@ export class Runtime {
         this._logger.warn('context is restored');
     };
 
-    private readonly _handleWindowResize: EventListener = () => {
-        setCanvasSize(this._canvas);
-        this._updateViewport();
-    };
-
-    private _updateViewport(): void {
+    adjustViewport(): void {
+        if (this._isOwnCanvas) {
+            setCanvasSize(this._canvas);
+        }
         this.gl.viewport(0, 0, this._canvas.width, this._canvas.height);
     }
 
     clearColor(): void {
         this._logger.log('clear_color');
-        const gl = this.gl;
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        this.gl.clear(COLOR_BUFFER_BIT);
+    }
+
+    getClearColor(): Color {
+        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE);
+        return color(r, g, b, a);
     }
 
     setClearColor({ r, g, b, a }: Color): void {
