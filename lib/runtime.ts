@@ -7,23 +7,6 @@ const {
     COLOR_CLEAR_VALUE,
 } = contextConstants;
 
-function createCanvas(container: HTMLElement): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    canvas.style.position = 'absolute';
-    canvas.style.display = 'inline-block';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.border = 'none';
-    canvas.style.backgroundColor = 'black';
-    container.appendChild(canvas);
-    return canvas;
-}
-
-function setCanvasSize(canvas: HTMLCanvasElement): void {
-    canvas.width = (devicePixelRatio * canvas.clientWidth) >>> 0;
-    canvas.height = (devicePixelRatio * canvas.clientHeight) >>> 0;
-}
-
 export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
@@ -93,7 +76,7 @@ export class Runtime {
     }
 
     getClearColor(): Color {
-        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE);
+        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
         return color(r, g, b, a);
     }
 
@@ -101,4 +84,21 @@ export class Runtime {
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
     }
+}
+
+function createCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.display = 'inline-block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.border = 'none';
+    canvas.style.backgroundColor = 'black';
+    container.appendChild(canvas);
+    return canvas;
+}
+
+function setCanvasSize(canvas: HTMLCanvasElement): void {
+    canvas.width = (devicePixelRatio * canvas.clientWidth) >>> 0;
+    canvas.height = (devicePixelRatio * canvas.clientHeight) >>> 0;
 }
