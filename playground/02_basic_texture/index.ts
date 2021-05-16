@@ -1,4 +1,5 @@
 import {
+    handleWindowResize,
     color,
     logSilenced,
     parseVertexSchema,
@@ -117,3 +118,7 @@ const loop = new RenderLoop(() => {
 });
 loop.start();
 logSilenced(true);
+
+handleWindowResize(() => {
+    runtime.adjustViewport();
+});

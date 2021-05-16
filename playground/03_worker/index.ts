@@ -1,4 +1,5 @@
 import {
+    handleWindowResize,
     RenderLoop,
     FluentVertexWriter,
     parseVertexSchema,
@@ -95,3 +96,7 @@ const loop = new RenderLoop((delta) => {
 });
 loop.start();
 logSilenced(true);
+
+handleWindowResize(() => {
+    runtime.adjustViewport();
+});
