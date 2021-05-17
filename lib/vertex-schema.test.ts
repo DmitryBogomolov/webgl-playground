@@ -3,7 +3,7 @@ import { parseVertexSchema } from './vertex-schema';
 describe('vertex schema', () => {
     describe('VertexSchema', () => {
         it('parse empty list', () => {
-            const schema = parseVertexSchema([]);
+            const schema = parseVertexSchema({ attributes: [] });
 
             expect(schema.attributes).toEqual([]);
             expect(schema.vertexSize).toEqual(0);
@@ -11,11 +11,13 @@ describe('vertex schema', () => {
         });
 
         it('parse', () => {
-            const schema = parseVertexSchema([
-                { name: 'field1', type: 'float4' },
-                { name: 'field2', type: 'byte3', normalized: true },
-                { name: 'field3', type: 'ushort2' },
-            ]);
+            const schema = parseVertexSchema({
+                attributes: [
+                    { name: 'field1', type: 'float4' },
+                    { name: 'field2', type: 'byte3', normalized: true },
+                    { name: 'field3', type: 'ushort2' },
+                ],
+            });
 
             const item1 = {
                 name: 'field1',
@@ -51,11 +53,14 @@ describe('vertex schema', () => {
         });
 
         it('parse packed', () => {
-            const schema = parseVertexSchema([
-                { name: 'field1', type: 'float4' },
-                { name: 'field2', type: 'byte3', normalized: true },
-                { name: 'field3', type: 'ushort2' },
-            ], { packed: true });
+            const schema = parseVertexSchema({
+                attributes: [
+                    { name: 'field1', type: 'float4' },
+                    { name: 'field2', type: 'byte3', normalized: true },
+                    { name: 'field3', type: 'ushort2' },
+                ],
+                isPacked: true,
+            });
 
             const item1 = {
                 name: 'field1',

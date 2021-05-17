@@ -46,8 +46,9 @@ export interface AttributeOptions {
     readonly normalized?: boolean;
 }
 
-export interface ParseSchemaOptions {
-    readonly packed?: boolean;
+export interface VertexSchemaOptions {
+    readonly attributes: ReadonlyArray<AttributeOptions>;
+    readonly isPacked?: boolean;
 }
 
 export interface Attribute {
@@ -68,13 +69,11 @@ export interface VertexSchema {
 
 const logger = new Logger('VertexSchema');
 
-export function parseVertexSchema(
-    attributes: ReadonlyArray<AttributeOptions>, options: ParseSchemaOptions = {},
-): VertexSchema {
+export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
     let totalSize = 0;
-    const isPacked = !!options.packed;
+    const isPacked = !!options.isPacked;
     const items: Attribute[] = [];
-    attributes.forEach((field, i) => {
+    options.attributes.forEach((field, i) => {
         if (!field.name) {
             throw logger.error('item {0} "name" is not defined', i);
         }

@@ -21,17 +21,19 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        {
-            name: 'a_position',
-            type: 'float2',
-        },
-        {
-            name: 'a_color',
-            type: 'ubyte4',
-            normalized: true,
-        },
-    ]);
+    const schema = parseVertexSchema({
+        attributes: [
+            {
+                name: 'a_position',
+                type: 'float2',
+            },
+            {
+                name: 'a_color',
+                type: 'ubyte4',
+                normalized: true,
+            },
+        ],
+    });
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,

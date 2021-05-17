@@ -31,9 +31,11 @@ const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
-    ]);
+    const schema = parseVertexSchema({
+        attributes: [
+            { name: 'a_position', type: 'float2' },
+        ],
+    });
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
