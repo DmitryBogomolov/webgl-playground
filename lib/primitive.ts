@@ -65,8 +65,10 @@ export class Primitive {
     setProgram(program: Program): void {
         this._logger.log('set_program');
         this._program = program;
+        const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         vao.bindVertexArrayOES(this._vao);
+        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
         this._program.setupVertexAttributes();
         vao.bindVertexArrayOES(null);
     }
