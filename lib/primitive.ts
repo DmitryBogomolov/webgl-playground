@@ -52,13 +52,10 @@ export class Primitive {
     setData(vertexData: BufferSource, indexData: Uint16Array): void {
         this._logger.log('set_data(vertex: {0}, index: {1})', vertexData.byteLength, indexData.length / 2);
         const gl = this._runtime.gl;
-        const vao = this._runtime.vaoExt;
-        vao.bindVertexArrayOES(this._vao);
         gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
-        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.bufferData(ARRAY_BUFFER, vertexData, STATIC_DRAW);
+        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.bufferData(ELEMENT_ARRAY_BUFFER, indexData, STATIC_DRAW);
-        vao.bindVertexArrayOES(null);
         this._indexCount = indexData.length;
     }
 
@@ -70,6 +67,7 @@ export class Primitive {
         vao.bindVertexArrayOES(this._vao);
         gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
         this._program.setupVertexAttributes();
+        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         vao.bindVertexArrayOES(null);
     }
 
