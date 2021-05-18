@@ -6,7 +6,7 @@ describe('vertex schema', () => {
             const schema = parseVertexSchema({ attributes: [] });
 
             expect(schema.attributes).toEqual([]);
-            expect(schema.vertexSize).toEqual(0);
+            expect(schema.totalSize).toEqual(0);
             expect(schema.isPacked).toEqual(false);
         });
 
@@ -51,7 +51,7 @@ describe('vertex schema', () => {
                 normalized: false,
             };
             expect(schema.attributes).toEqual([item1, item2, item3]);
-            expect(schema.vertexSize).toEqual(24);
+            expect(schema.totalSize).toEqual(24);
             expect(schema.isPacked).toEqual(false);
         });
 
@@ -97,7 +97,7 @@ describe('vertex schema', () => {
                 normalized: false,
             };
             expect(schema.attributes).toEqual([item1, item2, item3]);
-            expect(schema.vertexSize).toEqual(23);
+            expect(schema.totalSize).toEqual(23);
             expect(schema.isPacked).toEqual(true);
         });
     });

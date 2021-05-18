@@ -52,7 +52,7 @@ abstract class BaseVertexWriter<T = never> {
     }
 
     private _getPosition(vertexIndex: number, attr: Attribute): number {
-        return this._schema.vertexSize * vertexIndex + attr.offset;
+        return this._schema.totalSize * vertexIndex + attr.offset;
     }
 
     protected abstract _writeComponent(

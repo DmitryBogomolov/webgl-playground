@@ -55,7 +55,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         [+1, +1],
         [-1, +1],
     ];
-    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
+    const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
     const writer = new FluentVertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];

@@ -64,7 +64,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         { position: [-1, +0], color: c4 },
     ];
 
-    const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
+    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(vertexData, schema);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];

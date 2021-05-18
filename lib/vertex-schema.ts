@@ -76,7 +76,7 @@ export interface Attribute {
 
 export interface VertexSchema {
     readonly attributes: ReadonlyArray<Attribute>;
-    readonly vertexSize: number;
+    readonly totalSize: number;
     readonly isPacked: boolean;
 }
 
@@ -86,31 +86,33 @@ export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
     let totalSize = 0;
     const attrOptions = options.attributes;
     const isPacked = Boolean(options.isPacked);
-    const attrs: Attribute[] = [];
+    const isCustom = Boolean(options.isCustom);
+    const attributes: Attribute[] = [];
     for (const attrOption of attrOptions) {
         const type = parseType(attrOption.name, attrOption.type);
         const size = parseSize(attrOption.name, attrOption.type);
         const bytes = BYTE_SIZES[type];
-        attrs.push({
+        attributes.push({
             name: attrOption.name,
             type,
             size,
             bytes,
             normalized: type !== 'float' && !!attrOption.normalized,
-            stride: 0,
-            offset: totalSize,
+            stride: isCustom && attrOption.stride ? attrOption.stride : 0,
+            offset: isCustom && attrOption.offset ? attrOption.offset : totalSize,
             gltype: GL_TYPES[type],
         });
         const byteSize = bytes * size;
         totalSize += byteSize + (isPacked ? 0 : getAlignBytes(byteSize));
     }
-    totalSize += (isPacked ? 0 : getAlignBytes(totalSize));
-    for (const attr of attrs) {
-        Object.assign(attr, { stride: totalSize });
+    if (!isCustom) {
+        for (const attr of attributes) {
+            Object.assign(attr, { stride: totalSize });
+        }
     }
     return {
-        attributes: attrs,
-        vertexSize: totalSize,
+        attributes,
+        totalSize,
         isPacked,
     };
 }

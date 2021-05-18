@@ -8,7 +8,7 @@ describe('vertex writer', () => {
             { name: 'f2', type: 'short', size: 1, bytes: 2, stride: 16, offset: 8, normalized: false, gltype: 0 },
             { name: 'f3', type: 'ubyte', size: 3, bytes: 1, stride: 16, offset: 12, normalized: false, gltype: 0 },
         ],
-        vertexSize: 16,
+        totalSize: 16,
         isPacked: false,
     };
 
