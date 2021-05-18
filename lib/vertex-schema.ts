@@ -30,7 +30,7 @@ const GL_TYPES: AttributeTypeMap<number> = {
 function parseType(name: string, value: string): AttributeType {
     const type = value.substr(0, value.length - 1);
     if (!(type in GL_TYPES)) {
-        throw logger.error('item "{0}" type name is not valid', name);
+        throw logger.error('item "{0}" type "{1}" name is not valid', name, value);
     }
     return type as AttributeType;
 }
@@ -38,7 +38,7 @@ function parseType(name: string, value: string): AttributeType {
 function parseSize(name: string, value: string): number {
     const size = Number(value[value.length - 1]);
     if (!(1 <= size && size <= 4)) {
-        throw logger.error('item "{0}" type size is not valid', name);
+        throw logger.error('item "{0}" type "{1}" size is not valid', name, value);
     }
     return size;
 }
@@ -59,6 +59,7 @@ export interface AttributeOptions {
 
 export interface VertexSchemaOptions {
     readonly attributes: ReadonlyArray<AttributeOptions>;
+    readonly offset?: number;
     readonly isPacked?: boolean;
     readonly isCustom?: boolean;
 }
@@ -83,11 +84,12 @@ export interface VertexSchema {
 const logger = new Logger('VertexSchema');
 
 export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
-    let totalSize = 0;
     const attrOptions = options.attributes;
+    const baseOffset = options.offset || 0;
     const isPacked = Boolean(options.isPacked);
     const isCustom = Boolean(options.isCustom);
     const attributes: Attribute[] = [];
+    let totalSize = 0;
     for (const attrOption of attrOptions) {
         const type = parseType(attrOption.name, attrOption.type);
         const size = parseSize(attrOption.name, attrOption.type);
@@ -99,7 +101,7 @@ export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
             bytes,
             normalized: type !== 'float' && !!attrOption.normalized,
             stride: isCustom && attrOption.stride ? attrOption.stride : 0,
-            offset: isCustom && attrOption.offset ? attrOption.offset : totalSize,
+            offset: baseOffset + (isCustom && attrOption.offset ? attrOption.offset : totalSize),
             gltype: GL_TYPES[type],
         });
         const byteSize = bytes * size;
