@@ -1,6 +1,5 @@
 import {
     handleWindowResize,
-    color,
     logSilenced,
     parseVertexSchema,
     VertexWriter,

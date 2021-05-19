@@ -74,6 +74,7 @@ export class Primitive {
     draw(uniforms?: UniformValues): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
+        // Consider "return" here if program is "empty".
         this._program.use();
         if (uniforms) {
             this._program.setUniforms(uniforms);

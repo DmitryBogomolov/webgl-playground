@@ -280,6 +280,7 @@ export class Program {
 
 export const EMPTY_PROGRAM = {
     program: null,
+    use() { /* empty */ },
     setupVertexAttributes() { /* empty */ },
     setUniforms() { /* empty */ },
 } as unknown as Program;
