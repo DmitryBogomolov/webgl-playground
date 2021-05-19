@@ -27,16 +27,40 @@ const GL_TYPES: AttributeTypeMap<number> = {
     float: FLOAT,
 };
 
-function parseType(value: string): AttributeType {
-    return value.substr(0, value.length - 1) as AttributeType;
+function parseType({ name, type }: AttributeOptions): AttributeType {
+    const ret = type.substr(0, type.length - 1);
+    if (!(ret in GL_TYPES)) {
+        throw logger.error('item "{0}" type "{1}" name is not valid', name, type);
+    }
+    return ret as AttributeType;
 }
 
-function parseSize(value: string): number {
-    return Number(value[value.length - 1]);
+function parseSize({ name, type }: AttributeOptions): number {
+    const size = Number(type[type.length - 1]);
+    if (!(1 <= size && size <= 4)) {
+        throw logger.error('item "{0}" type "{1}" size is not valid', name, type);
+    }
+    return size;
 }
 
-function getAlignBytes(value: number): number {
-    return value & 3 ? (value | 3) + 1 - value : 0;
+function getOffset({ name, offset }: AttributeOptions, currentOffset: number): number {
+    if (offset !== undefined) {
+        if (offset % 4 !== 0) {
+            throw logger.error('item "{0}" offset "{1}" is not valid', name, offset);
+        }
+        return offset;
+    }
+    return currentOffset;
+}
+
+function getStride({ name, stride }: AttributeOptions): number {
+    if (stride !== undefined) {
+        if (stride % 4 !== 0) {
+            throw logger.error('item "{0}" stride "{1}" is not valid', name, stride);
+        }
+        return stride;
+    }
+    return 0;
 }
 
 export interface AttributeOptions {
@@ -44,64 +68,53 @@ export interface AttributeOptions {
     /** byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234] */
     readonly type: string;
     readonly normalized?: boolean;
-}
-
-export interface ParseSchemaOptions {
-    readonly packed?: boolean;
+    readonly offset?: number;
+    readonly stride?: number;
 }
 
 export interface Attribute {
     readonly name: string;
     readonly type: AttributeType;
     readonly size: number;
-    readonly bytes: number;
     readonly normalized: boolean;
+    readonly stride: number;
     readonly offset: number;
     readonly gltype: number;
 }
 
 export interface VertexSchema {
-    readonly isPacked: boolean;
-    readonly vertexSize: number;
     readonly attributes: ReadonlyArray<Attribute>;
+    readonly totalSize: number;
 }
 
 const logger = new Logger('VertexSchema');
 
-export function parseVertexSchema(
-    attributes: ReadonlyArray<AttributeOptions>, options: ParseSchemaOptions = {},
-): VertexSchema {
-    let totalSize = 0;
-    const isPacked = !!options.packed;
-    const items: Attribute[] = [];
-    attributes.forEach((field, i) => {
-        if (!field.name) {
-            throw logger.error('item {0} "name" is not defined', i);
-        }
-        const type = parseType(field.type);
-        const size = parseSize(field.type);
-        const bytes = BYTE_SIZES[type];
-        if (!(bytes > 0)) {
-            throw logger.error('item "{0}" type name is not valid', field.name);
-        }
-        if (!(1 <= size && size <= 4)) {
-            throw logger.error('item "{0}" type size is not valid', field.name);
-        }
-        items.push({
-            name: field.name,
+export function parseVertexSchema(attrOptions: ReadonlyArray<AttributeOptions>): VertexSchema {
+    const attributes: Attribute[] = [];
+    let currentOffset = 0;
+    for (const attrOption of attrOptions) {
+        const type = parseType(attrOption);
+        const size = parseSize(attrOption);
+        const offset = getOffset(attrOption, currentOffset);
+        attributes.push({
+            name: attrOption.name,
             type,
-            size,
-            bytes,
-            normalized: type !== 'float' && !!field.normalized,
-            offset: totalSize,
             gltype: GL_TYPES[type],
+            size,
+            normalized: type !== 'float' && !!attrOption.normalized,
+            stride: getStride(attrOption),
+            offset,
         });
-        const byteSize = bytes * size;
-        totalSize += byteSize + (isPacked ? 0 : getAlignBytes(byteSize));
-    });
+        currentOffset = offset + BYTE_SIZES[type] * size;
+        const mod = currentOffset % 4;
+        currentOffset += mod > 0 ? 4 - mod : 0;
+    }
+    for (const attr of attributes) {
+        // @ts-ignore This is part of Attribute construction.
+        attr.stride = attr.stride || currentOffset;
+    }
     return {
-        isPacked,
-        vertexSize: totalSize + (isPacked ? 0 : getAlignBytes(totalSize)),
-        attributes: items,
+        attributes,
+        totalSize: currentOffset,
     };
 }

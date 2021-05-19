@@ -2,7 +2,6 @@ import {
     handleWindowResize,
     RenderLoop,
     VertexWriter,
-    // FluentVertexWriter as VertexWriter,
     parseVertexSchema,
     Runtime,
     Program,
@@ -62,8 +61,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         { position: [-1, +0], color: c4 },
     ];
 
-    const vertexData = new ArrayBuffer(vertices.length * schema.vertexSize);
-    const writer = new VertexWriter(vertexData, schema);
+    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex.position);

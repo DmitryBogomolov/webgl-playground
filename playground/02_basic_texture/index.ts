@@ -1,9 +1,8 @@
 import {
     handleWindowResize,
-    color,
     logSilenced,
     parseVertexSchema,
-    FluentVertexWriter,
+    VertexWriter,
     RenderLoop,
     Runtime,
     Primitive,
@@ -53,8 +52,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         [+1, +1],
         [-1, +1],
     ];
-    const vertexData = new ArrayBuffer(schema.vertexSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
+    const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex);
@@ -83,7 +82,6 @@ function makeTexture(runtime: Runtime): Texture {
 }
 
 const runtime = new Runtime(container);
-runtime.setClearColor(color(0.8, 0.8, 0.8));
 
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);

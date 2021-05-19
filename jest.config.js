@@ -62,18 +62,18 @@ module.exports = {
     globals: {
         WebGLRenderingContext: {
             prototype: {
-                BYTE: '#BYTE',
-                UNSIGNED_BYTE: '#UNSIGNED_BYTE',
-                SHORT: '#SHORT',
-                UNSIGNED_SHORT: '#UNSIGNED_SHORT',
-                FLOAT: '#FLOAT',
+                BYTE: 101,
+                UNSIGNED_BYTE: 102,
+                SHORT: 103,
+                UNSIGNED_SHORT: 104,
+                FLOAT: 105,
 
-                ARRAY_BUFFER: '#ARRAY_BUFFER',
-                ELEMENT_ARRAY_BUFFER: '#ELEMENT_ARRAY_BUFFER',
-                STATIC_DRAW: '#STATIC_DRAW',
+                ARRAY_BUFFER: 201,
+                ELEMENT_ARRAY_BUFFER: 202,
+                STATIC_DRAW: 211,
 
-                TEXTURE_2D: '#TEXTURE_2D',
-                TEXTURE0: '#TEXTURE0_',
+                TEXTURE_2D: 203,
+                TEXTURE0: 220,
             },
         },
         'ts-jest': {
@@ -148,7 +148,7 @@ module.exports = {
 
     // A list of paths to modules that run some code to configure or set up the testing framework before each test
     setupFilesAfterEnv: [
-        './lib/no-console-in-tests.ts'
+        './lib/no-console-in-tests.ts',
     ],
 
     // A list of paths to snapshot serializer modules Jest should use for snapshot testing

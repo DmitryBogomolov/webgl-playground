@@ -37,7 +37,7 @@ export class Runtime {
 
     private _getContext(): WebGLRenderingContext {
         const context = this._canvas.getContext('webgl', {
-            alpha: false,
+            alpha: true,
             antialias: false,
             premultipliedAlpha: false,
         });
@@ -93,7 +93,7 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.border = 'none';
-    canvas.style.backgroundColor = 'black';
+    canvas.style.backgroundColor = 'none';
     container.appendChild(canvas);
     return canvas;
 }

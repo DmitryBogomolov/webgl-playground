@@ -5,7 +5,7 @@ check:
 	@npm run check
 
 lint:
-	@npm run lint
+	@npm run lint:fix
 
 test:
 	@npm test

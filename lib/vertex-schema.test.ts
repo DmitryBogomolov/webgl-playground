@@ -1,93 +1,106 @@
-import { parseVertexSchema } from './vertex-schema';
+import { Attribute, parseVertexSchema } from './vertex-schema';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {
-        it('parse empty list', () => {
+        it('handle empty list', () => {
             const schema = parseVertexSchema([]);
 
-            expect(schema.attributes).toEqual([]);
-            expect(schema.vertexSize).toEqual(0);
-            expect(schema.isPacked).toEqual(false);
+            expect(schema).toEqual({
+                attributes: [],
+                totalSize: 0,
+            });
         });
 
-        it('parse', () => {
+        it('validate type', () => {
+            try {
+                parseVertexSchema([
+                    { name: 'field1', type: 'test3' },
+                ]);
+                expect(true).toBe(false);
+            } catch (e) {
+                expect((e as Error).message).toMatch('item "field1" type "test3" name is not valid');
+            }
+        });
+
+        it('validate size', () => {
+            try {
+                parseVertexSchema([
+                    { name: 'field1', type: 'float5' },
+                ]);
+                expect(true).toBe(false);
+            } catch (e) {
+                expect((e as Error).message).toMatch('item "field1" type "float5" size is not valid');
+            }
+        });
+
+        it('make schema', () => {
             const schema = parseVertexSchema([
                 { name: 'field1', type: 'float4' },
                 { name: 'field2', type: 'byte3', normalized: true },
                 { name: 'field3', type: 'ushort2' },
             ]);
 
-            const item1 = {
+            const attr1: Attribute = {
                 name: 'field1',
                 type: 'float',
                 size: 4,
-                gltype: '#FLOAT',
+                gltype: WebGLRenderingContext.prototype.FLOAT,
+                stride: 24,
                 offset: 0,
-                bytes: 4,
                 normalized: false,
             };
-            const item2 = {
+            const attr2: Attribute = {
                 name: 'field2',
                 type: 'byte',
                 size: 3,
-                gltype: '#BYTE',
+                gltype: WebGLRenderingContext.prototype.BYTE,
+                stride: 24,
                 offset: 16,
-                bytes: 1,
                 normalized: true,
-
             };
-            const item3 = {
+            const attr3: Attribute = {
                 name: 'field3',
                 type: 'ushort',
                 size: 2,
-                gltype: '#UNSIGNED_SHORT',
+                gltype: WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+                stride: 24,
                 offset: 20,
-                bytes: 2,
                 normalized: false,
             };
-            expect(schema.attributes).toEqual([item1, item2, item3]);
-            expect(schema.vertexSize).toEqual(24);
-            expect(schema.isPacked).toEqual(false);
+            expect(schema).toEqual({
+                attributes: [attr1, attr2, attr3],
+                totalSize: 24,
+            });
         });
 
-        it('parse packed', () => {
+        it('allow custom stride and offset', () => {
             const schema = parseVertexSchema([
-                { name: 'field1', type: 'float4' },
-                { name: 'field2', type: 'byte3', normalized: true },
-                { name: 'field3', type: 'ushort2' },
-            ], { packed: true });
+                { name: 'field1', type: 'float2', offset: 4, stride: 20 },
+                { name: 'field2', type: 'short3', offset: 48, stride: 12 },
+            ]);
 
-            const item1 = {
+            const attr1: Attribute = {
                 name: 'field1',
                 type: 'float',
-                size: 4,
-                gltype: '#FLOAT',
-                offset: 0,
-                bytes: 4,
-                normalized: false,
-            };
-            const item2 = {
-                name: 'field2',
-                type: 'byte',
-                size: 3,
-                gltype: '#BYTE',
-                offset: 16,
-                bytes: 1,
-                normalized: true,
-
-            };
-            const item3 = {
-                name: 'field3',
-                type: 'ushort',
                 size: 2,
-                gltype: '#UNSIGNED_SHORT',
-                offset: 19,
-                bytes: 2,
+                gltype: WebGLRenderingContext.prototype.FLOAT,
+                stride: 20,
+                offset: 4,
                 normalized: false,
             };
-            expect(schema.attributes).toEqual([item1, item2, item3]);
-            expect(schema.vertexSize).toEqual(23);
-            expect(schema.isPacked).toEqual(true);
+            const attr2: Attribute = {
+                name: 'field2',
+                type: 'short',
+                size: 3,
+                gltype: WebGLRenderingContext.prototype.SHORT,
+                stride: 12,
+                offset: 48,
+                normalized: false,
+            };
+            expect(schema).toEqual({
+                attributes: [attr1, attr2],
+                totalSize: 56,
+            });
         });
     });
 });

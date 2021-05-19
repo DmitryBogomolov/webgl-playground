@@ -1,7 +1,7 @@
 import {
     handleWindowResize,
     RenderLoop,
-    FluentVertexWriter,
+    VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
     color, Color, color2array,
@@ -43,8 +43,8 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
 
-    const vertexData = new ArrayBuffer(4 * schema.vertexSize);
-    const writer = new FluentVertexWriter(vertexData, schema);
+    const vertexData = new ArrayBuffer(4 * schema.totalSize);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex);
@@ -58,7 +58,6 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 const runtime = new Runtime(container);
-runtime.setClearColor(color(0.8, 0.8, 0.8));
 const primitive = makePrimitive(runtime);
 
 let clr = color(0, 0, 0, 1);

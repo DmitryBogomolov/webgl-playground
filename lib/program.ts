@@ -242,7 +242,6 @@ export class Program {
     setupVertexAttributes(): void {
         this._logger.log('setup_vertex_attributes');
         const gl = this._runtime.gl;
-        const stride = this._schema.vertexSize;
         for (const attr of this._schema.attributes) {
             const shaderAttr = this._attributes[attr.name];
             if (!shaderAttr) {
@@ -252,9 +251,12 @@ export class Program {
             // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
             if (attr.size !== shaderAttr.size) {
                 throw this._logger.error(
-                    'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size);
+                    'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,
+                );
             }
-            gl.vertexAttribPointer(shaderAttr.location, attr.size, attr.gltype, attr.normalized, stride, attr.offset);
+            gl.vertexAttribPointer(
+                shaderAttr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
+            );
             gl.enableVertexAttribArray(shaderAttr.location);
         }
     }
@@ -278,6 +280,7 @@ export class Program {
 
 export const EMPTY_PROGRAM = {
     program: null,
+    use() { /* empty */ },
     setupVertexAttributes() { /* empty */ },
     setUniforms() { /* empty */ },
 } as unknown as Program;
