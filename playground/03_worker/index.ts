@@ -58,7 +58,6 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 const runtime = new Runtime(container);
-runtime.setClearColor(color(0.8, 0.8, 0.8));
 const primitive = makePrimitive(runtime);
 
 let clr = color(0, 0, 0, 1);

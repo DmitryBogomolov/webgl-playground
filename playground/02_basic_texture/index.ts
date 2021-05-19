@@ -83,7 +83,6 @@ function makeTexture(runtime: Runtime): Texture {
 }
 
 const runtime = new Runtime(container);
-runtime.setClearColor(color(0.8, 0.8, 0.8));
 
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
