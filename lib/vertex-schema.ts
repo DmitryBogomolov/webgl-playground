@@ -59,7 +59,6 @@ export interface AttributeOptions {
 
 export interface VertexSchemaOptions {
     readonly attributes: ReadonlyArray<AttributeOptions>;
-    readonly offset?: number;
     readonly isPacked?: boolean;
     readonly isCustom?: boolean;
 }
@@ -85,7 +84,6 @@ const logger = new Logger('VertexSchema');
 
 export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
     const attrOptions = options.attributes;
-    const baseOffset = options.offset || 0;
     const isPacked = Boolean(options.isPacked);
     const isCustom = Boolean(options.isCustom);
     const attributes: Attribute[] = [];
@@ -101,7 +99,7 @@ export function parseVertexSchema(options: VertexSchemaOptions): VertexSchema {
             bytes,
             normalized: type !== 'float' && !!attrOption.normalized,
             stride: isCustom && attrOption.stride ? attrOption.stride : 0,
-            offset: baseOffset + (isCustom && attrOption.offset ? attrOption.offset : totalSize),
+            offset: isCustom && attrOption.offset ? attrOption.offset : totalSize,
             gltype: GL_TYPES[type],
         });
         const byteSize = bytes * size;

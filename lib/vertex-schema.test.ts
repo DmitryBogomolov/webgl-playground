@@ -132,49 +132,12 @@ describe('vertex schema', () => {
             });
         });
 
-        it('allow base offset', () => {
-            const schema = parseVertexSchema({
-                attributes: [
-                    { name: 'field1', type: 'byte1' },
-                    { name: 'field2', type: 'float2' },
-                ],
-                offset: 11,
-            });
-
-            const attr1: Attribute = {
-                name: 'field1',
-                type: 'byte',
-                size: 1,
-                gltype: WebGLRenderingContext.prototype.BYTE,
-                stride: 12,
-                offset: 11,
-                bytes: 1,
-                normalized: false,
-            };
-            const attr2: Attribute = {
-                name: 'field2',
-                type: 'float',
-                size: 2,
-                gltype: WebGLRenderingContext.prototype.FLOAT,
-                stride: 12,
-                offset: 15,
-                bytes: 4,
-                normalized: false,
-            };
-            expect(schema).toEqual({
-                attributes: [attr1, attr2],
-                totalSize: 12,
-                isPacked: false,
-            });
-        });
-
         it('allow custom stride and offset', () => {
             const schema = parseVertexSchema({
                 attributes: [
                     { name: 'field1', type: 'float2', offset: 2, stride: 10 },
                     { name: 'field2', type: 'short3', offset: 50, stride: 5 },
                 ],
-                offset: 100,
                 isCustom: true,
             });
 
@@ -184,7 +147,7 @@ describe('vertex schema', () => {
                 size: 2,
                 gltype: WebGLRenderingContext.prototype.FLOAT,
                 stride: 10,
-                offset: 102,
+                offset: 2,
                 bytes: 4,
                 normalized: false,
             };
@@ -194,7 +157,7 @@ describe('vertex schema', () => {
                 size: 3,
                 gltype: WebGLRenderingContext.prototype.SHORT,
                 stride: 5,
-                offset: 150,
+                offset: 50,
                 bytes: 2,
                 normalized: false,
             };
