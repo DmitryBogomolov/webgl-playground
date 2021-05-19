@@ -3,7 +3,7 @@ import {
     color,
     logSilenced,
     parseVertexSchema,
-    FluentVertexWriter,
+    VertexWriter,
     RenderLoop,
     Runtime,
     Primitive,
@@ -35,14 +35,12 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema({
-        attributes: [
-            {
-                name: 'a_position',
-                type: 'float2',
-            },
-        ],
-    });
+    const schema = parseVertexSchema([
+        {
+            name: 'a_position',
+            type: 'float2',
+        },
+    ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
@@ -56,7 +54,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         [-1, +1],
     ];
     const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
-    const writer = new FluentVertexWriter(vertexData, schema);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex);

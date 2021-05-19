@@ -2,7 +2,6 @@ import {
     handleWindowResize,
     RenderLoop,
     VertexWriter,
-    // FluentVertexWriter as VertexWriter,
     parseVertexSchema,
     Runtime,
     Program,
@@ -21,19 +20,17 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema({
-        attributes: [
-            {
-                name: 'a_position',
-                type: 'float2',
-            },
-            {
-                name: 'a_color',
-                type: 'ubyte4',
-                normalized: true,
-            },
-        ],
-    });
+    const schema = parseVertexSchema([
+        {
+            name: 'a_position',
+            type: 'float2',
+        },
+        {
+            name: 'a_color',
+            type: 'ubyte4',
+            normalized: true,
+        },
+    ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
@@ -65,7 +62,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
-    const writer = new VertexWriter(vertexData, schema);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex.position);

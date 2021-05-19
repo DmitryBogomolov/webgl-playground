@@ -1,4 +1,4 @@
-import { Logger, generateId } from './utils';
+import { Logger } from './utils';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
 
 type Normalizer = (value: number) => number;
@@ -19,91 +19,7 @@ interface AttributesMap {
     readonly [key: string]: Attribute;
 }
 
-function buildMap(schema: VertexSchema): AttributesMap {
-    const result: Record<string, Attribute> = {};
-    schema.attributes.forEach((meta) => {
-        result[meta.name] = meta;
-    });
-    return result;
-}
-
-export interface ArrayBufferSite {
-    readonly buffer: ArrayBuffer;
-    readonly offset: number;
-    readonly length: number;
-}
-
-type VertexWriterSource = ArrayBuffer | ArrayBufferSite;
-
-function wrapBuffer(buffer: VertexWriterSource): ArrayBufferSite {
-    return buffer instanceof ArrayBuffer ? { buffer, offset: 0, length: buffer.byteLength } : buffer;
-}
-
-abstract class BaseVertexWriter<T = never> {
-    private readonly _id = generateId('VertexWriter');
-    protected readonly _logger = new Logger(this._id);
-    protected readonly _schema: VertexSchema;
-    protected readonly _attributes: AttributesMap;
-    protected readonly _impl = {} as unknown as AttributeTypeMap<T>;
-
-    constructor(schema: VertexSchema) {
-        this._schema = schema;
-        this._attributes = buildMap(schema);
-    }
-
-    private _getPosition(vertexIndex: number, attr: Attribute): number {
-        return this._schema.totalSize * vertexIndex + attr.offset;
-    }
-
-    protected abstract _writeComponent(
-        impl: T, position: number, index: number, attr: Attribute, value: number
-    ): void;
-
-    writeAttribute(vertexIndex: number, attributeName: string, attributeValue: ReadonlyArray<number>): void {
-        const attr = this._attributes[attributeName];
-        if (!attr) {
-            throw this._logger.error('attribute "{0}" is unknown', attributeName);
-        }
-        if (attr.size !== attributeValue.length) {
-            throw this._logger.error(
-                'attribute "{0}" size is {1} but value is {2}', attributeName, attr.size, attributeValue);
-        }
-        const position = this._getPosition(vertexIndex, attr);
-        const normalize = attr.normalized ? normalizers[attr.type] : eigen;
-        const impl = this._impl[attr.type];
-        for (let i = 0; i < attr.size; ++i) {
-            this._writeComponent(impl, position, i, attr, normalize(attributeValue[i]));
-        }
-    }
-}
-
-type DataViewCaller = (dv: DataView, offset: number, value: number) => void;
-
-const dataViewCallers: AttributeTypeMap<DataViewCaller> = {
-    byte: (dv, offset, value) => dv.setInt8(offset, value),
-    ubyte: (dv, offset, value) => dv.setUint8(offset, value),
-    short: (dv, offset, value) => dv.setInt16(offset, value, true),
-    ushort: (dv, offset, value) => dv.setUint16(offset, value, true),
-    float: (dv, offset, value) => dv.setFloat32(offset, value, true),
-};
-
-export class VertexWriter extends BaseVertexWriter<DataViewCaller> {
-    private readonly _dv: DataView;
-
-    constructor(source: VertexWriterSource, schema: VertexSchema) {
-        super(schema);
-        const { buffer, offset, length } = wrapBuffer(source);
-        this._dv = new DataView(buffer, offset, length);
-        Object.assign(this._impl, dataViewCallers);
-    }
-
-    protected _writeComponent(
-        write: DataViewCaller, position: number, index: number, attr: Attribute, value: number,
-    ): void {
-        write(this._dv, position + index * attr.bytes, value);
-    }
-}
-
+type AttrValue = ReadonlyArray<number>;
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
 
@@ -115,26 +31,53 @@ const viewMakers: AttributeTypeMap<ArrayMaker> = {
     float: (buffer, offset, length) => new Float32Array(buffer, offset, length / 4),
 };
 
-export class FluentVertexWriter extends BaseVertexWriter<TypedArray> {
-    constructor(source: VertexWriterSource, schema: VertexSchema) {
-        super(schema);
-        if (this._schema.isPacked) {
-            throw this._logger.error('not for packed schema');
-        }
-        const { buffer, offset, length } = wrapBuffer(source);
-        const impl: Partial<Record<AttributeType, TypedArray>> = {};
-        this._schema.attributes.forEach((meta) => {
-            const type = meta.type;
-            if (!impl[type]) {
-                impl[type] = viewMakers[type](buffer, offset, length);
-            }
-        });
-        Object.assign(this._impl, impl);
+function buildMap(schema: VertexSchema): AttributesMap {
+    const result: Record<string, Attribute> = {};
+    schema.attributes.forEach((meta) => {
+        result[meta.name] = meta;
+    });
+    return result;
+}
+
+function buildViews(schema: VertexSchema, target: ArrayBufferView): AttributeTypeMap<TypedArray> {
+    // @ts-ignore Delayed construction.
+    const obj: Record<AttributeType, TypedArray> = {};
+    for (const attr of schema.attributes) {
+        obj[attr.type] = obj[attr.type] || viewMakers[attr.type](target.buffer, target.byteOffset, target.byteLength);
+    }
+    return obj;
+}
+
+function wrapBuffer(buffer: ArrayBufferView | ArrayBuffer): ArrayBufferView {
+    return ArrayBuffer.isView(buffer) ? buffer : { buffer, byteOffset: 0, byteLength: buffer.byteLength };
+}
+
+const logger = new Logger('VertexWriter');
+
+export class VertexWriter {
+    private readonly _attrs: AttributesMap;
+    private readonly _views: AttributeTypeMap<TypedArray>;
+
+    constructor(schema: VertexSchema, target: ArrayBufferView | ArrayBuffer) {
+        this._attrs = buildMap(schema);
+        this._views = buildViews(schema, wrapBuffer(target));
     }
 
-    protected _writeComponent(
-        view: TypedArray, position: number, index: number, attr: Attribute, value: number,
-    ): void {
-        view[position / attr.bytes + index] = value;
+    writeAttribute(vertexIndex: number, attrName: string, attrValue: AttrValue): void {
+        const attr = this._attrs[attrName];
+        if (!attr) {
+            throw logger.error('attribute "{0}" is unknown', attrName);
+        }
+        if (attr.size !== attrValue.length) {
+            throw logger.error(
+                'attribute "{0}" size is {1} but value is {2}', attrName, attr.size, attrValue,
+            );
+        }
+        const view = this._views[attr.type];
+        const base = (attr.offset + attr.stride * vertexIndex) / view.BYTES_PER_ELEMENT | 0;
+        const normalize = attr.normalized ? normalizers[attr.type] : eigen;
+        for (let i = 0; i < attr.size; ++i) {
+            view[base + i] = normalize(attrValue[i]);
+        }
     }
 }

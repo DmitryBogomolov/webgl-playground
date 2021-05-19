@@ -1,7 +1,7 @@
 import {
     handleWindowResize,
     RenderLoop,
-    FluentVertexWriter,
+    VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
     color, Color, color2array,
@@ -31,11 +31,9 @@ const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
 const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema({
-        attributes: [
-            { name: 'a_position', type: 'float2' },
-        ],
-    });
+    const schema = parseVertexSchema([
+        { name: 'a_position', type: 'float2' },
+    ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
         fragmentShader: fragmentShaderSource,
@@ -46,7 +44,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
 
     const vertexData = new ArrayBuffer(4 * schema.totalSize);
-    const writer = new FluentVertexWriter(vertexData, schema);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 'a_position', vertex);
