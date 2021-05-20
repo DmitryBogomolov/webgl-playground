@@ -2,7 +2,6 @@ import {
     logSilenced,
     parseVertexSchema,
     VertexWriter,
-    RenderLoop,
     Runtime,
     Primitive,
     Program,
@@ -88,7 +87,7 @@ const texture = makeTexture(runtime);
 let texcoord: TexCoord = { u: 0.5, v: 0.5 };
 makeControl(texcoord, (tc) => {
     texcoord = tc;
-    loop.update();
+    runtime.requestRender();
 });
 
 const layout = doLayout(container);
@@ -107,12 +106,11 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord
     });
 }
 
-const loop = new RenderLoop(() => {
+runtime.onRender(() => {
     runtime.clearColor();
     drawRect(layout.nearestUV, 'nearest', null);
     drawRect(layout.linearUV, 'linear', null);
     drawRect(layout.nearestCustom, 'nearest', texcoord);
     drawRect(layout.linearCustom, 'linear', texcoord);
 });
-loop.update();
 logSilenced(true);

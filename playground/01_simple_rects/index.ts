@@ -1,5 +1,4 @@
 import {
-    RenderLoop,
     VertexWriter,
     parseVertexSchema,
     Runtime,
@@ -77,9 +76,8 @@ function makePrimitive(runtime: Runtime): Primitive {
 
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
-const loop = new RenderLoop(() => {
+runtime.onRender(() => {
     runtime.clearColor();
     primitive.draw();
 });
-loop.update();
 logSilenced(true);

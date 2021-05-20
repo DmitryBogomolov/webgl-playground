@@ -1,5 +1,4 @@
 import {
-    RenderLoop,
     VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
@@ -62,15 +61,15 @@ const primitive = makePrimitive(runtime);
 let clr = color(0, 0, 0, 1);
 let scale = 0;
 
-function runWorker(loop: RenderLoop): void {
+function runWorker(runtime: Runtime): void {
     const worker = new WorkerMessenger(WORKER_URL, {
         [TYPE_SCALE](payload) {
             scale = payload as number;
-            loop.update();
+            runtime.requestRender();
         },
         [TYPE_COLOR](payload) {
             clr = payload as Color;
-            loop.update();
+            runtime.requestRender();
         },
     });
 
@@ -96,13 +95,12 @@ function runWorker(loop: RenderLoop): void {
     }, 25);
 }
 
-const loop = new RenderLoop(() => {
+runtime.onRender(() => {
     runtime.clearColor();
     primitive.draw({
         'u_scale': scale,
         'u_color': color2array(clr),
     });
 });
-loop.update();
-runWorker(loop);
+runWorker(runtime);
 logSilenced(true);

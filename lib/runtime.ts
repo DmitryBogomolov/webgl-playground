@@ -1,6 +1,7 @@
 import { contextConstants } from './context-constants';
 import { color, Color } from './color';
 import { generateId, handleWindowResize, Logger } from './utils';
+import { RenderFrameCallback, RenderLoop } from './render-loop';
 
 const {
     COLOR_BUFFER_BIT,
@@ -11,6 +12,23 @@ export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
+
+    private readonly _handleContextLost: EventListener = () => {
+        this._logger.warn('context is lost');
+    };
+
+    private readonly _handleContextRestored: EventListener = () => {
+        this._logger.warn('context is restored');
+    };
+
+    private readonly _renderHandlers: RenderFrameCallback[] = [];
+    private readonly _handleRender: RenderFrameCallback = (delta, timestamp) => {
+        for (const handler of this._renderHandlers) {
+            handler(delta, timestamp);
+        }
+    };
+
+    private readonly _renderLoop = new RenderLoop(this._handleRender);
     private readonly _disposeResizeHandler: () => void;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -30,6 +48,7 @@ export class Runtime {
 
     dispose(): void {
         this._logger.log('dispose');
+        this._renderLoop.cancel();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         this._disposeResizeHandler();
@@ -54,17 +73,10 @@ export class Runtime {
         return ext;
     }
 
-    private readonly _handleContextLost: EventListener = () => {
-        this._logger.warn('context is lost');
-    };
-
-    private readonly _handleContextRestored: EventListener = () => {
-        this._logger.warn('context is restored');
-    };
-
     adjustViewport(): void {
         setCanvasSize(this._canvas);
         this.gl.viewport(0, 0, this._canvas.width, this._canvas.height);
+        this._renderLoop.update();
     }
 
     clearColor(): void {
@@ -80,6 +92,26 @@ export class Runtime {
     setClearColor({ r, g, b, a }: Color): void {
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
+    }
+
+    onRender(callback: RenderFrameCallback): void {
+        const i = this._renderHandlers.indexOf(callback);
+        if (i < 0) {
+            this._renderHandlers.push(callback);
+            this._renderLoop.update();
+        }
+    }
+
+    offRender(callback: RenderFrameCallback): void {
+        const i = this._renderHandlers.indexOf(callback);
+        if (i >= 0) {
+            this._renderHandlers.splice(i, 1);
+            this._renderLoop.update();
+        }
+    }
+
+    requestRender(): void {
+        this._renderLoop.update();
     }
 }
 
