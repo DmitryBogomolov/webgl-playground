@@ -1,5 +1,4 @@
 import {
-    handleWindowResize,
     RenderLoop,
     VertexWriter,
     parseVertexSchema,
@@ -83,7 +82,3 @@ const loop = new RenderLoop(() => {
 });
 loop.start();
 logSilenced(true);
-
-handleWindowResize(() => {
-    runtime.adjustViewport();
-});
