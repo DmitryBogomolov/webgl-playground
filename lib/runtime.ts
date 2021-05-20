@@ -1,6 +1,6 @@
 import { contextConstants } from './context-constants';
 import { color, Color } from './color';
-import { generateId, Logger } from './utils';
+import { generateId, handleWindowResize, Logger } from './utils';
 
 const {
     COLOR_BUFFER_BIT,
@@ -11,36 +11,35 @@ export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
-    private readonly _isOwnCanvas: boolean;
+    private readonly _disposeResizeHandler: () => void;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
     constructor(element: HTMLElement) {
         this._logger.log('init');
-        this._isOwnCanvas = !(element instanceof HTMLCanvasElement);
-        this._canvas = this._isOwnCanvas ? createCanvas(element) : element as HTMLCanvasElement;
+        this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
         this.gl = this._getContext();
         this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this.adjustViewport();
+        this._disposeResizeHandler = handleWindowResize(() => {
+            this.adjustViewport();
+        });
     }
 
     dispose(): void {
         this._logger.log('dispose');
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        if (this._isOwnCanvas) {
+        this._disposeResizeHandler();
+        if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl', {
-            alpha: true,
-            antialias: false,
-            premultipliedAlpha: false,
-        });
+        const context = this._canvas.getContext('webgl', CONTEXT_OPTIONS);
         if (!context) {
             throw this._logger.error('failed to get webgl context');
         }
@@ -64,9 +63,7 @@ export class Runtime {
     };
 
     adjustViewport(): void {
-        if (this._isOwnCanvas) {
-            setCanvasSize(this._canvas);
-        }
+        setCanvasSize(this._canvas);
         this.gl.viewport(0, 0, this._canvas.width, this._canvas.height);
     }
 
@@ -86,6 +83,14 @@ export class Runtime {
     }
 }
 
+const CANVAS_TAG = Symbol('CanvasTag');
+
+const CONTEXT_OPTIONS: WebGLContextAttributes = {
+    alpha: true,
+    antialias: false,
+    premultipliedAlpha: false,
+};
+
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -95,10 +100,16 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
     canvas.style.border = 'none';
     canvas.style.backgroundColor = 'none';
     container.appendChild(canvas);
+    // @ts-ignore Tag canvas.
+    canvas[CANVAS_TAG] = true;
     return canvas;
 }
 
+function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
+    return CANVAS_TAG in canvas;
+}
+
 function setCanvasSize(canvas: HTMLCanvasElement): void {
-    canvas.width = (devicePixelRatio * canvas.clientWidth) >>> 0;
-    canvas.height = (devicePixelRatio * canvas.clientHeight) >>> 0;
+    canvas.width = (devicePixelRatio * canvas.clientWidth) | 0;
+    canvas.height = (devicePixelRatio * canvas.clientHeight) | 0;
 }
