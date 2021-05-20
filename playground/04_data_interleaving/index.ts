@@ -77,8 +77,9 @@ const aosPrimitive = makeAoSPrimitive(runtime);
 const soaPrimitive = makeSoAPrimitive(runtime);
 
 const loop = new RenderLoop(() => {
+    runtime.clearColor();
     aosPrimitive.draw();
     soaPrimitive.draw();
 });
-loop.start();
+loop.update();
 logSilenced(true);

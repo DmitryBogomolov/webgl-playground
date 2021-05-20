@@ -81,5 +81,5 @@ const loop = new RenderLoop(() => {
     runtime.clearColor();
     primitive.draw();
 });
-loop.start();
+loop.update();
 logSilenced(true);

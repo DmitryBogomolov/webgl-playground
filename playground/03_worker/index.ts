@@ -62,35 +62,47 @@ const primitive = makePrimitive(runtime);
 let clr = color(0, 0, 0, 1);
 let scale = 0;
 
-const worker = new WorkerMessenger(WORKER_URL, {
-    [TYPE_SCALE](payload) {
-        scale = payload as number;
-    },
-    [TYPE_COLOR](payload) {
-        clr = payload as Color;
-    },
-});
+function runWorker(loop: RenderLoop): void {
+    const worker = new WorkerMessenger(WORKER_URL, {
+        [TYPE_SCALE](payload) {
+            scale = payload as number;
+            loop.update();
+        },
+        [TYPE_COLOR](payload) {
+            clr = payload as Color;
+            loop.update();
+        },
+    });
 
-let scaleDelta = 0;
-let colorDelta = 0;
+    let scaleDelta = 0;
+    let colorDelta = 0;
 
-const loop = new RenderLoop((delta) => {
-    scaleDelta += delta;
-    colorDelta += delta;
-    if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-        worker.post(TYPE_SCALE, scaleDelta / 1000);
-        scaleDelta = 0;
-    }
-    if (colorDelta > COLOR_UPDATE_INTERVAL) {
-        worker.post(TYPE_COLOR, colorDelta / 1000);
-        colorDelta = 0;
-    }
+    let lastTime = performance.now();
+    setInterval(() => {
+        const time = performance.now();
+        const delta = time - lastTime;
+        lastTime = time;
 
+        scaleDelta += delta;
+        colorDelta += delta;
+        if (scaleDelta > SCALE_UPDATE_INTERVAL) {
+            worker.post(TYPE_SCALE, scaleDelta / 1000);
+            scaleDelta = 0;
+        }
+        if (colorDelta > COLOR_UPDATE_INTERVAL) {
+            worker.post(TYPE_COLOR, colorDelta / 1000);
+            colorDelta = 0;
+        }
+    }, 25);
+}
+
+const loop = new RenderLoop(() => {
     runtime.clearColor();
     primitive.draw({
         'u_scale': scale,
         'u_color': color2array(clr),
     });
 });
-loop.start();
+loop.update();
+runWorker(loop);
 logSilenced(true);
