@@ -1,6 +1,6 @@
 import { contextConstants } from './context-constants';
 import { color, Color } from './color';
-import { generateId, handleWindowResize, Logger } from './utils';
+import { CancelSubscriptionCallback, generateId, handleWindowResize, Logger } from './utils';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 
 const {
@@ -12,6 +12,10 @@ export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
+    private readonly _renderLoop = new RenderLoop();
+    private readonly _disposeResizeHandler: () => void;
+    readonly gl: WebGLRenderingContext;
+    readonly vaoExt: OES_vertex_array_object;
 
     private readonly _handleContextLost: EventListener = () => {
         this._logger.warn('context is lost');
@@ -20,18 +24,6 @@ export class Runtime {
     private readonly _handleContextRestored: EventListener = () => {
         this._logger.warn('context is restored');
     };
-
-    private readonly _renderHandlers: RenderFrameCallback[] = [];
-    private readonly _handleRender: RenderFrameCallback = (delta, timestamp) => {
-        for (const handler of this._renderHandlers) {
-            handler(delta, timestamp);
-        }
-    };
-
-    private readonly _renderLoop = new RenderLoop(this._handleRender);
-    private readonly _disposeResizeHandler: () => void;
-    readonly gl: WebGLRenderingContext;
-    readonly vaoExt: OES_vertex_array_object;
 
     constructor(element: HTMLElement) {
         this._logger.log('init');
@@ -94,20 +86,8 @@ export class Runtime {
         this.gl.clearColor(r, g, b, a);
     }
 
-    onRender(callback: RenderFrameCallback): void {
-        const i = this._renderHandlers.indexOf(callback);
-        if (i < 0) {
-            this._renderHandlers.push(callback);
-            this._renderLoop.update();
-        }
-    }
-
-    offRender(callback: RenderFrameCallback): void {
-        const i = this._renderHandlers.indexOf(callback);
-        if (i >= 0) {
-            this._renderHandlers.splice(i, 1);
-            this._renderLoop.update();
-        }
+    onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
+        return this._renderLoop.onRender(callback);
     }
 
     requestRender(): void {

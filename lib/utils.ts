@@ -88,7 +88,9 @@ export function throttle<T extends (...args: any[]) => void>(func: T, duration: 
     return throttledFunc as T;
 }
 
-export function handleWindowResize(callback: () => void, timespan: number = 250): () => void {
+export type CancelSubscriptionCallback = () => void;
+
+export function handleWindowResize(callback: () => void, timespan: number = 250): CancelSubscriptionCallback {
     const listener = throttle(callback, timespan);
     window.addEventListener('resize', listener);
     return () => {
