@@ -2,7 +2,6 @@ import {
     logSilenced,
     parseVertexSchema,
     VertexWriter,
-    RenderLoop,
     Runtime,
     Primitive,
     Program,
@@ -88,30 +87,30 @@ const texture = makeTexture(runtime);
 let texcoord: TexCoord = { u: 0.5, v: 0.5 };
 makeControl(texcoord, (tc) => {
     texcoord = tc;
+    runtime.requestRender();
 });
 
 const layout = doLayout(container);
 
-const loop = new RenderLoop(() => {
-    function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
-        texture.setParameters({
-            min_filter: filter,
-            mag_filter: filter,
-        });
-        texture.setUnit(1);
-        primitive.draw({
-            'u_position': pos,
-            'u_useCustom': !!texcoord,
-            'u_texture': 1,
-            ...(texcoord ? { 'u_texcoord': [texcoord.u, texcoord.v] } : null),
-        });
-    }
+function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
+    texture.setParameters({
+        min_filter: filter,
+        mag_filter: filter,
+    });
+    texture.setUnit(1);
+    primitive.draw({
+        'u_position': pos,
+        'u_useCustom': !!texcoord,
+        'u_texture': 1,
+        ...(texcoord ? { 'u_texcoord': [texcoord.u, texcoord.v] } : null),
+    });
+}
 
+runtime.onRender(() => {
     runtime.clearColor();
     drawRect(layout.nearestUV, 'nearest', null);
     drawRect(layout.linearUV, 'linear', null);
     drawRect(layout.nearestCustom, 'nearest', texcoord);
     drawRect(layout.linearCustom, 'linear', texcoord);
 });
-loop.start();
 logSilenced(true);

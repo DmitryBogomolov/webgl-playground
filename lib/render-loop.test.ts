@@ -2,62 +2,140 @@ import { RenderLoop } from './render-loop';
 
 describe('render loop', () => {
     describe('RenderLoop', () => {
-        const _requestAnimationFrame = global.requestAnimationFrame;
-        const _cancelAnimationFrame = global.cancelAnimationFrame;
-        let mockRequestAnimationFrame: jest.Mock<number, [FrameRequestCallback]>;
-        let mockCancelAnimationFrame: jest.Mock<void, [number]>;
+        let mockRequestAnimationFrame: jest.SpyInstance<number, [FrameRequestCallback]>;
+        let mockCancelAnimationFrame: jest.SpyInstance<void, [number]>;
 
         beforeEach(() => {
-            global.requestAnimationFrame = mockRequestAnimationFrame = jest.fn<number, [FrameRequestCallback]>();
-            global.cancelAnimationFrame = mockCancelAnimationFrame = jest.fn<void, [number]>();
+            mockRequestAnimationFrame = jest.spyOn(global, 'requestAnimationFrame').mockImplementation();
+            mockCancelAnimationFrame = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation();
+            mockRequestAnimationFrame.mockReturnValueOnce(1);
         });
 
         afterEach(() => {
-            global.requestAnimationFrame = _requestAnimationFrame;
-            global.cancelAnimationFrame = _cancelAnimationFrame;
+            mockRequestAnimationFrame.mockRestore();
+            mockCancelAnimationFrame.mockRestore();
         });
 
-        it('initially not running', () => {
-            const loop = new RenderLoop(() => 0);
+        function triggerFrame(time: number): void {
+            const { calls } = mockRequestAnimationFrame.mock;
+            calls[calls.length - 1][0](time);
+        }
 
-            expect(loop.isRunning()).toBe(false);
+        it('do not request frame immediately', () => {
+            new RenderLoop();
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([]);
         });
 
-        it('start', () => {
-            mockRequestAnimationFrame.mockReturnValue(1);
-            const loop = new RenderLoop(() => 0);
+        it('request frame', () => {
+            const loop = new RenderLoop();
 
-            loop.start();
+            loop.update();
 
-            expect(loop.isRunning()).toBe(true);
-            expect(mockRequestAnimationFrame).toBeCalledWith(expect.any(Function));
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+            ]);
         });
 
-        it('stop', () => {
-            mockRequestAnimationFrame.mockReturnValue(1);
-            const loop = new RenderLoop(() => 0);
-            loop.start();
+        it('do not duplicate frame request', () => {
+            const loop = new RenderLoop();
 
-            loop.stop();
+            loop.update();
+            loop.update();
+            loop.update();
 
-            expect(loop.isRunning()).toBe(false);
-            expect(mockCancelAnimationFrame).toBeCalledWith(1);
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+            ]);
         });
 
-        it('invoke callback and request next frame', () => {
-            mockRequestAnimationFrame.mockReturnValue(1);
-            const mock = jest.fn();
-            const loop = new RenderLoop(mock);
-            loop.start();
+        it('cancel frame request', () => {
+            const loop = new RenderLoop();
 
-            mockRequestAnimationFrame.mock.calls[0][0](10);
-            mockRequestAnimationFrame.mock.calls[0][0](25);
-            mockRequestAnimationFrame.mock.calls[0][0](70);
+            loop.update();
+            loop.cancel();
 
-            expect(mock.mock.calls).toEqual([
+            expect(mockCancelAnimationFrame.mock.calls).toEqual([
+                [1],
+            ]);
+        });
+
+        it('request frame when callback is added', () => {
+            const loop = new RenderLoop();
+
+            loop.onRender(() => 0);
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+            ]);
+        });
+
+        it('request frame when callback is removed', () => {
+            const loop = new RenderLoop();
+            const cancel = loop.onRender(() => 0);
+            triggerFrame(0);
+
+            cancel();
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+                [expect.any(Function)],
+            ]);
+        });
+
+        it('invoke callback', () => {
+            const loop = new RenderLoop();
+            const callback = jest.fn();
+            loop.onRender(callback);
+
+            triggerFrame(10);
+            triggerFrame(25);
+            triggerFrame(70);
+
+            expect(callback.mock.calls).toEqual([
                 [0, 10],
                 [15, 25],
                 [45, 70],
+            ]);
+        });
+
+        it('allow to request frame from callback', () => {
+            mockRequestAnimationFrame.mockReturnValueOnce(2);
+            mockRequestAnimationFrame.mockReturnValueOnce(3);
+            const loop = new RenderLoop();
+            const callback = jest.fn(() => {
+                loop.update();
+            });
+            loop.onRender(callback);
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+            ]);
+            triggerFrame(10);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+            ]);
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+                [expect.any(Function)],
+            ]);
+            triggerFrame(30);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+                [20, 30],
+            ]);
+
+            expect(mockRequestAnimationFrame.mock.calls).toEqual([
+                [expect.any(Function)],
+                [expect.any(Function)],
+                [expect.any(Function)],
+            ]);
+            triggerFrame(70);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+                [20, 30],
+                [40, 70],
             ]);
         });
     });

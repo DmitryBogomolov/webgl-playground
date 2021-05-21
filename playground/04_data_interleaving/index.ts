@@ -1,5 +1,4 @@
 import {
-    RenderLoop,
     VertexWriter,
     parseVertexSchema,
     logSilenced,
@@ -76,9 +75,9 @@ const runtime = new Runtime(container);
 const aosPrimitive = makeAoSPrimitive(runtime);
 const soaPrimitive = makeSoAPrimitive(runtime);
 
-const loop = new RenderLoop(() => {
+runtime.onRender(() => {
+    runtime.clearColor();
     aosPrimitive.draw();
     soaPrimitive.draw();
 });
-loop.start();
 logSilenced(true);
