@@ -5,8 +5,8 @@ import {
     Runtime,
     VertexWriter,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertexShaderSource from './shaders/vert.glsl';
+import fragmentShaderSource from './shaders/frag.glsl';
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
