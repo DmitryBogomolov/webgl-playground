@@ -80,8 +80,7 @@ export class Primitive {
             this._program.setUniforms(uniforms);
         }
         vao.bindVertexArrayOES(this._vao);
-        // TODO_DEBUG
-        gl.drawElements(gl.LINE_STRIP, this._indexCount, UNSIGNED_SHORT, 0);
+        gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
         vao.bindVertexArrayOES(null);
     }
 }

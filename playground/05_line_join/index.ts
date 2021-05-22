@@ -67,5 +67,8 @@ const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.clearColor();
-    primitive.draw();
+    primitive.draw({
+        'u_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
+        'u_thickness': 50.0,
+    });
 });
