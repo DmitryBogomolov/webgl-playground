@@ -16,7 +16,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
-        { name: 'a_other', type: 'float3' },
+        { name: 'a_other', type: 'float4' },
     ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
@@ -39,15 +39,17 @@ function makePrimitive(runtime: Runtime): Primitive {
         const indexBase = i * 6;
         const start = vertices[i];
         const end = vertices[i + 1];
+        const before = i > 0 ? vertices[i - 1] : end;
+        const after = i < segmentCount - 1 ? vertices[i + 2] : start;
 
         writer.writeAttribute(vertexBase + 0, 'a_position', [...start, -1]);
         writer.writeAttribute(vertexBase + 1, 'a_position', [...start, +1]);
-        writer.writeAttribute(vertexBase + 2, 'a_position', [...end, -1]);
-        writer.writeAttribute(vertexBase + 3, 'a_position', [...end, +1]);
-        writer.writeAttribute(vertexBase + 0, 'a_other', [...end, +1]);
-        writer.writeAttribute(vertexBase + 1, 'a_other', [...end, +1]);
-        writer.writeAttribute(vertexBase + 2, 'a_other', [...start, -1]);
-        writer.writeAttribute(vertexBase + 3, 'a_other', [...start, -1]);
+        writer.writeAttribute(vertexBase + 2, 'a_position', [...end, +1]);
+        writer.writeAttribute(vertexBase + 3, 'a_position', [...end, -1]);
+        writer.writeAttribute(vertexBase + 0, 'a_other', [...end, ...before]);
+        writer.writeAttribute(vertexBase + 1, 'a_other', [...end, ...before]);
+        writer.writeAttribute(vertexBase + 2, 'a_other', [...start, ...after]);
+        writer.writeAttribute(vertexBase + 3, 'a_other', [...start, ...after]);
 
         indexData[indexBase + 0] = vertexBase + 0;
         indexData[indexBase + 1] = vertexBase + 1;
@@ -68,7 +70,7 @@ const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.clearColor();
     primitive.draw({
-        'u_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
+        'u_canvas_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
         'u_thickness': 50.0,
     });
 });
