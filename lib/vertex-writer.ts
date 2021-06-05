@@ -19,7 +19,7 @@ interface AttributesMap {
     readonly [key: string]: Attribute;
 }
 
-type AttrValue = ReadonlyArray<number>;
+export type AttrValue = ReadonlyArray<number>;
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
 

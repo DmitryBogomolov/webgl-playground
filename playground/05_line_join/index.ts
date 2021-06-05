@@ -3,18 +3,30 @@ import {
     Primitive,
     Program,
     Runtime,
-    VertexWriter,
+    VertexWriter, AttrValue,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
-// TODO: Replace with { x, y } structure.
-type Position = readonly [number, number];
+interface Position {
+    readonly x: number;
+    readonly y: number;
+}
 
-const R_LOCATION = +1;
-const L_LOCATION = -1;
+const enum Location {
+    L = -1,
+    R = +1,
+}
+
+function makePositionAttr(position: Position, location: Location): AttrValue {
+    return [position.x, position.y, location];
+}
+
+function makeOtherAttr(other: Position, outer: Position): AttrValue {
+    return [other.x, other.y, outer.x, outer.y];
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -29,10 +41,10 @@ function makePrimitive(runtime: Runtime): Primitive {
     });
 
     const vertices: Position[] = [
-        [-0.7, -0.8],
-        [-0.1, +0.5],
-        [+0.4, -0.5],
-        [+0.8, +0.6],
+        { x: -0.7, y: -0.8 },
+        { x: -0.1, y: +0.5 },
+        { x: +0.4, y: -0.5 },
+        { x: +0.8, y: +0.6 },
     ];
     const segmentCount = vertices.length - 1;
     const vertexData = new ArrayBuffer(schema.totalSize * segmentCount * 4);
@@ -46,14 +58,14 @@ function makePrimitive(runtime: Runtime): Primitive {
         const before = i > 0 ? vertices[i - 1] : end;
         const after = i < segmentCount - 1 ? vertices[i + 2] : start;
 
-        writer.writeAttribute(vertexBase + 0, 'a_position', [...start, R_LOCATION]);
-        writer.writeAttribute(vertexBase + 1, 'a_position', [...start, L_LOCATION]);
-        writer.writeAttribute(vertexBase + 2, 'a_position', [...end, L_LOCATION]);
-        writer.writeAttribute(vertexBase + 3, 'a_position', [...end, R_LOCATION]);
-        writer.writeAttribute(vertexBase + 0, 'a_other', [...end, ...before]);
-        writer.writeAttribute(vertexBase + 1, 'a_other', [...end, ...before]);
-        writer.writeAttribute(vertexBase + 2, 'a_other', [...start, ...after]);
-        writer.writeAttribute(vertexBase + 3, 'a_other', [...start, ...after]);
+        writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start, Location.R));
+        writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start, Location.L));
+        writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end, Location.L));
+        writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end, Location.R));
+        writer.writeAttribute(vertexBase + 0, 'a_other', makeOtherAttr(end, before));
+        writer.writeAttribute(vertexBase + 1, 'a_other', makeOtherAttr(end, before));
+        writer.writeAttribute(vertexBase + 2, 'a_other', makeOtherAttr(start, after));
+        writer.writeAttribute(vertexBase + 3, 'a_other', makeOtherAttr(start, after));
 
         indexData[indexBase + 0] = vertexBase + 0;
         indexData[indexBase + 1] = vertexBase + 1;
