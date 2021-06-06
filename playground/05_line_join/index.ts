@@ -3,12 +3,18 @@ import {
     Primitive,
     Program,
     Runtime,
+    Color, colors, color2array,
     VertexWriter, AttrValue,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
+
+interface Vertex {
+    readonly position: Position;
+    readonly color: Color;
+}
 
 interface Position {
     readonly x: number;
@@ -33,6 +39,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
         { name: 'a_other', type: 'float4' },
+        { name: 'a_color', type: 'ubyte4', normalized: true },
     ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
@@ -40,11 +47,11 @@ function makePrimitive(runtime: Runtime): Primitive {
         schema,
     });
 
-    const vertices: Position[] = [
-        { x: -0.7, y: -0.8 },
-        { x: -0.1, y: +0.5 },
-        { x: +0.4, y: -0.5 },
-        { x: +0.8, y: +0.6 },
+    const vertices: Vertex[] = [
+        { position: { x: -0.7, y: -0.8 }, color: colors.BLUE },
+        { position: { x: -0.1, y: +0.5 }, color: colors.GREEN },
+        { position: { x: +0.4, y: -0.5 }, color: colors.RED },
+        { position: { x: +0.8, y: +0.6 }, color: colors.GREEN },
     ];
     const segmentCount = vertices.length - 1;
     const vertexData = new ArrayBuffer(schema.totalSize * segmentCount * 4);
@@ -58,14 +65,18 @@ function makePrimitive(runtime: Runtime): Primitive {
         const before = i > 0 ? vertices[i - 1] : end;
         const after = i < segmentCount - 1 ? vertices[i + 2] : start;
 
-        writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start, Location.R));
-        writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start, Location.L));
-        writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end, Location.L));
-        writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end, Location.R));
-        writer.writeAttribute(vertexBase + 0, 'a_other', makeOtherAttr(end, before));
-        writer.writeAttribute(vertexBase + 1, 'a_other', makeOtherAttr(end, before));
-        writer.writeAttribute(vertexBase + 2, 'a_other', makeOtherAttr(start, after));
-        writer.writeAttribute(vertexBase + 3, 'a_other', makeOtherAttr(start, after));
+        writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
+        writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));
+        writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end.position, Location.L));
+        writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end.position, Location.R));
+        writer.writeAttribute(vertexBase + 0, 'a_other', makeOtherAttr(end.position, before.position));
+        writer.writeAttribute(vertexBase + 1, 'a_other', makeOtherAttr(end.position, before.position));
+        writer.writeAttribute(vertexBase + 2, 'a_other', makeOtherAttr(start.position, after.position));
+        writer.writeAttribute(vertexBase + 3, 'a_other', makeOtherAttr(start.position, after.position));
+        writer.writeAttribute(vertexBase + 0, 'a_color', color2array(start.color));
+        writer.writeAttribute(vertexBase + 1, 'a_color', color2array(start.color));
+        writer.writeAttribute(vertexBase + 2, 'a_color', color2array(end.color));
+        writer.writeAttribute(vertexBase + 3, 'a_color', color2array(end.color));
 
         indexData[indexBase++] = vertexBase + 0;
         indexData[indexBase++] = vertexBase + 1;

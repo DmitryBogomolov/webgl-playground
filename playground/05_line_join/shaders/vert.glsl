@@ -2,6 +2,9 @@
 attribute vec3 a_position;
 // xy - prev point, zw - next point
 attribute vec4 a_other;
+attribute vec4 a_color;
+
+varying vec4 v_color;
 
 uniform vec2 u_canvas_size;
 uniform float u_thickness;
@@ -59,4 +62,5 @@ void main() {
         : -rotation_sign * get_outer_offset(normal, bitangent);
     vec2 bioffset = offset * u_thickness / u_canvas_size;
     gl_Position = vec4(a_position.xy + bioffset, 0.0, 1.0);
+    v_color = a_color;
 }
