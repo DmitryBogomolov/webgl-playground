@@ -49,10 +49,10 @@ function makePrimitive(runtime: Runtime): Primitive {
     const segmentCount = vertices.length - 1;
     const vertexData = new ArrayBuffer(schema.totalSize * segmentCount * 4);
     const writer = new VertexWriter(schema, vertexData);
-    const indexData = new Uint16Array(6 * segmentCount);
+    const indexData = new Uint16Array(6 * (2 * segmentCount - 1));
+    let indexBase = 0;
     for (let i = 0; i < segmentCount; ++i) {
         const vertexBase = i * 4;
-        const indexBase = i * 6;
         const start = vertices[i];
         const end = vertices[i + 1];
         const before = i > 0 ? vertices[i - 1] : end;
@@ -67,12 +67,21 @@ function makePrimitive(runtime: Runtime): Primitive {
         writer.writeAttribute(vertexBase + 2, 'a_other', makeOtherAttr(start, after));
         writer.writeAttribute(vertexBase + 3, 'a_other', makeOtherAttr(start, after));
 
-        indexData[indexBase + 0] = vertexBase + 0;
-        indexData[indexBase + 1] = vertexBase + 1;
-        indexData[indexBase + 2] = vertexBase + 3;
-        indexData[indexBase + 3] = vertexBase + 3;
-        indexData[indexBase + 4] = vertexBase + 2;
-        indexData[indexBase + 5] = vertexBase + 0;
+        indexData[indexBase++] = vertexBase + 0;
+        indexData[indexBase++] = vertexBase + 1;
+        indexData[indexBase++] = vertexBase + 3;
+        indexData[indexBase++] = vertexBase + 3;
+        indexData[indexBase++] = vertexBase + 2;
+        indexData[indexBase++] = vertexBase + 0;
+
+        if (i < segmentCount - 1) {
+            indexData[indexBase++] = vertexBase + 2;
+            indexData[indexBase++] = vertexBase + 3;
+            indexData[indexBase++] = vertexBase + 5;
+            indexData[indexBase++] = vertexBase + 5;
+            indexData[indexBase++] = vertexBase + 4;
+            indexData[indexBase++] = vertexBase + 2;
+        }
     }
 
     primitive.setProgram(program);
