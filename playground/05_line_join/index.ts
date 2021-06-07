@@ -118,6 +118,6 @@ runtime.onRender(() => {
     runtime.clearColor();
     primitive.draw({
         'u_canvas_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
-        'u_thickness': 50.0,
+        'u_thickness': 80.0,
     });
 });
