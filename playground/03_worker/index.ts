@@ -97,7 +97,7 @@ function runWorker(runtime: Runtime): void {
 
 runtime.onRender(() => {
     runtime.clearColor();
-    primitive.draw({
+    primitive.render({
         'u_scale': scale,
         'u_color': color2array(clr),
     });

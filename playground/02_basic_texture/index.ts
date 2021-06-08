@@ -98,7 +98,7 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord
         mag_filter: filter,
     });
     texture.setUnit(1);
-    primitive.draw({
+    primitive.render({
         'u_position': pos,
         'u_useCustom': !!texcoord,
         'u_texture': 1,

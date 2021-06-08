@@ -78,6 +78,6 @@ const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.clearColor();
-    primitive.draw();
+    primitive.render();
 });
 logSilenced(true);

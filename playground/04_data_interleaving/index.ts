@@ -77,7 +77,7 @@ const soaPrimitive = makeSoAPrimitive(runtime);
 
 runtime.onRender(() => {
     runtime.clearColor();
-    aosPrimitive.draw();
-    soaPrimitive.draw();
+    aosPrimitive.render();
+    soaPrimitive.render();
 });
 logSilenced(true);

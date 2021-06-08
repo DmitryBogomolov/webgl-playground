@@ -71,7 +71,7 @@ export class Primitive {
         vao.bindVertexArrayOES(null);
     }
 
-    draw(uniforms?: UniformValues): void {
+    render(uniforms?: UniformValues): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         // Consider "return" here if program is "empty".
