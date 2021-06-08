@@ -9,6 +9,11 @@ import {
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
+/**
+ * Bevel line join.
+ */
+export type DESCRIPTION = never;
+
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
 interface Vertex {
