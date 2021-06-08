@@ -166,7 +166,7 @@ const config: Configuration = {
                 ],
             },
             {
-                test: /\.(vert|frag)$/,
+                test: /\.(vert|frag|glsl)$/,
                 use: ['raw-loader'],
             },
         ],

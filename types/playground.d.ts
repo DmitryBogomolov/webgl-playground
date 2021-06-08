@@ -8,6 +8,11 @@ declare module '*.frag' {
     export default data;
 }
 
+declare module '*.glsl' {
+    declare const data: string;
+    export default data;
+}
+
 declare module '*.css' {
     interface Fields {
         readonly [key: string]: string;
