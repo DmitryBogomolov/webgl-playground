@@ -1,5 +1,5 @@
-export * from './utils';
 export { logSilenced } from './utils/logger';
+export { generateDefaultIndexes } from './utils/indexes-generator';
 export * from './color';
 export * from './render-loop';
 export * from './vertex-schema';

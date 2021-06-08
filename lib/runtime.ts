@@ -1,5 +1,6 @@
 import { color, Color } from './color';
-import { CancelSubscriptionCallback, handleWindowResize } from './utils';
+import { handleWindowResize } from './utils/resize-handler';
+import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
