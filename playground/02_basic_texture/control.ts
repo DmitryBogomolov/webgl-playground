@@ -1,4 +1,4 @@
-import { color2hex } from 'lib';
+import { color2hex, makeEventCoordsGetter } from 'lib';
 import { TEXTURE_SIZE, pixels } from './image';
 
 export interface TexCoord {
@@ -44,11 +44,12 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
         return val;
     }
 
+    const getEventCoords = makeEventCoordsGetter(canvas);
+
     function process(e: PointerEvent): void {
-        const eventX = e.clientX - canvas.getBoundingClientRect().left;
-        const eventY = e.clientY - canvas.getBoundingClientRect().top;
-        u = clamp((eventX - xMin) / (xMax - xMin), 0, 1);
-        v = clamp((eventY - yMax) / (yMin - yMax), 0, 1);
+        const coords = getEventCoords(e);
+        u = clamp((coords.x - xMin) / (xMax - xMin), 0, 1);
+        v = clamp((coords.y - yMax) / (yMin - yMax), 0, 1);
         draw();
         callback({ u, v });
     }

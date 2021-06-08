@@ -126,3 +126,5 @@ runtime.onRender(() => {
         'u_thickness': 80.0,
     });
 });
+
+(window as any).runtime = runtime;
