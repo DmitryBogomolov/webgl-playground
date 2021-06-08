@@ -1,5 +1,5 @@
 import { VertexSchema } from './vertex-schema';
-import { generateId } from './utils';
+import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { Runtime } from './runtime';
 

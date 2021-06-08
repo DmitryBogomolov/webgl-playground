@@ -1,8 +1,4 @@
-let nextId = 1;
 
-export function generateId(name: string): string {
-    return `${name}#${nextId++}`;
-}
 
 export function generateDefaultIndexes(vertexCount: number): number[] {
     const data: number[] = [];
