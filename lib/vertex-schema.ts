@@ -1,4 +1,4 @@
-import { Logger } from './utils';
+import { Logger } from './utils/logger';
 
 const {
     BYTE, UNSIGNED_BYTE,

@@ -1,5 +1,6 @@
 import { VertexSchema } from './vertex-schema';
-import { generateId, Logger } from './utils';
+import { generateId } from './utils';
+import { Logger } from './utils/logger';
 import { Runtime } from './runtime';
 
 const {

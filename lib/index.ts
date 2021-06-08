@@ -1,4 +1,5 @@
 export * from './utils';
+export { logSilenced } from './utils/logger';
 export * from './color';
 export * from './render-loop';
 export * from './vertex-schema';

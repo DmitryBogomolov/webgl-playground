@@ -1,4 +1,4 @@
-import { Logger } from './utils';
+import { Logger } from './utils/logger';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
 
 type Normalizer = (value: number) => number;

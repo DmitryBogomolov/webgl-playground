@@ -1,2 +1,2 @@
-import { logSilenced } from './utils';
+import { logSilenced } from './utils/logger';
 logSilenced(true);

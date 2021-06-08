@@ -1,6 +1,7 @@
 import { Program, EMPTY_PROGRAM, UniformValues } from './program';
 import { Runtime } from './runtime';
-import { Logger, generateId } from './utils';
+import { generateId } from './utils';
+import { Logger } from './utils/logger';
 
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,

@@ -1,5 +1,6 @@
 import { color, Color } from './color';
-import { CancelSubscriptionCallback, generateId, handleWindowResize, Logger } from './utils';
+import { CancelSubscriptionCallback, generateId, handleWindowResize } from './utils';
+import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 
 const {
