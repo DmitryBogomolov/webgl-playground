@@ -1,4 +1,3 @@
-import { contextConstants } from './context-constants';
 import { Program, EMPTY_PROGRAM, UniformValues } from './program';
 import { Runtime } from './runtime';
 import { Logger, generateId } from './utils';
@@ -6,7 +5,7 @@ import { Logger, generateId } from './utils';
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
     STATIC_DRAW, TRIANGLES, UNSIGNED_SHORT,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 export class Primitive {
     private readonly _id = generateId('Primitve');

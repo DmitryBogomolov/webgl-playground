@@ -1,4 +1,3 @@
-import { contextConstants } from './context-constants';
 import { color, Color } from './color';
 import { CancelSubscriptionCallback, generateId, handleWindowResize, Logger } from './utils';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
@@ -6,7 +5,7 @@ import { RenderFrameCallback, RenderLoop } from './render-loop';
 const {
     COLOR_BUFFER_BIT,
     COLOR_CLEAR_VALUE,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 export class Runtime {
     private readonly _id = generateId('Runtime');

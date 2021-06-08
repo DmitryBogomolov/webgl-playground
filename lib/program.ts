@@ -1,5 +1,4 @@
 import { VertexSchema } from './vertex-schema';
-import { contextConstants } from './context-constants';
 import { generateId, Logger } from './utils';
 import { Runtime } from './runtime';
 
@@ -12,7 +11,7 @@ const {
     BOOL, BOOL_VEC2, BOOL_VEC3, BOOL_VEC4,
     FLOAT_MAT2, FLOAT_MAT3, FLOAT_MAT4,
     SAMPLER_2D,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
