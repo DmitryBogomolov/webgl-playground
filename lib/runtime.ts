@@ -4,6 +4,7 @@ import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
+import { Vec2 } from './geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
@@ -16,6 +17,7 @@ export class Runtime {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _disposeResizeHandler: CancelSubscriptionCallback;
+    private _canvasSize: Vec2 = { x: 0, y: 0 };
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
@@ -67,9 +69,20 @@ export class Runtime {
         return ext;
     }
 
+    getCanvasSize(): Vec2 {
+        return this._canvasSize;
+    }
+
     adjustViewport(): void {
-        setCanvasSize(this._canvas);
-        this.gl.viewport(0, 0, this._canvas.width, this._canvas.height);
+        const width = (devicePixelRatio * this._canvas.clientWidth) | 0;
+        const height = (devicePixelRatio * this._canvas.clientHeight) | 0;
+        if (this._canvasSize.x === width && this._canvasSize.y === height) {
+            return;
+        }
+        this._canvasSize = { x: width, y: height };
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this.gl.viewport(0, 0, width, height);
         this._renderLoop.update();
     }
 
@@ -121,9 +134,4 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
 
 function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
     return CANVAS_TAG in canvas;
-}
-
-function setCanvasSize(canvas: HTMLCanvasElement): void {
-    canvas.width = (devicePixelRatio * canvas.clientWidth) | 0;
-    canvas.height = (devicePixelRatio * canvas.clientHeight) | 0;
 }
