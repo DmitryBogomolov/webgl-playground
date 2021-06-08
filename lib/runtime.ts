@@ -15,7 +15,7 @@ export class Runtime {
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _disposeResizeHandler: () => void;
+    private readonly _disposeResizeHandler: CancelSubscriptionCallback;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
