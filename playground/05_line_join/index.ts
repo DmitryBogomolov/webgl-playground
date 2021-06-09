@@ -1,10 +1,12 @@
 import {
     parseVertexSchema,
     Primitive,
-    Program,
+    Program, UniformValue,
     Runtime,
     Color, colors, color2array,
     VertexWriter, AttrValue, VertexSchema,
+    memoize,
+    Vec2,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
@@ -117,12 +119,14 @@ function writeSegmentIndexes(indexData: Uint16Array, offset: number, vertexIndex
     indexData[offset + 5] = vertexIndex + 0;
 }
 
+const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
+
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.clearColor();
     primitive.render({
-        'u_canvas_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
+        'u_canvas_size': makeSizeUniform(runtime.getCanvasSize()),
         'u_thickness': 80.0,
     });
 });
