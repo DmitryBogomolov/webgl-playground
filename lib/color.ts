@@ -9,7 +9,7 @@ export function color(r: number, g: number, b: number, a: number = 1): Color {
     return { r, g, b, a };
 }
 
-export function color2array({ r, g, b, a }: Color): [number, number, number, number] {
+export function color2arr({ r, g, b, a }: Color): [number, number, number, number] {
     return [r, g, b, a];
 }
 

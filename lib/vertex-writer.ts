@@ -68,7 +68,7 @@ export class VertexWriter {
         if (!attr) {
             throw logger.error('attribute "{0}" is unknown', attrName);
         }
-        if (attr.size !== attrValue.length) {
+        if (attr.size > attrValue.length) {
             throw logger.error(
                 'attribute "{0}" size is {1} but value is {2}', attrName, attr.size, attrValue,
             );

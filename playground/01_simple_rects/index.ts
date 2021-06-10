@@ -5,7 +5,8 @@ import {
     Program,
     Primitive,
     generateDefaultIndexes, logSilenced,
-    colors, color2array,
+    colors, color2arr, Color,
+    Vec2, vec2, vec2arr,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -16,6 +17,11 @@ import fragmentShaderSource from './shaders/shader.frag';
 export type DESCRIPTION = never;
 
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+
+interface Vertex {
+    readonly position: Vec2;
+    readonly color: Color;
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -40,31 +46,31 @@ function makePrimitive(runtime: Runtime): Primitive {
     const c2 = colors.YELLOW;
     const c3 = colors.GREEN;
     const c4 = colors.CYAN;
-    const vertices = [
+    const vertices: Vertex[] = [
         // bottom-left
-        { position: [-1, +0], color: c1 },
-        { position: [-1, -1], color: c1 },
-        { position: [+0, -1], color: c1 },
+        { position: vec2(-1, +0), color: c1 },
+        { position: vec2(-1, -1), color: c1 },
+        { position: vec2(+0, -1), color: c1 },
         // bottom-right
-        { position: [+0, -1], color: c2 },
-        { position: [+1, -1], color: c2 },
-        { position: [+1, +0], color: c2 },
+        { position: vec2(+0, -1), color: c2 },
+        { position: vec2(+1, -1), color: c2 },
+        { position: vec2(+1, +0), color: c2 },
         // top-right
-        { position: [+1, +0], color: c3 },
-        { position: [+1, +1], color: c3 },
-        { position: [+0, +1], color: c3 },
+        { position: vec2(+1, +0), color: c3 },
+        { position: vec2(+1, +1), color: c3 },
+        { position: vec2(+0, +1), color: c3 },
         // top-left
-        { position: [+0, +1], color: c4 },
-        { position: [-1, +1], color: c4 },
-        { position: [-1, +0], color: c4 },
+        { position: vec2(+0, +1), color: c4 },
+        { position: vec2(-1, +1), color: c4 },
+        { position: vec2(-1, +0), color: c4 },
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vertex.position);
-        writer.writeAttribute(i, 'a_color', color2array(vertex.color));
+        writer.writeAttribute(i, 'a_position', vec2arr(vertex.position));
+        writer.writeAttribute(i, 'a_color', color2arr(vertex.color));
     }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 

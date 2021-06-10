@@ -6,6 +6,8 @@ import {
     Primitive,
     Program,
     VertexSchema,
+    Color, color,
+    Vec2, vec2, vec2arr, color2arr,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -20,11 +22,17 @@ export type DESCRIPTION = never;
 
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 
-const vertices = [
-    { position: [-0.5, -0.5], color: [0, 1, 0], factor: 0.3 },
-    { position: [+0.5, -0.5], color: [0, 0, 1], factor: 0.5 },
-    { position: [+0.5, +0.5], color: [0, 1, 0], factor: 0.7 },
-    { position: [-0.5, +0.5], color: [0, 0, 1], factor: 0.9 },
+interface Vertex {
+    readonly position: Vec2;
+    readonly color: Color;
+    readonly factor: number;
+}
+
+const vertices: Vertex[] = [
+    { position: vec2(-0.5, -0.5), color: color(0, 1, 0), factor: 0.3 },
+    { position: vec2(+0.5, -0.5), color: color(0, 0, 1), factor: 0.5 },
+    { position: vec2(+0.5, +0.5), color: color(0, 1, 0), factor: 0.7 },
+    { position: vec2(-0.5, +0.5), color: color(0, 0, 1), factor: 0.9 },
 ];
 const indices = [0, 1, 2, 2, 3, 0];
 
@@ -60,8 +68,8 @@ function makePrimitive(
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, color, factor } = vertices[i];
-        writer.writeAttribute(i, 'a_position', position);
-        writer.writeAttribute(i, 'a_color', color);
+        writer.writeAttribute(i, 'a_position', vec2arr(position));
+        writer.writeAttribute(i, 'a_color', color2arr(color));
         writer.writeAttribute(i, 'a_factor', [factor]);
     }
 

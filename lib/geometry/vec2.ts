@@ -15,6 +15,14 @@ export class Vector2 implements Vec2 {
     }
 }
 
+export function vec2(x: number, y: number): Vec2 {
+    return new Vector2(x, y);
+}
+
+export function vec2arr(v: Vec2): [number, number] {
+    return [v.x, v.y];
+}
+
 export function add2(a: Vec2, b: Vec2): Vec2 {
     return new Vector2(a.x + b.x, a.y + b.y);
 }

@@ -1,6 +1,6 @@
 import {
     color,
-    color2array,
+    color2arr,
     color2uint, uint2color,
     color2hex, hex2color,
 } from './color';
@@ -12,7 +12,7 @@ describe('color', () => {
     });
 
     it('make array from Color', () => {
-        expect(color2array({ r: 0.1, g: 0.2, b: 0.3, a: 0.4 })).toEqual([0.1, 0.2, 0.3, 0.4]);
+        expect(color2arr({ r: 0.1, g: 0.2, b: 0.3, a: 0.4 })).toEqual([0.1, 0.2, 0.3, 0.4]);
     });
 
     it('make uint from Color', () => {

@@ -2,11 +2,12 @@ import {
     VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
-    color, Color, color2array,
+    color, Color, color2arr,
     logSilenced,
     Runtime,
     Primitive,
     Program,
+    Vec2, vec2, vec2arr,
 } from 'lib';
 import {
     TYPE_SCALE,
@@ -39,13 +40,18 @@ function makePrimitive(runtime: Runtime): Primitive {
     });
     const primitive = new Primitive(runtime);
 
-    const vertices = [[-1, -1], [+1, -1], [+1, +1], [-1, +1]];
+    const vertices: Vec2[] = [
+        vec2(-1, -1),
+        vec2(+1, -1),
+        vec2(+1, +1),
+        vec2(-1, +1),
+    ];
 
     const vertexData = new ArrayBuffer(4 * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vertex);
+        writer.writeAttribute(i, 'a_position', vec2arr(vertex));
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
@@ -99,7 +105,7 @@ runtime.onRender(() => {
     runtime.clearColor();
     primitive.render({
         'u_scale': scale,
-        'u_color': color2array(clr),
+        'u_color': color2arr(clr),
     });
 });
 runWorker(runtime);
