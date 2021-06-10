@@ -1,4 +1,4 @@
-import { color2hex } from 'lib';
+import { color2hex, makeEventCoordsGetter, vec2, mapper2 } from 'lib';
 import { TEXTURE_SIZE, pixels } from './image';
 
 export interface TexCoord {
@@ -22,12 +22,14 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
     function handleDown(e: PointerEvent): void {
         document.addEventListener('pointerup', handleUp);
         document.addEventListener('pointermove', handleMove);
+        document.addEventListener('pointercancel', handleUp);
         process(e);
     }
 
     function handleUp(): void {
         document.removeEventListener('pointerup', handleUp);
         document.removeEventListener('pointermove', handleMove);
+        document.removeEventListener('pointercancel', handleUp);
     }
 
     function handleMove(e: PointerEvent): void {
@@ -44,11 +46,13 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
         return val;
     }
 
+    const getEventCoords = makeEventCoordsGetter(canvas);
+    const mapCoords = mapper2(vec2(xMin, yMax), vec2(xMax, yMin), vec2(0, 0), vec2(1, 1));
+
     function process(e: PointerEvent): void {
-        const eventX = e.clientX - canvas.getBoundingClientRect().left;
-        const eventY = e.clientY - canvas.getBoundingClientRect().top;
-        u = clamp((eventX - xMin) / (xMax - xMin), 0, 1);
-        v = clamp((eventY - yMax) / (yMin - yMax), 0, 1);
+        const { x, y } = mapCoords(getEventCoords(e));
+        u = clamp(x, 0, 1);
+        v = clamp(y, 0, 1);
         draw();
         callback({ u, v });
     }

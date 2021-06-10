@@ -1,4 +1,4 @@
-import { CancelSubscriptionCallback } from './utils';
+import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
 
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 

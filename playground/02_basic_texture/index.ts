@@ -4,11 +4,12 @@ import {
     VertexWriter,
     Runtime,
     Primitive,
-    Program,
+    Program, UniformValue,
     Texture, TextureFilterValues,
+    Vec2, vec2, vec2arr,
 } from 'lib';
 import { textureData } from './image';
-import { TexCoord, makeControl } from './control';
+import { makeControl } from './control';
 import { Position, doLayout } from './layout';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -44,17 +45,17 @@ function makePrimitive(runtime: Runtime): Primitive {
         schema,
     });
 
-    const vertices = [
-        [-1, -1],
-        [+1, -1],
-        [+1, +1],
-        [-1, +1],
+    const vertices: Vec2[] = [
+        vec2(-1, -1),
+        vec2(+1, -1),
+        vec2(+1, +1),
+        vec2(-1, +1),
     ];
     const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vertex);
+        writer.writeAttribute(i, 'a_position', vec2arr(vertex));
     }
     const indexData = new Uint16Array([
         0, 1, 2,
@@ -84,25 +85,25 @@ const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-let texcoord: TexCoord = { u: 0.5, v: 0.5 };
-makeControl(texcoord, (tc) => {
-    texcoord = tc;
+let texcoord: UniformValue = [0.5, 0.5];
+makeControl({ u: texcoord[0], v: texcoord[1] }, ({ u, v }) => {
+    texcoord = [u, v];
     runtime.requestRender();
 });
 
 const layout = doLayout(container);
 
-function drawRect(pos: Position, filter: TextureFilterValues, texcoord: TexCoord | null): void {
+function drawRect(pos: Position, filter: TextureFilterValues, texcoord: UniformValue | null): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,
     });
     texture.setUnit(1);
-    primitive.draw({
+    primitive.render({
         'u_position': pos,
         'u_useCustom': !!texcoord,
         'u_texture': 1,
-        ...(texcoord ? { 'u_texcoord': [texcoord.u, texcoord.v] } : null),
+        ...(texcoord ? { 'u_texcoord': texcoord } : null),
     });
 }
 

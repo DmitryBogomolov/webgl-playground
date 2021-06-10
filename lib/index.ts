@@ -1,4 +1,8 @@
-export * from './utils';
+export { logSilenced } from './utils/logger';
+export { generateDefaultIndexes } from './utils/indexes-generator';
+export { makeEventCoordsGetter, GetEventCoordsCallback } from './utils/pointer-event';
+export { memoize } from './utils/memoizer';
+export * from './geometry/vec2';
 export * from './color';
 export * from './render-loop';
 export * from './vertex-schema';

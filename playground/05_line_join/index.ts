@@ -1,10 +1,12 @@
 import {
     parseVertexSchema,
     Primitive,
-    Program,
+    Program, UniformValue,
     Runtime,
-    Color, colors, color2array,
+    Color, colors, color2arr,
     VertexWriter, AttrValue, VertexSchema,
+    memoize,
+    Vec2, vec2,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
@@ -17,13 +19,8 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
 interface Vertex {
-    readonly position: Position;
+    readonly position: Vec2;
     readonly color: Color;
-}
-
-interface Position {
-    readonly x: number;
-    readonly y: number;
 }
 
 const enum Location {
@@ -32,17 +29,17 @@ const enum Location {
 }
 
 const vertices: Vertex[] = [
-    { position: { x: -0.7, y: -0.8 }, color: colors.BLUE },
-    { position: { x: -0.1, y: +0.5 }, color: colors.GREEN },
-    { position: { x: +0.4, y: -0.5 }, color: colors.RED },
-    { position: { x: +0.8, y: +0.6 }, color: colors.GREEN },
+    { position: vec2(-0.7, -0.8), color: colors.BLUE },
+    { position: vec2(-0.1, +0.5), color: colors.GREEN },
+    { position: vec2(+0.4, -0.5), color: colors.RED },
+    { position: vec2(+0.8, +0.6), color: colors.GREEN },
 ];
 
-function makePositionAttr(position: Position, location: Location): AttrValue {
+function makePositionAttr(position: Vec2, location: Location): AttrValue {
     return [position.x, position.y, location];
 }
 
-function makeOtherAttr(other: Position, outer: Position): AttrValue {
+function makeOtherAttr(other: Vec2, outer: Vec2): AttrValue {
     return [other.x, other.y, outer.x, outer.y];
 }
 
@@ -81,8 +78,8 @@ function writeVertices(vertexData: ArrayBuffer, schema: VertexSchema, vertices: 
 
         const startOther = makeOtherAttr(end.position, before.position);
         const endOther = makeOtherAttr(start.position, after.position);
-        const startColor = color2array(start.color);
-        const endColor = color2array(end.color);
+        const startColor = color2arr(start.color);
+        const endColor = color2arr(end.color);
 
         writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
         writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));
@@ -117,12 +114,14 @@ function writeSegmentIndexes(indexData: Uint16Array, offset: number, vertexIndex
     indexData[offset + 5] = vertexIndex + 0;
 }
 
+const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
+
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.clearColor();
-    primitive.draw({
-        'u_canvas_size': [runtime.gl.canvas.width, runtime.gl.canvas.height],
+    primitive.render({
+        'u_canvas_size': makeSizeUniform(runtime.getCanvasSize()),
         'u_thickness': 80.0,
     });
 });

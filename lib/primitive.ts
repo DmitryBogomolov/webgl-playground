@@ -1,12 +1,12 @@
-import { contextConstants } from './context-constants';
 import { Program, EMPTY_PROGRAM, UniformValues } from './program';
 import { Runtime } from './runtime';
-import { Logger, generateId } from './utils';
+import { generateId } from './utils/id-generator';
+import { Logger } from './utils/logger';
 
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
     STATIC_DRAW, TRIANGLES, UNSIGNED_SHORT,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 export class Primitive {
     private readonly _id = generateId('Primitve');
@@ -71,7 +71,7 @@ export class Primitive {
         vao.bindVertexArrayOES(null);
     }
 
-    draw(uniforms?: UniformValues): void {
+    render(uniforms?: UniformValues): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         // Consider "return" here if program is "empty".

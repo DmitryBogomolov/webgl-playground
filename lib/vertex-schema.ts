@@ -1,11 +1,10 @@
-import { Logger } from './utils';
-import { contextConstants } from './context-constants';
+import { Logger } from './utils/logger';
 
 const {
     BYTE, UNSIGNED_BYTE,
     SHORT, UNSIGNED_SHORT,
     FLOAT,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 export type AttributeType = 'byte' | 'ubyte' | 'short' | 'ushort' | 'float';
 

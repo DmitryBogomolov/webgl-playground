@@ -1,6 +1,6 @@
 import { Runtime } from './runtime';
-import { contextConstants } from './context-constants';
-import { generateId, Logger } from './utils';
+import { generateId } from './utils/id-generator';
+import { Logger } from './utils/logger';
 
 const {
     TEXTURE_2D, TEXTURE0,
@@ -9,7 +9,7 @@ const {
     UNPACK_FLIP_Y_WEBGL,
     REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
     RGBA, UNSIGNED_BYTE,
-} = contextConstants;
+} = WebGLRenderingContext.prototype;
 
 export type TextureWrapValues = 'repeat' | 'clamp_to_edge';
 export type TextureFilterValues = 'nearest' | 'linear';
