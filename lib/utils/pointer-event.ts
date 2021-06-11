@@ -1,17 +1,17 @@
-import { Vec2 } from '../geometry/vec2';
+import { Vec2, vec2 } from '../geometry/vec2';
 
 interface Event {
-    readonly pageX: number;
-    readonly pageY: number;
+    readonly clientX: number;
+    readonly clientY: number;
 }
 export type GetEventCoordsFunc = (e: Event) => Vec2;
 
 export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsFunc {
     return (e) => {
         const { left, top } = element.getBoundingClientRect();
-        return {
-            x: e.pageX - left,
-            y: e.pageY - top,
-        };
+        return vec2(
+            e.clientX - left,
+            e.clientY - top,
+        );
     };
 }
