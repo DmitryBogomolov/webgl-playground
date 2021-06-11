@@ -4,7 +4,7 @@ import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
-import { Vec2 } from './geometry/vec2';
+import { vec2, Vec2 } from './geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
@@ -71,6 +71,24 @@ export class Runtime {
 
     getCanvasSize(): Vec2 {
         return this._canvasSize;
+    }
+
+    toCanvasPixels(pxRange: number): number {
+        return pxRange * devicePixelRatio;
+    }
+
+    ndc2px({ x, y }: Vec2): Vec2 {
+        return vec2(
+            (x + 1) / 2 * this._canvasSize.x / devicePixelRatio,
+            (1 - y) / 2 * this._canvasSize.y / devicePixelRatio,
+        );
+    }
+
+    px2ndc({ x, y }: Vec2): Vec2 {
+        return vec2(
+            +x * devicePixelRatio / this._canvasSize.x * 2 - 1,
+            -y * devicePixelRatio / this._canvasSize.y * 2 + 1,
+        );
     }
 
     adjustViewport(): void {
