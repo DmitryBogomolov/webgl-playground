@@ -1,13 +1,17 @@
-import { Vec2 } from '../geometry/vec2';
+import { Vec2, vec2 } from '../geometry/vec2';
 
-export type GetEventCoordsCallback = (e: PointerEvent) => Vec2;
+interface Event {
+    readonly clientX: number;
+    readonly clientY: number;
+}
+export type GetEventCoordsFunc = (e: Event) => Vec2;
 
-export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsCallback {
+export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsFunc {
     return (e) => {
         const { left, top } = element.getBoundingClientRect();
-        return {
-            x: e.pageX - left,
-            y: e.pageY - top,
-        };
+        return vec2(
+            e.clientX - left,
+            e.clientY - top,
+        );
     };
 }

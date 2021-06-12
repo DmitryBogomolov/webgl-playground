@@ -41,8 +41,8 @@ vec2 get_offset(float segment_side, float rotation_sign, vec2 segment_normal, ve
 }
 
 void main() {
-    vec2 segment_dir = normalize((a_position.xy - a_other.xy) * u_canvas_size);
-    vec2 next_segment_dir = normalize((a_other.zw - a_position.xy) * u_canvas_size);
+    vec2 segment_dir = normalize((a_position.xy - a_other.xy) * u_canvas_size * 0.5);
+    vec2 next_segment_dir = normalize((a_other.zw - a_position.xy) * u_canvas_size * 0.5);
     // Does next segment goes backward? It is handled separately.
     bool is_reverse = dot(segment_dir, next_segment_dir) <= -1.0 + EPS;
     // Tangent at the junction point of the current segment and the next one.
@@ -53,6 +53,6 @@ void main() {
     vec2 offset = get_offset(a_position.z, rotation_sign, normal, bitangent);
     // Add line cap for a reverse case.
     offset += float(is_reverse) * segment_dir;
-    gl_Position = vec4(a_position.xy + offset * u_thickness * 0.5 / u_canvas_size, 0.0, 1.0);
+    gl_Position = vec4(a_position.xy + offset * u_thickness * 0.5 / (u_canvas_size * 0.5), 0.0, 1.0);
     v_color = a_color;
 }

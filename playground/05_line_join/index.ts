@@ -122,6 +122,6 @@ runtime.onRender(() => {
     runtime.clearColor();
     primitive.render({
         'u_canvas_size': makeSizeUniform(runtime.getCanvasSize()),
-        'u_thickness': 80.0,
+        'u_thickness': runtime.toCanvasPixels(50),
     });
 });
