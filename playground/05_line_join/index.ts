@@ -62,7 +62,11 @@ function makePrimitive(runtime: Runtime): Primitive {
     writeIndexes(indexData, vertices.length);
 
     primitive.setProgram(program);
-    primitive.setData(vertexData, indexData);
+    primitive.allocateVertexBuffer(vertexData.byteLength);
+    primitive.updateVertexData(vertexData);
+    primitive.allocateIndexBuffer(indexData.byteLength);
+    primitive.updateIndexData(indexData);
+    primitive.setIndexCount(indexData.length);
 
     return primitive;
 }

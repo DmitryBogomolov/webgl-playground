@@ -73,8 +73,12 @@ function makePrimitive(
         writer.writeAttribute(i, 'a_factor', [factor]);
     }
 
-    primitive.setData(vertexData, new Uint16Array(indices));
     primitive.setProgram(program);
+    primitive.allocateVertexBuffer(vertexData.byteLength);
+    primitive.updateVertexData(vertexData);
+    primitive.allocateIndexBuffer(indices.length * 2);
+    primitive.updateIndexData(new Uint16Array(indices));
+    primitive.setIndexCount(indices.length);
 
     return primitive;
 }
