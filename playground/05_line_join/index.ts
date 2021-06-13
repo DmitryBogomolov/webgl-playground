@@ -119,9 +119,9 @@ const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     primitive.render({
-        'u_canvas_size': makeSizeUniform(runtime.getCanvasSize()),
+        'u_canvas_size': makeSizeUniform(runtime.canvasSize()),
         'u_thickness': runtime.toCanvasPixels(50),
     });
 });

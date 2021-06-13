@@ -102,7 +102,7 @@ function runWorker(runtime: Runtime): void {
 }
 
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     primitive.render({
         'u_scale': scale,
         'u_color': color2arr(clr),

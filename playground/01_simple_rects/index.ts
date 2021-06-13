@@ -83,7 +83,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     primitive.render();
 });
 logSilenced(true);

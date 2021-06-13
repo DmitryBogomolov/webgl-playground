@@ -108,7 +108,7 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: UniformV
 }
 
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     drawRect(layout.nearestUV, 'nearest', null);
     drawRect(layout.linearUV, 'linear', null);
     drawRect(layout.nearestCustom, 'nearest', texcoord);

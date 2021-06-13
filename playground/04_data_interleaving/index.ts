@@ -84,7 +84,7 @@ const aosPrimitive = makeAoSPrimitive(runtime);
 const soaPrimitive = makeSoAPrimitive(runtime);
 
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     aosPrimitive.render();
     soaPrimitive.render();
 });
