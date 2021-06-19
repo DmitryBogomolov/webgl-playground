@@ -74,7 +74,7 @@ export class Primitive {
         gl.bufferSubData(ARRAY_BUFFER, offset, vertexData);
     }
 
-    updateIndexData(indexData: Uint16Array, offset: number = 0): void {
+    updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
         const gl = this._runtime.gl;
         gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
