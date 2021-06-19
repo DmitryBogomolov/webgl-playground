@@ -19,7 +19,6 @@ import fragmentShaderSource from './shaders/frag.glsl';
 export type DESCRIPTION = never;
 
 // TODO:
-// - fix small angles issue
 // - add index writer
 // - provide round join
 // - use kd tree
