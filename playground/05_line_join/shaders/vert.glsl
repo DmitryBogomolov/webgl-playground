@@ -15,12 +15,14 @@ vec2 rotate_right(vec2 v) {
     return vec2(v.y, -v.x);
 }
 
-// Next segment turns left (-1) or right or goes forward (+1).
+// Next segment turns left (-1) or right (+1) or goes forward (+1).
 float get_rotation_sign(vec2 segment_normal, vec2 next_segment_dir) {
     return 2.0 * step(0.0, dot(segment_normal, next_segment_dir)) - 1.0;
 }
 
 vec2 get_inner_offset(vec2 normal, vec2 bitangent) {
+    // Bitangent is a hypotenuse of a triangle, normal is an adjacent leg.
+    // Dot product is a cosine of angle between them.
     return bitangent / dot(normal, bitangent);
 }
 
