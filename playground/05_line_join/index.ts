@@ -3,9 +3,8 @@ import {
     Primitive,
     Program, UniformValue,
     Runtime,
-    colors, color2arr,
+    Color, color, color2arr,
     VertexWriter, AttrValue, VertexSchema,
-    logSilenced,
     memoize,
     makeEventCoordsGetter,
     Vec2, vec2, dist2, pointToLineDistance2,
@@ -26,13 +25,31 @@ const enum Location {
     R = +1,
 }
 
+const pickColor = (function () {
+    const colorPool: ReadonlyArray<Color> = [
+        color(0, 0, 1),
+        color(0, 1, 0),
+        color(0, 1, 1),
+        color(1, 0, 0),
+        color(1, 0, 1),
+        color(1, 1, 0),
+    ];
+    let next = 0;
+
+    function pick(): Color {
+        const idx = next;
+        next = (next + 1) % colorPool.length;
+        return colorPool[idx];
+    }
+
+    return pick;
+}());
+
 const vertices: Vertex[] = [
-    //{ position: vec2(-0.7, -0.8), color: colors.BLUE },
-    { position: vec2(-0.8, -0.6), color: colors.BLUE },
-    { position: vec2(-0.1, +0.5), color: colors.GREEN },
-    //{ position: vec2(+0.4, -0.5), color: colors.RED },
-    { position: vec2(+0.1, -0.5), color: colors.RED },
-    { position: vec2(+0.8, +0.6), color: colors.GREEN },
+    { position: vec2(-0.7, -0.8), color: pickColor() },
+    { position: vec2(-0.1, +0.5), color: pickColor() },
+    { position: vec2(+0.4, -0.5), color: pickColor() },
+    { position: vec2(+0.8, +0.6), color: pickColor() },
 ];
 
 function makePositionAttr(position: Vec2, location: Location): AttrValue {
@@ -48,8 +65,19 @@ const schema = parseVertexSchema([
     { name: 'a_other', type: 'float4' },
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
-const vertexData = new ArrayBuffer(schema.totalSize * (vertices.length - 1) * 4);
-const indexData = new Uint16Array(6 * (2 * (vertices.length - 1) - 1));
+
+function getVertexBufferSize(vertexCount: number): number {
+    // segments <- vertices - 1; 4 vertexes per segment
+    return schema.totalSize * (vertexCount - 1) * 4;
+}
+
+function getIndexBufferSize(vertexCount: number): number {
+    // segments <- vertices - 1; 6 indices per segment and 6 indices per segment join
+    return 6 * (2 * (vertexCount - 1) - 1);
+}
+
+const vertexData = new ArrayBuffer(getVertexBufferSize(vertices.length));
+const indexData = new Uint16Array(getIndexBufferSize(vertices.length));
 
 function makePrimitive(runtime: Runtime, primitive: Primitive): Primitive {
     //const primitive = new Primitive(runtime);
@@ -133,7 +161,6 @@ runtime.onRender(() => {
         'u_thickness': runtime.toCanvasPixels(thickness),
     });
 });
-logSilenced(true);
 
 container.addEventListener('pointerdown', handleDown);
 
@@ -151,7 +178,30 @@ const BORDER_THRESHOLD = 8;
 
 document.addEventListener('dblclick', (e: MouseEvent) => {
     e.preventDefault();
-    console.log('DBLCLICK');
+    const coords = getEventCoord(e);
+    const vertexIdx = findNearestVertex(vertices, coords, ndc2px);
+    const vertexCoords = ndc2px(vertices[vertexIdx].position);
+    const dist = dist2(vertexCoords, coords);
+    if (dist <= VERTEX_THRESHOLD) {
+        if (vertices.length <= 2) {
+            return;
+        }
+        vertices.splice(vertexIdx, 1);
+        writeVertices(vertexData, schema, vertices);
+        writeIndexes(indexData, vertices.length);
+        primitive.updateVertexData(vertexData);
+        primitive.updateIndexData(indexData);
+        primitive.setIndexCount(getIndexBufferSize(vertices.length));
+        runtime.requestRender();
+    } else {
+        vertices.push({ position: runtime.px2ndc(coords), color: pickColor() });
+        writeVertices(vertexData, schema, vertices);
+        writeIndexes(indexData, vertices.length);
+        primitive.updateVertexData(vertexData);
+        primitive.updateIndexData(indexData);
+        primitive.setIndexCount(getIndexBufferSize(vertices.length));
+        runtime.requestRender();
+    }
 });
 
 function handleDown(e: PointerEvent): void {
@@ -184,8 +234,7 @@ function handleMove(e: PointerEvent): void {
         writeVertices(vertexData, schema, vertices);
         primitive.updateVertexData(vertexData);
         runtime.requestRender();
-    }
-    if (targetSegmentIdx >= 0) {
+    } else if (targetSegmentIdx >= 0) {
         const v1 = ndc2px(vertices[targetSegmentIdx + 0].position);
         const v2 = ndc2px(vertices[targetSegmentIdx + 1].position);
         const dist = pointToLineDistance2(coords, v1, v2);
