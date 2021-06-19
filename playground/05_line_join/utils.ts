@@ -44,5 +44,11 @@ export function pickOtherVertex(
         const rightDist = pointToLineDistance2(target, point, right);
         return leftDist <= rightDist ? vertexIdx - 1 : vertexIdx + 1;
     }
-    return left ? vertexIdx - 1 : vertexIdx + 1;
+    if (left) {
+        return vertexIdx - 1;
+    }
+    if (right) {
+        return vertexIdx + 1;
+    }
+    return -1;
 }

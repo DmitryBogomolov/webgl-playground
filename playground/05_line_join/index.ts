@@ -224,6 +224,9 @@ function handleDown(e: PointerEvent): void {
         targetVertexIdx = vertexIdx;
     } else {
         const otherIdx = pickOtherVertex(vertices, coords, vertexIdx, ndc2px);
+        if (otherIdx === -1) {
+            return;
+        }
         const otherCoords = ndc2px(vertices[otherIdx].position);
         const dist = pointToLineDistance2(coords, vertexCoords, otherCoords);
         if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
