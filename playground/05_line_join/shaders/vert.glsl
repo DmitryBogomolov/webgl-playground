@@ -24,7 +24,7 @@ vec2 get_inner_offset(vec2 normal, vec2 bitangent, vec2 segment, vec2 next_segme
     // Bitangent is a hypotenuse of a triangle, normal is an adjacent leg.
     // Dot product is a cosine of angle between them.
     // Returns bitagent of hypotenuse length of a triangle with adjacent leg length of 1.
-    // If segments overlap (angle between them is quite small) then returns normal.
+    // If segments overlap (angle between them is quite small) then returns normal (preserves segment thickness).
     float coeff = 1.0 / dot(normal, bitangent);
     return u_thickness * 0.5 * coeff < min(length(segment), length(next_segment)) ? bitangent * coeff : normal;
 }
