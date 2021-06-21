@@ -15,6 +15,9 @@ export class Vector2 implements Vec2 {
     }
 }
 
+/** (0, 0) */
+export const ZERO2 = vec2(0, 0);
+
 export function vec2(x: number, y: number): Vec2 {
     return new Vector2(x, y);
 }

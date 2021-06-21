@@ -1,9 +1,5 @@
-import { Vec2, Color, sqrdist2, sub2, dot2, pointToLineDistance2 } from 'lib';
-
-export interface Vertex {
-    position: Vec2;
-    readonly color: Color;
-}
+import { Vec2, sqrdist2, sub2, dot2, pointToLineDistance2 } from 'lib';
+import { Vertex } from './vertex';
 
 export type Ndc2PxFunc = (ndc: Vec2) => Vec2;
 

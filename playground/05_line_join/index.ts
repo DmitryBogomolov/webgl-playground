@@ -9,7 +9,8 @@ import {
     makeEventCoordsGetter,
     Vec2, vec2, dist2, pointToLineDistance2,
 } from 'lib';
-import { Vertex, findNearestVertex, pickOtherVertex } from './utils';
+import { Vertex } from './vertex';
+import { findNearestVertex, pickOtherVertex } from './utils';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
@@ -19,7 +20,6 @@ import fragmentShaderSource from './shaders/frag.glsl';
 export type DESCRIPTION = never;
 
 // TODO:
-// - add index writer
 // - provide round join
 // - use kd tree
 // - add buffers reallocation
@@ -176,6 +176,10 @@ function ndc2px(ndc: Vec2): Vec2 {
     return runtime.ndc2px(ndc);
 }
 
+function px2ndc(px: Vec2): Vec2 {
+    return runtime.px2ndc(px);
+}
+
 let targetVertexIdx: number = -1;
 let targetSegmentIdx: number = -1;
 
@@ -184,6 +188,7 @@ const BORDER_THRESHOLD = 8;
 
 document.addEventListener('dblclick', (e: MouseEvent) => {
     e.preventDefault();
+
     const coords = getEventCoord(e);
     const vertexIdx = findNearestVertex(vertices, coords, ndc2px);
     const vertexCoords = ndc2px(vertices[vertexIdx].position);
@@ -200,7 +205,7 @@ document.addEventListener('dblclick', (e: MouseEvent) => {
         primitive.setIndexCount(getIndexBufferSize(vertices.length));
         runtime.requestRender();
     } else {
-        vertices.push({ position: runtime.px2ndc(coords), color: pickColor() });
+        vertices.push({ position: px2ndc(coords), color: pickColor() });
         writeVertices(vertexData, schema, vertices);
         writeIndexes(indexData, vertices.length);
         primitive.updateVertexData(vertexData);
@@ -224,22 +229,20 @@ function handleDown(e: PointerEvent): void {
         targetVertexIdx = vertexIdx;
     } else {
         const otherIdx = pickOtherVertex(vertices, coords, vertexIdx, ndc2px);
-        if (otherIdx === -1) {
-            return;
-        }
-        const otherCoords = ndc2px(vertices[otherIdx].position);
-        const dist = pointToLineDistance2(coords, vertexCoords, otherCoords);
-        if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
-            targetSegmentIdx = Math.min(vertexIdx, otherIdx);
+        if (otherIdx >= 0) {
+            const otherCoords = ndc2px(vertices[otherIdx].position);
+            const dist = pointToLineDistance2(coords, vertexCoords, otherCoords);
+            if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
+                targetSegmentIdx = Math.min(vertexIdx, otherIdx);
+            }
         }
     }
 }
 
 function handleMove(e: PointerEvent): void {
     const coords = getEventCoord(e);
-
     if (targetVertexIdx >= 0) {
-        vertices[targetVertexIdx].position = runtime.px2ndc(coords);
+        vertices[targetVertexIdx].position = px2ndc(coords);
         writeVertices(vertexData, schema, vertices);
         primitive.updateVertexData(vertexData);
         runtime.requestRender();
