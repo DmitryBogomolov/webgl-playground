@@ -9,11 +9,12 @@ import fragmentShaderSource from './shaders/frag.glsl';
 
 export class Line {
     private readonly _vertices: Vertex[] = [];
-    private _thickness: number = 1;
+    private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
-    private readonly _vertexBuffer = new ArrayBuffer(getVertexBufferSize(4));
-    private readonly _indexBuffer = new ArrayBuffer(getIndexBufferSize(4));
+    private _capacity = 0;
+    private _vertexBuffer = new ArrayBuffer(0);
+    private _indexBuffer = new ArrayBuffer(0);
 
     constructor(runtime: Runtime) {
         this._runtime = runtime;
@@ -40,31 +41,56 @@ export class Line {
         this._thickness = thickness;
     }
 
+    private _updateBuffers(capacity: number): void {
+        const vertexBuffer = new ArrayBuffer(getVertexBufferSize(capacity));
+        const indexBuffer = new ArrayBuffer(getIndexBufferSize(capacity));
+        copyBuffer(this._vertexBuffer, vertexBuffer, Math.min(this._vertexBuffer.byteLength, vertexBuffer.byteLength));
+        copyBuffer(this._indexBuffer, indexBuffer, Math.min(this._indexBuffer.byteLength, indexBuffer.byteLength));
+        this._vertexBuffer = vertexBuffer;
+        this._indexBuffer = indexBuffer;
+        this._capacity = capacity;
+        this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
+        this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
+    }
+
+    private _grow(): void {
+        if (this._vertices.length > this._capacity) {
+            this._updateBuffers(this._capacity > 0 ? this._capacity * 2 : 4);
+        }
+    }
+
+    private _shrink(): void {
+        if (this._vertices.length < this._capacity / 4) {
+            this._updateBuffers(this._capacity > 4 ? this._capacity / 2 : 0);
+        }
+    }
+
+    private _writeSegments(): void {
+        const vertexCount = this._vertices.length;
+        writeVertices(this._vertexBuffer, this._vertices);
+        writeIndexes(this._indexBuffer, vertexCount);
+        const vertexDataSize = getVertexBufferSize(vertexCount);
+        const indexDataSize = getIndexBufferSize(vertexCount);
+        this._primitive.updateVertexData(this._vertexBuffer.slice(0, vertexDataSize));
+        this._primitive.updateIndexData(this._indexBuffer.slice(0, indexDataSize));
+        this._primitive.setIndexCount(indexDataSize / 2);
+    }
+
     addVertex(index: number, vertex: Vertex): void {
         this._vertices.splice(index, 0, { ...vertex });
-        writeVertices(this._vertexBuffer, this._vertices);
-        writeIndexes(this._indexBuffer, this._vertices.length);
-        this._primitive.updateVertexData(this._vertexBuffer);
-        this._primitive.updateIndexData(this._indexBuffer);
-        this._primitive.setIndexCount(getIndexBufferSize(this._vertices.length) / 2);
+        this._grow();
+        this._writeSegments();
     }
 
     removeVertex(index: number): void {
         this._vertices.splice(index, 1);
-        writeVertices(this._vertexBuffer, this._vertices);
-        writeIndexes(this._indexBuffer, this._vertices.length);
-        this._primitive.updateVertexData(this._vertexBuffer);
-        this._primitive.updateIndexData(this._indexBuffer);
-        this._primitive.setIndexCount(getIndexBufferSize(this._vertices.length) / 2);
+        this._shrink();
+        this._writeSegments();
     }
 
     updateVertex(index: number, vertex: Vertex): void {
-        this._vertices[index] = vertex;
-        writeVertices(this._vertexBuffer, this._vertices);
-        writeIndexes(this._indexBuffer, this._vertices.length);
-        this._primitive.updateVertexData(this._vertexBuffer);
-        this._primitive.updateIndexData(this._indexBuffer);
-        this._primitive.setIndexCount(getIndexBufferSize(this._vertices.length) / 2);
+        this._vertices[index] = { ...vertex };
+        this._writeSegments();
     }
 
     render(): void {
@@ -85,12 +111,12 @@ const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
 
 function getVertexBufferSize(vertexCount: number): number {
     // segments <- vertices - 1; 4 vertices per segment
-    return vertexCount > 0 ? schema.totalSize * (vertexCount - 1) * 4 : 0;
+    return vertexCount > 1 ? schema.totalSize * (vertexCount - 1) * 4 : 0;
 }
 
 function getIndexBufferSize(vertexCount: number): number {
     // segments <- vertices - 1; 6 indices per segment and 6 indices per segment join
-    return vertexCount > 0 ? 2 * 6 * (2 * (vertexCount - 1) - 1) : 0;
+    return vertexCount > 1 ? 2 * 6 * (2 * (vertexCount - 1) - 1) : 0;
 }
 
 const enum Location {
@@ -152,4 +178,10 @@ function writeSegmentIndexes(arr: Uint16Array, offset: number, vertexIndex: numb
     arr[offset + 3] = vertexIndex + 3;
     arr[offset + 4] = vertexIndex + 2;
     arr[offset + 5] = vertexIndex + 0;
+}
+
+function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer, byteLength: number): void {
+    const srcArr = new Uint8Array(src, 0, byteLength);
+    const dstArr = new Uint8Array(dst);
+    dstArr.set(srcArr);
 }

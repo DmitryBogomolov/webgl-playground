@@ -16,7 +16,6 @@ export type DESCRIPTION = never;
 // TODO:
 // - provide round join
 // - use kd tree
-// - add buffers reallocation
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
@@ -96,9 +95,12 @@ document.addEventListener('dblclick', (e: MouseEvent) => {
             return;
         }
         line.removeVertex(vertexIdx);
+        vertices.splice(vertexIdx, 1);
         runtime.requestRender();
     } else {
-        line.addVertex(line.length(), { position: px2ndc(coords), color: pickColor() });
+        const vertex: Vertex = { position: px2ndc(coords), color: pickColor() };
+        line.addVertex(line.length(), vertex);
+        vertices.splice(vertices.length, 0, vertex);
         runtime.requestRender();
     }
 });
@@ -137,7 +139,7 @@ function handleMove(e: PointerEvent): void {
         const v1 = ndc2px(vertices[targetSegmentIdx + 0].position);
         const v2 = ndc2px(vertices[targetSegmentIdx + 1].position);
         const dist = pointToLineDistance2(coords, v1, v2);
-        setThickness(dist * 2);
+        setThickness(dist * 2 | 0);
         runtime.requestRender();
     }
 }
