@@ -1,3 +1,6 @@
+// TODO: Find k nearest.
+// TODO: Find in radius.
+// https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf
 export class KDTree<T> {
     private readonly _axisFuncs: AxisFuncs<T>;
     private readonly _distFunc: DistFunc;
