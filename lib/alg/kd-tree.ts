@@ -7,6 +7,7 @@ type AxisFuncs<T> = ReadonlyArray<AxisFunc<T>>;
 
 interface KDNode<T> {
     readonly element: T;
+    readonly idx: number;
     readonly lChild: KDNode<T> | null;
     readonly rChild: KDNode<T> | null;
 }
@@ -16,11 +17,12 @@ interface SearchContext<T> {
     readonly distFunc: DistFunc;
     readonly target: T;
     bestDistance: number;
-    bestElement: T;
+    bestIndex: number;
 }
 
 interface KHeapItem<T> {
     readonly element: T;
+    readonly index: number;
     readonly distance: number;
 }
 
@@ -40,7 +42,25 @@ interface RadiusSearchContext<T> {
     readonly heap: BinaryHeap<KHeapItem<T>>;
 }
 
-// TODO: Return indexes? And distances?
+interface Proxy<T> {
+    readonly element: T;
+    readonly idx: number;
+}
+
+function makeProxyList<T>(elements: ReadonlyArray<T>): Proxy<T>[] {
+    const list: Proxy<T>[] = [];
+    list.length = elements.length;
+    for (let i = 0; i < elements.length; ++i) {
+        list[i] = { element: elements[i], idx: i };
+    }
+    return list;
+}
+
+export interface KDTreeSearchItem {
+    readonly index: number;
+    readonly distance: number;
+}
+
 // https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf
 export class KDTree<T> {
     private readonly _axisFuncs: AxisFuncs<T>;
@@ -50,10 +70,10 @@ export class KDTree<T> {
     constructor(elements: ReadonlyArray<T>, axisFuncs: AxisFuncs<T>, distFunc: DistFunc) {
         this._axisFuncs = axisFuncs;
         this._distFunc = distFunc;
-        this._root = makeNode(Array.from(elements), axisFuncs, 0);
+        this._root = makeNode(makeProxyList(elements), axisFuncs, 0);
     }
 
-    findNearest(target: T): T | null {
+    findNearest(target: T): KDTreeSearchItem | null {
         if (this._root === null) {
             return null;
         }
@@ -62,14 +82,14 @@ export class KDTree<T> {
             axisFuncs: this._axisFuncs,
             distFunc: this._distFunc,
             bestDistance: Number.MAX_VALUE,
-            bestElement: null as unknown as T,
+            bestIndex: -1,
         };
         findNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
-        return context.bestElement;
+        return { index: context.bestIndex, distance: context.bestDistance };
     }
 
-    findKNearest(target: T, count: number): T[] {
-        const list: T[] = [];
+    findKNearest(target: T, count: number): KDTreeSearchItem[] {
+        const list: KDTreeSearchItem[] = [];
         if (this._root === null || count < 1) {
             return list;
         }
@@ -84,13 +104,14 @@ export class KDTree<T> {
         findKNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
         list.length = heap.size();
         for (let i = list.length - 1; i >= 0; --i) {
-            list[i] = heap.pop().element;
+            const { index, distance } = heap.pop();
+            list[i] = { index, distance };
         }
         return list;
     }
 
-    findInRadius(target: T, radius: number): T[] {
-        const list: T[] = [];
+    findInRadius(target: T, radius: number): KDTreeSearchItem[] {
+        const list: KDTreeSearchItem[] = [];
         if (this._root === null || radius < 0) {
             return list;
         }
@@ -101,38 +122,41 @@ export class KDTree<T> {
             distFunc: this._distFunc,
             radius,
             heap,
-        }
+        };
         findInRadius(this._root, 0, initDistance(this._axisFuncs.length), context);
         list.length = heap.size();
         for (let i = list.length - 1; i >= 0; --i) {
-            list[i] = heap.pop().element;
+            const { index, distance } = heap.pop();
+            list[i] = { index, distance };
         }
         return list;
     }
 }
 
-function makeNode<T>(elements: T[], axisFuncs: AxisFuncs<T>, axis: number): KDNode<T> | null {
+function makeNode<T>(elements: Proxy<T>[], axisFuncs: AxisFuncs<T>, axis: number): KDNode<T> | null {
     if (elements.length === 0) {
         return null;
     }
     if (elements.length === 1) {
         return {
-            element: elements[0],
+            element: elements[0].element,
+            idx: elements[0].idx,
             lChild: null,
             rChild: null,
         };
     }
     const axisFunc = axisFuncs[axis];
-    elements.sort((lhs, rhs) => axisFunc(lhs) - axisFunc(rhs));
+    elements.sort((lhs, rhs) => axisFunc(lhs.element) - axisFunc(rhs.element));
     let center = elements.length >> 1;
-    while (center > 0 && axisFunc(elements[center - 1]) === axisFunc(elements[center])) {
+    while (center > 0 && axisFunc(elements[center - 1].element) === axisFunc(elements[center].element)) {
         --center;
     }
     const lList = elements.slice(0, center);
     const rList = elements.slice(center + 1);
     const nextAxis = (axis + 1) % axisFuncs.length;
     return {
-        element: elements[center],
+        element: elements[center].element,
+        idx: elements[center].idx,
         lChild: makeNode(lList, axisFuncs, nextAxis),
         rChild: makeNode(rList, axisFuncs, nextAxis),
     };
@@ -171,7 +195,7 @@ function findNearest<T>(
     const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
     if (targetToNodeDistance < context.bestDistance) {
         context.bestDistance = targetToNodeDistance;
-        context.bestElement = node.element;
+        context.bestIndex = node.idx;
     }
     const nextAxis = (axis + 1) % axisFuncs.length;
     const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
@@ -198,7 +222,7 @@ function findKNearest<T>(
         if (heap.size() === size) {
             heap.pop();
         }
-        heap.push({ element: node.element, distance: targetToNodeDistance });
+        heap.push({ element: node.element, index: node.idx, distance: targetToNodeDistance });
     }
     const nextAxis = (axis + 1) % axisFuncs.length;
     const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
@@ -222,7 +246,7 @@ function findInRadius<T>(
     }
     const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
     if (targetToNodeDistance <= radius) {
-        heap.push({ element: node.element, distance: targetToNodeDistance });
+        heap.push({ element: node.element, index: node.idx, distance: targetToNodeDistance });
     }
     const nextAxis = (axis + 1) % axisFuncs.length;
     const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);

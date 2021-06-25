@@ -1,4 +1,4 @@
-import { KDTree } from './kd-tree';
+import { KDTree, KDTreeSearchItem } from './kd-tree';
 
 describe('kd-tree', () => {
     describe('KDTree', () => {
@@ -25,26 +25,30 @@ describe('kd-tree', () => {
         it('find nearest point', () => {
             const tree = new KDTree(points, [getX, getY], getDist);
 
-            function check(target: Point, expected: Point): void {
-                expect(tree.findNearest(target)).toEqual(expected);
+            function check(target: Point, expected: number): void {
+                const item: KDTreeSearchItem = {
+                    index: expected,
+                    distance: getPointDist(target, points[expected]),
+                };
+                expect(tree.findNearest(target)).toEqual(item);
             }
 
             // close points
-            check({ x: 2, y: 10 }, points[0]);
-            check({ x: 10, y: 31 }, points[1]);
-            check({ x: 34, y: 91 }, points[2]);
-            check({ x: 52, y: 52 }, points[3]);
-            check({ x: 25, y: 40 }, points[4]);
-            check({ x: 50, y: 70 }, points[5]);
-            check({ x: 62, y: 78 }, points[6]);
-            check({ x: 53, y: 5 }, points[7]);
-            check({ x: 75, y: 75 }, points[8]);
+            check({ x: 2, y: 10 }, 0);
+            check({ x: 10, y: 31 }, 1);
+            check({ x: 34, y: 91 }, 2);
+            check({ x: 52, y: 52 }, 3);
+            check({ x: 25, y: 40 }, 4);
+            check({ x: 50, y: 70 }, 5);
+            check({ x: 62, y: 78 }, 6);
+            check({ x: 53, y: 5 }, 7);
+            check({ x: 75, y: 75 }, 8);
 
             // corner points
-            check({ x: 1, y: 99 }, points[2]);
-            check({ x: 1, y: 1 }, points[0]);
-            check({ x: 99, y: 1 }, points[7]);
-            check({ x: 99, y: 99 }, points[8]);
+            check({ x: 1, y: 99 }, 2);
+            check({ x: 1, y: 1 }, 0);
+            check({ x: 99, y: 1 }, 7);
+            check({ x: 99, y: 99 }, 8);
         });
 
         it('find nearest point / empty tree', () => {
@@ -58,33 +62,35 @@ describe('kd-tree', () => {
             const tree = new KDTree(points, [getX, getY], getDist);
 
             const target: Point = { x: 52, y: 52 };
-            const expected: Point[] = [];
+            const expected: number[] = [];
             function check(k: number): void {
-                expect(tree.findKNearest(target, k)).toEqual(expected);
-                for (let i = 1; i < expected.length; ++i) {
-                    const d1 = getPointDist(target, expected[i - 1]);
-                    const d2 = getPointDist(target, expected[i - 0]);
-                    expect(d1).toBeLessThan(d2);
+                const list: KDTreeSearchItem[] = expected.map((idx) => ({
+                    index: idx,
+                    distance: getPointDist(target, points[idx]),
+                }));
+                expect(tree.findKNearest(target, k)).toEqual(list);
+                for (let i = 1; i < list.length; ++i) {
+                    expect(list[i - 1].distance).toBeLessThan(list[i].distance);
                 }
             }
             check(0);
-            expected.push(points[3]);
+            expected.push(3);
             check(1);
-            expected.push(points[5]);
+            expected.push(5);
             check(2);
-            expected.push(points[8]);
+            expected.push(8);
             check(3);
-            expected.push(points[6]);
+            expected.push(6);
             check(4);
-            expected.push(points[4]);
+            expected.push(4);
             check(5);
-            expected.push(points[2]);
+            expected.push(2);
             check(6);
-            expected.push(points[1]);
+            expected.push(1);
             check(7);
-            expected.push(points[7]);
+            expected.push(7);
             check(8);
-            expected.push(points[0]);
+            expected.push(0);
             check(9);
 
             check(10);
@@ -101,36 +107,37 @@ describe('kd-tree', () => {
             const tree = new KDTree(points, [getX, getY], getDist);
 
             const target: Point = { x: 50, y: 50 };
-            const expected: Point[] = [];
+            const expected: number[] = [];
             function check(radius: number): void {
-                expect(tree.findInRadius(target, radius)).toEqual(expected);
-                for (const p of expected) {
-                    const d = getPointDist(target, p);
-                    expect(d).toBeLessThanOrEqual(radius);
+                const list: KDTreeSearchItem[] = expected.map((idx) => ({
+                    index: idx,
+                    distance: getPointDist(target, points[idx]),
+                }));
+                expect(tree.findInRadius(target, radius)).toEqual(list);
+                for (const item of list) {
+                    expect(item.distance).toBeLessThanOrEqual(radius);
                 }
-                for (let i = 1; i < expected.length; ++i) {
-                    const d1 = getPointDist(target, expected[i - 1]);
-                    const d2 = getPointDist(target, expected[i - 0]);
-                    expect(d1).toBeLessThan(d2);
+                for (let i = 1; i < list.length; ++i) {
+                    expect(list[i - 1].distance).toBeLessThan(list[i].distance);
                 }
             }
 
             check(-1);
-            expected.push(points[3]);
+            expected.push(3);
             check(0);
             check(100);
-            expected.push(points[5]);
+            expected.push(5);
             check(626);
             check(700);
-            expected.push(points[4]);
+            expected.push(4);
             check(725);
-            expected.push(points[8], points[6]);
+            expected.push(8, 6);
             check(1200);
-            expected.push(points[2]);
+            expected.push(2);
             check(1825);
-            expected.push(points[1], points[7]);
+            expected.push(1, 7);
             check(2500);
-            expected.push(points[0])
+            expected.push(0);
             check(5000);
             check(10000);
         });
