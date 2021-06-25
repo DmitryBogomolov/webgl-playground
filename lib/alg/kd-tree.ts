@@ -1,5 +1,6 @@
 export type AxisFunc<T> = (element: T) => number;
-export type DistFunc = (axes: ReadonlyArray<number>) => number;
+export type Distance = ReadonlyArray<number>;
+export type DistFunc = (distance: Distance) => number;
 type AxisFuncs<T> = ReadonlyArray<AxisFunc<T>>;
 
 interface KDNode<T> {
@@ -34,8 +35,6 @@ export class KDTree<T> {
         if (this._root === null) {
             return null;
         }
-        const distance = new Array(this._axisFuncs.length);
-        distance.fill(0);
         const context: SearchContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
@@ -43,7 +42,7 @@ export class KDTree<T> {
             bestDistance: Number.MAX_VALUE,
             bestElement: null as unknown as T,
         };
-        findNearest(this._root, 0, distance, context);
+        findNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
         return context.bestElement;
     }
 }
@@ -75,6 +74,16 @@ function makeNode<T>(elements: T[], axisFuncs: AxisFuncs<T>, axis: number): KDNo
     };
 }
 
+function initDistance(axes: number): Distance {
+    return new Array<number>(axes).fill(0);
+}
+
+function updateDistance(distance: Distance, axis: number, delta: number): Distance {
+    const copy = distance.slice();
+    copy[axis] += delta;
+    return copy;
+}
+
 function getDistance<T>(p1: T, p2: T, axisFuncs: AxisFuncs<T>, distFunc: DistFunc): number {
     const dist: number[] = [];
     for (let i = 0; i < axisFuncs.length; ++i) {
@@ -85,7 +94,7 @@ function getDistance<T>(p1: T, p2: T, axisFuncs: AxisFuncs<T>, distFunc: DistFun
 }
 
 function findNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: ReadonlyArray<number>, context: SearchContext<T>,
+    node: KDNode<T> | null, axis: number, distance: Distance, context: SearchContext<T>,
 ): void {
     if (node === null) {
         return;
@@ -102,15 +111,9 @@ function findNearest<T>(
     }
     const nextAxis = (axis + 1) % axisFuncs.length;
     const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
-    const lDist = distance.slice();
-    const rDist = distance.slice();
-    if (axisDist < 0) {
-        rDist[axis] -= axisDist;
-        findNearest(node.lChild, nextAxis, lDist, context);
-        findNearest(node.rChild, nextAxis, rDist, context);
-    } else {
-        lDist[axis] += axisDist;
-        findNearest(node.rChild, nextAxis, rDist, context);
-        findNearest(node.lChild, nextAxis, lDist, context);
-    }
+    const isLeft = axisDist < 0;
+    const lDist = isLeft ? distance : updateDistance(distance, axis, +axisDist);
+    const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
+    findNearest(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
+    findNearest(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
 }
