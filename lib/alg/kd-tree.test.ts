@@ -58,7 +58,7 @@ describe('kd-tree', () => {
             expect(tree.findNearest({ x: 99, y: 99 })).toEqual(null);
         });
 
-        it('find K nearest points', () => {
+        it('find many nearest points', () => {
             const tree = new KDTree(points, [getX, getY], getDist);
 
             const target: Point = { x: 52, y: 52 };
@@ -68,7 +68,7 @@ describe('kd-tree', () => {
                     index: idx,
                     distance: getPointDist(target, points[idx]),
                 }));
-                expect(tree.findKNearest(target, k)).toEqual(list);
+                expect(tree.findNearestMany(target, k)).toEqual(list);
                 for (let i = 1; i < list.length; ++i) {
                     expect(list[i - 1].distance).toBeLessThan(list[i].distance);
                 }
@@ -97,10 +97,10 @@ describe('kd-tree', () => {
             check(100);
         });
 
-        it('find K nearest points / empty tree', () => {
+        it('find many nearest points / empty tree', () => {
             const tree = new KDTree([], [getX, getY], getDist);
 
-            expect(tree.findKNearest({ x: 52, y: 52 }, 1)).toEqual([]);
+            expect(tree.findNearestMany({ x: 52, y: 52 }, 1)).toEqual([]);
         });
 
         it('find in radius', () => {

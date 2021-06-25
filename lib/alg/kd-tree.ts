@@ -12,48 +12,36 @@ interface KDNode<T> {
     readonly rChild: KDNode<T> | null;
 }
 
-interface SearchContext<T> {
+interface BaseContext<T> {
     readonly axisFuncs: AxisFuncs<T>;
     readonly distFunc: DistFunc;
     readonly target: T;
-    bestDistance: number;
-    bestIndex: number;
 }
 
-interface KHeapItem<T> {
+interface NearestContext<T> extends BaseContext<T> {
+    bestIndex: number;
+    bestDistance: number;
+}
+
+interface HeapItem<T> {
     readonly element: T;
     readonly index: number;
     readonly distance: number;
 }
 
-interface KSearchContext<T> {
-    readonly axisFuncs: AxisFuncs<T>;
-    readonly distFunc: DistFunc;
-    readonly target: T;
+interface NearestManyContext<T> extends BaseContext<T> {
     readonly size: number;
-    readonly heap: BinaryHeap<KHeapItem<T>>;
+    readonly heap: BinaryHeap<HeapItem<T>>;
 }
 
-interface RadiusSearchContext<T> {
-    readonly axisFuncs: AxisFuncs<T>;
-    readonly distFunc: DistFunc;
-    readonly target: T;
+interface InRadiusContext<T> extends BaseContext<T> {
     readonly radius: number;
-    readonly heap: BinaryHeap<KHeapItem<T>>;
+    readonly heap: BinaryHeap<HeapItem<T>>;
 }
 
 interface Proxy<T> {
     readonly element: T;
     readonly idx: number;
-}
-
-function makeProxyList<T>(elements: ReadonlyArray<T>): Proxy<T>[] {
-    const list: Proxy<T>[] = [];
-    list.length = elements.length;
-    for (let i = 0; i < elements.length; ++i) {
-        list[i] = { element: elements[i], idx: i };
-    }
-    return list;
 }
 
 export interface KDTreeSearchItem {
@@ -77,24 +65,24 @@ export class KDTree<T> {
         if (this._root === null) {
             return null;
         }
-        const context: SearchContext<T> = {
+        const context: NearestContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
             distFunc: this._distFunc,
-            bestDistance: Number.MAX_VALUE,
             bestIndex: -1,
+            bestDistance: Number.MAX_VALUE,
         };
         findNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
         return { index: context.bestIndex, distance: context.bestDistance };
     }
 
-    findKNearest(target: T, count: number): KDTreeSearchItem[] {
+    findNearestMany(target: T, count: number): KDTreeSearchItem[] {
         const list: KDTreeSearchItem[] = [];
         if (this._root === null || count < 1) {
             return list;
         }
-        const heap = new BinaryHeap<KHeapItem<T>>((a, b) => a.distance > b.distance);
-        const context: KSearchContext<T> = {
+        const heap = new BinaryHeap<HeapItem<T>>((a, b) => a.distance > b.distance);
+        const context: NearestManyContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
             distFunc: this._distFunc,
@@ -115,8 +103,8 @@ export class KDTree<T> {
         if (this._root === null || radius < 0) {
             return list;
         }
-        const heap = new BinaryHeap<KHeapItem<T>>((a, b) => a.distance > b.distance);
-        const context: RadiusSearchContext<T> = {
+        const heap = new BinaryHeap<HeapItem<T>>((a, b) => a.distance > b.distance);
+        const context: InRadiusContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
             distFunc: this._distFunc,
@@ -131,6 +119,15 @@ export class KDTree<T> {
         }
         return list;
     }
+}
+
+function makeProxyList<T>(elements: ReadonlyArray<T>): Proxy<T>[] {
+    const list: Proxy<T>[] = [];
+    list.length = elements.length;
+    for (let i = 0; i < elements.length; ++i) {
+        list[i] = { element: elements[i], idx: i };
+    }
+    return list;
 }
 
 function makeNode<T>(elements: Proxy<T>[], axisFuncs: AxisFuncs<T>, axis: number): KDNode<T> | null {
@@ -182,7 +179,7 @@ function getDistance<T>(p1: T, p2: T, axisFuncs: AxisFuncs<T>, distFunc: DistFun
 }
 
 function findNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: Distance, context: SearchContext<T>,
+    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestContext<T>,
 ): void {
     if (node === null) {
         return;
@@ -207,7 +204,7 @@ function findNearest<T>(
 }
 
 function findKNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: Distance, context: KSearchContext<T>,
+    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestManyContext<T>,
 ): void {
     if (node === null) {
         return;
@@ -234,7 +231,7 @@ function findKNearest<T>(
 }
 
 function findInRadius<T>(
-    node: KDNode<T> | null, axis: number, distance: Distance, context: RadiusSearchContext<T>,
+    node: KDNode<T> | null, axis: number, distance: Distance, context: InRadiusContext<T>,
 ): void {
     if (node === null) {
         return;
