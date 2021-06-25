@@ -30,10 +30,16 @@ interface KSearchContext<T> {
     readonly target: T;
     readonly size: number;
     readonly heap: BinaryHeap<KHeapItem<T>>;
-    bestDistance: number;
 }
 
-// TODO: Find in radius.
+interface RadiusSearchContext<T> {
+    readonly axisFuncs: AxisFuncs<T>;
+    readonly distFunc: DistFunc;
+    readonly target: T;
+    readonly radius: number;
+    readonly heap: BinaryHeap<KHeapItem<T>>;
+}
+
 // TODO: Return indexes? And distances?
 // https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf
 export class KDTree<T> {
@@ -67,18 +73,39 @@ export class KDTree<T> {
         if (this._root === null || count < 1) {
             return list;
         }
+        const heap = new BinaryHeap<KHeapItem<T>>((a, b) => a.distance > b.distance);
         const context: KSearchContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
             distFunc: this._distFunc,
             size: count,
-            heap: new BinaryHeap((a, b) => a.distance > b.distance),
-            bestDistance: Number.MAX_VALUE,
+            heap,
         };
         findKNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
-        list.length = context.heap.size();
+        list.length = heap.size();
         for (let i = list.length - 1; i >= 0; --i) {
-            list[i] = context.heap.pop().element;
+            list[i] = heap.pop().element;
+        }
+        return list;
+    }
+
+    findInRadius(target: T, radius: number): T[] {
+        const list: T[] = [];
+        if (this._root === null || radius < 0) {
+            return list;
+        }
+        const heap = new BinaryHeap<KHeapItem<T>>((a, b) => a.distance > b.distance);
+        const context: RadiusSearchContext<T> = {
+            target,
+            axisFuncs: this._axisFuncs,
+            distFunc: this._distFunc,
+            radius,
+            heap,
+        }
+        findInRadius(this._root, 0, initDistance(this._axisFuncs.length), context);
+        list.length = heap.size();
+        for (let i = list.length - 1; i >= 0; --i) {
+            list[i] = heap.pop().element;
         }
         return list;
     }
@@ -180,4 +207,28 @@ function findKNearest<T>(
     const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
     findKNearest(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
     findKNearest(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
+}
+
+function findInRadius<T>(
+    node: KDNode<T> | null, axis: number, distance: Distance, context: RadiusSearchContext<T>,
+): void {
+    if (node === null) {
+        return;
+    }
+    const { target, axisFuncs, distFunc, radius, heap } = context;
+    const targetToBoxDistance = distFunc(distance);
+    if (targetToBoxDistance > radius) {
+        return;
+    }
+    const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
+    if (targetToNodeDistance <= radius) {
+        heap.push({ element: node.element, distance: targetToNodeDistance });
+    }
+    const nextAxis = (axis + 1) % axisFuncs.length;
+    const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
+    const isLeft = axisDist < 0;
+    const lDist = isLeft ? distance : updateDistance(distance, axis, +axisDist);
+    const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
+    findInRadius(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
+    findInRadius(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
 }

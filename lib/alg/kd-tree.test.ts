@@ -9,6 +9,7 @@ describe('kd-tree', () => {
         const getX = (point: Point): number => point.x;
         const getY = (point: Point): number => point.y;
         const getDist = (axes: readonly number[]): number => axes[0] * axes[0] + axes[1] * axes[1];
+        const getPointDist = (p1: Point, p2: Point): number => getDist([p1.x - p2.x, p1.y - p2.y]);
         const points: Point[] = [
             { x: 1, y: 10 },
             { x: 10, y: 30 },
@@ -60,6 +61,11 @@ describe('kd-tree', () => {
             const expected: Point[] = [];
             function check(k: number): void {
                 expect(tree.findKNearest(target, k)).toEqual(expected);
+                for (let i = 1; i < expected.length; ++i) {
+                    const d1 = getPointDist(target, expected[i - 1]);
+                    const d2 = getPointDist(target, expected[i - 0]);
+                    expect(d1).toBeLessThan(d2);
+                }
             }
             check(0);
             expected.push(points[3]);
@@ -83,22 +89,56 @@ describe('kd-tree', () => {
 
             check(10);
             check(100);
-
-            function getDistToTarget(p: Point): number {
-                return getDist([p.x - target.x, p.y - target.y]);
-            }
-
-            for (let i = 1; i < expected.length; ++i) {
-                const dist1 = getDistToTarget(expected[i - 1]);
-                const dist2 = getDistToTarget(expected[i - 0]);
-                expect(dist1).toBeLessThan(dist2);
-            }
         });
 
         it('find K nearest points / empty tree', () => {
             const tree = new KDTree([], [getX, getY], getDist);
 
             expect(tree.findKNearest({ x: 52, y: 52 }, 1)).toEqual([]);
+        });
+
+        it('find in radius', () => {
+            const tree = new KDTree(points, [getX, getY], getDist);
+
+            const target: Point = { x: 50, y: 50 };
+            const expected: Point[] = [];
+            function check(radius: number): void {
+                expect(tree.findInRadius(target, radius)).toEqual(expected);
+                for (const p of expected) {
+                    const d = getPointDist(target, p);
+                    expect(d).toBeLessThanOrEqual(radius);
+                }
+                for (let i = 1; i < expected.length; ++i) {
+                    const d1 = getPointDist(target, expected[i - 1]);
+                    const d2 = getPointDist(target, expected[i - 0]);
+                    expect(d1).toBeLessThan(d2);
+                }
+            }
+
+            check(-1);
+            expected.push(points[3]);
+            check(0);
+            check(100);
+            expected.push(points[5]);
+            check(626);
+            check(700);
+            expected.push(points[4]);
+            check(725);
+            expected.push(points[8], points[6]);
+            check(1200);
+            expected.push(points[2]);
+            check(1825);
+            expected.push(points[1], points[7]);
+            check(2500);
+            expected.push(points[0])
+            check(5000);
+            check(10000);
+        });
+
+        it('find in radius / empty tree', () => {
+            const tree = new KDTree([], [getX, getY], getDist);
+
+            expect(tree.findInRadius({ x: 50, y: 50 }, 1000)).toEqual([]);
         });
     });
 });
