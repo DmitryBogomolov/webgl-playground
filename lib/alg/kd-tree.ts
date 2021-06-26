@@ -55,7 +55,7 @@ export class KDTree<T> {
     private readonly _distFunc: DistFunc;
     private readonly _root: KDNode<T> | null;
 
-    constructor(elements: ReadonlyArray<T>, axisFuncs: AxisFuncs<T>, distFunc: DistFunc) {
+    constructor(elements: ReadonlyArray<T>, axisFuncs: AxisFuncs<T>, distFunc: DistFunc = defaultDist) {
         this._axisFuncs = axisFuncs;
         this._distFunc = distFunc;
         this._root = makeNode(makeProxyList(elements), axisFuncs, 0);
@@ -107,6 +107,14 @@ export class KDTree<T> {
         findInRadius(this._root, 0, initDistance(this._axisFuncs.length), context);
         return heapToList(heap);
     }
+}
+
+function defaultDist(axes: Distance): number {
+    let dist = 0;
+    for (let i = 0; i < axes.length; ++i) {
+        dist += axes[i] ** 2;
+    }
+    return dist;
 }
 
 function makeProxyList<T>(elements: ReadonlyArray<T>): Proxy<T>[] {
