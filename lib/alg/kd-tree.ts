@@ -7,7 +7,7 @@ type AxisFuncs<T> = ReadonlyArray<AxisFunc<T>>;
 
 interface KDNode<T> {
     readonly element: T;
-    readonly idx: number;
+    readonly index: number;
     readonly lChild: KDNode<T> | null;
     readonly rChild: KDNode<T> | null;
 }
@@ -77,11 +77,10 @@ export class KDTree<T> {
     }
 
     findNearestMany(target: T, count: number): KDTreeSearchItem[] {
-        const list: KDTreeSearchItem[] = [];
         if (this._root === null || count < 1) {
-            return list;
+            return [];
         }
-        const heap = new BinaryHeap<HeapItem<T>>((a, b) => a.distance > b.distance);
+        const heap = makeHeap<T>();
         const context: NearestManyContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
@@ -89,21 +88,15 @@ export class KDTree<T> {
             size: count,
             heap,
         };
-        findKNearest(this._root, 0, initDistance(this._axisFuncs.length), context);
-        list.length = heap.size();
-        for (let i = list.length - 1; i >= 0; --i) {
-            const { index, distance } = heap.pop();
-            list[i] = { index, distance };
-        }
-        return list;
+        findNearestMany(this._root, 0, initDistance(this._axisFuncs.length), context);
+        return heapToList(heap);
     }
 
     findInRadius(target: T, radius: number): KDTreeSearchItem[] {
-        const list: KDTreeSearchItem[] = [];
         if (this._root === null || radius < 0) {
-            return list;
+            return [];
         }
-        const heap = new BinaryHeap<HeapItem<T>>((a, b) => a.distance > b.distance);
+        const heap = makeHeap<T>();
         const context: InRadiusContext<T> = {
             target,
             axisFuncs: this._axisFuncs,
@@ -112,12 +105,7 @@ export class KDTree<T> {
             heap,
         };
         findInRadius(this._root, 0, initDistance(this._axisFuncs.length), context);
-        list.length = heap.size();
-        for (let i = list.length - 1; i >= 0; --i) {
-            const { index, distance } = heap.pop();
-            list[i] = { index, distance };
-        }
-        return list;
+        return heapToList(heap);
     }
 }
 
@@ -137,7 +125,7 @@ function makeNode<T>(elements: Proxy<T>[], axisFuncs: AxisFuncs<T>, axis: number
     if (elements.length === 1) {
         return {
             element: elements[0].element,
-            idx: elements[0].idx,
+            index: elements[0].idx,
             lChild: null,
             rChild: null,
         };
@@ -153,7 +141,7 @@ function makeNode<T>(elements: Proxy<T>[], axisFuncs: AxisFuncs<T>, axis: number
     const nextAxis = (axis + 1) % axisFuncs.length;
     return {
         element: elements[center].element,
-        idx: elements[center].idx,
+        index: elements[center].idx,
         lChild: makeNode(lList, axisFuncs, nextAxis),
         rChild: makeNode(rList, axisFuncs, nextAxis),
     };
@@ -169,6 +157,10 @@ function updateDistance(distance: Distance, axis: number, delta: number): Distan
     return copy;
 }
 
+function makeHeap<T>(): BinaryHeap<HeapItem<T>> {
+    return new BinaryHeap((lhs, rhs) => lhs.distance > rhs.distance);
+}
+
 function getDistance<T>(p1: T, p2: T, axisFuncs: AxisFuncs<T>, distFunc: DistFunc): number {
     const dist: number[] = [];
     for (let i = 0; i < axisFuncs.length; ++i) {
@@ -178,78 +170,90 @@ function getDistance<T>(p1: T, p2: T, axisFuncs: AxisFuncs<T>, distFunc: DistFun
     return distFunc(dist);
 }
 
-function findNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestContext<T>,
+type CheckNodeBoxFunc<T, K extends BaseContext<T>> = (boxDist: number, context: K) => boolean;
+type VisitNodeFunc<T, K extends BaseContext<T>> = (node: KDNode<T>, nodeDist: number, context: K) => void;
+
+function walkTree<T, K extends BaseContext<T>>(
+    node: KDNode<T> | null, axis: number, distance: Distance, context: K,
+    checkNodeBox: CheckNodeBoxFunc<T, K>, visitNode: VisitNodeFunc<T, K>,
 ): void {
     if (node === null) {
         return;
     }
     const { target, axisFuncs, distFunc } = context;
     const targetToBoxDistance = distFunc(distance);
-    if (targetToBoxDistance > context.bestDistance) {
+    if (checkNodeBox(targetToBoxDistance, context)) {
         return;
     }
     const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
-    if (targetToNodeDistance < context.bestDistance) {
-        context.bestDistance = targetToNodeDistance;
-        context.bestIndex = node.idx;
-    }
+    visitNode(node, targetToNodeDistance, context);
     const nextAxis = (axis + 1) % axisFuncs.length;
     const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
     const isLeft = axisDist < 0;
     const lDist = isLeft ? distance : updateDistance(distance, axis, +axisDist);
     const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
-    findNearest(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
-    findNearest(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
+    walkTree(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context, checkNodeBox, visitNode);
+    walkTree(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context, checkNodeBox, visitNode);
 }
 
-function findKNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestManyContext<T>,
+function checkNodeBoxNearest<T>(boxDistance: number, { bestDistance }: NearestContext<T>): boolean {
+    return boxDistance > bestDistance;
+}
+
+function visitNodeNearest<T>(node: KDNode<T>, nodeDistance: number, context: NearestContext<T>): void {
+    if (nodeDistance < context.bestDistance) {
+        context.bestDistance = nodeDistance;
+        context.bestIndex = node.index;
+    }
+}
+
+function findNearest<T>(
+    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestContext<T>,
 ): void {
-    if (node === null) {
-        return;
-    }
-    const { target, axisFuncs, distFunc, heap, size } = context;
-    const targetToBoxDistance = distFunc(distance);
-    if (heap.size() === size && targetToBoxDistance > heap.peek().distance) {
-        return;
-    }
-    const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
-    if (heap.size() < size || targetToNodeDistance < heap.peek().distance) {
+    walkTree(node, axis, distance, context, checkNodeBoxNearest, visitNodeNearest);
+}
+
+function checkNodeBoxNearestMany<T>(boxDistance: number, { heap, size }: NearestManyContext<T>): boolean {
+    return heap.size() === size && boxDistance > heap.peek().distance;
+}
+
+function visitNodeNearestMany<T>(node: KDNode<T>, nodeDistance: number, { heap, size }: NearestManyContext<T>): void {
+    if (heap.size() < size || nodeDistance < heap.peek().distance) {
         if (heap.size() === size) {
             heap.pop();
         }
-        heap.push({ element: node.element, index: node.idx, distance: targetToNodeDistance });
+        heap.push({ element: node.element, index: node.index, distance: nodeDistance });
     }
-    const nextAxis = (axis + 1) % axisFuncs.length;
-    const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
-    const isLeft = axisDist < 0;
-    const lDist = isLeft ? distance : updateDistance(distance, axis, +axisDist);
-    const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
-    findKNearest(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
-    findKNearest(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
+}
+
+function findNearestMany<T>(
+    node: KDNode<T> | null, axis: number, distance: Distance, context: NearestManyContext<T>,
+): void {
+    walkTree(node, axis, distance, context, checkNodeBoxNearestMany, visitNodeNearestMany);
+}
+
+function checkNodeBoxInRadius<T>(boxDistance: number, { radius }: InRadiusContext<T>): boolean {
+    return boxDistance > radius;
+}
+
+function visitNodeInRadius<T>(node: KDNode<T>, nodeDistance: number, { heap, radius }: InRadiusContext<T>): void {
+    if (nodeDistance <= radius) {
+        heap.push({ element: node.element, index: node.index, distance: nodeDistance });
+    }
 }
 
 function findInRadius<T>(
     node: KDNode<T> | null, axis: number, distance: Distance, context: InRadiusContext<T>,
 ): void {
-    if (node === null) {
-        return;
+    walkTree(node, axis, distance, context, checkNodeBoxInRadius, visitNodeInRadius);
+}
+
+function heapToList<T>(heap: BinaryHeap<HeapItem<T>>): KDTreeSearchItem[] {
+    const list: KDTreeSearchItem[] = [];
+    list.length = heap.size();
+    for (let i = list.length - 1; i >= 0; --i) {
+        const { index, distance } = heap.pop();
+        list[i] = { index, distance };
     }
-    const { target, axisFuncs, distFunc, radius, heap } = context;
-    const targetToBoxDistance = distFunc(distance);
-    if (targetToBoxDistance > radius) {
-        return;
-    }
-    const targetToNodeDistance = getDistance(target, node.element, axisFuncs, distFunc);
-    if (targetToNodeDistance <= radius) {
-        heap.push({ element: node.element, index: node.idx, distance: targetToNodeDistance });
-    }
-    const nextAxis = (axis + 1) % axisFuncs.length;
-    const axisDist = axisFuncs[axis](target) - axisFuncs[axis](node.element);
-    const isLeft = axisDist < 0;
-    const lDist = isLeft ? distance : updateDistance(distance, axis, +axisDist);
-    const rDist = isLeft ? updateDistance(distance, axis, -axisDist) : distance;
-    findInRadius(isLeft ? node.lChild : node.rChild, nextAxis, isLeft ? lDist : rDist, context);
-    findInRadius(isLeft ? node.rChild : node.lChild, nextAxis, isLeft ? rDist : lDist, context);
+    return list;
 }
