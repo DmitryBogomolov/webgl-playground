@@ -83,7 +83,7 @@ let tree: SearchTree;
 updateTree();
 
 function updateTree(): void {
-    tree = makeSearchTree(vertices);
+    tree = makeSearchTree(vertices, runtime);
 }
 
 const VERTEX_THRESHOLD = 16;
