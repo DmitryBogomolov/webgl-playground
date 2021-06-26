@@ -1,4 +1,4 @@
-export { logSilenced } from './utils/logger';
+export { logSilenced, Logger } from './utils/logger';
 export { generateDefaultIndexes } from './utils/indexes-generator';
 export { makeEventCoordsGetter, GetEventCoordsFunc } from './utils/pointer-event';
 export { memoize } from './utils/memoizer';

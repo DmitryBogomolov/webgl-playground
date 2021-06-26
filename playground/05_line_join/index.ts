@@ -14,7 +14,6 @@ import { SearchTree, makeSearchTree } from './utils';
 export type DESCRIPTION = never;
 
 // TODO: Provide round join.
-// TODO: Do not store vertices in Line.
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
@@ -54,9 +53,7 @@ function setThickness(value: number): void {
 
 const runtime = new Runtime(container);
 const line = new Line(runtime);
-for (const vertex of vertices) {
-    line.addVertex(line.length(), vertex);
-}
+line.setVertices(vertices);
 runtime.onRender(() => {
     runtime.clearColorBuffer();
     line.render();
@@ -100,15 +97,14 @@ container.addEventListener('dblclick', (e: MouseEvent) => {
         if (vertices.length <= 2) {
             return;
         }
-        line.removeVertex(vertexIdx);
         vertices.splice(vertexIdx, 1);
         updateTree();
+        line.setVertices(vertices);
         runtime.requestRender();
     } else {
-        const vertex: Vertex = { position: px2ndc(coords), color: pickColor() };
-        line.addVertex(line.length(), vertex);
-        vertices.splice(vertices.length, 0, vertex);
+        vertices.splice(vertices.length, 0, { position: px2ndc(coords), color: pickColor() });
         updateTree();
+        line.setVertices(vertices);
         runtime.requestRender();
     }
 });
@@ -141,8 +137,9 @@ function handleMove(e: PointerEvent): void {
             x: clamp(coords.x, 0, container.clientWidth),
             y: clamp(coords.y, 0, container.clientHeight),
         });
-        line.updateVertex(motionVertexIdx, vertices[motionVertexIdx]);
         updateTree();
+        // TODO: Update only part?
+        line.setVertices(vertices);
         runtime.requestRender();
     } else if (thicknessVertexIdx >= 0) {
         const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));

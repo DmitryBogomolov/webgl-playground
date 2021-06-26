@@ -1,5 +1,5 @@
 import {
-    Runtime, Primitive, Program, VertexWriter,
+    Runtime, Primitive, Program, VertexWriter, Logger,
     Vec2, UniformValue, AttrValue,
     parseVertexSchema, memoize, color2arr,
 } from 'lib';
@@ -8,7 +8,7 @@ import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
 export class Line {
-    private readonly _vertices: Vertex[] = [];
+    private readonly _logger = new Logger('Line');
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
@@ -33,15 +33,12 @@ export class Line {
         this._primitive.dispose();
     }
 
-    length(): number {
-        return this._vertices.length;
-    }
-
     setThickness(thickness: number): void {
         this._thickness = thickness;
     }
 
     private _updateBuffers(capacity: number): void {
+        this._logger.log('reallocate: {0}', capacity);
         const vertexBuffer = new ArrayBuffer(getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(getIndexBufferSize(capacity));
         copyBuffer(this._vertexBuffer, vertexBuffer, Math.min(this._vertexBuffer.byteLength, vertexBuffer.byteLength));
@@ -53,21 +50,9 @@ export class Line {
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
     }
 
-    private _grow(): void {
-        if (this._vertices.length > this._capacity) {
-            this._updateBuffers(this._capacity > 0 ? this._capacity * 2 : 4);
-        }
-    }
-
-    private _shrink(): void {
-        if (this._vertices.length < this._capacity / 4) {
-            this._updateBuffers(this._capacity > 4 ? this._capacity / 2 : 0);
-        }
-    }
-
-    private _writeSegments(): void {
-        const vertexCount = this._vertices.length;
-        writeVertices(this._vertexBuffer, this._vertices);
+    private _writeSegments(vertices: ReadonlyArray<Vertex>): void {
+        const vertexCount = vertices.length;
+        writeVertices(this._vertexBuffer, vertices);
         writeIndexes(this._indexBuffer, vertexCount);
         const vertexDataSize = getVertexBufferSize(vertexCount);
         const indexDataSize = getIndexBufferSize(vertexCount);
@@ -76,21 +61,18 @@ export class Line {
         this._primitive.setIndexCount(indexDataSize / 2);
     }
 
-    addVertex(index: number, vertex: Vertex): void {
-        this._vertices.splice(index, 0, { ...vertex });
-        this._grow();
-        this._writeSegments();
-    }
-
-    removeVertex(index: number): void {
-        this._vertices.splice(index, 1);
-        this._shrink();
-        this._writeSegments();
-    }
-
-    updateVertex(index: number, vertex: Vertex): void {
-        this._vertices[index] = { ...vertex };
-        this._writeSegments();
+    setVertices(vertices: ReadonlyArray<Vertex>): void {
+        let capacity = -1;
+        const vertexCount = vertices.length;
+        if (vertexCount > this._capacity) {
+            capacity = this._capacity > 0 ? this._capacity << 1 : 4;
+        } else if (vertexCount < this._capacity / 4) {
+            capacity = this._capacity > 4 ? this._capacity >> 1 : 0;
+        }
+        if (capacity >= 0) {
+            this._updateBuffers(capacity);
+        }
+        this._writeSegments(vertices);
     }
 
     render(): void {
