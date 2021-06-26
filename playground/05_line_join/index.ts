@@ -6,16 +6,15 @@ import {
 } from 'lib';
 import { Vertex } from './vertex';
 import { Line } from './line';
-import { findNearestVertex, pickOtherVertex } from './utils';
+import { SearchTree, makeSearchTree, pickOtherVertex } from './utils';
 
 /**
  * Bevel line join.
  */
 export type DESCRIPTION = never;
 
-// TODO:
-// - provide round join
-// - use kd tree
+// TODO: Provide round join.
+// TODO: Do not store vertices in Line.
 
 const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
 
@@ -80,14 +79,21 @@ function px2ndc(px: Vec2): Vec2 {
 let targetVertexIdx: number = -1;
 let targetSegmentIdx: number = -1;
 
+let tree: SearchTree;
+updateTree();
+
+function updateTree(): void {
+    tree = makeSearchTree(vertices);
+}
+
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
 
-document.addEventListener('dblclick', (e: MouseEvent) => {
+container.addEventListener('dblclick', (e: MouseEvent) => {
     e.preventDefault();
 
     const coords = getEventCoord(e);
-    const vertexIdx = findNearestVertex(vertices, coords, ndc2px);
+    const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
     const vertexCoords = ndc2px(vertices[vertexIdx].position);
     const dist = dist2(vertexCoords, coords);
     if (dist <= VERTEX_THRESHOLD) {
@@ -96,11 +102,13 @@ document.addEventListener('dblclick', (e: MouseEvent) => {
         }
         line.removeVertex(vertexIdx);
         vertices.splice(vertexIdx, 1);
+        updateTree();
         runtime.requestRender();
     } else {
         const vertex: Vertex = { position: px2ndc(coords), color: pickColor() };
         line.addVertex(line.length(), vertex);
         vertices.splice(vertices.length, 0, vertex);
+        updateTree();
         runtime.requestRender();
     }
 });
@@ -112,7 +120,7 @@ function handleDown(e: PointerEvent): void {
     document.addEventListener('pointercancel', handleUp);
 
     const coords = getEventCoord(e);
-    const vertexIdx = findNearestVertex(vertices, coords, ndc2px);
+    const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
     const vertexCoords = ndc2px(vertices[vertexIdx].position);
     const dist = dist2(vertexCoords, coords);
     if (dist <= VERTEX_THRESHOLD) {
@@ -134,6 +142,7 @@ function handleMove(e: PointerEvent): void {
     if (targetVertexIdx >= 0) {
         vertices[targetVertexIdx].position = px2ndc(coords);
         line.updateVertex(targetVertexIdx, vertices[targetVertexIdx]);
+        updateTree();
         runtime.requestRender();
     } else if (targetSegmentIdx >= 0) {
         const v1 = ndc2px(vertices[targetSegmentIdx + 0].position);
