@@ -137,10 +137,17 @@ function handleDown(e: PointerEvent): void {
     }
 }
 
+function clamp(value: number, minValue: number, maxValue: number): number {
+    return value < minValue ? minValue : (value > maxValue ? maxValue : value);
+}
+
 function handleMove(e: PointerEvent): void {
     const coords = getEventCoord(e);
     if (targetVertexIdx >= 0) {
-        vertices[targetVertexIdx].position = px2ndc(coords);
+        vertices[targetVertexIdx].position = px2ndc({
+            x: clamp(coords.x, 0, container.clientWidth),
+            y: clamp(coords.y, 0, container.clientHeight),
+        });
         line.updateVertex(targetVertexIdx, vertices[targetVertexIdx]);
         updateTree();
         runtime.requestRender();
