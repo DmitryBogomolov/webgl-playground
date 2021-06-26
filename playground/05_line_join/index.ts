@@ -2,11 +2,11 @@ import {
     Runtime,
     Color, color,
     makeEventCoordsGetter,
-    Vec2, vec2, dist2, pointToLineDistance2,
+    Vec2, vec2, dist2,
 } from 'lib';
 import { Vertex } from './vertex';
 import { Line } from './line';
-import { SearchTree, makeSearchTree, pickOtherVertex } from './utils';
+import { SearchTree, makeSearchTree } from './utils';
 
 /**
  * Bevel line join.
@@ -76,8 +76,8 @@ function px2ndc(px: Vec2): Vec2 {
     return runtime.px2ndc(px);
 }
 
-let targetVertexIdx: number = -1;
-let targetSegmentIdx: number = -1;
+let motionVertexIdx: number = -1;
+let thicknessVertexIdx: number = -1;
 
 let tree: SearchTree;
 updateTree();
@@ -124,16 +124,9 @@ function handleDown(e: PointerEvent): void {
     const vertexCoords = ndc2px(vertices[vertexIdx].position);
     const dist = dist2(vertexCoords, coords);
     if (dist <= VERTEX_THRESHOLD) {
-        targetVertexIdx = vertexIdx;
-    } else {
-        const otherIdx = pickOtherVertex(vertices, coords, vertexIdx, ndc2px);
-        if (otherIdx >= 0) {
-            const otherCoords = ndc2px(vertices[otherIdx].position);
-            const dist = pointToLineDistance2(coords, vertexCoords, otherCoords);
-            if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
-                targetSegmentIdx = Math.min(vertexIdx, otherIdx);
-            }
-        }
+        motionVertexIdx = vertexIdx;
+    } else if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
+        thicknessVertexIdx = vertexIdx;
     }
 }
 
@@ -143,18 +136,16 @@ function clamp(value: number, minValue: number, maxValue: number): number {
 
 function handleMove(e: PointerEvent): void {
     const coords = getEventCoord(e);
-    if (targetVertexIdx >= 0) {
-        vertices[targetVertexIdx].position = px2ndc({
+    if (motionVertexIdx >= 0) {
+        vertices[motionVertexIdx].position = px2ndc({
             x: clamp(coords.x, 0, container.clientWidth),
             y: clamp(coords.y, 0, container.clientHeight),
         });
-        line.updateVertex(targetVertexIdx, vertices[targetVertexIdx]);
+        line.updateVertex(motionVertexIdx, vertices[motionVertexIdx]);
         updateTree();
         runtime.requestRender();
-    } else if (targetSegmentIdx >= 0) {
-        const v1 = ndc2px(vertices[targetSegmentIdx + 0].position);
-        const v2 = ndc2px(vertices[targetSegmentIdx + 1].position);
-        const dist = pointToLineDistance2(coords, v1, v2);
+    } else if (thicknessVertexIdx >= 0) {
+        const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));
         setThickness(dist * 2 | 0);
         runtime.requestRender();
     }
@@ -165,6 +156,6 @@ function handleUp(_e: PointerEvent): void {
     document.removeEventListener('pointerup', handleUp);
     document.removeEventListener('pointercancel', handleUp);
 
-    targetVertexIdx = -1;
-    targetSegmentIdx = -1;
+    motionVertexIdx = -1;
+    thicknessVertexIdx = -1;
 }
