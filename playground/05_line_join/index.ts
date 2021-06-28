@@ -138,8 +138,7 @@ function handleMove(e: PointerEvent): void {
             y: clamp(coords.y, 0, container.clientHeight),
         });
         updateTree();
-        // TODO: Update only part?
-        line.setVertices(vertices);
+        line.updateVertex(vertices, motionVertexIdx);
         runtime.requestRender();
     } else if (thicknessVertexIdx >= 0) {
         const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));

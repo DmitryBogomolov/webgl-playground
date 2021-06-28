@@ -37,12 +37,21 @@ export class Line {
         this._thickness = thickness;
     }
 
-    private _updateBuffers(capacity: number): void {
-        this._logger.log('reallocate: {0}', capacity);
+    private _updateBuffers(vertexCount: number): void {
+        let capacity = -1;
+        if (vertexCount > this._capacity) {
+            capacity = this._capacity > 0 ? this._capacity << 1 : 4;
+        } else if (vertexCount < this._capacity / 4) {
+            capacity = this._capacity > 4 ? this._capacity >> 1 : 0;
+        }
+        if (capacity < 0) {
+            return;
+        }
+        this._logger.log('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
         const vertexBuffer = new ArrayBuffer(getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(getIndexBufferSize(capacity));
-        copyBuffer(this._vertexBuffer, vertexBuffer, Math.min(this._vertexBuffer.byteLength, vertexBuffer.byteLength));
-        copyBuffer(this._indexBuffer, indexBuffer, Math.min(this._indexBuffer.byteLength, indexBuffer.byteLength));
+        copyBuffer(this._vertexBuffer, vertexBuffer);
+        copyBuffer(this._indexBuffer, indexBuffer);
         this._vertexBuffer = vertexBuffer;
         this._indexBuffer = indexBuffer;
         this._capacity = capacity;
@@ -61,18 +70,18 @@ export class Line {
         this._primitive.setIndexCount(indexDataSize / 2);
     }
 
+    private _updateSegments(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {
+        const [begin, end] = updateVertex(this._vertexBuffer, vertices, vertexIdx);
+        this._primitive.updateVertexData(this._vertexBuffer.slice(begin, end), begin);
+    }
+
     setVertices(vertices: ReadonlyArray<Vertex>): void {
-        let capacity = -1;
-        const vertexCount = vertices.length;
-        if (vertexCount > this._capacity) {
-            capacity = this._capacity > 0 ? this._capacity << 1 : 4;
-        } else if (vertexCount < this._capacity / 4) {
-            capacity = this._capacity > 4 ? this._capacity >> 1 : 0;
-        }
-        if (capacity >= 0) {
-            this._updateBuffers(capacity);
-        }
+        this._updateBuffers(vertices.length);
         this._writeSegments(vertices);
+    }
+
+    updateVertex(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {
+        this._updateSegments(vertices, vertexIdx);
     }
 
     render(): void {
@@ -91,9 +100,11 @@ const schema = parseVertexSchema([
 
 const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
 
+const SEGMENT_SIZE = schema.totalSize * 4;
+
 function getVertexBufferSize(vertexCount: number): number {
     // segments <- vertices - 1; 4 vertices per segment
-    return vertexCount > 1 ? schema.totalSize * (vertexCount - 1) * 4 : 0;
+    return vertexCount > 1 ? SEGMENT_SIZE * (vertexCount - 1) : 0;
 }
 
 function getIndexBufferSize(vertexCount: number): number {
@@ -114,33 +125,47 @@ function makeOtherAttr(other: Vec2, outer: Vec2): AttrValue {
     return [other.x, other.y, outer.x, outer.y];
 }
 
+function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number): void {
+    const vertexBase = idx * 4;
+    const start = vertices[idx];
+    const end = vertices[idx + 1];
+    const before = vertices[idx - 1] || end;
+    const after = vertices[idx + 2] || start;
+
+    const startOther = makeOtherAttr(end.position, before.position);
+    const endOther = makeOtherAttr(start.position, after.position);
+    const startColor = color2arr(start.color);
+    const endColor = color2arr(end.color);
+
+    writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
+    writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));
+    writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end.position, Location.L));
+    writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end.position, Location.R));
+    writer.writeAttribute(vertexBase + 0, 'a_other', startOther);
+    writer.writeAttribute(vertexBase + 1, 'a_other', startOther);
+    writer.writeAttribute(vertexBase + 2, 'a_other', endOther);
+    writer.writeAttribute(vertexBase + 3, 'a_other', endOther);
+    writer.writeAttribute(vertexBase + 0, 'a_color', startColor);
+    writer.writeAttribute(vertexBase + 1, 'a_color', startColor);
+    writer.writeAttribute(vertexBase + 2, 'a_color', endColor);
+    writer.writeAttribute(vertexBase + 3, 'a_color', endColor);
+}
+
 function writeVertices(vertexData: ArrayBuffer, vertices: ReadonlyArray<Vertex>): void {
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length - 1; ++i) {
-        const vertexBase = i * 4;
-        const start = vertices[i];
-        const end = vertices[i + 1];
-        const before = vertices[i - 1] || end;
-        const after = vertices[i + 2] || start;
-
-        const startOther = makeOtherAttr(end.position, before.position);
-        const endOther = makeOtherAttr(start.position, after.position);
-        const startColor = color2arr(start.color);
-        const endColor = color2arr(end.color);
-
-        writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
-        writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));
-        writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end.position, Location.L));
-        writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end.position, Location.R));
-        writer.writeAttribute(vertexBase + 0, 'a_other', startOther);
-        writer.writeAttribute(vertexBase + 1, 'a_other', startOther);
-        writer.writeAttribute(vertexBase + 2, 'a_other', endOther);
-        writer.writeAttribute(vertexBase + 3, 'a_other', endOther);
-        writer.writeAttribute(vertexBase + 0, 'a_color', startColor);
-        writer.writeAttribute(vertexBase + 1, 'a_color', startColor);
-        writer.writeAttribute(vertexBase + 2, 'a_color', endColor);
-        writer.writeAttribute(vertexBase + 3, 'a_color', endColor);
+        writeSegment(writer, vertices, i);
     }
+}
+
+function updateVertex(vertexData: ArrayBuffer, vertices: ReadonlyArray<Vertex>, vertexIdx: number): [number, number] {
+    const writer = new VertexWriter(schema, vertexData);
+    const beginSegmentIdx = Math.max(vertexIdx - 2, 0);
+    const endSegmentIdx = Math.min(vertexIdx + 1, vertices.length - 2);
+    for (let i = beginSegmentIdx; i <= endSegmentIdx; ++i) {
+        writeSegment(writer, vertices, i);
+    }
+    return [SEGMENT_SIZE * beginSegmentIdx, SEGMENT_SIZE * (endSegmentIdx + 1)];
 }
 
 function writeIndexes(indexData: ArrayBuffer, vertexCount: number): void {
@@ -162,8 +187,8 @@ function writeSegmentIndexes(arr: Uint16Array, offset: number, vertexIndex: numb
     arr[offset + 5] = vertexIndex + 0;
 }
 
-function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer, byteLength: number): void {
-    const srcArr = new Uint8Array(src, 0, byteLength);
+function copyBuffer(src: ArrayBuffer, dst: ArrayBuffer): void {
+    const srcArr = new Uint8Array(src, 0, Math.min(src.byteLength, dst.byteLength));
     const dstArr = new Uint8Array(dst);
     dstArr.set(srcArr);
 }
