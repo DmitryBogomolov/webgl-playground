@@ -1,7 +1,6 @@
 import {
     VertexWriter,
     parseVertexSchema,
-    logSilenced,
     Runtime,
     Primitive,
     Program,
@@ -92,4 +91,3 @@ runtime.onRender(() => {
     aosPrimitive.render();
     soaPrimitive.render();
 });
-logSilenced(true);

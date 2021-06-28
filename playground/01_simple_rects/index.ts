@@ -4,7 +4,7 @@ import {
     Runtime,
     Program,
     Primitive,
-    generateDefaultIndexes, logSilenced,
+    generateDefaultIndexes,
     colors, color2arr, Color,
     Vec2, vec2, vec2arr,
 } from 'lib';
@@ -90,4 +90,3 @@ runtime.onRender(() => {
     runtime.clearColorBuffer();
     primitive.render();
 });
-logSilenced(true);

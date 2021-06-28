@@ -1,5 +1,4 @@
 import {
-    logSilenced,
     parseVertexSchema,
     VertexWriter,
     Runtime,
@@ -103,12 +102,14 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: UniformV
         mag_filter: filter,
     });
     texture.setUnit(1);
-    primitive.render({
-        'u_position': pos,
-        'u_useCustom': !!texcoord,
-        'u_texture': 1,
-        ...(texcoord ? { 'u_texcoord': texcoord } : null),
-    });
+    const program = primitive.program();
+    program.setUniform('u_position', pos);
+    program.setUniform('u_use_custom', !!texcoord);
+    program.setUniform('u_texture', 1);
+    if (texcoord) {
+        program.setUniform('u_texcoord', texcoord);
+    }
+    primitive.render();
 }
 
 runtime.onRender(() => {
@@ -118,4 +119,3 @@ runtime.onRender(() => {
     drawRect(layout.nearestCustom, 'nearest', texcoord);
     drawRect(layout.linearCustom, 'linear', texcoord);
 });
-logSilenced(true);

@@ -85,10 +85,9 @@ export class Line {
     }
 
     render(): void {
-        this._primitive.render({
-            'u_canvas_size': makeSizeUniform(this._runtime.canvasSize()),
-            'u_thickness': this._runtime.toCanvasPixels(this._thickness),
-        });
+        this._primitive.program().setUniform('u_canvas_size', makeSizeUniform(this._runtime.canvasSize()));
+        this._primitive.program().setUniform('u_thickness', this._runtime.toCanvasPixels(this._thickness));
+        this._primitive.render();
     }
 }
 

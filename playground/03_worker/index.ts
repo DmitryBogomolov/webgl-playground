@@ -2,17 +2,15 @@ import {
     VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
-    color, Color, color2arr,
+    Color, color2arr,
     logSilenced,
     Runtime,
     Primitive,
     Program,
+    UniformValue,
     Vec2, vec2, vec2arr,
 } from 'lib';
-import {
-    TYPE_SCALE,
-    TYPE_COLOR,
-} from './message-types';
+import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
 
@@ -68,7 +66,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
-let clr = color(0, 0, 0, 1);
+let clr: UniformValue = [0, 0, 0, 1];
 let scale = 0;
 
 function runWorker(runtime: Runtime): void {
@@ -78,7 +76,7 @@ function runWorker(runtime: Runtime): void {
             runtime.requestRender();
         },
         [TYPE_COLOR](payload) {
-            clr = payload as Color;
+            clr = color2arr(payload as Color);
             runtime.requestRender();
         },
     });
@@ -105,12 +103,13 @@ function runWorker(runtime: Runtime): void {
     }, 25);
 }
 
+
+
 runtime.onRender(() => {
     runtime.clearColorBuffer();
-    primitive.render({
-        'u_scale': scale,
-        'u_color': color2arr(clr),
-    });
+    primitive.program().setUniform('u_scale', scale);
+    primitive.program().setUniform('u_color', clr);
+    primitive.render();
 });
 runWorker(runtime);
 logSilenced(true);

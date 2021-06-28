@@ -1,4 +1,4 @@
-import { Program, EMPTY_PROGRAM, UniformValues } from './program';
+import { Program, EMPTY_PROGRAM } from './program';
 import { Runtime } from './runtime';
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
@@ -86,6 +86,10 @@ export class Primitive {
         this._indexCount = indexCount;
     }
 
+    program(): Program {
+        return this._program;
+    }
+
     setProgram(program: Program): void {
         this._logger.log('set_program');
         if (this._program === program) {
@@ -101,14 +105,11 @@ export class Primitive {
         vao.bindVertexArrayOES(null);
     }
 
-    render(uniforms?: UniformValues): void {
+    render(): void {
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;
         // Consider "return" here if program is "empty".
         this._program.use();
-        if (uniforms) {
-            this._program.setUniforms(uniforms);
-        }
         vao.bindVertexArrayOES(this._vao);
         gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
         vao.bindVertexArrayOES(null);

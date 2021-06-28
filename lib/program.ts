@@ -70,9 +70,13 @@ const shaderTypes: ShaderTypesMap = {
     [SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
+function isNumArray(arg: unknown, length: number): arg is number[] {
+    return Array.isArray(arg) && arg.length >= length;
+}
+
 const uniformSetters: UniformSettersMap = {
     [BOOL]: (logger, gl, { location }, value) => {
-        if (typeof value === 'boolean') {
+        if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
             throw logger.error('bad value for "bool" uniform: {0}', value);
@@ -87,21 +91,21 @@ const uniformSetters: UniformSettersMap = {
         }
     },
     [FLOAT_VEC2]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 2) {
+        if (isNumArray(value, 2)) {
             gl.uniform2fv(location, value);
         } else {
             throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
     [FLOAT_VEC3]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 3) {
+        if (isNumArray(value, 3)) {
             gl.uniform3fv(location, value);
         } else {
             throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
     [FLOAT_VEC4]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 4) {
+        if (isNumArray(value, 4)) {
             gl.uniform4fv(location, value);
         } else {
             throw logger.error('bad value for "vec4" uniform: {0}', value);
@@ -261,20 +265,21 @@ export class Program {
         }
     }
 
-    setUniforms(uniforms: UniformValues): void {
-        this._logger.log('set_uniforms({0})', uniforms);
+    setUniform(name: string, value: UniformValue): void {
+        this._logger.log('set_uniform({0}: {1})', name, value);
         const gl = this._runtime.gl;
-        for (const [name, value] of Object.entries(uniforms)) {
-            const attr = this._uniforms[name];
-            if (!attr) {
-                throw this._logger.error('uniform "{0}" is unknown', name);
-            }
-            const setter = uniformSetters[attr.info.type];
-            if (!setter) {
-                throw this._logger.error('uniform "{0}" setter is not found', name);
-            }
-            setter(this._logger, gl, attr, value);
+        const attr = this._uniforms[name];
+        if (!attr) {
+            throw this._logger.error('uniform "{0}" is unknown', name);
         }
+        const setter = uniformSetters[attr.info.type];
+        if (!setter) {
+            throw this._logger.error('uniform "{0}" setter is not found', name);
+        }
+        // TODO: Temporary solution.
+        // > WebGL: INVALID_OPERATION: uniform4fv: location is not from current program
+        gl.useProgram(this._program);
+        setter(this._logger, gl, attr, value);
     }
 }
 
