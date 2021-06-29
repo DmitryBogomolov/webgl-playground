@@ -2,6 +2,10 @@ import { VertexSchema } from './vertex-schema';
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { Runtime } from './runtime';
+import { Vec2, isVec2 } from './geometry/vec2';
+import { Vec3, isVec3 } from './geometry/vec3';
+import { Vec4, isVec4 } from './geometry/vec4';
+import { Color, isColor } from './color';
 
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
@@ -14,10 +18,11 @@ const {
     SAMPLER_2D,
 } = WebGLRenderingContext.prototype;
 
+type v1 = readonly [number];
 type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
-export type UniformValue = boolean | number | v2 | v3 | v4;
+export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | Vec2 | Vec3 | Vec4 | Color;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -86,27 +91,39 @@ const uniformSetters: UniformSettersMap = {
     [FLOAT]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
+        } else if (isNumArray(value, 1)) {
+            gl.uniform1fv(location, value);
         } else {
             throw logger.error('bad value for "float" uniform: {0}', value);
         }
     },
     [FLOAT_VEC2]: (logger, gl, { location }, value) => {
-        if (isNumArray(value, 2)) {
+        if (isVec2(value)) {
+            gl.uniform2f(location, value.x, value.y);
+        } else if (isNumArray(value, 2)) {
             gl.uniform2fv(location, value);
         } else {
             throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
     [FLOAT_VEC3]: (logger, gl, { location }, value) => {
-        if (isNumArray(value, 3)) {
+        if (isVec3(value)) {
+            gl.uniform3f(location, value.x, value.y, value.z);
+        } else if (isNumArray(value, 3)) {
             gl.uniform3fv(location, value);
+        } else if (isColor(value)) {
+            gl.uniform3f(location, value.r, value.g, value.b);
         } else {
             throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
     [FLOAT_VEC4]: (logger, gl, { location }, value) => {
-        if (isNumArray(value, 4)) {
+        if (isVec4(value)) {
+            gl.uniform4f(location, value.x, value.y, value.z, value.w);
+        } else if (isNumArray(value, 4)) {
             gl.uniform4fv(location, value);
+        } else if (isColor(value)) {
+            gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
             throw logger.error('bad value for "vec4" uniform: {0}', value);
         }

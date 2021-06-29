@@ -1,7 +1,7 @@
 import {
     Runtime, Primitive, Program, VertexWriter, Logger,
-    Vec2, UniformValue, AttrValue,
-    parseVertexSchema, memoize, color2arr,
+    Vec2, AttrValue,
+    parseVertexSchema, color2arr,
 } from 'lib';
 import { Vertex } from './vertex';
 import vertexShaderSource from './shaders/vert.glsl';
@@ -85,7 +85,7 @@ export class Line {
     }
 
     render(): void {
-        this._primitive.program().setUniform('u_canvas_size', makeSizeUniform(this._runtime.canvasSize()));
+        this._primitive.program().setUniform('u_canvas_size', this._runtime.canvasSize());
         this._primitive.program().setUniform('u_thickness', this._runtime.toCanvasPixels(this._thickness));
         this._primitive.render();
     }
@@ -96,8 +96,6 @@ const schema = parseVertexSchema([
     { name: 'a_other', type: 'float4' },
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
-
-const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
 
 const SEGMENT_SIZE = schema.totalSize * 4;
 
