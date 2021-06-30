@@ -18,6 +18,7 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private readonly _disposeResizeHandler: CancelSubscriptionCallback;
     private _canvasSize: Vec2 = { x: 0, y: 0 };
+    private _clearColor: Color;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
@@ -40,6 +41,7 @@ export class Runtime {
         this._disposeResizeHandler = handleWindowResize(() => {
             this.adjustViewport();
         });
+        this._clearColor = readClearColor(this.gl);
     }
 
     dispose(): void {
@@ -114,14 +116,19 @@ export class Runtime {
     }
 
     clearColor(): Color {
-        // Consider caching this value.
-        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
-        return color(r, g, b, a);
+        return this._clearColor;
     }
 
-    setClearColor({ r, g, b, a }: Color): void {
+    setClearColor(clearColor: Color): void {
+        if (this._clearColor === clearColor) {
+            return;
+        }
+        const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
+        // Actual gl state is queried (rather than just use `clearColor` argument)
+        // because `gl.clearColor` somehow processes its argument (e.g. `(r, g, b)` becomes `(r, g, b, 1)`).
+        this._clearColor = readClearColor(this.gl);
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
@@ -131,6 +138,11 @@ export class Runtime {
     requestRender(): void {
         this._renderLoop.update();
     }
+}
+
+function readClearColor(gl: WebGLRenderingContext): Color {
+    const [r, g, b, a] = gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
+    return color(r, g, b, a);
 }
 
 const CANVAS_TAG = Symbol('CanvasTag');
