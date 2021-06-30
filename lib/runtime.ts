@@ -11,6 +11,11 @@ const {
     COLOR_CLEAR_VALUE,
 } = WebGLRenderingContext.prototype;
 
+interface State {
+    clearColor: Color;
+    currentProgram: WebGLProgram | null;
+}
+
 export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
@@ -18,7 +23,7 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private readonly _disposeResizeHandler: CancelSubscriptionCallback;
     private _canvasSize: Vec2 = { x: 0, y: 0 };
-    private _clearColor: Color;
+    private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
@@ -37,11 +42,16 @@ export class Runtime {
         this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
+        // Initial state is formed according to specification.
+        // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
+        this._state = {
+            clearColor: color(0, 0, 0, 0),
+            currentProgram: null,
+        };
         this.adjustViewport();
         this._disposeResizeHandler = handleWindowResize(() => {
             this.adjustViewport();
         });
-        this._clearColor = readClearColor(this.gl);
     }
 
     dispose(): void {
@@ -116,11 +126,11 @@ export class Runtime {
     }
 
     clearColor(): Color {
-        return this._clearColor;
+        return this._state.clearColor;
     }
 
     setClearColor(clearColor: Color): void {
-        if (this._clearColor === clearColor) {
+        if (this._state.clearColor === clearColor) {
             return;
         }
         const { r, g, b, a } = clearColor;
@@ -128,7 +138,16 @@ export class Runtime {
         this.gl.clearColor(r, g, b, a);
         // Actual gl state is queried (rather than just use `clearColor` argument)
         // because `gl.clearColor` somehow processes its argument (e.g. `(r, g, b)` becomes `(r, g, b, 1)`).
-        this._clearColor = readClearColor(this.gl);
+        this._state.clearColor = readClearColor(this.gl);
+    }
+
+    useProgram(program: WebGLProgram | null, id: string): void {
+        if (this._state.currentProgram === program) {
+            return;
+        }
+        this._logger.log('use_program({0})', id);
+        this.gl.useProgram(program);
+        this._state.currentProgram = program;
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {

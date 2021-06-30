@@ -255,9 +255,7 @@ export class Program {
     }
 
     use(): void {
-        this._logger.log('use_program');
-        const gl = this._runtime.gl;
-        gl.useProgram(this._program);
+        this._runtime.useProgram(this._program, this._id);
     }
 
     setupVertexAttributes(): void {
@@ -293,9 +291,10 @@ export class Program {
         if (!setter) {
             throw this._logger.error('uniform "{0}" setter is not found', name);
         }
-        // TODO: Temporary solution.
-        // > WebGL: INVALID_OPERATION: uniform4fv: location is not from current program
-        gl.useProgram(this._program);
+        // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
+        // Otherwise it would cause an error.
+        // > INVALID_OPERATION: uniformXXX: location is not from current program
+        this.use();
         setter(this._logger, gl, attr, value);
     }
 }
