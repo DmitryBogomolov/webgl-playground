@@ -2,13 +2,12 @@ import {
     VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
-    Color, color2arr,
+    Color, color,
     logSilenced,
     Runtime,
     Primitive,
     Program,
-    UniformValue,
-    Vec2, vec2, vec2arr,
+    Vec2, vec2,
 } from 'lib';
 import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import vertexShaderSource from './shaders/shader.vert';
@@ -49,7 +48,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vec2arr(vertex));
+        writer.writeAttribute(i, 'a_position', vertex);
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
@@ -66,7 +65,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
-let clr: UniformValue = [0, 0, 0, 1];
+let clr = color(0, 0, 0);
 let scale = 0;
 
 function runWorker(runtime: Runtime): void {
@@ -76,7 +75,7 @@ function runWorker(runtime: Runtime): void {
             runtime.requestRender();
         },
         [TYPE_COLOR](payload) {
-            clr = color2arr(payload as Color);
+            clr = payload as Color;
             runtime.requestRender();
         },
     });

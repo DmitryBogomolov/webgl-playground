@@ -6,7 +6,7 @@ import {
     Program,
     VertexSchema,
     Color, color,
-    Vec2, vec2, vec2arr, color2arr,
+    Vec2, vec2,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -67,9 +67,9 @@ function makePrimitive(
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, color, factor } = vertices[i];
-        writer.writeAttribute(i, 'a_position', vec2arr(position));
-        writer.writeAttribute(i, 'a_color', color2arr(color));
-        writer.writeAttribute(i, 'a_factor', [factor]);
+        writer.writeAttribute(i, 'a_position', position);
+        writer.writeAttribute(i, 'a_color', color);
+        writer.writeAttribute(i, 'a_factor', factor);
     }
 
     primitive.setProgram(program);

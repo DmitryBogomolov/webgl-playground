@@ -1,7 +1,7 @@
 import {
     Runtime, Primitive, Program, VertexWriter, Logger,
-    Vec2, AttrValue,
-    parseVertexSchema, color2arr,
+    parseVertexSchema,
+    Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
 import { Vertex } from './vertex';
 import vertexShaderSource from './shaders/vert.glsl';
@@ -114,12 +114,12 @@ const enum Location {
     R = +1,
 }
 
-function makePositionAttr(position: Vec2, location: Location): AttrValue {
-    return [position.x, position.y, location];
+function makePositionAttr(position: Vec2, location: Location): Vec3 {
+    return vec3(position.x, position.y, location);
 }
 
-function makeOtherAttr(other: Vec2, outer: Vec2): AttrValue {
-    return [other.x, other.y, outer.x, outer.y];
+function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
+    return vec4(other.x, other.y, outer.x, outer.y);
 }
 
 function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number): void {
@@ -131,8 +131,8 @@ function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx
 
     const startOther = makeOtherAttr(end.position, before.position);
     const endOther = makeOtherAttr(start.position, after.position);
-    const startColor = color2arr(start.color);
-    const endColor = color2arr(end.color);
+    const startColor = start.color;
+    const endColor = end.color;
 
     writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
     writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));

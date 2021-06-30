@@ -3,9 +3,9 @@ import {
     VertexWriter,
     Runtime,
     Primitive,
-    Program, UniformValue,
+    Program,
     Texture, TextureFilterValues,
-    Vec2, vec2, vec2arr,
+    Vec2, vec2,
 } from 'lib';
 import { textureData } from './image';
 import { makeControl } from './control';
@@ -54,7 +54,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vec2arr(vertex));
+        writer.writeAttribute(i, 'a_position', vertex);
     }
     const indexData = new Uint16Array([
         0, 1, 2,
@@ -88,15 +88,15 @@ const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-let texcoord: UniformValue = [0.5, 0.5];
-makeControl({ u: texcoord[0], v: texcoord[1] }, ({ u, v }) => {
-    texcoord = [u, v];
+let texcoord = vec2(0.5, 0.5);
+makeControl({ u: texcoord.x, v: texcoord.y }, ({ u, v }) => {
+    texcoord = vec2(u, v);
     runtime.requestRender();
 });
 
 const layout = doLayout(container);
 
-function drawRect(pos: Position, filter: TextureFilterValues, texcoord: UniformValue | null): void {
+function drawRect(pos: Position, filter: TextureFilterValues, texcoord: Vec2 | null): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,
