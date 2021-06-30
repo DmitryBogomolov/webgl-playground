@@ -87,7 +87,7 @@ export class Texture {
             this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
         } else {
-            this._logger.log('set_image_data(source: {0}', source);
+            this._logger.log('set_image_data(source: {0})', source);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
         }
     }
