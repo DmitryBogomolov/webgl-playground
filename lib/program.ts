@@ -6,10 +6,11 @@ import { Vec2, isVec2 } from './geometry/vec2';
 import { Vec3, isVec3 } from './geometry/vec3';
 import { Vec4, isVec4 } from './geometry/vec4';
 import { Color, isColor } from './color';
+import { formatStr } from './utils/string-formatter';
 
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
-    COMPILE_STATUS, LINK_STATUS,
+    LINK_STATUS,
     ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS,
     FLOAT, FLOAT_VEC2, FLOAT_VEC3, FLOAT_VEC4,
     INT, INT_VEC2, INT_VEC3, INT_VEC4,
@@ -176,6 +177,10 @@ export class Program {
 
     dispose(): void {
         this._logger.log('dispose');
+        this._dispose();
+    }
+
+    private _dispose(): void {
         this._deleteShader(this._vertexShader);
         this._deleteShader(this._fragmentShader);
         this._runtime.gl.deleteProgram(this._program);
@@ -197,11 +202,6 @@ export class Program {
         }
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, COMPILE_STATUS)) {
-            const info = gl.getShaderInfoLog(shader)!;
-            gl.deleteShader(shader);
-            throw this._logger.error(info);
-        }
         gl.attachShader(this._program, shader);
         return shader;
     }
@@ -216,8 +216,18 @@ export class Program {
         const gl = this._runtime.gl;
         gl.linkProgram(this._program);
         if (!gl.getProgramParameter(this._program, LINK_STATUS)) {
-            const info = gl.getProgramInfoLog(this._program)!;
-            throw this._logger.error(info);
+            const linkInfo = gl.getProgramInfoLog(this._program)!;
+            const vertexInfo = gl.getShaderInfoLog(this._vertexShader);
+            const fragmentInfo = gl.getShaderInfoLog(this._fragmentShader);
+            let message = formatStr(linkInfo);
+            if (vertexInfo) {
+                message += '\n' + vertexInfo;
+            }
+            if (fragmentInfo) {
+                message += '\n' + fragmentInfo;
+            }
+            this._dispose();
+            throw this._logger.error(message);
         }
     }
 
