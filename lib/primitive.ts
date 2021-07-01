@@ -9,7 +9,7 @@ const {
 } = WebGLRenderingContext.prototype;
 
 export class Primitive {
-    private readonly _id = generateId('Primitve');
+    private readonly _id = generateId('Primitive');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
     private readonly _vao: WebGLVertexArrayObjectOES;
@@ -55,7 +55,7 @@ export class Primitive {
         this._logger.log('allocate_vertex_buffer({0})', size);
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
-        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
+        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
         gl.bufferData(ARRAY_BUFFER, this._vertexBufferSize, STATIC_DRAW);
     }
 
@@ -63,21 +63,21 @@ export class Primitive {
         this._logger.log('allocate_index_buffer({0})', size);
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
-        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
         gl.bufferData(ELEMENT_ARRAY_BUFFER, this._indexBufferSize, STATIC_DRAW);
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
         const gl = this._runtime.gl;
-        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
+        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
         gl.bufferSubData(ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
         const gl = this._runtime.gl;
-        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
         gl.bufferSubData(ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
@@ -96,22 +96,19 @@ export class Primitive {
             return;
         }
         this._program = program;
-        const gl = this._runtime.gl;
-        const vao = this._runtime.vaoExt;
-        vao.bindVertexArrayOES(this._vao);
-        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
+        this._runtime.bindVertexArrayObject(this._vao, this._id);
+        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
         this._program.setupVertexAttributes();
-        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        vao.bindVertexArrayOES(null);
+        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        this._runtime.bindVertexArrayObject(null, this._id);
     }
 
     render(): void {
         const gl = this._runtime.gl;
-        const vao = this._runtime.vaoExt;
         // Consider "return" here if program is "empty".
         this._program.use();
-        vao.bindVertexArrayOES(this._vao);
+        this._runtime.bindVertexArrayObject(this._vao, this._id);
         gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
-        vao.bindVertexArrayOES(null);
+        this._runtime.bindVertexArrayObject(null, this._id);
     }
 }

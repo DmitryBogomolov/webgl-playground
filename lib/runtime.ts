@@ -9,11 +9,16 @@ import { vec2, Vec2 } from './geometry/vec2';
 const {
     COLOR_BUFFER_BIT,
     COLOR_CLEAR_VALUE,
+    ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER,
 } = WebGLRenderingContext.prototype;
 
 interface State {
     clearColor: Color;
     currentProgram: WebGLProgram | null;
+    vertexArrayObject: WebGLVertexArrayObjectOES | null;
+    arrayBuffer: WebGLBuffer | null;
+    elementArrayBuffer: WebGLBuffer | null;
 }
 
 export class Runtime {
@@ -47,6 +52,9 @@ export class Runtime {
         this._state = {
             clearColor: color(0, 0, 0, 0),
             currentProgram: null,
+            vertexArrayObject: null,
+            arrayBuffer: null,
+            elementArrayBuffer: null,
         };
         this.adjustViewport();
         this._disposeResizeHandler = handleWindowResize(() => {
@@ -145,9 +153,39 @@ export class Runtime {
         if (this._state.currentProgram === program) {
             return;
         }
-        this._logger.log('use_program({0})', id);
+        this._logger.log('use_program({0})', program ? id : null);
         this.gl.useProgram(program);
         this._state.currentProgram = program;
+    }
+
+    bindVertexArrayObject(vertexArrayObject: WebGLVertexArrayObjectOES | null, id: string): void {
+        if (this._state.vertexArrayObject === vertexArrayObject) {
+            return;
+        }
+        this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? id : null);
+        this.vaoExt.bindVertexArrayOES(vertexArrayObject);
+        this._state.vertexArrayObject = vertexArrayObject;
+        // ELEMENT_ARRAY_BUFFER is part of VAO state.
+        // When bound VAO is changed bound element array buffer is changed as well. Hence state is dropped.
+        this._state.elementArrayBuffer = 0;
+    }
+
+    bindArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
+        if (this._state.arrayBuffer === buffer) {
+            return;
+        }
+        this._logger.log('bind_array_buffer({0})', buffer ? id : null);
+        this.gl.bindBuffer(ARRAY_BUFFER, buffer);
+        this._state.arrayBuffer = buffer;
+    }
+
+    bindElementArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
+        if (this._state.elementArrayBuffer === buffer) {
+            return;
+        }
+        this._logger.log('bind_element_array_buffer({0})', buffer ? id : null);
+        this.gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer);
+        this._state.elementArrayBuffer = buffer;
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
