@@ -3,12 +3,11 @@ import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
-import { color, Color } from './color';
+import { Color, color, isColor } from './color';
 import { vec2, Vec2 } from './geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
-    COLOR_CLEAR_VALUE,
     ARRAY_BUFFER,
     ELEMENT_ARRAY_BUFFER,
 } = WebGLRenderingContext.prototype;
@@ -138,15 +137,16 @@ export class Runtime {
     }
 
     setClearColor(clearColor: Color): void {
+        if (!isColor(clearColor)) {
+            throw this._logger.error('set_clear_color({0})', clearColor);
+        }
         if (this._state.clearColor === clearColor) {
             return;
         }
         const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
-        // Actual gl state is queried (rather than just use `clearColor` argument)
-        // because `gl.clearColor` somehow processes its argument (e.g. `(r, g, b)` becomes `(r, g, b, 1)`).
-        this._state.clearColor = readClearColor(this.gl);
+        this._state.clearColor = clearColor;
     }
 
     useProgram(program: WebGLProgram | null, id: string): void {
@@ -195,11 +195,6 @@ export class Runtime {
     requestRender(): void {
         this._renderLoop.update();
     }
-}
-
-function readClearColor(gl: WebGLRenderingContext): Color {
-    const [r, g, b, a] = gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
-    return color(r, g, b, a);
 }
 
 const CANVAS_TAG = Symbol('CanvasTag');
