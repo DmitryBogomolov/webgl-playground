@@ -10,6 +10,8 @@ const {
     COLOR_BUFFER_BIT,
     ARRAY_BUFFER,
     ELEMENT_ARRAY_BUFFER,
+    TEXTURE_2D,
+    TEXTURE0,
 } = WebGLRenderingContext.prototype;
 
 interface State {
@@ -18,6 +20,8 @@ interface State {
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
     elementArrayBuffer: WebGLBuffer | null;
+    textureUnit: number;
+    boundTextures: { [key: number]: WebGLTexture | null };
 }
 
 export class Runtime {
@@ -54,6 +58,8 @@ export class Runtime {
             vertexArrayObject: null,
             arrayBuffer: null,
             elementArrayBuffer: null,
+            textureUnit: 0,
+            boundTextures: {},
         };
         this.adjustViewport();
         this._disposeResizeHandler = handleWindowResize(() => {
@@ -149,6 +155,14 @@ export class Runtime {
         this._state.clearColor = clearColor;
     }
 
+    onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
+        return this._renderLoop.onRender(callback);
+    }
+
+    requestRender(): void {
+        this._renderLoop.update();
+    }
+
     useProgram(program: WebGLProgram | null, id: string): void {
         if (this._state.currentProgram === program) {
             return;
@@ -188,12 +202,22 @@ export class Runtime {
         this._state.elementArrayBuffer = buffer;
     }
 
-    onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
-        return this._renderLoop.onRender(callback);
+    bindTexture(texture: WebGLTexture | null, id: string): void {
+        if ((this._state.boundTextures[this._state.textureUnit] || null) === texture) {
+            return;
+        }
+        this._logger.log('bind_texture({0})', texture ? id : null);
+        this.gl.bindTexture(TEXTURE_2D, texture);
+        this._state.boundTextures[this._state.textureUnit] = texture;
     }
 
-    requestRender(): void {
-        this._renderLoop.update();
+    activeTexture(unit: number): void {
+        if (this._state.textureUnit === unit) {
+            return;
+        }
+        this._logger.log('active_texture({0})', unit);
+        this.gl.activeTexture(TEXTURE0 + unit);
+        this._state.textureUnit = unit;
     }
 }
 
