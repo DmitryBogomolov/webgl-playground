@@ -28,16 +28,20 @@ export class RenderLoop {
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
         const i = this._callbacks.indexOf(callback);
-        if (i < 0) {
-            this._callbacks.push(callback);
-            this.update();
+        if (i >= 0) {
+            return noop;
         }
+        this._callbacks.push(callback);
+        this.update();
         return () => {
             const i = this._callbacks.indexOf(callback);
-            if (i >= 0) {
-                this._callbacks.splice(i, 1);
-                this.update();
+            if (i < 0) {
+                return;
             }
+            this._callbacks.splice(i, 1);
+            this.update();
         };
     }
 }
+
+function noop(): void { /* nothing */ }
