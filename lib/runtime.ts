@@ -12,6 +12,7 @@ const {
     ELEMENT_ARRAY_BUFFER,
     TEXTURE_2D,
     TEXTURE0,
+    UNPACK_FLIP_Y_WEBGL,
 } = WebGLRenderingContext.prototype;
 
 interface State {
@@ -22,6 +23,7 @@ interface State {
     elementArrayBuffer: WebGLBuffer | null;
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
+    pixelStoreUnpackFlipYWebgl: boolean;
 }
 
 export class Runtime {
@@ -60,6 +62,7 @@ export class Runtime {
             elementArrayBuffer: null,
             textureUnit: 0,
             boundTextures: {},
+            pixelStoreUnpackFlipYWebgl: false,
         };
         this.adjustViewport();
         this._disposeResizeHandler = handleWindowResize(() => {
@@ -218,6 +221,15 @@ export class Runtime {
         this._logger.log('active_texture({0})', unit);
         this.gl.activeTexture(TEXTURE0 + unit);
         this._state.textureUnit = unit;
+    }
+
+    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
+        if (this._state.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
+            return;
+        }
+        this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
+        this.gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
+        this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
     }
 }
 

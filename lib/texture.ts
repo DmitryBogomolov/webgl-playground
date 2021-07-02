@@ -6,7 +6,6 @@ const {
     TEXTURE_2D,
     TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
-    UNPACK_FLIP_Y_WEBGL,
     REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
     RGBA, UNSIGNED_BYTE,
 } = WebGLRenderingContext.prototype;
@@ -80,7 +79,7 @@ export class Texture {
 
     setImageData(source: TextureData | TexImageSource, unpackFlipY: boolean = false): void {
         const gl = this._runtime.gl;
-        gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipY);
+        this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.bindTexture(this._texture, this._id);
         if (isTextureData(source)) {
             const { size, data } = source;
