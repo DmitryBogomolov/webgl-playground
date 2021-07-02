@@ -1,7 +1,8 @@
-export { logSilenced, Logger } from './utils/logger';
-export { generateDefaultIndexes } from './utils/indexes-generator';
-export { makeEventCoordsGetter, GetEventCoordsFunc } from './utils/pointer-event';
-export { memoize } from './utils/memoizer';
+export * from './utils/logger';
+export * from './utils/indexes-generator';
+export * from './utils/pointer-event';
+export * from './utils/memoizer';
+export * from './utils/tracker';
 export * from './geometry/vec2';
 export * from './geometry/vec3';
 export * from './geometry/vec4';

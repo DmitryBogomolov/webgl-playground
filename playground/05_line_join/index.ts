@@ -1,8 +1,7 @@
 import {
     Runtime,
     Color, color,
-    makeEventCoordsGetter,
-    Vec2, vec2, dist2,
+    Vec2, vec2, dist2, Tracker,
 } from 'lib';
 import { Vertex } from './vertex';
 import { Line } from './line';
@@ -61,10 +60,6 @@ runtime.onRender(() => {
 
 setThickness(50);
 
-container.addEventListener('pointerdown', handleDown);
-
-const getEventCoord = makeEventCoordsGetter(container);
-
 function ndc2px(ndc: Vec2): Vec2 {
     return runtime.ndc2px(ndc);
 }
@@ -86,72 +81,57 @@ function updateTree(): void {
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
 
-container.addEventListener('dblclick', (e: MouseEvent) => {
-    e.preventDefault();
-
-    const coords = getEventCoord(e);
-    const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
-    const vertexCoords = ndc2px(vertices[vertexIdx].position);
-    const dist = dist2(vertexCoords, coords);
-    if (dist <= VERTEX_THRESHOLD) {
-        if (vertices.length <= 2) {
-            return;
+new Tracker(container, {
+    onDblClick({ coords }) {
+        const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
+        const vertexCoords = ndc2px(vertices[vertexIdx].position);
+        const dist = dist2(vertexCoords, coords);
+        if (dist <= VERTEX_THRESHOLD) {
+            if (vertices.length <= 2) {
+                return;
+            }
+            vertices.splice(vertexIdx, 1);
+            updateTree();
+            line.setVertices(vertices);
+            runtime.requestRender();
+        } else {
+            vertices.splice(vertices.length, 0, { position: px2ndc(coords), color: pickColor() });
+            updateTree();
+            line.setVertices(vertices);
+            runtime.requestRender();
         }
-        vertices.splice(vertexIdx, 1);
-        updateTree();
-        line.setVertices(vertices);
-        runtime.requestRender();
-    } else {
-        vertices.splice(vertices.length, 0, { position: px2ndc(coords), color: pickColor() });
-        updateTree();
-        line.setVertices(vertices);
-        runtime.requestRender();
-    }
+    },
+    onStart({ coords }) {
+        const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
+        const vertexCoords = ndc2px(vertices[vertexIdx].position);
+        const dist = dist2(vertexCoords, coords);
+        if (dist <= VERTEX_THRESHOLD) {
+            motionVertexIdx = vertexIdx;
+        } else if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
+            thicknessVertexIdx = vertexIdx;
+        }
+    },
+    onMove({ coords }) {
+        if (motionVertexIdx >= 0) {
+            vertices[motionVertexIdx].position = px2ndc({
+                x: clamp(coords.x, 0, container.clientWidth),
+                y: clamp(coords.y, 0, container.clientHeight),
+            });
+            updateTree();
+            line.updateVertex(vertices, motionVertexIdx);
+            runtime.requestRender();
+        } else if (thicknessVertexIdx >= 0) {
+            const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));
+            setThickness(dist * 2 | 0);
+            runtime.requestRender();
+        }
+    },
+    onEnd() {
+        motionVertexIdx = -1;
+        thicknessVertexIdx = -1;
+    },
 });
-
-function handleDown(e: PointerEvent): void {
-    e.preventDefault();
-    document.addEventListener('pointermove', handleMove);
-    document.addEventListener('pointerup', handleUp);
-    document.addEventListener('pointercancel', handleUp);
-
-    const coords = getEventCoord(e);
-    const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
-    const vertexCoords = ndc2px(vertices[vertexIdx].position);
-    const dist = dist2(vertexCoords, coords);
-    if (dist <= VERTEX_THRESHOLD) {
-        motionVertexIdx = vertexIdx;
-    } else if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
-        thicknessVertexIdx = vertexIdx;
-    }
-}
 
 function clamp(value: number, minValue: number, maxValue: number): number {
     return value < minValue ? minValue : (value > maxValue ? maxValue : value);
-}
-
-function handleMove(e: PointerEvent): void {
-    const coords = getEventCoord(e);
-    if (motionVertexIdx >= 0) {
-        vertices[motionVertexIdx].position = px2ndc({
-            x: clamp(coords.x, 0, container.clientWidth),
-            y: clamp(coords.y, 0, container.clientHeight),
-        });
-        updateTree();
-        line.updateVertex(vertices, motionVertexIdx);
-        runtime.requestRender();
-    } else if (thicknessVertexIdx >= 0) {
-        const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));
-        setThickness(dist * 2 | 0);
-        runtime.requestRender();
-    }
-}
-
-function handleUp(_e: PointerEvent): void {
-    document.removeEventListener('pointermove', handleMove);
-    document.removeEventListener('pointerup', handleUp);
-    document.removeEventListener('pointercancel', handleUp);
-
-    motionVertexIdx = -1;
-    thicknessVertexIdx = -1;
 }
