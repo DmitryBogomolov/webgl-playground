@@ -4,7 +4,7 @@ import {
     Vec2, vec2, dist2, Tracker,
 } from 'lib';
 import { Vertex } from './vertex';
-import { Line } from './line';
+import { BevelLine } from './bevel-line';
 import { SearchTree, makeSearchTree } from './utils';
 
 /**
@@ -51,7 +51,7 @@ function setThickness(value: number): void {
 }
 
 const runtime = new Runtime(container);
-const line = new Line(runtime);
+const line = new BevelLine(runtime);
 line.setVertices(vertices);
 runtime.onRender(() => {
     runtime.clearColorBuffer();

@@ -3,12 +3,12 @@ import {
     parseVertexSchema,
     Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
-import { Vertex } from './vertex';
+import { Vertex } from '../vertex';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
-export class Line {
-    private readonly _logger = new Logger('Line');
+export class BevelLine {
+    private readonly _logger = new Logger('BevelLine');
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
