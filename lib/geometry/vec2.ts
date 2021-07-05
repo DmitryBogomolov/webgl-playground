@@ -15,6 +15,9 @@ export class Vector2 implements Vec2 {
     }
 }
 
+/** (0, 0) */
+export const ZERO2 = vec2(0, 0);
+
 export function vec2(x: number, y: number): Vec2 {
     return new Vector2(x, y);
 }
@@ -59,8 +62,16 @@ export function dist2(a: Vec2, b: Vec2): number {
     return len2(sub2(a, b));
 }
 
+export function dir2(a: Vec2, b: Vec2): Vec2 {
+    return norm2(sub2(b, a));
+}
+
 export function sqrdist2(a: Vec2, b: Vec2): number {
     return sqrlen2(sub2(a, b));
+}
+
+export function pointToLineDistance2(point: Vec2, p1: Vec2, p2: Vec2): number {
+    return Math.abs((p2.x - p1.x) * (p1.y - point.y) - (p1.x - point.x) * (p2.y - p1.y)) / dist2(p1, p2);
 }
 
 export function mapper2(from1: Vec2, from2: Vec2, to1: Vec2, to2: Vec2): (arg: Vec2) => Vec2 {

@@ -74,8 +74,12 @@ function makePrimitive(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
-    primitive.setData(vertexData, indexData);
     primitive.setProgram(program);
+    primitive.allocateVertexBuffer(vertexData.byteLength);
+    primitive.updateVertexData(vertexData);
+    primitive.allocateIndexBuffer(indexData.byteLength);
+    primitive.updateIndexData(indexData);
+    primitive.setIndexCount(indexData.length);
 
     return primitive;
 }
@@ -83,7 +87,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     primitive.render();
 });
 logSilenced(true);

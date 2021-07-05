@@ -69,12 +69,16 @@ export class Runtime {
         return ext;
     }
 
-    getCanvasSize(): Vec2 {
+    canvas(): HTMLCanvasElement {
+        return this._canvas;
+    }
+
+    canvasSize(): Vec2 {
         return this._canvasSize;
     }
 
-    toCanvasPixels(pxRange: number): number {
-        return pxRange * devicePixelRatio;
+    toCanvasPixels(pixels: number): number {
+        return pixels * devicePixelRatio;
     }
 
     ndc2px({ x, y }: Vec2): Vec2 {
@@ -104,12 +108,13 @@ export class Runtime {
         this._renderLoop.update();
     }
 
-    clearColor(): void {
-        this._logger.log('clear_color');
+    clearColorBuffer(): void {
+        this._logger.log('clear_color_buffer');
         this.gl.clear(COLOR_BUFFER_BIT);
     }
 
-    getClearColor(): Color {
+    clearColor(): Color {
+        // Consider caching this value.
         const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
         return color(r, g, b, a);
     }

@@ -55,8 +55,12 @@ function makePrimitive(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
-    primitive.setData(vertexData, indexData);
     primitive.setProgram(program);
+    primitive.allocateVertexBuffer(vertexData.byteLength);
+    primitive.updateVertexData(vertexData);
+    primitive.allocateIndexBuffer(indexData.byteLength);
+    primitive.updateIndexData(indexData);
+    primitive.setIndexCount(indexData.length);
 
     return primitive;
 }
@@ -102,7 +106,7 @@ function runWorker(runtime: Runtime): void {
 }
 
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     primitive.render({
         'u_scale': scale,
         'u_color': color2arr(clr),

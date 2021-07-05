@@ -15,6 +15,8 @@ export class Primitive {
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
+    private _vertexBufferSize = 0;
+    private _indexBufferSize = 0;
     private _program: Program = EMPTY_PROGRAM;
     private _indexCount: number = 0;
 
@@ -49,18 +51,46 @@ export class Primitive {
         return buffer;
     }
 
-    setData(vertexData: BufferSource, indexData: Uint16Array): void {
-        this._logger.log('set_data(vertex: {0}, index: {1})', vertexData.byteLength, indexData.length / 2);
+    allocateVertexBuffer(size: number): void {
+        this._logger.log('allocate_vertex_buffer({0})', size);
+        const gl = this._runtime.gl;
+        this._vertexBufferSize = size;
+        gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
+        gl.bufferData(ARRAY_BUFFER, this._vertexBufferSize, STATIC_DRAW);
+    }
+
+    allocateIndexBuffer(size: number): void {
+        this._logger.log('allocate_index_buffer({0})', size);
+        const gl = this._runtime.gl;
+        this._indexBufferSize = size;
+        gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.bufferData(ELEMENT_ARRAY_BUFFER, this._indexBufferSize, STATIC_DRAW);
+    }
+
+    updateVertexData(vertexData: BufferSource, offset: number = 0): void {
+        this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
         const gl = this._runtime.gl;
         gl.bindBuffer(ARRAY_BUFFER, this._vertexBuffer);
-        gl.bufferData(ARRAY_BUFFER, vertexData, STATIC_DRAW);
+        gl.bufferSubData(ARRAY_BUFFER, offset, vertexData);
+    }
+
+    updateIndexData(indexData: BufferSource, offset: number = 0): void {
+        this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
+        const gl = this._runtime.gl;
         gl.bindBuffer(ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.bufferData(ELEMENT_ARRAY_BUFFER, indexData, STATIC_DRAW);
-        this._indexCount = indexData.length;
+        gl.bufferSubData(ELEMENT_ARRAY_BUFFER, offset, indexData);
+    }
+
+    setIndexCount(indexCount: number): void {
+        this._logger.log('set_index_count({0})', indexCount);
+        this._indexCount = indexCount;
     }
 
     setProgram(program: Program): void {
         this._logger.log('set_program');
+        if (this._program === program) {
+            return;
+        }
         this._program = program;
         const gl = this._runtime.gl;
         const vao = this._runtime.vaoExt;

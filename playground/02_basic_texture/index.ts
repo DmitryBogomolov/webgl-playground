@@ -64,8 +64,12 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     const primitive = new Primitive(runtime);
 
-    primitive.setData(vertexData, indexData);
     primitive.setProgram(program);
+    primitive.allocateVertexBuffer(vertexData.byteLength);
+    primitive.updateVertexData(vertexData);
+    primitive.allocateIndexBuffer(indexData.byteLength);
+    primitive.updateIndexData(indexData);
+    primitive.setIndexCount(indexData.length);
 
     return primitive;
 }
@@ -108,7 +112,7 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: UniformV
 }
 
 runtime.onRender(() => {
-    runtime.clearColor();
+    runtime.clearColorBuffer();
     drawRect(layout.nearestUV, 'nearest', null);
     drawRect(layout.linearUV, 'linear', null);
     drawRect(layout.nearestCustom, 'nearest', texcoord);
