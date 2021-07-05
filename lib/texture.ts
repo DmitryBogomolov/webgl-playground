@@ -3,10 +3,9 @@ import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 
 const {
-    TEXTURE_2D, TEXTURE0,
+    TEXTURE_2D,
     TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
-    UNPACK_FLIP_Y_WEBGL,
     REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
     RGBA, UNSIGNED_BYTE,
 } = WebGLRenderingContext.prototype;
@@ -80,14 +79,14 @@ export class Texture {
 
     setImageData(source: TextureData | TexImageSource, unpackFlipY: boolean = false): void {
         const gl = this._runtime.gl;
-        gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipY);
-        gl.bindTexture(TEXTURE_2D, this._texture);
+        this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
+        this._runtime.bindTexture(this._texture, this._id);
         if (isTextureData(source)) {
             const { size, data } = source;
             this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
         } else {
-            this._logger.log('set_image_data(source: {0}', source);
+            this._logger.log('set_image_data(source: {0})', source);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
         }
     }
@@ -95,7 +94,7 @@ export class Texture {
     setParameters(params: TextureParameters): void {
         this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
-        gl.bindTexture(TEXTURE_2D, this._texture);
+        this._runtime.bindTexture(this._texture, this._id);
         for (const [name, value] of Object.entries(params)) {
             const pname = PARAM_NAME_MAP[name as Names];
             const pvalue = PARAM_VALUE_MAP[value as Values];
@@ -105,8 +104,7 @@ export class Texture {
 
     setUnit(unit: number): void {
         this._logger.log('set_unit({0})', unit);
-        const gl = this._runtime.gl;
-        gl.activeTexture(TEXTURE0 + unit);
-        gl.bindTexture(TEXTURE_2D, this._texture);
+        this._runtime.activeTexture(unit);
+        this._runtime.bindTexture(this._texture, this._id);
     }
 }

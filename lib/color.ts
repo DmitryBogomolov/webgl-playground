@@ -9,6 +9,12 @@ export function color(r: number, g: number, b: number, a: number = 1): Color {
     return { r, g, b, a };
 }
 
+export function isColor(arg: unknown): arg is Color {
+    const clr = arg as Color;
+    return Boolean(clr &&
+        Number.isFinite(clr.r) && Number.isFinite(clr.g) && Number.isFinite(clr.b) && Number.isFinite(clr.a));
+}
+
 export function color2arr({ r, g, b, a }: Color): [number, number, number, number] {
     return [r, g, b, a];
 }

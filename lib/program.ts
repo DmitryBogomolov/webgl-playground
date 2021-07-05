@@ -2,10 +2,15 @@ import { VertexSchema } from './vertex-schema';
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { Runtime } from './runtime';
+import { Vec2, isVec2 } from './geometry/vec2';
+import { Vec3, isVec3 } from './geometry/vec3';
+import { Vec4, isVec4 } from './geometry/vec4';
+import { Color, isColor } from './color';
+import { formatStr } from './utils/string-formatter';
 
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
-    COMPILE_STATUS, LINK_STATUS,
+    LINK_STATUS,
     ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS,
     FLOAT, FLOAT_VEC2, FLOAT_VEC3, FLOAT_VEC4,
     INT, INT_VEC2, INT_VEC3, INT_VEC4,
@@ -14,10 +19,11 @@ const {
     SAMPLER_2D,
 } = WebGLRenderingContext.prototype;
 
+type v1 = readonly [number];
 type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
-export type UniformValue = boolean | number | v2 | v3 | v4;
+export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | Vec2 | Vec3 | Vec4 | Color;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -70,9 +76,13 @@ const shaderTypes: ShaderTypesMap = {
     [SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
+function isNumArray(arg: unknown, length: number): arg is number[] {
+    return Array.isArray(arg) && arg.length >= length;
+}
+
 const uniformSetters: UniformSettersMap = {
     [BOOL]: (logger, gl, { location }, value) => {
-        if (typeof value === 'boolean') {
+        if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
             throw logger.error('bad value for "bool" uniform: {0}', value);
@@ -82,27 +92,39 @@ const uniformSetters: UniformSettersMap = {
     [FLOAT]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
+        } else if (isNumArray(value, 1)) {
+            gl.uniform1fv(location, value);
         } else {
             throw logger.error('bad value for "float" uniform: {0}', value);
         }
     },
     [FLOAT_VEC2]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 2) {
+        if (isVec2(value)) {
+            gl.uniform2f(location, value.x, value.y);
+        } else if (isNumArray(value, 2)) {
             gl.uniform2fv(location, value);
         } else {
             throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
     [FLOAT_VEC3]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 3) {
+        if (isVec3(value)) {
+            gl.uniform3f(location, value.x, value.y, value.z);
+        } else if (isNumArray(value, 3)) {
             gl.uniform3fv(location, value);
+        } else if (isColor(value)) {
+            gl.uniform3f(location, value.r, value.g, value.b);
         } else {
             throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
     [FLOAT_VEC4]: (logger, gl, { location }, value) => {
-        if (Array.isArray(value) && value.length === 4) {
+        if (isVec4(value)) {
+            gl.uniform4f(location, value.x, value.y, value.z, value.w);
+        } else if (isNumArray(value, 4)) {
             gl.uniform4fv(location, value);
+        } else if (isColor(value)) {
+            gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
             throw logger.error('bad value for "vec4" uniform: {0}', value);
         }
@@ -124,6 +146,10 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
+interface UniformsCache {
+    [name: string]: UniformValue;
+}
+
 export interface ProgramOptions {
     readonly vertexShader: string;
     readonly fragmentShader: string;
@@ -139,6 +165,7 @@ export class Program {
     private readonly _schema: VertexSchema;
     private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
+    private readonly _cache: UniformsCache = {};
     private readonly _program: WebGLProgram;
 
     constructor(runtime: Runtime, options: ProgramOptions) {
@@ -155,6 +182,10 @@ export class Program {
 
     dispose(): void {
         this._logger.log('dispose');
+        this._dispose();
+    }
+
+    private _dispose(): void {
         this._deleteShader(this._vertexShader);
         this._deleteShader(this._fragmentShader);
         this._runtime.gl.deleteProgram(this._program);
@@ -176,11 +207,6 @@ export class Program {
         }
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, COMPILE_STATUS)) {
-            const info = gl.getShaderInfoLog(shader)!;
-            gl.deleteShader(shader);
-            throw this._logger.error(info);
-        }
         gl.attachShader(this._program, shader);
         return shader;
     }
@@ -195,8 +221,18 @@ export class Program {
         const gl = this._runtime.gl;
         gl.linkProgram(this._program);
         if (!gl.getProgramParameter(this._program, LINK_STATUS)) {
-            const info = gl.getProgramInfoLog(this._program)!;
-            throw this._logger.error(info);
+            const linkInfo = gl.getProgramInfoLog(this._program)!;
+            const vertexInfo = gl.getShaderInfoLog(this._vertexShader);
+            const fragmentInfo = gl.getShaderInfoLog(this._fragmentShader);
+            let message = formatStr(linkInfo);
+            if (vertexInfo) {
+                message += '\n' + vertexInfo;
+            }
+            if (fragmentInfo) {
+                message += '\n' + fragmentInfo;
+            }
+            this._dispose();
+            throw this._logger.error(message);
         }
     }
 
@@ -234,9 +270,7 @@ export class Program {
     }
 
     use(): void {
-        this._logger.log('use_program');
-        const gl = this._runtime.gl;
-        gl.useProgram(this._program);
+        this._runtime.useProgram(this._program, this._id);
     }
 
     setupVertexAttributes(): void {
@@ -261,20 +295,26 @@ export class Program {
         }
     }
 
-    setUniforms(uniforms: UniformValues): void {
-        this._logger.log('set_uniforms({0})', uniforms);
-        const gl = this._runtime.gl;
-        for (const [name, value] of Object.entries(uniforms)) {
-            const attr = this._uniforms[name];
-            if (!attr) {
-                throw this._logger.error('uniform "{0}" is unknown', name);
-            }
-            const setter = uniformSetters[attr.info.type];
-            if (!setter) {
-                throw this._logger.error('uniform "{0}" setter is not found', name);
-            }
-            setter(this._logger, gl, attr, value);
+    setUniform(name: string, value: UniformValue): void {
+        if (this._cache[name] === value) {
+            return;
         }
+        this._logger.log('set_uniform({0}: {1})', name, value);
+        const gl = this._runtime.gl;
+        const attr = this._uniforms[name];
+        if (!attr) {
+            throw this._logger.error('uniform "{0}" is unknown', name);
+        }
+        const setter = uniformSetters[attr.info.type];
+        if (!setter) {
+            throw this._logger.error('uniform "{0}" setter is not found', name);
+        }
+        // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
+        // Otherwise it would cause an error.
+        // > INVALID_OPERATION: uniformXXX: location is not from current program
+        this.use();
+        setter(this._logger, gl, attr, value);
+        this._cache[name] = value;
     }
 }
 

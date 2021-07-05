@@ -1,5 +1,5 @@
 import {
-    color,
+    color, isColor,
     color2arr,
     color2uint, uint2color,
     color2hex, hex2color,
@@ -9,6 +9,16 @@ describe('color', () => {
     it('create color', () => {
         expect(color(0.1, 0.2, 0.3, 0.4)).toEqual({ r: 0.1, g: 0.2, b: 0.3, a: 0.4 });
         expect(color(0.1, 0.2, 0.3)).toEqual({ r: 0.1, g: 0.2, b: 0.3, a: 1 });
+    });
+
+    it('check color', () => {
+        expect(isColor(null)).toBe(false);
+        expect(isColor(undefined)).toBe(false);
+        expect(isColor(0)).toBe(false);
+        expect(isColor(1)).toBe(false);
+        expect(isColor('color')).toBe(false);
+        expect(isColor({ r: 1, g: 2, b: 3 })).toBe(false);
+        expect(isColor({ r: 1, g: 2, b: 3, a: 4 })).toBe(true);
     });
 
     it('make array from Color', () => {

@@ -22,6 +22,10 @@ export function vec2(x: number, y: number): Vec2 {
     return new Vector2(x, y);
 }
 
+export function isVec2(arg: unknown): arg is Vec2 {
+    return 'x' in (arg as Vec2) && 'y' in (arg as Vec2);
+}
+
 export function vec2arr(v: Vec2): [number, number] {
     return [v.x, v.y];
 }

@@ -1,7 +1,7 @@
 import {
     Runtime, Primitive, Program, VertexWriter, Logger,
-    Vec2, UniformValue, AttrValue,
-    parseVertexSchema, memoize, color2arr,
+    parseVertexSchema,
+    Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
 import { Vertex } from './vertex';
 import vertexShaderSource from './shaders/vert.glsl';
@@ -85,10 +85,9 @@ export class Line {
     }
 
     render(): void {
-        this._primitive.render({
-            'u_canvas_size': makeSizeUniform(this._runtime.canvasSize()),
-            'u_thickness': this._runtime.toCanvasPixels(this._thickness),
-        });
+        this._primitive.program().setUniform('u_canvas_size', this._runtime.canvasSize());
+        this._primitive.program().setUniform('u_thickness', this._runtime.toCanvasPixels(this._thickness));
+        this._primitive.render();
     }
 }
 
@@ -97,8 +96,6 @@ const schema = parseVertexSchema([
     { name: 'a_other', type: 'float4' },
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
-
-const makeSizeUniform = memoize(({ x, y }: Vec2): UniformValue => ([x, y]));
 
 const SEGMENT_SIZE = schema.totalSize * 4;
 
@@ -117,12 +114,12 @@ const enum Location {
     R = +1,
 }
 
-function makePositionAttr(position: Vec2, location: Location): AttrValue {
-    return [position.x, position.y, location];
+function makePositionAttr(position: Vec2, location: Location): Vec3 {
+    return vec3(position.x, position.y, location);
 }
 
-function makeOtherAttr(other: Vec2, outer: Vec2): AttrValue {
-    return [other.x, other.y, outer.x, outer.y];
+function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
+    return vec4(other.x, other.y, outer.x, outer.y);
 }
 
 function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number): void {
@@ -134,8 +131,8 @@ function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx
 
     const startOther = makeOtherAttr(end.position, before.position);
     const endOther = makeOtherAttr(start.position, after.position);
-    const startColor = color2arr(start.color);
-    const endColor = color2arr(end.color);
+    const startColor = start.color;
+    const endColor = end.color;
 
     writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
     writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));

@@ -2,17 +2,14 @@ import {
     VertexWriter,
     parseVertexSchema,
     WorkerMessenger,
-    color, Color, color2arr,
+    Color, color,
     logSilenced,
     Runtime,
     Primitive,
     Program,
-    Vec2, vec2, vec2arr,
+    Vec2, vec2,
 } from 'lib';
-import {
-    TYPE_SCALE,
-    TYPE_COLOR,
-} from './message-types';
+import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
 
@@ -51,7 +48,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vec2arr(vertex));
+        writer.writeAttribute(i, 'a_position', vertex);
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
@@ -68,7 +65,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
-let clr = color(0, 0, 0, 1);
+let clr = color(0, 0, 0);
 let scale = 0;
 
 function runWorker(runtime: Runtime): void {
@@ -105,12 +102,13 @@ function runWorker(runtime: Runtime): void {
     }, 25);
 }
 
+
+
 runtime.onRender(() => {
     runtime.clearColorBuffer();
-    primitive.render({
-        'u_scale': scale,
-        'u_color': color2arr(clr),
-    });
+    primitive.program().setUniform('u_scale', scale);
+    primitive.program().setUniform('u_color', clr);
+    primitive.render();
 });
 runWorker(runtime);
 logSilenced(true);

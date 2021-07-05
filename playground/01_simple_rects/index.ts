@@ -4,9 +4,9 @@ import {
     Runtime,
     Program,
     Primitive,
-    generateDefaultIndexes, logSilenced,
-    colors, color2arr, Color,
-    Vec2, vec2, vec2arr,
+    generateDefaultIndexes,
+    colors, Color,
+    Vec2, vec2,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -69,8 +69,8 @@ function makePrimitive(runtime: Runtime): Primitive {
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vec2arr(vertex.position));
-        writer.writeAttribute(i, 'a_color', color2arr(vertex.color));
+        writer.writeAttribute(i, 'a_position', vertex.position);
+        writer.writeAttribute(i, 'a_color', vertex.color);
     }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
@@ -90,4 +90,3 @@ runtime.onRender(() => {
     runtime.clearColorBuffer();
     primitive.render();
 });
-logSilenced(true);

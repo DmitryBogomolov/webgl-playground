@@ -138,5 +138,39 @@ describe('render loop', () => {
                 [40, 70],
             ]);
         });
+
+        it('do not add and remove callbacks twice', () => {
+            const loop = new RenderLoop();
+            const callback = jest.fn();
+
+            const cancel1 = loop.onRender(callback);
+            const cancel2 = loop.onRender(callback);
+            triggerFrame(10);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+            ]);
+
+            cancel2();
+            triggerFrame(30);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+                [20, 30],
+            ]);
+
+            cancel1();
+            triggerFrame(70);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+                [20, 30],
+            ]);
+
+            cancel1();
+            cancel2();
+            triggerFrame(80);
+            expect(callback.mock.calls).toEqual([
+                [0, 10],
+                [20, 30],
+            ]);
+        });
     });
 });

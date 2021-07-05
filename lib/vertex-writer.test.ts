@@ -2,7 +2,7 @@ import { VertexSchema } from './vertex-schema';
 import { VertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
-    describe('FluentVertexWriter', () => {
+    describe('VertexWriter', () => {
         const schema: VertexSchema = {
             attributes: [
                 { name: 'f1', type: 'float', size: 2, stride: 16, offset: 0, normalized: false, gltype: 0 },
@@ -19,9 +19,9 @@ describe('vertex writer', () => {
             writer.writeAttribute(0, 'f1', [1.2, 2.3]);
             writer.writeAttribute(0, 'f2', [1200]);
             writer.writeAttribute(0, 'f3', [1, 2, 3]);
-            writer.writeAttribute(1, 'f1', [2.3, 2.1]);
-            writer.writeAttribute(1, 'f2', [1300]);
-            writer.writeAttribute(1, 'f3', [2, 3, 4]);
+            writer.writeAttribute(1, 'f1', { x: 2.3, y: 2.1 });
+            writer.writeAttribute(1, 'f2', 1300);
+            writer.writeAttribute(1, 'f3', { x: 2, y: 3, z: 4 });
             writer.writeAttribute(2, 'f1', [4.1, 3.1]);
             writer.writeAttribute(2, 'f2', [1400]);
             writer.writeAttribute(2, 'f3', [4, 2, 1]);

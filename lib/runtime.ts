@@ -1,15 +1,30 @@
-import { color, Color } from './color';
 import { handleWindowResize } from './utils/resize-handler';
 import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
+import { Color, color, isColor } from './color';
 import { vec2, Vec2 } from './geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
-    COLOR_CLEAR_VALUE,
+    ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER,
+    TEXTURE_2D,
+    TEXTURE0,
+    UNPACK_FLIP_Y_WEBGL,
 } = WebGLRenderingContext.prototype;
+
+interface State {
+    clearColor: Color;
+    currentProgram: WebGLProgram | null;
+    vertexArrayObject: WebGLVertexArrayObjectOES | null;
+    arrayBuffer: WebGLBuffer | null;
+    elementArrayBuffer: WebGLBuffer | null;
+    textureUnit: number;
+    boundTextures: { [key: number]: WebGLTexture | null };
+    pixelStoreUnpackFlipYWebgl: boolean;
+}
 
 export class Runtime {
     private readonly _id = generateId('Runtime');
@@ -18,6 +33,7 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private readonly _disposeResizeHandler: CancelSubscriptionCallback;
     private _canvasSize: Vec2 = { x: 0, y: 0 };
+    private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
@@ -36,6 +52,18 @@ export class Runtime {
         this.vaoExt = this._getVaoExt();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
+        // Initial state is formed according to specification.
+        // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
+        this._state = {
+            clearColor: color(0, 0, 0, 0),
+            currentProgram: null,
+            vertexArrayObject: null,
+            arrayBuffer: null,
+            elementArrayBuffer: null,
+            textureUnit: 0,
+            boundTextures: {},
+            pixelStoreUnpackFlipYWebgl: false,
+        };
         this.adjustViewport();
         this._disposeResizeHandler = handleWindowResize(() => {
             this.adjustViewport();
@@ -114,14 +142,20 @@ export class Runtime {
     }
 
     clearColor(): Color {
-        // Consider caching this value.
-        const [r, g, b, a] = this.gl.getParameter(COLOR_CLEAR_VALUE) as Float32Array;
-        return color(r, g, b, a);
+        return this._state.clearColor;
     }
 
-    setClearColor({ r, g, b, a }: Color): void {
+    setClearColor(clearColor: Color): void {
+        if (!isColor(clearColor)) {
+            throw this._logger.error('set_clear_color({0})', clearColor);
+        }
+        if (this._state.clearColor === clearColor) {
+            return;
+        }
+        const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
+        this._state.clearColor = clearColor;
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
@@ -130,6 +164,72 @@ export class Runtime {
 
     requestRender(): void {
         this._renderLoop.update();
+    }
+
+    useProgram(program: WebGLProgram | null, id: string): void {
+        if (this._state.currentProgram === program) {
+            return;
+        }
+        this._logger.log('use_program({0})', program ? id : null);
+        this.gl.useProgram(program);
+        this._state.currentProgram = program;
+    }
+
+    bindVertexArrayObject(vertexArrayObject: WebGLVertexArrayObjectOES | null, id: string): void {
+        if (this._state.vertexArrayObject === vertexArrayObject) {
+            return;
+        }
+        this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? id : null);
+        this.vaoExt.bindVertexArrayOES(vertexArrayObject);
+        this._state.vertexArrayObject = vertexArrayObject;
+        // ELEMENT_ARRAY_BUFFER is part of VAO state.
+        // When bound VAO is changed bound element array buffer is changed as well. Hence state is dropped.
+        this._state.elementArrayBuffer = 0;
+    }
+
+    bindArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
+        if (this._state.arrayBuffer === buffer) {
+            return;
+        }
+        this._logger.log('bind_array_buffer({0})', buffer ? id : null);
+        this.gl.bindBuffer(ARRAY_BUFFER, buffer);
+        this._state.arrayBuffer = buffer;
+    }
+
+    bindElementArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
+        if (this._state.elementArrayBuffer === buffer) {
+            return;
+        }
+        this._logger.log('bind_element_array_buffer({0})', buffer ? id : null);
+        this.gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer);
+        this._state.elementArrayBuffer = buffer;
+    }
+
+    bindTexture(texture: WebGLTexture | null, id: string): void {
+        if ((this._state.boundTextures[this._state.textureUnit] || null) === texture) {
+            return;
+        }
+        this._logger.log('bind_texture({0})', texture ? id : null);
+        this.gl.bindTexture(TEXTURE_2D, texture);
+        this._state.boundTextures[this._state.textureUnit] = texture;
+    }
+
+    activeTexture(unit: number): void {
+        if (this._state.textureUnit === unit) {
+            return;
+        }
+        this._logger.log('active_texture({0})', unit);
+        this.gl.activeTexture(TEXTURE0 + unit);
+        this._state.textureUnit = unit;
+    }
+
+    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
+        if (this._state.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
+            return;
+        }
+        this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
+        this.gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
+        this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
     }
 }
 
