@@ -1,13 +1,13 @@
 import {
     Runtime, Primitive, Program, VertexWriter, Logger,
     parseVertexSchema,
-    Vec2, Vec3, Vec4, vec3, vec4,
+    Vec2, Vec4, vec4,
 } from 'lib';
 import { Vertex } from '../vertex';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
-export class BevelLine {
+export class RoundLine {
     private readonly _logger = new Logger('BevelLine');
     private _thickness = 1;
     private readonly _runtime: Runtime;
@@ -92,8 +92,8 @@ export class BevelLine {
 }
 
 const schema = parseVertexSchema([
-    { name: 'a_position', type: 'float3' },
-    { name: 'a_other', type: 'float4' },
+    { name: 'a_position', type: 'float4' },
+    { name: 'a_other', type: 'float2' },
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
 
@@ -105,39 +105,28 @@ function getVertexBufferSize(vertexCount: number): number {
 }
 
 function getIndexBufferSize(vertexCount: number): number {
-    // segments <- vertices - 1; 6 indices per segment and 6 indices per segment join
-    return vertexCount > 1 ? 2 * 6 * (2 * (vertexCount - 1) - 1) : 0;
+    // segments <- vertices - 1; 6 indices per segment
+    return vertexCount > 1 ? 2 * 6 * (vertexCount - 1) : 0;
 }
 
-const enum Location {
-    L = -1,
-    R = +1,
-}
-
-function makePositionAttr(position: Vec2, location: Location): Vec3 {
-    return vec3(position.x, position.y, location);
-}
-
-function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
-    return vec4(other.x, other.y, outer.x, outer.y);
+function makePositionAttr(position: Vec2, crossSide: number, lateralSide: number): Vec4 {
+    return vec4(position.x, position.y, crossSide, lateralSide);
 }
 
 function writeSegment(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number): void {
     const vertexBase = idx * 4;
     const start = vertices[idx];
     const end = vertices[idx + 1];
-    const before = vertices[idx - 1] || end;
-    const after = vertices[idx + 2] || start;
 
-    const startOther = makeOtherAttr(end.position, before.position);
-    const endOther = makeOtherAttr(start.position, after.position);
+    const startOther = end.position;
+    const endOther = start.position;
     const startColor = start.color;
     const endColor = end.color;
 
-    writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, Location.R));
-    writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, Location.L));
-    writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end.position, Location.L));
-    writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end.position, Location.R));
+    writer.writeAttribute(vertexBase + 0, 'a_position', makePositionAttr(start.position, +1, -1));
+    writer.writeAttribute(vertexBase + 1, 'a_position', makePositionAttr(start.position, -1, -1));
+    writer.writeAttribute(vertexBase + 2, 'a_position', makePositionAttr(end.position, -1, +1));
+    writer.writeAttribute(vertexBase + 3, 'a_position', makePositionAttr(end.position, +1, +1));
     writer.writeAttribute(vertexBase + 0, 'a_other', startOther);
     writer.writeAttribute(vertexBase + 1, 'a_other', startOther);
     writer.writeAttribute(vertexBase + 2, 'a_other', endOther);
@@ -168,10 +157,7 @@ function updateVertex(vertexData: ArrayBuffer, vertices: ReadonlyArray<Vertex>, 
 function writeIndexes(indexData: ArrayBuffer, vertexCount: number): void {
     const arr = new Uint16Array(indexData);
     for (let i = 0; i < vertexCount - 1; ++i) {
-        writeSegmentIndexes(arr, i * 12, i * 4);
-    }
-    for (let i = 0; i < vertexCount - 2; ++i) {
-        writeSegmentIndexes(arr, i * 12 + 6, i * 4 + 2);
+        writeSegmentIndexes(arr, i * 6, i * 4);
     }
 }
 
