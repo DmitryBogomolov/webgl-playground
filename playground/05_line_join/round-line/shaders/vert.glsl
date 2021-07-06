@@ -5,6 +5,8 @@ attribute vec2 a_other;
 attribute vec4 a_color;
 
 varying vec4 v_color;
+varying vec2 v_sides;
+varying float v_length;
 
 uniform vec2 u_canvas_size;
 uniform float u_thickness;
@@ -21,5 +23,7 @@ void main() {
     float lateral_side = a_position.w;
     vec2 offset = segment_dir + cross_side * normal;
     gl_Position = vec4(a_position.xy + offset * u_thickness * 0.5 / (u_canvas_size * 0.5), 0.0, 1.0);
+    v_sides = vec2(cross_side * lateral_side, lateral_side);
+    v_length = length(segment);
     v_color = a_color;
 }
