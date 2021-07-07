@@ -146,8 +146,8 @@ function writeVertices(vertexData: ArrayBuffer, vertices: ReadonlyArray<Vertex>)
 
 function updateVertex(vertexData: ArrayBuffer, vertices: ReadonlyArray<Vertex>, vertexIdx: number): [number, number] {
     const writer = new VertexWriter(schema, vertexData);
-    const beginSegmentIdx = Math.max(vertexIdx - 2, 0);
-    const endSegmentIdx = Math.min(vertexIdx + 1, vertices.length - 2);
+    const beginSegmentIdx = Math.max(vertexIdx - 1, 0);
+    const endSegmentIdx = Math.min(vertexIdx, vertices.length - 2);
     for (let i = beginSegmentIdx; i <= endSegmentIdx; ++i) {
         writeSegment(writer, vertices, i);
     }
