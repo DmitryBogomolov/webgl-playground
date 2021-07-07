@@ -8,7 +8,7 @@ import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
 export class RoundLine {
-    private readonly _logger = new Logger('BevelLine');
+    private readonly _logger = new Logger('RoundLine');
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
