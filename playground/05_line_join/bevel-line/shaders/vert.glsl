@@ -1,6 +1,8 @@
-// xy - segment point, z - left (-1) or right (+1) edge of line
+// xy - segment point,
+// z - left (-1) or right (+1) edge of line
 attribute vec3 a_position;
-// xy - other point of the segment, zw - other point of the next segment
+// xy - other point of the segment,
+// zw - other point of the next segment
 attribute vec4 a_other;
 attribute vec4 a_color;
 

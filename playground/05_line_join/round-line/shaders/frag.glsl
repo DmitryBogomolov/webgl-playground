@@ -1,16 +1,19 @@
 precision mediump float;
 
-varying vec2 v_sides;
+varying vec3 v_round;
 varying vec4 v_color;
-varying float v_length;
 
 uniform highp float u_thickness;
 
+bool is_outside_of_circle() {
+    // Vector from the (nearest) segment end to current fragment.
+    vec2 offset = vec2(v_round.x, abs(v_round.y) - v_round.z * 0.5);
+    // Check if vector points outside the segment and its length is greater than half of thickness.
+    return offset.y > 0.0 && dot(offset, offset) > u_thickness * u_thickness * 0.25;
+}
+
 void main() {
-    float cross_dist = v_sides.x * u_thickness * 0.5;
-    float lateral_dist = v_sides.y * (v_length * 0.5 + u_thickness * 0.5);
-    float r = length(vec2(cross_dist, lateral_dist - sign(v_sides.y) * v_length * 0.5));
-    if (abs(lateral_dist) > v_length * 0.5 && r > u_thickness * 0.5) {
+    if (is_outside_of_circle()) {
         discard;
     }
     gl_FragColor = v_color;
