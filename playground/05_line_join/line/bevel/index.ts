@@ -3,7 +3,7 @@ import {
     parseVertexSchema,
     Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
-import { BaseLine, LineParams, writeSegmentIndexes } from '../base-line';
+import { Line, LineParams, writeSegmentIndexes } from '../line';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
@@ -61,7 +61,7 @@ const bevelParams: LineParams = {
     },
 };
 
-export class BevelLine extends BaseLine {
+export class BevelLine extends Line {
     constructor(runtime: Runtime) {
         super(runtime, bevelParams);
     }

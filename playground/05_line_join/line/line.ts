@@ -1,5 +1,5 @@
 import { Logger, Runtime, Primitive, Program, VertexWriter, VertexSchema } from 'lib';
-import { Vertex } from './vertex';
+import { Vertex } from '../vertex';
 
 export interface LineParams {
     readonly schema: VertexSchema;
@@ -12,7 +12,7 @@ export interface LineParams {
     getSegmentRange(vertexCount: number, vertexIdx: number): [number, number];
 }
 
-export class BaseLine {
+export class Line {
     private readonly _logger = new Logger(this.constructor.name);
     private _thickness = 1;
     private readonly _runtime: Runtime;

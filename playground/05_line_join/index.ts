@@ -4,8 +4,8 @@ import {
     Vec2, vec2, dist2, Tracker,
 } from 'lib';
 import { Vertex } from './vertex';
-// import { BevelLine } from './bevel-line';
-import { RoundLine } from './round-line';
+// import { BevelLine } from './line/bevel';
+import { RoundLine } from './line/round';
 import { SearchTree, makeSearchTree } from './utils';
 
 /**

@@ -3,7 +3,7 @@ import {
     parseVertexSchema,
     Vec2, Vec4, vec4,
 } from 'lib';
-import { BaseLine, LineParams, writeSegmentIndexes } from '../base-line';
+import { Line, LineParams, writeSegmentIndexes } from '../line';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
@@ -56,7 +56,7 @@ const roundParams: LineParams = {
     },
 };
 
-export class RoundLine extends BaseLine {
+export class RoundLine extends Line {
     constructor(runtime: Runtime) {
         super(runtime, roundParams);
     }
