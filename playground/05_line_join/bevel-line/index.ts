@@ -1,10 +1,9 @@
 import {
-    Runtime, VertexWriter,
+    Runtime,
     parseVertexSchema,
     Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
-import { Vertex } from '../vertex';
-import { BaseLine, writeSegmentIndexes } from '../base-line';
+import { BaseLine, LineParams, writeSegmentIndexes } from '../base-line';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
@@ -14,29 +13,24 @@ const schema = parseVertexSchema([
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
 
-export class BevelLine extends BaseLine {
-    constructor(runtime: Runtime) {
-        super(runtime, schema, vertexShaderSource, fragmentShaderSource);
-    }
-
-    protected _getVertexBufferSize(segmentSize: number, vertexCount: number): number {
-        // segments <- vertices - 1
-        return vertexCount > 1 ? segmentSize * (vertexCount - 1) : 0;
-    }
-
-    protected _getIndexBufferSize(vertexCount: number): number {
-        // segments <- vertices - 1; 6 indices per segment and 6 indices per segment join
-        return vertexCount > 1 ? 2 * 6 * (2 * (vertexCount - 1) - 1) : 0;
-    }
-
-    protected _writeSegmentVertices(
-        writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number,
-    ): void {
-        const vertexBase = idx * 4;
-        const start = vertices[idx];
-        const end = vertices[idx + 1];
-        const before = vertices[idx - 1] || end;
-        const after = vertices[idx + 2] || start;
+const bevelParams: LineParams = {
+    schema,
+    vertexShader: vertexShaderSource,
+    fragmentShader: fragmentShaderSource,
+    getVertexCount(segmentCount) {
+        // 4 vertices per segment.
+        return 4 * segmentCount;
+    },
+    getIndexCount(segmentCount) {
+        // 6 indices per segment and 6 indices per segment join.
+        return 6 * (2 * segmentCount - 1);
+    },
+    writeSegmentVertices(writer, vertices, segmentIdx) {
+        const vertexBase = segmentIdx * 4;
+        const start = vertices[segmentIdx];
+        const end = vertices[segmentIdx + 1];
+        const before = vertices[segmentIdx - 1] || end;
+        const after = vertices[segmentIdx + 2] || start;
 
         const startOther = makeOtherAttr(end.position, before.position);
         const endOther = makeOtherAttr(start.position, after.position);
@@ -55,19 +49,21 @@ export class BevelLine extends BaseLine {
         writer.writeAttribute(vertexBase + 1, 'a_color', startColor);
         writer.writeAttribute(vertexBase + 2, 'a_color', endColor);
         writer.writeAttribute(vertexBase + 3, 'a_color', endColor);
-    }
-
-    protected _writeSegmentIndexes(
-        arr: Uint16Array, vertexCount: number, idx: number,
-    ): void {
-        writeSegmentIndexes(arr, idx * 12, idx * 4);
-        if (idx < vertexCount - 1) {
-            writeSegmentIndexes(arr, idx * 12 + 6, idx * 4 + 2);
+    },
+    writeSegmentIndexes(arr, vertexCount, segmentIdx) {
+        writeSegmentIndexes(arr, segmentIdx * 12, segmentIdx * 4);
+        if (segmentIdx < vertexCount - 1) {
+            writeSegmentIndexes(arr, segmentIdx * 12 + 6, segmentIdx * 4 + 2);
         }
-    }
-
-    protected _getSegmentRange(vertexCount: number, vertexIdx: number): [number, number] {
+    },
+    getSegmentRange(vertexCount, vertexIdx) {
         return [Math.max(vertexIdx - 2, 0), Math.min(vertexIdx + 1, vertexCount - 2)];
+    },
+};
+
+export class BevelLine extends BaseLine {
+    constructor(runtime: Runtime) {
+        super(runtime, bevelParams);
     }
 }
 

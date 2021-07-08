@@ -1,27 +1,35 @@
 import { Logger, Runtime, Primitive, Program, VertexWriter, VertexSchema } from 'lib';
 import { Vertex } from './vertex';
 
-export abstract class BaseLine {
+export interface LineParams {
+    readonly schema: VertexSchema;
+    readonly vertexShader: string;
+    readonly fragmentShader: string;
+    getVertexCount(segmentCount: number): number;
+    getIndexCount(segmentCount: number): number;
+    writeSegmentVertices(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, segmentIdx: number): void;
+    writeSegmentIndexes(arr: Uint16Array, vertexCount: number, segmentIdx: number): void;
+    getSegmentRange(vertexCount: number, vertexIdx: number): [number, number];
+}
+
+export class BaseLine {
     private readonly _logger = new Logger(this.constructor.name);
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
-    private readonly _schema: VertexSchema;
-    private readonly _segmentSize: number;
+    private readonly _params: LineParams;
     private _capacity = 0;
     private _vertexBuffer = new ArrayBuffer(0);
     private _indexBuffer = new ArrayBuffer(0);
 
-    constructor(runtime: Runtime, schema: VertexSchema, vertexShaderSource: string, fragmentShaderSource: string) {
+    constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
+        this._params = params;
         this._primitive = new Primitive(runtime);
-        this._schema = schema;
-        // Segment consists of 4 points.
-        this._segmentSize = schema.totalSize * 4;
         const program = new Program(runtime, {
-            vertexShader: vertexShaderSource,
-            fragmentShader: fragmentShaderSource,
-            schema,
+            vertexShader: params.vertexShader,
+            fragmentShader: params.fragmentShader,
+            schema: params.schema,
         });
         this._primitive.setProgram(program);
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
@@ -37,8 +45,13 @@ export abstract class BaseLine {
         this._thickness = thickness;
     }
 
-    protected abstract _getVertexBufferSize(segmentSize: number, capacity: number): number;
-    protected abstract _getIndexBufferSize(capacity: number): number;
+    private _getVertexBufferSize(vertexCount: number): number {
+        return vertexCount > 1 ? this._params.schema.totalSize * this._params.getVertexCount(vertexCount - 1) : 0;
+    }
+
+    private _getIndexBufferSize(vertexCount: number): number {
+        return vertexCount > 1 ? 2 * this._params.getIndexCount(vertexCount - 1) : 0;
+    }
 
     private _updateBuffers(vertexCount: number): void {
         let capacity = -1;
@@ -51,7 +64,7 @@ export abstract class BaseLine {
             return;
         }
         this._logger.log('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
-        const vertexBuffer = new ArrayBuffer(this._getVertexBufferSize(this._segmentSize, capacity));
+        const vertexBuffer = new ArrayBuffer(this._getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(this._getIndexBufferSize(capacity));
         copyBuffer(this._vertexBuffer, vertexBuffer);
         copyBuffer(this._indexBuffer, indexBuffer);
@@ -62,25 +75,17 @@ export abstract class BaseLine {
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
     }
 
-    protected abstract _writeSegmentVertices(
-        writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number
-    ): void;
-
     private _writeVertices(vertices: ReadonlyArray<Vertex>): void {
-        const writer = new VertexWriter(this._schema, this._vertexBuffer);
+        const writer = new VertexWriter(this._params.schema, this._vertexBuffer);
         for (let i = 0; i < vertices.length - 1; ++i) {
-            this._writeSegmentVertices(writer, vertices, i);
+            this._params.writeSegmentVertices(writer, vertices, i);
         }
     }
-
-    protected abstract _writeSegmentIndexes(
-        arr: Uint16Array, vertexCount: number, idx: number,
-    ): void;
 
     private _writeIndexes(vertexCount: number): void {
         const arr = new Uint16Array(this._indexBuffer);
         for (let i = 0; i < vertexCount - 1; ++i) {
-            this._writeSegmentIndexes(arr, vertexCount, i);
+            this._params.writeSegmentIndexes(arr, vertexCount, i);
         }
     }
 
@@ -88,23 +93,21 @@ export abstract class BaseLine {
         const vertexCount = vertices.length;
         this._writeVertices(vertices);
         this._writeIndexes(vertexCount);
-        const vertexDataSize = this._getVertexBufferSize(this._segmentSize, vertexCount);
+        const vertexDataSize = this._getVertexBufferSize(vertexCount);
         const indexDataSize = this._getIndexBufferSize(vertexCount);
         this._primitive.updateVertexData(this._vertexBuffer.slice(0, vertexDataSize));
         this._primitive.updateIndexData(this._indexBuffer.slice(0, indexDataSize));
         this._primitive.setIndexCount(indexDataSize / 2);
     }
 
-    protected abstract _getSegmentRange(vertexCount: number, vertexIdx: number): [number, number];
-
     private _updateSegments(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {
-        const writer = new VertexWriter(this._schema, this._vertexBuffer);
-        const [beginSegmentIdx, endSegmentIdx] = this._getSegmentRange(vertices.length, vertexIdx);
+        const writer = new VertexWriter(this._params.schema, this._vertexBuffer);
+        const [beginSegmentIdx, endSegmentIdx] = this._params.getSegmentRange(vertices.length, vertexIdx);
         for (let i = beginSegmentIdx; i <= endSegmentIdx; ++i) {
-            this._writeSegmentVertices(writer, vertices, i);
+            this._params.writeSegmentVertices(writer, vertices, i);
         }
-        const beginOffset = beginSegmentIdx * this._segmentSize;
-        const endOffset = (endSegmentIdx + 1) * this._segmentSize;
+        const beginOffset = this._getVertexBufferSize(beginSegmentIdx + 1);
+        const endOffset = this._getVertexBufferSize(endSegmentIdx + 2);
         this._primitive.updateVertexData(this._vertexBuffer.slice(beginOffset, endOffset), beginOffset);
     }
 

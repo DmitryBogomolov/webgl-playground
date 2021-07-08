@@ -1,10 +1,9 @@
 import {
-    Runtime, VertexWriter,
+    Runtime,
     parseVertexSchema,
     Vec2, Vec4, vec4,
 } from 'lib';
-import { Vertex } from '../vertex';
-import { BaseLine, writeSegmentIndexes } from '../base-line';
+import { BaseLine, LineParams, writeSegmentIndexes } from '../base-line';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
 
@@ -14,27 +13,22 @@ const schema = parseVertexSchema([
     { name: 'a_color', type: 'ubyte4', normalized: true },
 ]);
 
-export class RoundLine extends BaseLine {
-    constructor(runtime: Runtime) {
-        super(runtime, schema, vertexShaderSource, fragmentShaderSource);
-    }
-
-    protected _getVertexBufferSize(segmentSize: number, vertexCount: number): number {
-        // segments <- vertices - 1
-        return vertexCount > 1 ? segmentSize * (vertexCount - 1) : 0;
-    }
-
-    protected _getIndexBufferSize(vertexCount: number): number {
-        // segments <- vertices - 1; 6 indices per segment
-        return vertexCount > 1 ? 2 * 6 * (vertexCount - 1) : 0;
-    }
-
-    protected _writeSegmentVertices(
-        writer: VertexWriter, vertices: ReadonlyArray<Vertex>, idx: number,
-    ): void {
-        const vertexBase = idx * 4;
-        const start = vertices[idx];
-        const end = vertices[idx + 1];
+const roundParams: LineParams = {
+    schema,
+    vertexShader: vertexShaderSource,
+    fragmentShader: fragmentShaderSource,
+    getVertexCount(segmentCount) {
+        // 4 vertices per segment.
+        return 4 * segmentCount;
+    },
+    getIndexCount(segmentCount) {
+        // 6 indices per segment.
+        return 6 * segmentCount;
+    },
+    writeSegmentVertices(writer, vertices, segmentIdx) {
+        const vertexBase = segmentIdx * 4;
+        const start = vertices[segmentIdx];
+        const end = vertices[segmentIdx + 1];
 
         const startOther = end.position;
         const endOther = start.position;
@@ -53,16 +47,18 @@ export class RoundLine extends BaseLine {
         writer.writeAttribute(vertexBase + 1, 'a_color', startColor);
         writer.writeAttribute(vertexBase + 2, 'a_color', endColor);
         writer.writeAttribute(vertexBase + 3, 'a_color', endColor);
-    }
-
-    protected _writeSegmentIndexes(
-        arr: Uint16Array, _vertexCount: number, idx: number,
-    ): void {
-        writeSegmentIndexes(arr, idx * 6, idx * 4);
-    }
-
-    protected _getSegmentRange(vertexCount: number, vertexIdx: number): [number, number] {
+    },
+    writeSegmentIndexes(arr, _vertexCount, segmentIdx) {
+        writeSegmentIndexes(arr, segmentIdx * 6, segmentIdx * 4);
+    },
+    getSegmentRange(vertexCount, vertexIdx) {
         return [Math.max(vertexIdx - 1, 0), Math.min(vertexIdx, vertexCount - 2)];
+    },
+};
+
+export class RoundLine extends BaseLine {
+    constructor(runtime: Runtime) {
+        super(runtime, roundParams);
     }
 }
 
