@@ -7,7 +7,7 @@ import { Vertex } from './vertex';
 import { Line } from './line/line';
 import { BevelLine } from './line/bevel';
 import { RoundLine } from './line/round';
-import { SearchTree, makeSearchTree } from './utils';
+import { SearchTree } from './search-tree';
 
 /**
  * Bevel line join.
@@ -101,11 +101,11 @@ function px2ndc(px: Vec2): Vec2 {
     return runtime1.px2ndc(px);
 }
 
-let tree: SearchTree;
+const tree = new SearchTree(() => runtime1.canvasSize());
 updateTree();
 
 function updateTree(): void {
-    tree = makeSearchTree(vertices, () => runtime1.canvasSize());
+    tree.update(vertices);
 }
 
 const VERTEX_THRESHOLD = 16;
@@ -120,7 +120,7 @@ function setupTracker(container: HTMLDivElement): void {
 
     new Tracker(container, {
         onDblClick({ coords }) {
-            const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
+            const vertexIdx = tree.findNearest(px2ndc(coords))!;
             const vertexCoords = ndc2px(vertices[vertexIdx].position);
             const dist = dist2(vertexCoords, coords);
             if (dist <= VERTEX_THRESHOLD) {
@@ -137,7 +137,7 @@ function setupTracker(container: HTMLDivElement): void {
             }
         },
         onStart({ coords }) {
-            const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
+            const vertexIdx = tree.findNearest(px2ndc(coords))!;
             const vertexCoords = ndc2px(vertices[vertexIdx].position);
             const dist = dist2(vertexCoords, coords);
             if (dist <= VERTEX_THRESHOLD) {
