@@ -10,11 +10,13 @@ import { RoundLine } from './line/round';
 import { SearchTree } from './search-tree';
 
 /**
- * Bevel line join.
+ * Line join.
+ *
+ * Shows "bevel" and "round" join types.
+ * Bevel join is accomplished with vertex shader only but requires quite complex code.
+ * Round join is accomplished by both vertex and fragment shaders. Code is simpler but fragment overhead exist.
  */
 export type DESCRIPTION = never;
-
-// TODO: Provide round join.
 
 const container1 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-1')!;
 const container2 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-2')!;
@@ -111,10 +113,10 @@ function updateTree(): void {
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
 
-setupTracker(container1);
-setupTracker(container2);
+setupTracker(runtime1.canvas());
+setupTracker(runtime2.canvas());
 
-function setupTracker(container: HTMLDivElement): void {
+function setupTracker(container: HTMLElement): void {
     let motionVertexIdx: number = -1;
     let thicknessVertexIdx: number = -1;
 
