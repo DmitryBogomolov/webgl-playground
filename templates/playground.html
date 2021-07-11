@@ -14,6 +14,12 @@
             background-color: darkgrey;
         }
     </style>
+    <script>
+        PLAYGROUND_ROOT = '#playground-root';
+        {{ #worker_url }}
+        WORKER_URL = '{{ &worker_url }}';
+        {{ /worker_url }}
+    </script>
 </head>
 <body>
     <div class="panel panel-default">
@@ -26,12 +32,6 @@
 {{ &custom_markup }}
         </div>
     </div>
-    <script>
-        PLAYGROUND_ROOT = '#playground-root';
-        {{ #worker_url }}
-        WORKER_URL = '{{ &worker_url }}';
-        {{ /worker_url }}
-    </script>
     <script src="{{ &bundle_url }}"></script>
 </body>
 </html>

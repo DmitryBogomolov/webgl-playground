@@ -4,17 +4,22 @@ import {
     Vec2, vec2, dist2, Tracker,
 } from 'lib';
 import { Vertex } from './vertex';
-import { Line } from './line';
-import { SearchTree, makeSearchTree } from './utils';
+import { Line } from './line/line';
+import { BevelLine } from './line/bevel';
+import { RoundLine } from './line/round';
+import { SearchTree } from './search-tree';
 
 /**
- * Bevel line join.
+ * Line join.
+ *
+ * Shows "bevel" and "round" join types.
+ * Bevel join is accomplished with vertex shader only but requires quite complex code.
+ * Round join is accomplished by both vertex and fragment shaders. Code is simpler but fragment overhead exist.
  */
 export type DESCRIPTION = never;
 
-// TODO: Provide round join.
-
-const container = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT)!;
+const container1 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-1')!;
+const container2 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-2')!;
 
 const pickColor = (function () {
     const colorPool: ReadonlyArray<Color> = [
@@ -43,94 +48,126 @@ const vertices: Vertex[] = [
     { position: vec2(+0.8, +0.6), color: pickColor() },
 ];
 
-let thickness = 0;
+let thickness = 50;
 
-function setThickness(value: number): void {
-    thickness = value;
-    line.setThickness(thickness);
+const runtime1 = new Runtime(container1);
+const runtime2 = new Runtime(container2);
+
+interface LineConstructor<T extends Line> {
+    new(runtime: Runtime): T;
 }
 
-const runtime = new Runtime(container);
-const line = new Line(runtime);
-line.setVertices(vertices);
-runtime.onRender(() => {
-    runtime.clearColorBuffer();
-    line.render();
-});
+function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): T {
+    const line = new ctor(runtime);
+    runtime.onRender(() => {
+        runtime.clearColorBuffer();
+        line.render();
+    });
+    return line;
+}
 
-setThickness(50);
+const line1 = setupLine(runtime1, BevelLine);
+const line2 = setupLine(runtime2, RoundLine);
+
+function requestRender(): void {
+    runtime1.requestRender();
+    runtime2.requestRender();
+}
+
+function setThickness(): void {
+    line1.setThickness(thickness);
+    line2.setThickness(thickness);
+    requestRender();
+}
+
+function setVertices(): void {
+    line1.setVertices(vertices);
+    line2.setVertices(vertices);
+    requestRender();
+}
+
+function updateVertex(idx: number): void {
+    line1.updateVertex(vertices, idx);
+    line2.updateVertex(vertices, idx);
+    requestRender();
+}
+
+setThickness();
+setVertices();
 
 function ndc2px(ndc: Vec2): Vec2 {
-    return runtime.ndc2px(ndc);
+    return runtime1.ndc2px(ndc);
 }
 
 function px2ndc(px: Vec2): Vec2 {
-    return runtime.px2ndc(px);
+    return runtime1.px2ndc(px);
 }
 
-let motionVertexIdx: number = -1;
-let thicknessVertexIdx: number = -1;
-
-let tree: SearchTree;
+const tree = new SearchTree(() => runtime1.canvasSize());
 updateTree();
 
 function updateTree(): void {
-    tree = makeSearchTree(vertices, runtime);
+    tree.update(vertices);
 }
 
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
 
-new Tracker(container, {
-    onDblClick({ coords }) {
-        const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
-        const vertexCoords = ndc2px(vertices[vertexIdx].position);
-        const dist = dist2(vertexCoords, coords);
-        if (dist <= VERTEX_THRESHOLD) {
-            if (vertices.length <= 2) {
-                return;
+setupTracker(runtime1.canvas());
+setupTracker(runtime2.canvas());
+
+function setupTracker(container: HTMLElement): void {
+    let motionVertexIdx: number = -1;
+    let thicknessVertexIdx: number = -1;
+
+    new Tracker(container, {
+        onDblClick({ coords }) {
+            const vertexIdx = tree.findNearest(px2ndc(coords))!;
+            const vertexCoords = ndc2px(vertices[vertexIdx].position);
+            const dist = dist2(vertexCoords, coords);
+            if (dist <= VERTEX_THRESHOLD) {
+                if (vertices.length <= 2) {
+                    return;
+                }
+                vertices.splice(vertexIdx, 1);
+                updateTree();
+                setVertices();
+            } else {
+                vertices.splice(vertices.length, 0, { position: px2ndc(coords), color: pickColor() });
+                updateTree();
+                setVertices();
             }
-            vertices.splice(vertexIdx, 1);
-            updateTree();
-            line.setVertices(vertices);
-            runtime.requestRender();
-        } else {
-            vertices.splice(vertices.length, 0, { position: px2ndc(coords), color: pickColor() });
-            updateTree();
-            line.setVertices(vertices);
-            runtime.requestRender();
-        }
-    },
-    onStart({ coords }) {
-        const { index: vertexIdx } = tree.findNearest(px2ndc(coords))!;
-        const vertexCoords = ndc2px(vertices[vertexIdx].position);
-        const dist = dist2(vertexCoords, coords);
-        if (dist <= VERTEX_THRESHOLD) {
-            motionVertexIdx = vertexIdx;
-        } else if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
-            thicknessVertexIdx = vertexIdx;
-        }
-    },
-    onMove({ coords }) {
-        if (motionVertexIdx >= 0) {
-            vertices[motionVertexIdx].position = px2ndc({
-                x: clamp(coords.x, 0, container.clientWidth),
-                y: clamp(coords.y, 0, container.clientHeight),
-            });
-            updateTree();
-            line.updateVertex(vertices, motionVertexIdx);
-            runtime.requestRender();
-        } else if (thicknessVertexIdx >= 0) {
-            const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));
-            setThickness(dist * 2 | 0);
-            runtime.requestRender();
-        }
-    },
-    onEnd() {
-        motionVertexIdx = -1;
-        thicknessVertexIdx = -1;
-    },
-});
+        },
+        onStart({ coords }) {
+            const vertexIdx = tree.findNearest(px2ndc(coords))!;
+            const vertexCoords = ndc2px(vertices[vertexIdx].position);
+            const dist = dist2(vertexCoords, coords);
+            if (dist <= VERTEX_THRESHOLD) {
+                motionVertexIdx = vertexIdx;
+            } else if (Math.abs(dist - thickness / 2) <= BORDER_THRESHOLD) {
+                thicknessVertexIdx = vertexIdx;
+            }
+        },
+        onMove({ coords }) {
+            if (motionVertexIdx >= 0) {
+                vertices[motionVertexIdx].position = px2ndc({
+                    x: clamp(coords.x, 0, container1.clientWidth),
+                    y: clamp(coords.y, 0, container1.clientHeight),
+                });
+                updateTree();
+                updateVertex(motionVertexIdx);
+            } else if (thicknessVertexIdx >= 0) {
+                const dist = dist2(coords, ndc2px(vertices[thicknessVertexIdx].position));
+                thickness = dist * 2 | 0;
+                setThickness();
+            }
+        },
+        onEnd() {
+            motionVertexIdx = -1;
+            thicknessVertexIdx = -1;
+        },
+    });
+}
 
 function clamp(value: number, minValue: number, maxValue: number): number {
     return value < minValue ? minValue : (value > maxValue ? maxValue : value);
