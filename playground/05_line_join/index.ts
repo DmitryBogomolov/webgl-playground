@@ -18,8 +18,8 @@ import { SearchTree } from './search-tree';
  */
 export type DESCRIPTION = never;
 
-const container1 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-1')!;
-const container2 = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-2')!;
+const containerBevel = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-bevel')!;
+const containerRound = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-round')!;
 
 const pickColor = (function () {
     const colorPool: ReadonlyArray<Color> = [
@@ -50,8 +50,8 @@ const vertices: Vertex[] = [
 
 let thickness = 50;
 
-const runtime1 = new Runtime(container1);
-const runtime2 = new Runtime(container2);
+const runtimeBevel = new Runtime(containerBevel);
+const runtimeRound = new Runtime(containerRound);
 
 interface LineConstructor<T extends Line> {
     new(runtime: Runtime): T;
@@ -66,29 +66,29 @@ function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): 
     return line;
 }
 
-const line1 = setupLine(runtime1, BevelLine);
-const line2 = setupLine(runtime2, RoundLine);
+const lineBevel = setupLine(runtimeBevel, BevelLine);
+const lineRound = setupLine(runtimeRound, RoundLine);
 
 function requestRender(): void {
-    runtime1.requestRender();
-    runtime2.requestRender();
+    runtimeBevel.requestRender();
+    runtimeRound.requestRender();
 }
 
 function setThickness(): void {
-    line1.setThickness(thickness);
-    line2.setThickness(thickness);
+    lineBevel.setThickness(thickness);
+    lineRound.setThickness(thickness);
     requestRender();
 }
 
 function setVertices(): void {
-    line1.setVertices(vertices);
-    line2.setVertices(vertices);
+    lineBevel.setVertices(vertices);
+    lineRound.setVertices(vertices);
     requestRender();
 }
 
 function updateVertex(idx: number): void {
-    line1.updateVertex(vertices, idx);
-    line2.updateVertex(vertices, idx);
+    lineBevel.updateVertex(vertices, idx);
+    lineRound.updateVertex(vertices, idx);
     requestRender();
 }
 
@@ -96,14 +96,14 @@ setThickness();
 setVertices();
 
 function ndc2px(ndc: Vec2): Vec2 {
-    return runtime1.ndc2px(ndc);
+    return runtimeBevel.ndc2px(ndc);
 }
 
 function px2ndc(px: Vec2): Vec2 {
-    return runtime1.px2ndc(px);
+    return runtimeBevel.px2ndc(px);
 }
 
-const tree = new SearchTree(() => runtime1.canvasSize());
+const tree = new SearchTree(() => runtimeBevel.canvasSize());
 updateTree();
 
 function updateTree(): void {
@@ -113,8 +113,8 @@ function updateTree(): void {
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
 
-setupTracker(runtime1.canvas());
-setupTracker(runtime2.canvas());
+setupTracker(runtimeBevel.canvas());
+setupTracker(runtimeRound.canvas());
 
 function setupTracker(container: HTMLElement): void {
     let motionVertexIdx: number = -1;
@@ -151,8 +151,8 @@ function setupTracker(container: HTMLElement): void {
         onMove({ coords }) {
             if (motionVertexIdx >= 0) {
                 vertices[motionVertexIdx].position = px2ndc({
-                    x: clamp(coords.x, 0, container1.clientWidth),
-                    y: clamp(coords.y, 0, container1.clientHeight),
+                    x: clamp(coords.x, 0, containerBevel.clientWidth),
+                    y: clamp(coords.y, 0, containerBevel.clientHeight),
                 });
                 updateTree();
                 updateVertex(motionVertexIdx);

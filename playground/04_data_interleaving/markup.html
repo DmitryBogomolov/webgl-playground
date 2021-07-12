@@ -1,0 +1,38 @@
+<style>
+    .root {
+        display: flex;
+        flex-direction: column;
+    }
+    .item {
+        display: flex;
+        flex-direction: row;
+    }
+    .label {
+        flex: 1 1 10%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+    .playground-container {
+        flex: 1 1 90%;
+        padding: 16px;
+    }
+</style>
+<script>
+    document.querySelector('#playground-root').remove();
+</script>
+<div class="root">
+    <div class="item">
+        <div class="label">Array of Structures</div>
+        <div class="playground-container">
+            <div id="playground-root-aos" class="playground-root"></div>
+        </div>
+    </div>
+    <div class="item">
+        <div class="label">Structure of Arrays</div>
+        <div class="playground-container">
+            <div id="playground-root-soa" class="playground-root"></div>
+        </div>
+    </div>
+</div>

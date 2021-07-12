@@ -1,13 +1,7 @@
-<div id="playground-container">
-</div>
 <script>
-    const container = document.querySelector('#playground-container');
-    const root = document.querySelector('#playground-root');
-    root.remove();
-    const root1 = root.cloneNode(true);
-    const root2 = root.cloneNode(true);
-    root1.id = root.id + '-1';
-    root2.id = root.id + '-2';
-    container.appendChild(root1);
-    container.appendChild(root2);
+    document.querySelector('#playground-root').remove();
 </script>
+<div>
+    <div id="playground-root-bevel" class="playground-root"></div>
+    <div id="playground-root-round" class="playground-root"></div>
+</div>
