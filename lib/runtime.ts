@@ -147,7 +147,7 @@ export class Runtime {
 
     setClearColor(clearColor: Color): void {
         if (!isColor(clearColor)) {
-            throw this._logger.error('set_clear_color({0})', clearColor);
+            throw this._logger.error('set_clear_color({0}): bad value', clearColor);
         }
         if (this._state.clearColor === clearColor) {
             return;
