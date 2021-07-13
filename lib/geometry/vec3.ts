@@ -27,6 +27,10 @@ export function isVec3(arg: unknown): arg is Vec3 {
     return 'x' in (arg as Vec3) && 'y' in (arg as Vec3) && 'z' in (arg as Vec3);
 }
 
+export function vec3eq(v1: Vec3, v2: Vec3): boolean {
+    return v1 === v2 || (v1.x === v2.x && v1.y === v2.y && v1.z === v2.z);
+}
+
 export function vec3arr(v: Vec3): [number, number, number] {
     return [v.x, v.y, v.z];
 }

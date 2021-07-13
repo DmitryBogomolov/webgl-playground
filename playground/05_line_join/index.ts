@@ -103,7 +103,7 @@ function px2ndc(px: Vec2): Vec2 {
     return runtimeBevel.px2ndc(px);
 }
 
-const tree = new SearchTree(() => runtimeBevel.canvasSize());
+const tree = new SearchTree(() => runtimeBevel.size());
 updateTree();
 
 function updateTree(): void {

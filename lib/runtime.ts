@@ -3,8 +3,8 @@ import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback
 import { generateId } from './utils/id-generator';
 import { Logger } from './utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
-import { Color, color, isColor } from './color';
-import { vec2, Vec2 } from './geometry/vec2';
+import { Color, color, colorEq, isColor } from './color';
+import { Vec2, ZERO2, vec2, isVec2, vec2eq } from './geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
@@ -32,7 +32,8 @@ export class Runtime {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _disposeResizeHandler: CancelSubscriptionCallback;
-    private _canvasSize: Vec2 = { x: 0, y: 0 };
+    private _size: Vec2 = ZERO2;
+    private _canvasSize: Vec2 = ZERO2;
     private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -101,39 +102,53 @@ export class Runtime {
         return this._canvas;
     }
 
-    canvasSize(): Vec2 {
-        return this._canvasSize;
-    }
-
     toCanvasPixels(pixels: number): number {
         return pixels * devicePixelRatio;
     }
 
     ndc2px({ x, y }: Vec2): Vec2 {
         return vec2(
-            (x + 1) / 2 * this._canvasSize.x / devicePixelRatio,
-            (1 - y) / 2 * this._canvasSize.y / devicePixelRatio,
+            (x + 1) / 2 * this._size.x,
+            (1 - y) / 2 * this._size.y,
         );
     }
 
     px2ndc({ x, y }: Vec2): Vec2 {
         return vec2(
-            +x * devicePixelRatio / this._canvasSize.x * 2 - 1,
-            -y * devicePixelRatio / this._canvasSize.y * 2 + 1,
+            +x / this._size.x * 2 - 1,
+            -y / this._size.y * 2 + 1,
         );
     }
 
-    adjustViewport(): void {
-        const width = (devicePixelRatio * this._canvas.clientWidth) | 0;
-        const height = (devicePixelRatio * this._canvas.clientHeight) | 0;
-        if (this._canvasSize.x === width && this._canvasSize.y === height) {
-            return;
+    size(): Vec2 {
+        return this._size;
+    }
+
+    setSize(size: Vec2): boolean {
+        if (!isVec2(size)) {
+            throw this._logger.error('set_size({0}): bad value', size);
         }
-        this._canvasSize = { x: width, y: height };
-        this._canvas.width = width;
-        this._canvas.height = height;
-        this.gl.viewport(0, 0, width, height);
-        this._renderLoop.update();
+        const canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
+        if (vec2eq(this._size, size) && vec2eq(this._canvasSize, canvasSize)) {
+            return false;
+        }
+        this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
+        this._size = size;
+        this._canvasSize = canvasSize;
+        this._canvas.width = canvasSize.x;
+        this._canvas.height = canvasSize.y;
+        this.gl.viewport(0, 0, canvasSize.x, canvasSize.y);
+        return true;
+    }
+
+    canvasSize(): Vec2 {
+        return this._canvasSize;
+    }
+
+    adjustViewport(): void {
+        if (this.setSize(vec2(this._canvas.clientWidth, this._canvas.clientHeight))) {
+            this._renderLoop.update();
+        }
     }
 
     clearColorBuffer(): void {
@@ -145,17 +160,18 @@ export class Runtime {
         return this._state.clearColor;
     }
 
-    setClearColor(clearColor: Color): void {
+    setClearColor(clearColor: Color): boolean {
         if (!isColor(clearColor)) {
             throw this._logger.error('set_clear_color({0}): bad value', clearColor);
         }
-        if (this._state.clearColor === clearColor) {
-            return;
+        if (colorEq(this._state.clearColor, clearColor)) {
+            return false;
         }
         const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
         this._state.clearColor = clearColor;
+        return true;
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {

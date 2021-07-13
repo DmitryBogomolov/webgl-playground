@@ -26,6 +26,10 @@ export function isVec2(arg: unknown): arg is Vec2 {
     return 'x' in (arg as Vec2) && 'y' in (arg as Vec2);
 }
 
+export function vec2eq(v1: Vec2, v2: Vec2): boolean {
+    return v1 === v2 || (v1.x === v2.x && v1.y === v2.y);
+}
+
 export function vec2arr(v: Vec2): [number, number] {
     return [v.x, v.y];
 }

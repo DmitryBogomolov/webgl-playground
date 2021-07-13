@@ -15,6 +15,10 @@ export function isColor(arg: unknown): arg is Color {
         Number.isFinite(clr.r) && Number.isFinite(clr.g) && Number.isFinite(clr.b) && Number.isFinite(clr.a));
 }
 
+export function colorEq(clr1: Color, clr2: Color): boolean {
+    return clr1 === clr2 || (clr1.r === clr2.r && clr1.g === clr2.g && clr1.b === clr2.b && clr1.a === clr2.a);
+}
+
 export function color2arr({ r, g, b, a }: Color): [number, number, number, number] {
     return [r, g, b, a];
 }
