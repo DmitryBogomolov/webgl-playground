@@ -1,5 +1,5 @@
-import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
-import { EventEmitter } from './utils/event-emitter';
+import { CancelSubscriptionCallback } from '../utils/cancel-subscription-callback';
+import { EventEmitter } from '../utils/event-emitter';
 
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 

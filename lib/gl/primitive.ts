@@ -1,7 +1,7 @@
 import { Program, EMPTY_PROGRAM } from './program';
 import { Runtime } from './runtime';
-import { generateId } from './utils/id-generator';
-import { Logger } from './utils/logger';
+import { generateId } from '../utils/id-generator';
+import { Logger } from '../utils/logger';
 
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,

@@ -1,10 +1,10 @@
-import { handleWindowResize } from './utils/resize-handler';
-import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
-import { generateId } from './utils/id-generator';
-import { Logger } from './utils/logger';
+import { handleWindowResize } from '../utils/resize-handler';
+import { CancelSubscriptionCallback } from '../utils/cancel-subscription-callback';
+import { generateId } from '../utils/id-generator';
+import { Logger } from '../utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
-import { Vec2, ZERO2, vec2, isVec2, vec2eq } from './geometry/vec2';
+import { Vec2, ZERO2, vec2, isVec2, vec2eq } from '../geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,

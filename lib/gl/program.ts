@@ -1,12 +1,12 @@
 import { VertexSchema } from './vertex-schema';
-import { generateId } from './utils/id-generator';
-import { Logger } from './utils/logger';
+import { generateId } from '../utils/id-generator';
+import { Logger } from '../utils/logger';
 import { Runtime } from './runtime';
-import { Vec2, isVec2 } from './geometry/vec2';
-import { Vec3, isVec3 } from './geometry/vec3';
-import { Vec4, isVec4 } from './geometry/vec4';
+import { Vec2, isVec2 } from '../geometry/vec2';
+import { Vec3, isVec3 } from '../geometry/vec3';
+import { Vec4, isVec4 } from '../geometry/vec4';
 import { Color, isColor } from './color';
-import { formatStr } from './utils/string-formatter';
+import { formatStr } from '../utils/string-formatter';
 
 const {
     VERTEX_SHADER, FRAGMENT_SHADER,
