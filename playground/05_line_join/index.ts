@@ -53,15 +53,7 @@ function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): 
 setupLine(runtimeBevel, BevelLine);
 setupLine(runtimeRound, RoundLine);
 
-const tree = new SearchTree(() => runtimeBevel.size());
-tree.update(state.vertices);
-
-state.verticesChanged.on(() => {
-    tree.update(state.vertices);
-});
-state.vertexUpdated.on(() => {
-    tree.update(state.vertices);
-});
+const tree = new SearchTree(() => runtimeBevel.size(), state);
 
 setupTracker(runtimeBevel, tree, state);
 setupTracker(runtimeRound, tree, state);
