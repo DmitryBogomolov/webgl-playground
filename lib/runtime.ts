@@ -20,7 +20,9 @@ interface State {
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
-    elementArrayBuffer: WebGLBuffer | null;
+    // ELEMENT_ARRAY_BUFFER is part of VAO state.
+    // When bound VAO is changed bound element array buffer is changed as well. Hence state is dropped.
+    elementArrayBuffers: { [key: number]: WebGLBuffer | null };
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
@@ -60,7 +62,9 @@ export class Runtime {
             currentProgram: null,
             vertexArrayObject: null,
             arrayBuffer: null,
-            elementArrayBuffer: null,
+            elementArrayBuffers: {
+                [null as unknown as number]: null,
+            },
             textureUnit: 0,
             boundTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
@@ -198,9 +202,6 @@ export class Runtime {
         this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? id : null);
         this.vaoExt.bindVertexArrayOES(vertexArrayObject);
         this._state.vertexArrayObject = vertexArrayObject;
-        // ELEMENT_ARRAY_BUFFER is part of VAO state.
-        // When bound VAO is changed bound element array buffer is changed as well. Hence state is dropped.
-        this._state.elementArrayBuffer = 0;
     }
 
     bindArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
@@ -213,12 +214,12 @@ export class Runtime {
     }
 
     bindElementArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
-        if (this._state.elementArrayBuffer === buffer) {
+        if (this._state.elementArrayBuffers[this._state.vertexArrayObject as number] === buffer) {
             return;
         }
         this._logger.log('bind_element_array_buffer({0})', buffer ? id : null);
         this.gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer);
-        this._state.elementArrayBuffer = buffer;
+        this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = buffer;
     }
 
     bindTexture(texture: WebGLTexture | null, id: string): void {
