@@ -44,3 +44,11 @@ Playground for WebGL samples
     "program": "${workspaceFolder}/node_modules/.bin/jest"
 }
 ```
+
+### Static content
+
+bootstrap.min.css, bootstrap.min.css.map  
+TODO: Mention source when these files are updated to a newer version.
+
+leaves.jpg  
+Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
