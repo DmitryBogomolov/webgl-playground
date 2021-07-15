@@ -1,17 +1,16 @@
-import { CancelSubscriptionCallback } from './utils/cancel-subscription-callback';
+import { CancelSubscriptionCallback } from '../utils/cancel-subscription-callback';
+import { EventEmitter } from '../utils/event-emitter';
 
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
+    private readonly _frameRendered = new EventEmitter<Parameters<RenderFrameCallback>>();
     private readonly _renderFrame: FrameRequestCallback = (timestamp) => {
         this._requestId = 0;
         const delta = (timestamp - this._timestamp) || 0; // ms
         this._timestamp = timestamp;
-        for (const callback of this._callbacks) {
-            callback(delta, timestamp);
-        }
+        this._frameRendered.emit(delta, timestamp);
     };
-    private readonly _callbacks: RenderFrameCallback[] = [];
     private _requestId = 0;
     private _timestamp = NaN;
 
@@ -27,21 +26,7 @@ export class RenderLoop {
     }
 
     onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
-        const i = this._callbacks.indexOf(callback);
-        if (i >= 0) {
-            return noop;
-        }
-        this._callbacks.push(callback);
         this.update();
-        return () => {
-            const i = this._callbacks.indexOf(callback);
-            if (i < 0) {
-                return;
-            }
-            this._callbacks.splice(i, 1);
-            this.update();
-        };
+        return this._frameRendered.on(callback);
     }
 }
-
-function noop(): void { /* nothing */ }

@@ -70,7 +70,7 @@ describe('render loop', () => {
             ]);
         });
 
-        it('request frame when callback is removed', () => {
+        it('do not request frame when callback is removed', () => {
             const loop = new RenderLoop();
             const cancel = loop.onRender(() => 0);
             triggerFrame(0);
@@ -78,7 +78,6 @@ describe('render loop', () => {
             cancel();
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
-                [expect.any(Function)],
                 [expect.any(Function)],
             ]);
         });
@@ -139,7 +138,7 @@ describe('render loop', () => {
             ]);
         });
 
-        it('do not add and remove callbacks twice', () => {
+        it('do not add or remove callbacks twice', () => {
             const loop = new RenderLoop();
             const callback = jest.fn();
 

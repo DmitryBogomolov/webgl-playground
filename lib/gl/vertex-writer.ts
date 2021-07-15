@@ -1,9 +1,9 @@
 
-import { Logger } from './utils/logger';
+import { Logger } from '../utils/logger';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
-import { isVec2, Vec2, vec2arr } from './geometry/vec2';
-import { isVec3, Vec3, vec3arr } from './geometry/vec3';
-import { isVec4, Vec4, vec4arr } from './geometry/vec4';
+import { isVec2, Vec2, vec2arr } from '../geometry/vec2';
+import { isVec3, Vec3, vec3arr } from '../geometry/vec3';
+import { isVec4, Vec4, vec4arr } from '../geometry/vec4';
 import { Color, color2arr, isColor } from './color';
 
 type Normalizer = (value: number) => number;

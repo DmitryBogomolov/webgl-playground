@@ -1,6 +1,6 @@
 import { Runtime } from './runtime';
-import { generateId } from './utils/id-generator';
-import { Logger } from './utils/logger';
+import { generateId } from '../utils/id-generator';
+import { Logger } from '../utils/logger';
 
 const {
     TEXTURE_2D,

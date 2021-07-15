@@ -1,5 +1,6 @@
 import {
     color, isColor,
+    colorEq,
     color2arr,
     color2uint, uint2color,
     color2hex, hex2color,
@@ -19,6 +20,18 @@ describe('color', () => {
         expect(isColor('color')).toBe(false);
         expect(isColor({ r: 1, g: 2, b: 3 })).toBe(false);
         expect(isColor({ r: 1, g: 2, b: 3, a: 4 })).toBe(true);
+    });
+
+    it('compare colors', () => {
+        const c1 = color(1, 2, 3);
+        const c2 = color(2, 3, 4);
+        expect(colorEq(c1, c2)).toBe(false);
+        expect(colorEq(c1, c1)).toBe(true);
+        expect(colorEq(c2, c2)).toBe(true);
+        expect(colorEq(c1, color(1, 2, 3))).toBe(true);
+        expect(colorEq(color(2, 3, 4), c1)).toBe(false);
+        expect(colorEq(color(2, 3, 4), c2)).toBe(true);
+        expect(colorEq(c2, color(1, 2, 3))).toBe(false);
     });
 
     it('make array from Color', () => {
