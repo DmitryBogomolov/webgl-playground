@@ -171,5 +171,24 @@ describe('render loop', () => {
                 [20, 30],
             ]);
         });
+
+        it('remove all callbacks', () => {
+            const loop = new RenderLoop();
+            const callback1 = jest.fn();
+            const callback2 = jest.fn();
+            loop.onRender(callback1);
+            loop.onRender(callback2);
+
+            triggerFrame(10);
+            loop.clearRenderCallbacks();
+            triggerFrame(40);
+
+            expect(callback1.mock.calls).toEqual([
+                [0, 10],
+            ]);
+            expect(callback2.mock.calls).toEqual([
+                [0, 10],
+            ]);
+        });
     });
 });

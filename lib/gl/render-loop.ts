@@ -29,4 +29,8 @@ export class RenderLoop {
         this.update();
         return this._frameRendered.on(callback);
     }
+
+    clearRenderCallbacks(): void {
+        this._frameRendered.clear();
+    }
 }
