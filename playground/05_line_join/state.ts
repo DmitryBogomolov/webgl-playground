@@ -37,6 +37,12 @@ export class State {
     ];
     thickness: number = 50;
 
+    dispose(): void {
+        this.verticesChanged.clear();
+        this.vertexUpdated.clear();
+        this.thicknessChanged.clear();
+    }
+
     addVertex(idx: number, position: Vec2): void {
         this.vertices.splice(idx, 0, { position, color: pickColor() });
         this.verticesChanged.emit();
