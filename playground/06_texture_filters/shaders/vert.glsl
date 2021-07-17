@@ -1,7 +1,11 @@
 attribute vec2 a_position;
 
+uniform vec2 u_canvas_size;
+uniform vec2 u_texture_size;
 varying vec2 v_texcoord;
 
 void main() {
-    gl_Position = vec4(a_position, 0.0, 1.0);
+    v_texcoord = (a_position + vec2(1.0)) / 2.0;
+    vec2 position = a_position * (u_texture_size / u_canvas_size);
+    gl_Position = vec4(position, 0.0, 1.0);
 }

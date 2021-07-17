@@ -2,7 +2,9 @@ import {
     Runtime,
     Primitive,
     Program,
+    Texture,
     parseVertexSchema,
+    vec2, ZERO2,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
@@ -27,13 +29,51 @@ function makePrimitive(runtime: Runtime): Primitive {
     });
     const primitive = new Primitive(runtime);
     primitive.setProgram(program);
+    const vertices = new Float32Array([
+        -1, -1,
+        +1, -1,
+        +1, +1,
+        -1, +1,
+    ]);
+    const indices = new Uint16Array([
+        0, 1, 2,
+        2, 3, 0,
+    ]);
+    primitive.allocateVertexBuffer(vertices.byteLength);
+    primitive.updateVertexData(vertices);
+    primitive.allocateIndexBuffer(indices.byteLength);
+    primitive.updateIndexData(indices);
+    primitive.setIndexCount(indices.length);
     return primitive;
 }
 
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
+const texture = new Texture(runtime);
+texture.setUnit(1);
+texture.setParameters({
+    min_filter: 'nearest',
+    mag_filter: 'nearest',
+    wrap_s: 'clamp_to_edge',
+    wrap_t: 'clamp_to_edge',
+});
+
+let textureSize = ZERO2;
+
 runtime.onRender(() => {
     runtime.clearColorBuffer();
+    primitive.program().setUniform('u_canvas_size', runtime.canvasSize());
+    primitive.program().setUniform('u_texture_size', textureSize);
+    primitive.program().setUniform('u_texture', 1);
     primitive.render();
 });
+
+const image = new Image();
+image.src = '/static/leaves.jpg';
+image.onload = () => {
+    image.onload = null;
+    textureSize = vec2(image.naturalWidth, image.naturalHeight);
+    texture.setImageData(image, true);
+    runtime.requestRender();
+};
