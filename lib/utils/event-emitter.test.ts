@@ -50,7 +50,7 @@ describe('event-emitter', () => {
             ]);
         });
 
-        it('do not add or remove subscriptions twice', () => {
+        it('do not add or remove listeners twice', () => {
             const emitter = new EventEmitter<number>();
             const stub = jest.fn();
             const cancel1 = emitter.on(stub);
@@ -77,6 +77,33 @@ describe('event-emitter', () => {
 
             cancel1();
             cancel2();
+        });
+
+        it('remove all listeners', () => {
+            const emitter = new EventEmitter<number>();
+            const stub1 = jest.fn();
+            const stub2 = jest.fn();
+            const stub3 = jest.fn();
+
+            emitter.on(stub1);
+            emitter.on(stub2);
+            emitter.on(stub3);
+
+            emitter.emit(0);
+
+            emitter.clear();
+
+            emitter.emit(1);
+
+            expect(stub1.mock.calls).toEqual([
+                [0],
+            ]);
+            expect(stub2.mock.calls).toEqual([
+                [0],
+            ]);
+            expect(stub3.mock.calls).toEqual([
+                [0],
+            ]);
         });
     });
 });

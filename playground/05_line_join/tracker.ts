@@ -13,7 +13,7 @@ function clamp(value: number, minValue: number, maxValue: number): number {
     return value < minValue ? minValue : (value > maxValue ? maxValue : value);
 }
 
-export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): void {
+export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): () => void {
     let motionVertexIdx: number = -1;
     let thicknessVertexIdx: number = -1;
 
@@ -27,7 +27,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
 
     const canvas = runtime.canvas();
 
-    new Tracker(canvas, {
+    const tracker = new Tracker(canvas, {
         onDblClick({ coords }) {
             const vertexIdx = tree.findNearest(px2ndc(coords))!;
             const vertexCoords = ndc2px(state.vertices[vertexIdx].position);
@@ -67,4 +67,6 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
             thicknessVertexIdx = -1;
         },
     });
+
+    return () => tracker.dispose();
 }

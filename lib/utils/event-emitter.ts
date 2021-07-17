@@ -28,6 +28,10 @@ export class EventEmitter<T = []> {
             listener(...args);
         }
     }
+
+    clear(): void {
+        this._listeners.length = 0;
+    }
 }
 
 function noop(): void { /* empty */ }

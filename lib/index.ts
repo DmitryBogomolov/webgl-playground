@@ -4,6 +4,7 @@ export * from './utils/pointer-event';
 export * from './utils/memoizer';
 export * from './utils/tracker';
 export * from './utils/event-emitter';
+export * from './utils/cancel-subscription-callback';
 export * from './geometry/vec2';
 export * from './geometry/vec3';
 export * from './geometry/vec4';
