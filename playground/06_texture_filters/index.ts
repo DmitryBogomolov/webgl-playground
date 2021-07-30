@@ -47,37 +47,65 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
+function makeTexture(runtime: Runtime): Texture {
+    const texture = new Texture(runtime);
+    texture.setUnit(1);
+    texture.setParameters({
+        min_filter: 'nearest',
+        mag_filter: 'nearest',
+        wrap_s: 'clamp_to_edge',
+        wrap_t: 'clamp_to_edge',
+    });
+
+    const image = new Image();
+    image.src = '/static/leaves.jpg';
+    image.onload = () => {
+        image.onload = null;
+        texture.setImageData(image, true);
+        runtime.requestRender();
+    };
+
+    return texture;
+}
+
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
+const texture = makeTexture(runtime);
 
-const texture = new Texture(runtime);
-texture.setUnit(1);
-texture.setParameters({
-    min_filter: 'nearest',
-    mag_filter: 'nearest',
-    wrap_s: 'clamp_to_edge',
-    wrap_t: 'clamp_to_edge',
-});
+let kernel: ConvolutionKernel = convolutionKernels.sharpness;
+let kernelWeight: number = computeKernelWeight(kernel);
+
+populateSelectControl(runtime);
 
 runtime.onRender(() => {
     runtime.clearColorBuffer();
     const program = primitive.program();
-    const kernel = convolutionKernels.edgeDetect2;
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());
     program.setUniform('u_texture', 1);
     program.setUniform('u_kernel', kernel);
-    program.setUniform('u_kernel_weight', computeKernelWeight(kernel));
+    program.setUniform('u_kernel_weight', kernelWeight);
     primitive.render();
 });
 
-const image = new Image();
-image.src = '/static/leaves.jpg';
-image.onload = () => {
-    image.onload = null;
-    texture.setImageData(image, true);
-    runtime.requestRender();
-};
+function populateSelectControl(runtime: Runtime): void {
+    const element = document.querySelector<HTMLSelectElement>('#kernel-select')!;
+    Object.keys(convolutionKernels).forEach((name) => {
+        const item = document.createElement('option');
+        item.value = name;
+        item.textContent = name;
+        if (convolutionKernels[name] === kernel) {
+            item.selected = true;
+        }
+        element.appendChild(item);
+    });
+    element.addEventListener('change', () => {
+        console.log('CHANGE', element.value);
+        kernel = convolutionKernels[element.value];
+        kernelWeight = computeKernelWeight(kernel);
+        runtime.requestRender();
+    });
+}
 
 function computeKernelWeight(kernel: ConvolutionKernel): number {
     let sum = 0;
