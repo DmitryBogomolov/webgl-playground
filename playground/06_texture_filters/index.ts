@@ -4,7 +4,6 @@ import {
     Program,
     Texture,
     parseVertexSchema,
-    vec2, ZERO2,
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
@@ -59,12 +58,10 @@ texture.setParameters({
     wrap_t: 'clamp_to_edge',
 });
 
-let textureSize = ZERO2;
-
 runtime.onRender(() => {
     runtime.clearColorBuffer();
     primitive.program().setUniform('u_canvas_size', runtime.canvasSize());
-    primitive.program().setUniform('u_texture_size', textureSize);
+    primitive.program().setUniform('u_texture_size', texture.size());
     primitive.program().setUniform('u_texture', 1);
     primitive.render();
 });
@@ -73,7 +70,6 @@ const image = new Image();
 image.src = '/static/leaves.jpg';
 image.onload = () => {
     image.onload = null;
-    textureSize = vec2(image.naturalWidth, image.naturalHeight);
     texture.setImageData(image, true);
     runtime.requestRender();
 };
