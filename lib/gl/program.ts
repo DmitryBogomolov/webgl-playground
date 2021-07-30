@@ -23,7 +23,8 @@ type v1 = readonly [number];
 type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
-export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | Vec2 | Vec3 | Vec4 | Color;
+type arr = readonly number[];
+export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Color;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -35,8 +36,7 @@ interface ShaderAttribute {
 interface ShaderUniform {
     readonly info: WebGLActiveInfo;
     readonly location: WebGLUniformLocation;
-    readonly type: ShaderType;
-    readonly size: number;
+    readonly isArray: boolean;
 }
 
 type UniformSetter = (
@@ -134,6 +134,24 @@ const uniformSetters: UniformSettersMap = {
             gl.uniform1i(location, value);
         } else {
             throw logger.error('bad value for "sampler2D" uniform: {0}', value);
+        }
+    },
+};
+
+const uniformArraySetters: UniformSettersMap = {
+    [BOOL]: (logger, gl, { location, info }, value) => {
+        if (isNumArray(value, info.size)) {
+            gl.uniform1iv(location, value);
+        } else {
+            throw logger.error('bad value for "bool[{1}]" uniform: {0}', value, info.size);
+        }
+
+    },
+    [FLOAT]: (logger, gl, { location, info }, value) => {
+        if (isNumArray(value, info.size)) {
+            gl.uniform1fv(location, value);
+        } else {
+            throw logger.error('bad value for "float[{1}]" uniform: {0}', value, info.size);
         }
     },
 };
@@ -259,11 +277,14 @@ export class Program {
         const uniforms: Record<string, ShaderUniform> = {};
         for (let i = 0; i < count; ++i) {
             const info = gl.getActiveUniform(program, i)!;
+            const isArray = info.size > 1;
+            // Uniform of array type have name like "something[0]". Postfix "[0]" is removed.
+            const name = isArray ? info.name.substr(0, info.name.length - 3) : info.name;
             const location = gl.getUniformLocation(program, info.name)!;
-            uniforms[info.name] = {
+            uniforms[name] = {
                 info,
                 location,
-                ...shaderTypes[info.type],
+                isArray,
             };
         }
         return uniforms;
@@ -301,11 +322,11 @@ export class Program {
         }
         this._logger.log('set_uniform({0}: {1})', name, value);
         const gl = this._runtime.gl;
-        const attr = this._uniforms[name];
-        if (!attr) {
+        const uniform = this._uniforms[name];
+        if (!uniform) {
             throw this._logger.error('uniform "{0}" is unknown', name);
         }
-        const setter = uniformSetters[attr.info.type];
+        const setter = (uniform.isArray ? uniformArraySetters : uniformSetters)[uniform.info.type];
         if (!setter) {
             throw this._logger.error('uniform "{0}" setter is not found', name);
         }
@@ -313,7 +334,7 @@ export class Program {
         // Otherwise it would cause an error.
         // > INVALID_OPERATION: uniformXXX: location is not from current program
         this.use();
-        setter(this._logger, gl, attr, value);
+        setter(this._logger, gl, uniform, value);
         this._cache[name] = value;
     }
 }

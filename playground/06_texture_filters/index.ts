@@ -7,6 +7,7 @@ import {
 } from 'lib';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
+import { ConvolutionKernel, convolutionKernels } from './convolution_kernels';
 
 /**
  * Texture filters.
@@ -60,9 +61,13 @@ texture.setParameters({
 
 runtime.onRender(() => {
     runtime.clearColorBuffer();
-    primitive.program().setUniform('u_canvas_size', runtime.canvasSize());
-    primitive.program().setUniform('u_texture_size', texture.size());
-    primitive.program().setUniform('u_texture', 1);
+    const program = primitive.program();
+    const kernel = convolutionKernels.edgeDetect2;
+    program.setUniform('u_canvas_size', runtime.canvasSize());
+    program.setUniform('u_texture_size', texture.size());
+    program.setUniform('u_texture', 1);
+    program.setUniform('u_kernel', kernel);
+    program.setUniform('u_kernel_weight', computeKernelWeight(kernel));
     primitive.render();
 });
 
@@ -73,3 +78,11 @@ image.onload = () => {
     texture.setImageData(image, true);
     runtime.requestRender();
 };
+
+function computeKernelWeight(kernel: ConvolutionKernel): number {
+    let sum = 0;
+    for (const item of kernel) {
+        sum += item;
+    }
+    return sum <= 0 ? 1 : sum;
+}
