@@ -1,0 +1,28 @@
+<style>
+    .root {
+        display: flex;
+        flex-direction: row;
+    }
+    .selection-container {
+        flex: 1 1 10%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 16px;
+    }
+    .playground-container {
+        flex: 1 1 90%;
+        padding: 16px;
+    }
+</style>
+<div class="root">
+    <div class="selection-container">
+        <select id="kernel-select" class="custom-select">
+        </select>
+    </div>
+    <div class="playground-container"></div>
+</div>
+<script>
+    document.querySelector('.playground-container').appendChild(document.querySelector('#playground-root'));
+</script>

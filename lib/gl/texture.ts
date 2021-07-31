@@ -1,6 +1,7 @@
 import { Runtime } from './runtime';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
+import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
 
 const {
     TEXTURE_2D,
@@ -57,6 +58,7 @@ export class Texture {
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
+    private _size: Vec2 = ZERO2;
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -67,6 +69,10 @@ export class Texture {
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl.deleteTexture(this._texture);
+    }
+
+    size(): Vec2 {
+        return this._size;
     }
 
     private _createTexture(): WebGLTexture {
@@ -85,9 +91,11 @@ export class Texture {
             const { size, data } = source;
             this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
+            this._size = vec2(size[0], size[1]);
         } else {
             this._logger.log('set_image_data(source: {0})', source);
             gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
+            this._size = vec2(source.width, source.height);
         }
     }
 
