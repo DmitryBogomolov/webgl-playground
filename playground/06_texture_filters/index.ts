@@ -12,7 +12,7 @@ import { ConvolutionKernel, convolutionKernels } from './convolution_kernels';
 /**
  * Texture filters.
  *
- * TODO...
+ * Shows how to apply custom texture processing neighbor pixels processing.
  */
 export type DESCRIPTION = never;
 
@@ -68,13 +68,31 @@ function makeTexture(runtime: Runtime): Texture {
     return texture;
 }
 
+function populateSelectControl(runtime: Runtime): void {
+    const element = document.querySelector<HTMLSelectElement>('#kernel-select')!;
+    const map = new Map<string, ConvolutionKernel>();
+    convolutionKernels.forEach((kernel) => {
+        const option = document.createElement('option');
+        const { name } = kernel;
+        map.set(name, kernel);
+        option.value = name;
+        option.textContent = name;
+        if (currentKernel === kernel) {
+            option.selected = true;
+        }
+        element.appendChild(option);
+    });
+    element.addEventListener('change', () => {
+        currentKernel = map.get(element.value)!;
+        runtime.requestRender();
+    });
+}
+
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-let kernel: ConvolutionKernel = convolutionKernels.sharpness;
-let kernelWeight: number = computeKernelWeight(kernel);
-
+let currentKernel: ConvolutionKernel = convolutionKernels[0];
 populateSelectControl(runtime);
 
 runtime.onRender(() => {
@@ -83,34 +101,8 @@ runtime.onRender(() => {
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());
     program.setUniform('u_texture', 1);
-    program.setUniform('u_kernel', kernel);
-    program.setUniform('u_kernel_weight', kernelWeight);
+    program.setUniform('u_kernel', currentKernel.kernel);
+    program.setUniform('u_kernel_weight', currentKernel.weight);
     primitive.render();
 });
 
-function populateSelectControl(runtime: Runtime): void {
-    const element = document.querySelector<HTMLSelectElement>('#kernel-select')!;
-    Object.keys(convolutionKernels).forEach((name) => {
-        const item = document.createElement('option');
-        item.value = name;
-        item.textContent = name;
-        if (convolutionKernels[name] === kernel) {
-            item.selected = true;
-        }
-        element.appendChild(item);
-    });
-    element.addEventListener('change', () => {
-        console.log('CHANGE', element.value);
-        kernel = convolutionKernels[element.value];
-        kernelWeight = computeKernelWeight(kernel);
-        runtime.requestRender();
-    });
-}
-
-function computeKernelWeight(kernel: ConvolutionKernel): number {
-    let sum = 0;
-    for (const item of kernel) {
-        sum += item;
-    }
-    return sum <= 0 ? 1 : sum;
-}

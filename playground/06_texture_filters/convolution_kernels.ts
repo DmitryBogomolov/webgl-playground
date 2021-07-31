@@ -1,104 +1,165 @@
-export type ConvolutionKernel = readonly [number, number, number, number, number, number, number, number, number];
 
-export const convolutionKernels: Readonly<Record<string, ConvolutionKernel>> = {
-    normal: [
-        0, 0, 0,
-        0, 1, 0,
-        0, 0, 0,
+export type Kernel = readonly [number, number, number, number, number, number, number, number, number];
+
+export interface ConvolutionKernel {
+    readonly name: string;
+    readonly kernel: readonly [number, number, number, number, number, number, number, number, number];
+    readonly weight: number;
+}
+
+const data: [string, Kernel][] = [
+    [
+        'Normal', [
+            0, 0, 0,
+            0, 1, 0,
+            0, 0, 0,
+        ],
     ],
-    gaussianBlur: [
-        0.045, 0.122, 0.045,
-        0.122, 0.332, 0.122,
-        0.045, 0.122, 0.045,
+    [
+        'Gaussian Blur', [
+            0.045, 0.122, 0.045,
+            0.122, 0.332, 0.122,
+            0.045, 0.122, 0.045,
+        ],
     ],
-    gaussianBlur2: [
-        1, 2, 1,
-        2, 4, 2,
-        1, 2, 1,
+    [
+        'Gaussian Blur 2', [
+            1, 2, 1,
+            2, 4, 2,
+            1, 2, 1,
+        ],
     ],
-    gaussianBlur3: [
-        0, 1, 0,
-        1, 1, 1,
-        0, 1, 0,
+    [
+        'Guassian Blur 3', [
+            0, 1, 0,
+            1, 1, 1,
+            0, 1, 0,
+        ],
     ],
-    unsharpen: [
-        -1, -1, -1,
-        -1, 9, -1,
-        -1, -1, -1,
+    [
+        'Unsharpen', [
+            -1, -1, -1,
+            -1, 9, -1,
+            -1, -1, -1,
+        ],
     ],
-    sharpness: [
-        0, -1, 0,
-        -1, 5, -1,
-        0, -1, 0,
+    [
+        'Sharpness', [
+            0, -1, 0,
+            -1, 5, -1,
+            0, -1, 0,
+        ],
     ],
-    sharpen: [
-        -1, -1, -1,
-        -1, 16, -1,
-        -1, -1, -1,
+    [
+        'Sharpen', [
+            -1, -1, -1,
+            -1, 16, -1,
+            -1, -1, -1,
+        ],
     ],
-    edgeDetect: [
-        -0.125, -0.125, -0.125,
-        -0.125, 1, -0.125,
-        -0.125, -0.125, -0.125,
+    [
+        'Edge Detect', [
+            -0.125, -0.125, -0.125,
+            -0.125, 1, -0.125,
+            -0.125, -0.125, -0.125,
+        ],
     ],
-    edgeDetect2: [
-        -1, -1, -1,
-        -1, 8, -1,
-        -1, -1, -1,
+    [
+        'Edge Detect 2', [
+            -1, -1, -1,
+            -1, 8, -1,
+            -1, -1, -1,
+        ],
     ],
-    edgeDetect3: [
-        -5, 0, 0,
-        0, 0, 0,
-        0, 0, 5,
+    [
+        'Edge Detect 3', [
+            -5, 0, 0,
+            0, 0, 0,
+            0, 0, 5,
+        ],
     ],
-    edgeDetect4: [
-        -1, -1, -1,
-        0, 0, 0,
-        1, 1, 1,
+    [
+        'Edge Detect 4', [
+            -1, -1, -1,
+            0, 0, 0,
+            1, 1, 1,
+        ],
     ],
-    edgeDetect5: [
-        -1, -1, -1,
-        2, 2, 2,
-        -1, -1, -1,
+    [
+        'Edge Detect 5', [
+            -1, -1, -1,
+            2, 2, 2,
+            -1, -1, -1,
+        ],
     ],
-    edgeDetect6: [
-        -5, -5, -5,
-        -5, 39, -5,
-        -5, -5, -5,
+    [
+        'Edge Detect 6', [
+            -5, -5, -5,
+            -5, 39, -5,
+            -5, -5, -5,
+        ],
     ],
-    sobelHorizontal: [
-        1, 2, 1,
-        0, 0, 0,
-        -1, -2, -1,
+    [
+        'Sobel Horizontal', [
+            1, 2, 1,
+            0, 0, 0,
+            -1, -2, -1,
+        ],
     ],
-    sobelVertical: [
-        1, 0, -1,
-        2, 0, -2,
-        1, 0, -1,
+    [
+        'Sobel Vertical', [
+            1, 0, -1,
+            2, 0, -2,
+            1, 0, -1,
+        ],
     ],
-    previtHorizontal: [
-        1, 1, 1,
-        0, 0, 0,
-        -1, -1, -1,
+    [
+        'Previt Horizontal', [
+            1, 1, 1,
+            0, 0, 0,
+            -1, -1, -1,
+        ],
     ],
-    previtVertical: [
-        1, 0, -1,
-        1, 0, -1,
-        1, 0, -1,
+    [
+        'Previt Vertical', [
+            1, 0, -1,
+            1, 0, -1,
+            1, 0, -1,
+        ],
     ],
-    boxBlur: [
-        0.111, 0.111, 0.111,
-        0.111, 0.111, 0.111,
-        0.111, 0.111, 0.111,
+    [
+        'Box Blur', [
+            0.111, 0.111, 0.111,
+            0.111, 0.111, 0.111,
+            0.111, 0.111, 0.111,
+        ],
     ],
-    triangleBlur: [
-        0.0625, 0.125, 0.0625,
-        0.125, 0.25, 0.125,
-        0.0625, 0.125, 0.0625,
+    [
+        'Triangle Blur', [
+            0.0625, 0.125, 0.0625,
+            0.125, 0.25, 0.125,
+            0.0625, 0.125, 0.0625,
+        ],
     ],
-    emboss: [
-        -2, -1, 0,
-        -1, 1, 1,
-        0, 1, 2,
+    [
+        'Emboss', [
+            -2, -1, 0,
+            -1, 1, 1,
+            0, 1, 2,
+        ],
     ],
-};
+];
+
+export const convolutionKernels: ReadonlyArray<ConvolutionKernel> = data.map(([name, kernel]) => ({
+    name,
+    kernel,
+    weight: computeKernelWeight(kernel),
+}));
+
+function computeKernelWeight(kernel: Kernel): number {
+    let sum = 0;
+    for (const item of kernel) {
+        sum += item;
+    }
+    return sum <= 0 ? 1 : sum;
+}
