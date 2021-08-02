@@ -13,8 +13,8 @@ export class WorkerMessenger {
     private readonly _worker: Worker;
     private readonly _handleMessage: (event: MessageEvent<WorkerEventData>) => void;
 
-    constructor(workerUrl: string, messageHandlers: WorkerMessageHandlers) {
-        this._worker = new Worker(workerUrl);
+    constructor(worker: string | Worker, messageHandlers: WorkerMessageHandlers) {
+        this._worker = worker instanceof Worker ? worker : new Worker(worker);
         this._handleMessage = (event) => {
             const { type, payload } = event.data;
             const handleMessage = messageHandlers[type];
