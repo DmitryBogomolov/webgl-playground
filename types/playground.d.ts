@@ -21,5 +21,12 @@ declare module '*.css' {
     export default data;
 }
 
+declare module 'worker-loader!*' {
+    class LoadedWorker extends Worker {
+        constructor();
+    }
+    export default LoadedWorker;
+}
+
 declare const PLAYGROUND_ROOT: string;
 declare const WORKER_URL: string;

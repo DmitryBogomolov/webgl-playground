@@ -12,6 +12,7 @@ import {
 import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
+import Worker from 'worker-loader!./worker';
 
 /**
  * Web worker.
@@ -69,7 +70,7 @@ let clr = color(0, 0, 0);
 let scale = 0;
 
 function runWorker(runtime: Runtime): void {
-    const worker = new WorkerMessenger(WORKER_URL, {
+    const messenger = new WorkerMessenger(new Worker(), {
         [TYPE_SCALE](payload) {
             scale = payload as number;
             runtime.requestRender();
@@ -92,11 +93,11 @@ function runWorker(runtime: Runtime): void {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            worker.post(TYPE_SCALE, scaleDelta / 1000);
+            messenger.post(TYPE_SCALE, scaleDelta / 1000);
             scaleDelta = 0;
         }
         if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            worker.post(TYPE_COLOR, colorDelta / 1000);
+            messenger.post(TYPE_COLOR, colorDelta / 1000);
             colorDelta = 0;
         }
     }, 25);
