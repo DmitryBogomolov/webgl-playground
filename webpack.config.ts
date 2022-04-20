@@ -102,9 +102,6 @@ const config: Configuration = {
                         loader: MiniCssWebpackPlugin.loader,
                         options: {
                             esModule: true,
-                            modules: {
-                                // namedExport: true,
-                            },
                         },
                     },
                     {
