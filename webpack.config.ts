@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { Compiler, Configuration, EntryObject } from 'webpack';
+import { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
@@ -87,53 +88,6 @@ const config: Configuration = {
             lib: path.join(__dirname, './lib/index.ts'),
         },
     },
-    devServer: {
-        compress: true,
-        port: PORT,
-        publicPath: `${ASSETS_PATH}/`,
-        contentBase: path.join(__dirname, './static'),
-        contentBasePublicPath: `${CONTENT_PATH}/`,
-        index: 'index.html',
-        before: (app) => {
-            let rootPage = '';
-            const playgroundPages = new Map<string, string>();
-
-            watchTemplates((name) => {
-                if (name === ROOT_TEMPLATE_NAME) {
-                    rootPage = '';
-                } else if (name === PLAYGROUND_TEMPLATE_NAME) {
-                    playgroundPages.clear();
-                } else {
-                    playgroundPages.delete(name);
-                }
-            });
-
-            function getRootPage(): string {
-                if (!rootPage) {
-                    rootPage = renderRootPage();
-                }
-                return rootPage;
-            }
-
-            function getPlaygroundPage(name: string): string {
-                let content = playgroundPages.get(name);
-                if (!content) {
-                    content = renderPlaygroundPage(name);
-                    playgroundPages.set(name, content);
-                }
-                return content;
-            }
-
-            app.get('/', (_req, res) => {
-                res.send(getRootPage());
-            });
-            Object.keys(playgrounds).forEach((name) => {
-                app.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
-                    res.send(getPlaygroundPage(name));
-                });
-            });
-        },
-    },
     module: {
         rules: [
             {
@@ -189,6 +143,59 @@ const config: Configuration = {
         },
     ],
 };
+
+const devServer: DevServerConfiguration = {
+    port: PORT,
+    devMiddleware: {
+        publicPath: `${ASSETS_PATH}/`,
+    },
+    static: {
+        directory: path.join(__dirname, './static'),
+        publicPath: `${CONTENT_PATH}/`,
+    },
+    onBeforeSetupMiddleware: ({ app }) => {
+        let rootPage = '';
+        const playgroundPages = new Map<string, string>();
+
+        watchTemplates((name) => {
+            if (name === ROOT_TEMPLATE_NAME) {
+                rootPage = '';
+            } else if (name === PLAYGROUND_TEMPLATE_NAME) {
+                playgroundPages.clear();
+            } else {
+                playgroundPages.delete(name);
+            }
+        });
+
+        function getRootPage(): string {
+            if (!rootPage) {
+                rootPage = renderRootPage();
+            }
+            return rootPage;
+        }
+
+        function getPlaygroundPage(name: string): string {
+            let content = playgroundPages.get(name);
+            if (!content) {
+                content = renderPlaygroundPage(name);
+                playgroundPages.set(name, content);
+            }
+            return content;
+        }
+
+        app!.get('/', (_req, res) => {
+            res.send(getRootPage());
+        });
+        Object.keys(playgrounds).forEach((name) => {
+            app!.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
+                res.send(getPlaygroundPage(name));
+            });
+        });
+    },
+};
+
+// There is no "devServer" field in "Configuration" type.
+Object.assign(config, { devServer });
 
 function renderRootPage(): string {
     return Mustache.render(templates[ROOT_TEMPLATE_NAME]!.content, {
