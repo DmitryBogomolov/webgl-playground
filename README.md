@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/DmitryBogomolov/webgl-playground.svg?style=svg)](https://circleci.com/gh/DmitryBogomolov/webgl-playground)
+[![CI](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/ci.yml/badge.svg)](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/ci.yml)
 
 # webgl-playground
 Playground for WebGL samples
