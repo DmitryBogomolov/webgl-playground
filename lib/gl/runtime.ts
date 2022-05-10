@@ -1,5 +1,4 @@
-import { handleWindowResize } from '../utils/resize-handler';
-import { CancelSubscriptionCallback } from '../utils/cancel-subscription-callback';
+import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
@@ -33,7 +32,6 @@ export class Runtime {
     private readonly _logger = new Logger(this._id);
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _disposeResizeHandler: CancelSubscriptionCallback;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
     private readonly _state: State;
@@ -46,6 +44,10 @@ export class Runtime {
 
     private readonly _handleContextRestored: EventListener = () => {
         this._logger.warn('context is restored');
+    };
+
+    private readonly _handleWindowResize = (): void => {
+        this.adjustViewport();
     };
 
     constructor(element: HTMLElement) {
@@ -70,9 +72,7 @@ export class Runtime {
             pixelStoreUnpackFlipYWebgl: false,
         };
         this.adjustViewport();
-        this._disposeResizeHandler = handleWindowResize(() => {
-            this.adjustViewport();
-        });
+        onWindowResize(this._handleWindowResize);
     }
 
     dispose(): void {
@@ -80,7 +80,7 @@ export class Runtime {
         this._renderLoop.cancel();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        this._disposeResizeHandler();
+        offWindowResize(this._handleWindowResize);
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }

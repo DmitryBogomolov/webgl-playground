@@ -26,6 +26,10 @@ export class EventEmitter<T = []> {
         return this;
     }
 
+    count(): number {
+        return this._listeners.length;
+    }
+
     clear(): this {
         this._listeners.length = 0;
         return this;

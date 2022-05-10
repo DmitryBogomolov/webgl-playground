@@ -1,10 +1,30 @@
-import { CancelSubscriptionCallback } from './cancel-subscription-callback';
+import { EventEmitter, EventListener } from './event-emitter';
 import { throttle } from './throttler';
 
-export function handleWindowResize(callback: () => void, timespan: number = 250): CancelSubscriptionCallback {
-    const listener = throttle(callback, timespan);
-    window.addEventListener('resize', listener);
-    return () => {
-        window.removeEventListener('resize', listener);
-    };
+const emitter = new EventEmitter();
+const index = new Map<() => void, EventListener>();
+
+function handleResize(): void {
+    emitter.emit();
+}
+
+export function onWindowResize(callback: () => void, timespan: number = 250): void {
+    if (emitter.count() === 0) {
+        window.addEventListener('resize', handleResize);
+    }
+    const listener = throttle(callback, timespan) as EventListener;
+    emitter.on(listener);
+    index.set(callback, listener);
+}
+
+export function offWindowResize(callback: () => void): void {
+    const listener = index.get(callback);
+    if (!listener) {
+        return;
+    }
+    index.delete(callback);
+    emitter.off(listener);
+    if (emitter.count() === 0) {
+        window.removeEventListener('resize', handleResize);
+    }
 }
