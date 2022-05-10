@@ -178,8 +178,12 @@ export class Runtime {
         return true;
     }
 
-    onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
-        return this._renderLoop.onRender(callback);
+    onRender(callback: RenderFrameCallback): void {
+        this._renderLoop.onRender(callback);
+    }
+
+    offRender(callback: RenderFrameCallback): void {
+        this._renderLoop.offRender(callback);
     }
 
     requestRender(): void {
