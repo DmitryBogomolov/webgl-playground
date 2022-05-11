@@ -30,14 +30,14 @@ describe('event-emitter', () => {
             const emitter = new EventEmitter<number>();
             const stub1 = jest.fn();
             const stub2 = jest.fn();
-            const cancel1 = emitter.on(stub1);
-            const cancel2 = emitter.on(stub2);
+            emitter.on(stub1);
+            emitter.on(stub2);
 
             emitter.emit(0);
-            cancel1();
+            emitter.off(stub1);
 
             emitter.emit(1);
-            cancel2();
+            emitter.off(stub2);
 
             emitter.emit(2);
 
@@ -50,33 +50,36 @@ describe('event-emitter', () => {
             ]);
         });
 
-        it('do not add or remove listeners twice', () => {
+        it('add or remove listeners twice', () => {
             const emitter = new EventEmitter<number>();
             const stub = jest.fn();
-            const cancel1 = emitter.on(stub);
-            const cancel2 = emitter.on(stub);
+            emitter.on(stub);
+            emitter.on(stub);
 
             emitter.emit(0);
             expect(stub.mock.calls).toEqual([
                 [0],
+                [0],
             ]);
 
-            cancel2();
+            emitter.off(stub);
             emitter.emit(1);
             expect(stub.mock.calls).toEqual([
                 [0],
-                [1],
-            ]);
-
-            cancel1();
-            emitter.emit(2);
-            expect(stub.mock.calls).toEqual([
                 [0],
                 [1],
             ]);
 
-            cancel1();
-            cancel2();
+            emitter.off(stub);
+            emitter.emit(2);
+            expect(stub.mock.calls).toEqual([
+                [0],
+                [0],
+                [1],
+            ]);
+
+            emitter.off(stub);
+            emitter.off(stub);
         });
 
         it('remove all listeners', () => {

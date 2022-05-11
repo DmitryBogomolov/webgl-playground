@@ -1,15 +1,14 @@
 import {
     Vec2,
     KDTree, KDTreeAxisFuncList, KDTreeDistanceFunc,
-    CancelSubscriptionCallback,
+    EventListener,
 } from 'lib';
 import { State } from './state';
 
 export class SearchTree {
     private readonly _axisFuncList: KDTreeAxisFuncList<Vec2> = [(v) => v.x, (v) => v.y];
     private readonly _distFunc: KDTreeDistanceFunc;
-    private readonly _cancelVerticesChanged: CancelSubscriptionCallback;
-    private readonly _cancelVertexUpdated: CancelSubscriptionCallback;
+    private readonly _state: State;
     private _tree!: KDTree<Vec2>;
 
     constructor(getSize: () => Vec2, state: State) {
@@ -18,17 +17,21 @@ export class SearchTree {
             const { x: w, y: h } = getSize();
             return (x * w / 2) ** 2 + (y * h / 2) ** 2;
         };
-        const update = (): void => {
-            this._tree = new KDTree(state.vertices.map((v) => v.position), this._axisFuncList, this._distFunc);
-        };
-        this._cancelVerticesChanged = state.verticesChanged.on(update);
-        this._cancelVertexUpdated = state.vertexUpdated.on(update);
-        update();
+        this._state = state;
+        state.verticesChanged.on(this._update);
+        state.vertexUpdated.on(this._update);
+        this._update();
     }
 
+    private readonly _update: EventListener = () => {
+        this._tree = new KDTree(
+            this._state.vertices.map((v) => v.position), this._axisFuncList, this._distFunc,
+        );
+    };
+
     dispose(): void {
-        this._cancelVerticesChanged();
-        this._cancelVertexUpdated();
+        this._state.verticesChanged.off(this._update);
+        this._state.vertexUpdated.off(this._update);
     }
 
     findNearest(target: Vec2): number {

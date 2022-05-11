@@ -72,10 +72,11 @@ describe('render loop', () => {
 
         it('do not request frame when callback is removed', () => {
             const loop = new RenderLoop();
-            const cancel = loop.onRender(() => 0);
+            const func = (): number => 0;
+            loop.onRender(func);
             triggerFrame(0);
 
-            cancel();
+            loop.offRender(func);
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
                 [expect.any(Function)],
@@ -91,6 +92,7 @@ describe('render loop', () => {
             triggerFrame(25);
             triggerFrame(70);
 
+            console.log(callback.mock.calls);
             expect(callback.mock.calls).toEqual([
                 [0, 10],
                 [15, 25],
@@ -138,35 +140,30 @@ describe('render loop', () => {
             ]);
         });
 
-        it('do not add or remove callbacks twice', () => {
+        it('add or remove callbacks twice', () => {
             const loop = new RenderLoop();
             const callback = jest.fn();
 
-            const cancel1 = loop.onRender(callback);
-            const cancel2 = loop.onRender(callback);
+            loop.onRender(callback);
+            loop.onRender(callback);
             triggerFrame(10);
             expect(callback.mock.calls).toEqual([
                 [0, 10],
+                [0, 10],
             ]);
 
-            cancel2();
+            loop.offRender(callback);
             triggerFrame(30);
             expect(callback.mock.calls).toEqual([
                 [0, 10],
-                [20, 30],
-            ]);
-
-            cancel1();
-            triggerFrame(70);
-            expect(callback.mock.calls).toEqual([
                 [0, 10],
                 [20, 30],
             ]);
 
-            cancel1();
-            cancel2();
-            triggerFrame(80);
+            loop.offRender(callback);
+            triggerFrame(70);
             expect(callback.mock.calls).toEqual([
+                [0, 10],
                 [0, 10],
                 [20, 30],
             ]);

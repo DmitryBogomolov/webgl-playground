@@ -1,4 +1,3 @@
-import { CancelSubscriptionCallback } from '../utils/cancel-subscription-callback';
 import { EventEmitter } from '../utils/event-emitter';
 
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
@@ -25,9 +24,13 @@ export class RenderLoop {
         }
     }
 
-    onRender(callback: RenderFrameCallback): CancelSubscriptionCallback {
+    onRender(callback: RenderFrameCallback): void {
+        this._frameRendered.on(callback);
         this.update();
-        return this._frameRendered.on(callback);
+    }
+
+    offRender(callback: RenderFrameCallback): void {
+        this._frameRendered.off(callback);
     }
 
     clearRenderCallbacks(): void {
