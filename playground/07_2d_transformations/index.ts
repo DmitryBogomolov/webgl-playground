@@ -24,8 +24,8 @@ const primitive = makePrimitive(runtime);
 runtime.onRender(() => {
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.clearColorBuffer();
-    // const program = primitive.program();
-    // program.setUniform('123', 1);
+    const program = primitive.program();
+    program.setUniform('u_transform', [1, 0, 0, 0, 1, 0, 0, 0, 1]);
     primitive.render();
 });
 
@@ -38,10 +38,10 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     const vertexData = new ArrayBuffer(4 * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
-    writer.writeAttribute(0, 'a_position', vec2(0, 0.8));
-    writer.writeAttribute(1, 'a_position', vec2(-0.3, 0.5));
-    writer.writeAttribute(2, 'a_position', vec2(0, 0.2));
-    writer.writeAttribute(3, 'a_position', vec2(+0.3, 0.5));
+    writer.writeAttribute(0, 'a_position', vec2(0, +0.3));
+    writer.writeAttribute(1, 'a_position', vec2(-0.2, 0));
+    writer.writeAttribute(2, 'a_position', vec2(0, -0.3));
+    writer.writeAttribute(3, 'a_position', vec2(+0.2, 0));
     writer.writeAttribute(0, 'a_color', colors.BLUE);
     writer.writeAttribute(1, 'a_color', colors.BLUE);
     writer.writeAttribute(2, 'a_color', colors.BLUE);

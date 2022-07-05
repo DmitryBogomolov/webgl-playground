@@ -136,6 +136,18 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "sampler2D" uniform: {0}', value);
         }
     },
+    [FLOAT_MAT2]: (logger, gl, { location }, value) => {
+        // TODO...
+        gl.uniformMatrix2fv(location, false, value as any);
+    },
+    [FLOAT_MAT3]: (logger, gl, { location }, value) => {
+        // TODO...
+        gl.uniformMatrix3fv(location, false, value as any);
+    },
+    [FLOAT_MAT4]: (logger, gl, { location }, value) => {
+        // TODO...
+        gl.uniformMatrix4fv(location, false, value as any);
+    },
 };
 
 const uniformArraySetters: UniformSettersMap = {
