@@ -347,6 +347,7 @@ export class Program {
     }
 
     setUniform(name: string, value: UniformValue): void {
+        // TODO: Consider a way to prevent cache check.
         if (this._cache[name] === value) {
             return;
         }

@@ -1,4 +1,4 @@
-import { Vec2 } from './vec2';
+import { Vec2, mul2 } from './vec2';
 
 export interface Mat3 {
     readonly [i: number]: number;
@@ -105,6 +105,23 @@ export const mat3 = {
 
     scale(mat: Mat3, scaling: Vec2): void {
         const t = mat3.scaling(scaling, _tmpMat);
+        mat3.mul(t, mat, mat);
+    },
+
+    projection(size: Vec2, origin: Vec2 = mul2(size, 0.5), out: Mat3 = create()): Mat3 {
+        const kx = 2 / size.x;
+        const ky = 2 / size.y;
+        const dx = -(origin.x - size.x / 2) * kx;
+        const dy = -(origin.y - size.y / 2) * ky;
+        return set(out,
+            kx, 0, 0,
+            0, ky, 0,
+            dx, dy, 1,
+        );
+    },
+
+    project(mat: Mat3, size: Vec2, origin: Vec2 = mul2(size, 0.5)): void {
+        const t = mat3.projection(size, origin, _tmpMat);
         mat3.mul(t, mat, mat);
     },
 };

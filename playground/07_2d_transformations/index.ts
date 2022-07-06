@@ -23,14 +23,16 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
-const transform = mat3.identity();
-mat3.scale(transform, vec2(1.2, 1.2));
-mat3.translate(transform, vec2(0.4, 0.2));
+// const transform = mat3.identity();
+// mat3.scale(transform, vec2(1.2, 1.2));
+// mat3.translate(transform, vec2(0.4, 0.2));
 
 runtime.onRender(() => {
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.clearColorBuffer();
     const program = primitive.program();
+    const transform = mat3.identity();
+    mat3.project(transform, runtime.canvasSize(), undefined);
     program.setUniform('u_transform', transform);
     primitive.render();
 });
@@ -44,10 +46,10 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     const vertexData = new ArrayBuffer(4 * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
-    writer.writeAttribute(0, 'a_position', vec2(0, +0.3));
-    writer.writeAttribute(1, 'a_position', vec2(-0.2, 0));
-    writer.writeAttribute(2, 'a_position', vec2(0, -0.3));
-    writer.writeAttribute(3, 'a_position', vec2(+0.2, 0));
+    writer.writeAttribute(0, 'a_position', vec2(0, +100));
+    writer.writeAttribute(1, 'a_position', vec2(-100, 0));
+    writer.writeAttribute(2, 'a_position', vec2(0, -100));
+    writer.writeAttribute(3, 'a_position', vec2(+100, 0));
     writer.writeAttribute(0, 'a_color', colors.BLUE);
     writer.writeAttribute(1, 'a_color', colors.BLUE);
     writer.writeAttribute(2, 'a_color', colors.BLUE);
