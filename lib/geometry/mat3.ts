@@ -1,10 +1,14 @@
 import { Vec2 } from './vec2';
 
-export interface Matrix3 {
+export interface Mat3 {
     readonly [i: number]: number;
 }
 
-function create(): Matrix3 {
+export function isMat3(arg: unknown): arg is Mat3 {
+    return Array.isArray(arg) && arg.length === 9;
+}
+
+function create(): Mat3 {
     return [
         0, 0, 0,
         0, 0, 0,
@@ -12,7 +16,7 @@ function create(): Matrix3 {
     ];
 }
 
-function set(mat: Matrix3, ...values: number[]): Matrix3 {
+function set(mat: Mat3, ...values: number[]): Mat3 {
     for (let i = 0; i < 9; ++i) {
         (mat as number[])[i] = values[i];
     }
@@ -24,7 +28,7 @@ const _tmpMat = create();
 export const mat3 = {
     create,
 
-    identity(out: Matrix3 = create()): Matrix3 {
+    identity(out: Mat3 = create()): Mat3 {
         return set(out,
             1, 0, 0,
             0, 1, 0,
@@ -32,11 +36,11 @@ export const mat3 = {
         );
     },
 
-    clone(mat: Matrix3, out: Matrix3 = create()): Matrix3 {
+    clone(mat: Mat3, out: Mat3 = create()): Mat3 {
         return set(out, ...(mat as number[]));
     },
 
-    mul(lhs: Matrix3, rhs: Matrix3, out: Matrix3 = create()): Matrix3 {
+    mul(lhs: Mat3, rhs: Mat3, out: Mat3 = create()): Mat3 {
         const [a11, a21, a31, a12, a22, a32, a13, a23, a33] = lhs as number[];
         const [b11, b21, b31, b12, b22, b32, b13, b23, b33] = rhs as number[];
         return set(out,
@@ -52,7 +56,7 @@ export const mat3 = {
         );
     },
 
-    translation(translation: Vec2, out: Matrix3 = create()): Matrix3 {
+    translation(translation: Vec2, out: Mat3 = create()): Mat3 {
         return set(out,
             1, 0, 0,
             0, 1, 0,
@@ -60,12 +64,12 @@ export const mat3 = {
         );
     },
 
-    translate(mat: Matrix3, translation: Vec2): void {
+    translate(mat: Mat3, translation: Vec2): void {
         const t = mat3.translation(translation, _tmpMat);
         mat3.mul(t, mat, mat);
     },
 
-    rotation(rotation: number, out: Matrix3 = create()): Matrix3 {
+    rotation(rotation: number, out: Mat3 = create()): Mat3 {
         const c = Math.cos(rotation);
         const s = Math.sin(rotation);
         return set(out,
@@ -75,12 +79,12 @@ export const mat3 = {
         );
     },
 
-    rotate(mat: Matrix3, rotation: number): void {
+    rotate(mat: Mat3, rotation: number): void {
         const t = mat3.rotation(rotation, _tmpMat);
         mat3.mul(t, mat, mat);
     },
 
-    scaling(scaling: Vec2, out: Matrix3 = create()): Matrix3 {
+    scaling(scaling: Vec2, out: Mat3 = create()): Mat3 {
         return set(out,
             scaling.x, 0, 0,
             0, scaling.y, 0,
@@ -88,7 +92,7 @@ export const mat3 = {
         );
     },
 
-    scale(mat: Matrix3, scaling: Vec2): void {
+    scale(mat: Mat3, scaling: Vec2): void {
         const t = mat3.scaling(scaling, _tmpMat);
         mat3.mul(t, mat, mat);
     },
