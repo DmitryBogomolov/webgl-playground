@@ -5,7 +5,9 @@ import { Runtime } from './runtime';
 import { Vec2, isVec2 } from '../geometry/vec2';
 import { Vec3, isVec3 } from '../geometry/vec3';
 import { Vec4, isVec4 } from '../geometry/vec4';
+import { Mat2, isMat2 } from '../geometry/mat2';
 import { Mat3, isMat3 } from '../geometry/mat3';
+import { Mat4, isMat4 } from '../geometry/mat4';
 import { Color, isColor } from './color';
 import { formatStr } from '../utils/string-formatter';
 
@@ -25,7 +27,7 @@ type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
 type arr = readonly number[];
-export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Mat3 | Color;
+export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Mat2 | Mat3 | Mat4 | Color;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -138,8 +140,13 @@ const uniformSetters: UniformSettersMap = {
         }
     },
     [FLOAT_MAT2]: (logger, gl, { location }, value) => {
-        // TODO...
-        gl.uniformMatrix2fv(location, false, value as any);
+        if (isMat2(value)) {
+            gl.uniformMatrix2fv(location, false, value as number[]);
+        } else if (isNumArray(value, 4)) {
+            gl.uniformMatrix2fv(location, false, value);
+        } else {
+            throw logger.error('bad value for "mat2" uniform: {0}', value);
+        }
     },
     [FLOAT_MAT3]: (logger, gl, { location }, value) => {
         if (isMat3(value)) {
@@ -151,8 +158,13 @@ const uniformSetters: UniformSettersMap = {
         }
     },
     [FLOAT_MAT4]: (logger, gl, { location }, value) => {
-        // TODO...
-        gl.uniformMatrix4fv(location, false, value as any);
+        if (isMat4(value)) {
+            gl.uniformMatrix4fv(location, false, value as number[]);
+        } else if (isNumArray(value, 16)) {
+            gl.uniformMatrix4fv(location, false, value);
+        } else {
+            throw logger.error('bad value for "mat4" uniform: {0}', value);
+        }
     },
 };
 

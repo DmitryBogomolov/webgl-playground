@@ -4,8 +4,10 @@ export interface Mat3 {
     readonly [i: number]: number;
 }
 
+const MAT_SIZE = 9;
+
 export function isMat3(arg: unknown): arg is Mat3 {
-    return Array.isArray(arg) && arg.length === 9;
+    return Array.isArray(arg) && arg.length === MAT_SIZE;
 }
 
 function create(): Mat3 {
@@ -17,7 +19,7 @@ function create(): Mat3 {
 }
 
 function set(mat: Mat3, ...values: number[]): Mat3 {
-    for (let i = 0; i < 9; ++i) {
+    for (let i = 0; i < MAT_SIZE; ++i) {
         (mat as number[])[i] = values[i];
     }
     return mat;
