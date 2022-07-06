@@ -42,6 +42,15 @@ export const mat3 = {
         return set(out, ...(mat as number[]));
     },
 
+    transpose(mat: Mat3, out: Mat3 = create()): Mat3 {
+        const [m11, m21, m31, m12, m22, m32, m13, m23, m33] = mat as number[];
+        return set(out,
+            m11, m12, m13,
+            m21, m22, m23,
+            m31, m32, m33,
+        );
+    },
+
     mul(lhs: Mat3, rhs: Mat3, out: Mat3 = create()): Mat3 {
         const [a11, a21, a31, a12, a22, a32, a13, a23, a33] = lhs as number[];
         const [b11, b21, b31, b12, b22, b32, b13, b23, b33] = rhs as number[];
