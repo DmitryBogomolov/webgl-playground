@@ -19,6 +19,8 @@ function set(mat: Matrix3, ...values: number[]): Matrix3 {
     return mat;
 }
 
+const _tmpMat = create();
+
 export const mat3 = {
     create,
 
@@ -58,6 +60,11 @@ export const mat3 = {
         );
     },
 
+    translate(mat: Matrix3, translation: Vec2): void {
+        const t = mat3.translation(translation, _tmpMat);
+        mat3.mul(t, mat, mat);
+    },
+
     rotation(rotation: number, out: Matrix3 = create()): Matrix3 {
         const c = Math.cos(rotation);
         const s = Math.sin(rotation);
@@ -68,11 +75,21 @@ export const mat3 = {
         );
     },
 
+    rotate(mat: Matrix3, rotation: number): void {
+        const t = mat3.rotation(rotation, _tmpMat);
+        mat3.mul(t, mat, mat);
+    },
+
     scaling(scaling: Vec2, out: Matrix3 = create()): Matrix3 {
         return set(out,
             scaling.x, 0, 0,
             0, scaling.y, 0,
             0, 0, 1,
         );
+    },
+
+    scale(mat: Matrix3, scaling: Vec2): void {
+        const t = mat3.scaling(scaling, _tmpMat);
+        mat3.mul(t, mat, mat);
     },
 };
