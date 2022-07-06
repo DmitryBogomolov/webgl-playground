@@ -7,6 +7,7 @@ export * from './utils/event-emitter';
 export * from './geometry/vec2';
 export * from './geometry/vec3';
 export * from './geometry/vec4';
+export * from './geometry/mat3';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree';
 export * from './gl/color';

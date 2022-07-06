@@ -7,6 +7,7 @@ import {
     color,
     colors,
     vec2,
+    mat3,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -21,11 +22,14 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
+
+const transform = mat3.identity();
+
 runtime.onRender(() => {
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.clearColorBuffer();
     const program = primitive.program();
-    program.setUniform('u_transform', [1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    program.setUniform('u_transform', transform);
     primitive.render();
 });
 

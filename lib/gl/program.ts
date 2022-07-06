@@ -5,6 +5,7 @@ import { Runtime } from './runtime';
 import { Vec2, isVec2 } from '../geometry/vec2';
 import { Vec3, isVec3 } from '../geometry/vec3';
 import { Vec4, isVec4 } from '../geometry/vec4';
+import { Matrix3 } from '../geometry/mat3';
 import { Color, isColor } from './color';
 import { formatStr } from '../utils/string-formatter';
 
@@ -24,7 +25,7 @@ type v2 = readonly [number, number];
 type v3 = readonly [number, number, number];
 type v4 = readonly [number, number, number, number];
 type arr = readonly number[];
-export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Color;
+export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Matrix3 | Color;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
