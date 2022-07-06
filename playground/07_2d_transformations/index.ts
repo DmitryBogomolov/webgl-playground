@@ -23,7 +23,10 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 
-const transform = mat3.translation(vec2(0.4, 0.1));
+const scale = mat3.scaling(vec2(1.2, 1.2));
+const translate = mat3.translation(vec2(0.4, 0.2));
+
+const transform = mat3.mul(translate, scale);
 
 runtime.onRender(() => {
     runtime.setClearColor(color(0.7, 0.7, 0.7));
