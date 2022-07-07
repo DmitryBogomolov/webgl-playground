@@ -72,6 +72,7 @@ export class Runtime {
             pixelStoreUnpackFlipYWebgl: false,
         };
         this.adjustViewport();
+        // TODO: Make it optional.
         onWindowResize(this._handleWindowResize);
     }
 

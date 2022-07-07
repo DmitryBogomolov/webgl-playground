@@ -105,7 +105,7 @@ export class Primitive {
 
     render(): void {
         const gl = this._runtime.gl;
-        // Consider "return" here if program is "empty".
+        // TODO: Consider "return" here if program is "empty".
         this._program.use();
         this._runtime.bindVertexArrayObject(this._vao, this._id);
         gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);

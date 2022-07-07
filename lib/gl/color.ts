@@ -11,8 +11,13 @@ export function color(r: number, g: number, b: number, a: number = 1): Color {
 
 export function isColor(arg: unknown): arg is Color {
     const clr = arg as Color;
-    return Boolean(clr &&
-        Number.isFinite(clr.r) && Number.isFinite(clr.g) && Number.isFinite(clr.b) && Number.isFinite(clr.a));
+    return Boolean(
+        clr
+        && Number.isFinite(clr.r)
+        && Number.isFinite(clr.g)
+        && Number.isFinite(clr.b)
+        && Number.isFinite(clr.a),
+    );
 }
 
 export function colorEq(clr1: Color, clr2: Color): boolean {
