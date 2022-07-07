@@ -1,12 +1,14 @@
 import {
     Vec2,
     vec2,
+    Mat3,
+    mat3,
 } from 'lib';
 
 const PI2 = Math.PI * 2;
 
 export interface Animation {
-    (delta: number): Vec2;
+    (delta: number): Mat3;
 }
 
 export function makeAnimation(size: Vec2, speed: number): Animation {
@@ -15,6 +17,10 @@ export function makeAnimation(size: Vec2, speed: number): Animation {
     let angle = 0;
     return (delta) => {
         angle = (angle + delta * speed / 1000) % PI2;
-        return vec2(rx * Math.cos(angle), ry * Math.sin(angle));
+        const position = vec2(rx * Math.cos(angle), ry * Math.sin(angle));
+        const mat = mat3.identity();
+        mat3.rotate(mat, Math.atan2(position.y, position.x) - Math.PI / 2);
+        mat3.translate(mat, position);
+        return mat;
     };
 }

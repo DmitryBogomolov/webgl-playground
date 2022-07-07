@@ -1,9 +1,13 @@
 import {
     Runtime,
+    Primitive,
     color,
     colors,
+    Vec2,
     vec2,
+    Mat3,
     mat3,
+    memoize,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
@@ -19,25 +23,37 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 const makePrimitive = makePrimitiveFactory(runtime);
-const primitive = makePrimitive(colors.BLUE);
-const animate = makeAnimation(vec2(800, 320), Math.PI / 4);
+const primitive1 = makePrimitive(colors.BLUE);
+const size1 = vec2(50, 50);
+const animate1 = makeAnimation(vec2(800, 320), Math.PI / 6);
+const primitive2 = makePrimitive(colors.RED);
+const size2 = vec2(30, 30);
+const animate2 = makeAnimation(vec2(400, 160), -Math.PI / 2);
+const primitive3 = makePrimitive(colors.GREEN);
+const size3 = vec2(20, 20);
+const animate3 = makeAnimation(vec2(320, 200), +Math.PI / 3);
 
-// const transform = mat3.identity();
-// mat3.scale(transform, vec2(1.2, 1.2));
-// mat3.translate(transform, vec2(0.4, 0.2));
+const getProjection = memoize((canvasSize: Vec2): Mat3 => mat3.projection(canvasSize));
 
 runtime.onRender((delta) => {
     runtime.clearColorBuffer();
-    const program = primitive.program();
-    const transform = mat3.identity();
-    const position = animate(delta);
-    const angle = Math.atan2(position.y, position.x);
-    mat3.scale(transform, vec2(50, 50));
-    mat3.rotate(transform, angle - Math.PI / 2);
-    mat3.translate(transform, position);
-    mat3.project(transform, runtime.canvasSize(), undefined);
-    program.setUniform('u_transform', transform);
-    primitive.render();
+    const projection = getProjection(runtime.canvasSize());
+    const transformation1 = animate1(delta);
+    const transformation2 = animate2(delta);
+    mat3.mul(transformation1, transformation2, transformation2);
+    const transformation3 = animate3(delta);
+    mat3.mul(transformation1, transformation3, transformation3);
+    renderPrimitive(primitive1, size1, projection, transformation1);
+    renderPrimitive(primitive2, size2, projection, transformation2);
+    renderPrimitive(primitive3, size3, projection, transformation3);
     runtime.requestRender();
 });
 
+function renderPrimitive(primitive: Primitive, size: Vec2, projection: Mat3, transformation: Mat3): void {
+    const mat = mat3.identity();
+    mat3.scale(mat, size);
+    mat3.mul(transformation, mat, mat);
+    mat3.mul(projection, mat, mat);
+    primitive.program().setUniform('u_transform', mat);
+    primitive.render();
+}
