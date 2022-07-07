@@ -15,7 +15,7 @@ import { makeAnimation } from './animation';
 /**
  * 2D Transformations.
  *
- * TODO...
+ * Basic 2D transformations, relative transformations, 2D pixel-aware projection.
  */
 export type DESCRIPTION = never;
 
