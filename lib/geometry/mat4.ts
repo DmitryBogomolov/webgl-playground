@@ -41,7 +41,12 @@ export const mat4 = {
     },
 
     transpose(mat: Mat4, out: Mat4 = create()): Mat4 {
-        const [m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44] = mat as number[];
+        const [
+            m11, m21, m31, m41,
+            m12, m22, m32, m42,
+            m13, m23, m33, m43,
+            m14, m24, m34, m44,
+        ] = mat as number[];
         return set(out,
             m11, m12, m13, m14,
             m21, m22, m23, m24,
@@ -51,8 +56,18 @@ export const mat4 = {
     },
 
     mul(lhs: Mat4, rhs: Mat4, out: Mat4 = create()): Mat4 {
-        const [a11, a21, a31, a41, a12, a22, a32, a42, a13, a23, a33, a43, a14, a24, a34, a44] = lhs as number[];
-        const [b11, b21, b31, b41, b12, b22, b32, b42, b13, b23, b33, b43, b14, b24, b34, b44] = rhs as number[];
+        const [
+            a11, a21, a31, a41,
+            a12, a22, a32, a42,
+            a13, a23, a33, a43,
+            a14, a24, a34, a44,
+        ] = lhs as number[];
+        const [
+            b11, b21, b31, b41,
+            b12, b22, b32, b42,
+            b13, b23, b33, b43,
+            b14, b24, b34, b44,
+        ] = rhs as number[];
         return set(out,
             a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41,
             a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41,
