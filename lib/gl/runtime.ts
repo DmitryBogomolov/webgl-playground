@@ -138,6 +138,7 @@ export class Runtime {
             return false;
         }
         this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
+        // TODO: Provide "canvasResized" event.
         this._size = size;
         this._canvasSize = canvasSize;
         this._canvas.width = canvasSize.x;

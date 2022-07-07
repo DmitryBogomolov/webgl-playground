@@ -1,16 +1,17 @@
 import {
     Runtime,
-    Primitive,
     color,
     colors,
     Vec2,
     vec2,
-    Mat3,
     mat3,
+    projection3x3,
+    mul3x3,
     memoize,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
+import { makeFigureRenderer } from './figure';
 
 /**
  * 2D Transformations.
@@ -23,37 +24,31 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 const makePrimitive = makePrimitiveFactory(runtime);
-const primitive1 = makePrimitive(colors.BLUE);
-const size1 = vec2(50, 50);
+const render1 = makeFigureRenderer(makePrimitive, colors.BLUE, vec2(50, 50));
+const render2 = makeFigureRenderer(makePrimitive, colors.RED, vec2(30, 30));
+const render3 = makeFigureRenderer(makePrimitive, colors.GREEN, vec2(20, 20));
 const animate1 = makeAnimation(vec2(800, 320), Math.PI / 6);
-const primitive2 = makePrimitive(colors.RED);
-const size2 = vec2(30, 30);
 const animate2 = makeAnimation(vec2(400, 160), -Math.PI / 2);
-const primitive3 = makePrimitive(colors.GREEN);
-const size3 = vec2(20, 20);
 const animate3 = makeAnimation(vec2(320, 200), +Math.PI / 3);
+const transformation1 = mat3();
+const transformation2 = mat3();
+const transformation3 = mat3();
 
-const getProjection = memoize((canvasSize: Vec2): Mat3 => mat3.projection(canvasSize));
+const projection = mat3();
+const updateProjection = memoize((canvasSize: Vec2): void => {
+    projection3x3(canvasSize, undefined, projection);
+});
 
 runtime.onRender((delta) => {
     runtime.clearColorBuffer();
-    const projection = getProjection(runtime.canvasSize());
-    const transformation1 = animate1(delta);
-    const transformation2 = animate2(delta);
-    mat3.mul(transformation1, transformation2, transformation2);
-    const transformation3 = animate3(delta);
-    mat3.mul(transformation1, transformation3, transformation3);
-    renderPrimitive(primitive1, size1, projection, transformation1);
-    renderPrimitive(primitive2, size2, projection, transformation2);
-    renderPrimitive(primitive3, size3, projection, transformation3);
+    updateProjection(runtime.canvasSize());
+    animate1(delta, transformation1);
+    animate2(delta, transformation2);
+    animate3(delta, transformation3);
+    mul3x3(transformation1, transformation2, transformation2);
+    mul3x3(transformation1, transformation3, transformation3);
+    render1(projection, transformation1);
+    render2(projection, transformation2);
+    render3(projection, transformation3);
     runtime.requestRender();
 });
-
-function renderPrimitive(primitive: Primitive, size: Vec2, projection: Mat3, transformation: Mat3): void {
-    const mat = mat3.identity();
-    mat3.scale(mat, size);
-    mat3.mul(transformation, mat, mat);
-    mat3.mul(projection, mat, mat);
-    primitive.program().setUniform('u_transform', mat);
-    primitive.render();
-}
