@@ -346,9 +346,9 @@ export class Program {
         }
     }
 
-    setUniform(name: string, value: UniformValue): void {
-        // TODO: Consider a way to prevent cache check.
-        if (this._cache[name] === value) {
+    setUniform(name: string, value: UniformValue, force: boolean = false): void {
+        // TODO: Is caching actually required at all?
+        if (!force && this._cache[name] === value) {
             return;
         }
         this._logger.log('set_uniform({0}: {1})', name, value);
