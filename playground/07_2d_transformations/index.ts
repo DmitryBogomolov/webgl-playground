@@ -6,7 +6,10 @@ import {
     Vec2,
     vec2,
     Mat3,
-    mat3,
+    identity3x3,
+    projection3x3,
+    scale3x3,
+    mul3x3,
     memoize,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
@@ -33,16 +36,16 @@ const primitive3 = makePrimitive(colors.GREEN);
 const size3 = vec2(20, 20);
 const animate3 = makeAnimation(vec2(320, 200), +Math.PI / 3);
 
-const getProjection = memoize((canvasSize: Vec2): Mat3 => mat3.projection(canvasSize));
+const getProjection = memoize((canvasSize: Vec2): Mat3 => projection3x3(canvasSize));
 
 runtime.onRender((delta) => {
     runtime.clearColorBuffer();
     const projection = getProjection(runtime.canvasSize());
     const transformation1 = animate1(delta);
     const transformation2 = animate2(delta);
-    mat3.mul(transformation1, transformation2, transformation2);
+    mul3x3(transformation1, transformation2, transformation2);
     const transformation3 = animate3(delta);
-    mat3.mul(transformation1, transformation3, transformation3);
+    mul3x3(transformation1, transformation3, transformation3);
     renderPrimitive(primitive1, size1, projection, transformation1);
     renderPrimitive(primitive2, size2, projection, transformation2);
     renderPrimitive(primitive3, size3, projection, transformation3);
@@ -50,10 +53,10 @@ runtime.onRender((delta) => {
 });
 
 function renderPrimitive(primitive: Primitive, size: Vec2, projection: Mat3, transformation: Mat3): void {
-    const mat = mat3.identity();
-    mat3.scale(mat, size);
-    mat3.mul(transformation, mat, mat);
-    mat3.mul(projection, mat, mat);
+    const mat = identity3x3();
+    scale3x3(mat, size);
+    mul3x3(transformation, mat, mat);
+    mul3x3(projection, mat, mat);
     primitive.program().setUniform('u_transform', mat);
     primitive.render();
 }
