@@ -1,3 +1,5 @@
+import { Vec3 } from './vec3';
+
 export interface Mat4 {
     readonly [i: number]: number;
 }
@@ -84,4 +86,27 @@ export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
         a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44,
         a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44,
     );
+}
+
+export function translate4x4(translation: Vec3, out: Mat4 = mat4()): Mat4 {
+    return set(out,
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        translation.x, translation.y, translation.z, 1,
+    );
+}
+
+export function scaling4x4(scaling: Vec3, out: Mat4 = mat4()): Mat4 {
+    return set(out,
+        scaling.x, 0, 0, 0,
+        0, scaling.y, 0, 0,
+        0, 0, scaling.z, 0,
+        0, 0, 0, 1,
+    );
+}
+
+export function rotation4x4(axis: Vec3, angle: number, out: Mat4 = mat4()): Mat4 {
+    // TODO...
+    return set(out);
 }
