@@ -6,13 +6,17 @@ import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
 const {
-    COLOR_BUFFER_BIT, DEPTH_BUFFER_BIT, STENCIL_BUFFER_BIT,
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
     TEXTURE_2D, TEXTURE0, UNPACK_FLIP_Y_WEBGL,
+    DEPTH_TEST,
 } = WebGLRenderingContext.prototype;
 
 interface State {
     clearColor: Color;
+    clearDepth: number;
+    clearStencil: number;
+    depthTest: boolean;
+    depthFunc: DEPTH_FUNC;
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
@@ -25,9 +29,20 @@ interface State {
 }
 
 export enum BUFFER_MASK {
-    COLOR = COLOR_BUFFER_BIT,
-    DEPTH = DEPTH_BUFFER_BIT,
-    STENCIL = STENCIL_BUFFER_BIT,
+    COLOR = WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
+    DEPTH = WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
+    STENCIL = WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
+}
+
+export enum DEPTH_FUNC {
+    NEVER = WebGLRenderingContext.prototype.NEVER,
+    LESS = WebGLRenderingContext.prototype.LESS,
+    LEQUAL = WebGLRenderingContext.prototype.LEQUAL,
+    GREATER = WebGLRenderingContext.prototype.GREATER,
+    GEQUAL = WebGLRenderingContext.prototype.GEQUAL,
+    EQUAL = WebGLRenderingContext.prototype.EQUAL,
+    NOTEQUAL = WebGLRenderingContext.prototype.NOTEQUAL,
+    ALWAYS = WebGLRenderingContext.prototype.ALWAYS,
 }
 
 export class Runtime {
@@ -64,6 +79,10 @@ export class Runtime {
         // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
         this._state = {
             clearColor: color(0, 0, 0, 0),
+            clearDepth: 1,
+            clearStencil: 0,
+            depthTest: false,
+            depthFunc: DEPTH_FUNC.LESS,
             currentProgram: null,
             vertexArrayObject: null,
             arrayBuffer: null,
@@ -165,7 +184,7 @@ export class Runtime {
         this.gl.clear(mask);
     }
 
-    clearColor(): Color {
+    getClearColor(): Color {
         return this._state.clearColor;
     }
 
@@ -183,24 +202,70 @@ export class Runtime {
         return true;
     }
 
-    depthColor(): Color {
-        // TODO...
-        return null as any;
+    getClearDepth(): number {
+        return this._state.clearDepth;
     }
 
-    setDepthColor(depthColor: Color): boolean {
-        // TODO...
-        return false;
+    setClearDepth(clearDepth: number): boolean {
+        if (!(0 <= clearDepth && clearDepth <= 1)) {
+            throw this._logger.error('set_clear_depth({0}): bad value', clearDepth);
+        }
+        if (this._state.clearDepth === clearDepth) {
+            return false;
+        }
+        this._logger.log('set_clear_depth({0})', clearDepth);
+        this.gl.clearDepth(clearDepth);
+        this._state.clearDepth = Number(clearDepth);
+        return true;
     }
 
-    stencilColor(): Color {
-        // TODO...
-        return null as any;
+    getClearStencil(): number {
+        return this._state.clearStencil;
     }
 
-    setStencilColor(stencilColor: Color): boolean {
-        // TODO...
-        return false;
+    setClearStencil(clearStencil: number): boolean {
+        if (!(0 <= clearStencil && clearStencil <= 1)) {
+            throw this._logger.error('set_clear_stencil({0}): bad value', clearStencil);
+        }
+        if (this._state.clearStencil === clearStencil) {
+            return false;
+        }
+        this._logger.log('set_clear_stencil({0})', clearStencil);
+        this.gl.clearStencil(clearStencil);
+        this._state.clearStencil = Number(clearStencil);
+        return true;
+    }
+
+    getDepthTest(): boolean {
+        return this._state.depthTest;
+    }
+
+    setDepthTest(depthTest: boolean): boolean {
+        if (this._state.depthTest === depthTest) {
+            return false;
+        }
+        this._logger.log('set_depth_test({0})', depthTest);
+        if (depthTest) {
+            this.gl.enable(DEPTH_TEST);
+        } else {
+            this.gl.disable(DEPTH_TEST);
+        }
+        this._state.depthTest = Boolean(depthTest);
+        return true;
+    }
+
+    getDepthFunc(): DEPTH_FUNC {
+        return this._state.depthFunc;
+    }
+
+    setDepthFunc(depthFunc: number): boolean {
+        if (this._state.depthFunc === depthFunc) {
+            return false;
+        }
+        this._logger.log('set_depth_func({0})', depthFunc);
+        this.gl.depthFunc(depthFunc);
+        this._state.depthFunc = depthFunc;
+        return true;
     }
 
     onRender(callback: RenderFrameCallback): void {
