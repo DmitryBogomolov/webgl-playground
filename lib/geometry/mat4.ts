@@ -88,6 +88,17 @@ export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
+const _tmpMat = mat4();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function apply4x4<T extends (...args: any[]) => any>(
+    mat: Mat4, func: T, ...args: SkipLast<Parameters<T>>
+): void {
+    func(...args, _tmpMat);
+    mul4x4(_tmpMat, mat, mat);
+}
+
 export function translation4x4(translation: Vec3, out: Mat4 = mat4()): Mat4 {
     return set(out,
         1, 0, 0, 0,
