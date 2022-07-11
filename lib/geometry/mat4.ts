@@ -1,4 +1,4 @@
-import { Vec3 } from './vec3';
+import { Vec3, norm3 } from './vec3';
 
 export interface Mat4 {
     readonly [i: number]: number;
@@ -88,7 +88,7 @@ export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
     );
 }
 
-export function translate4x4(translation: Vec3, out: Mat4 = mat4()): Mat4 {
+export function translation4x4(translation: Vec3, out: Mat4 = mat4()): Mat4 {
     return set(out,
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -106,7 +106,15 @@ export function scaling4x4(scaling: Vec3, out: Mat4 = mat4()): Mat4 {
     );
 }
 
-export function rotation4x4(axis: Vec3, angle: number, out: Mat4 = mat4()): Mat4 {
-    // TODO...
-    return set(out);
+export function rotation4x4(axis: Vec3, rotation: number, out: Mat4 = mat4()): Mat4 {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    const t = 1 - c;
+    const { x, y, z } = norm3(axis);
+    return set(out,
+        x * x * t + c, y * x * t + z * s, z * x * t - y * s, 0,
+        x * y * t - z * s, y * y * t + c, z * y * t + x * s, 0,
+        x * z * t + y * s, y * z * t - x * s, z * z * t + c, 0,
+        0, 0, 0, 1,
+    );
 }
