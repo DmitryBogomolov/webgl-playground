@@ -1,4 +1,4 @@
-import { Vec2, mul2 } from './vec2';
+import { Vec2 } from './vec2';
 
 export interface Mat3 {
     readonly [i: number]: number;
@@ -111,11 +111,18 @@ export function scaling3x3(scaling: Vec2, out: Mat3 = mat3()): Mat3 {
     );
 }
 
-export function projection3x3(size: Vec2, origin: Vec2 = mul2(size, 0.5), out: Mat3 = mat3()): Mat3 {
-    const kx = 2 / size.x;
-    const ky = 2 / size.y;
-    const dx = -(origin.x - size.x / 2) * kx;
-    const dy = -(origin.y - size.y / 2) * ky;
+export interface ProjectionOptions {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+}
+
+export function projection3x3(options: ProjectionOptions, out: Mat3 = mat3()): Mat3 {
+    const kx = 2 / (options.right - options.left);
+    const ky = 2 / (options.top - options.bottom);
+    const dx = -(options.left + options.right) / 2 * kx;
+    const dy = -(options.bottom + options.top) / 2 * ky;
     return set(out,
         kx, 0, 0,
         0, ky, 0,

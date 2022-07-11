@@ -35,8 +35,10 @@ const transformation2 = mat3();
 const transformation3 = mat3();
 
 const projection = mat3();
-const updateProjection = memoize((canvasSize: Vec2): void => {
-    projection3x3(canvasSize, undefined, projection);
+const updateProjection = memoize(({ x, y }: Vec2): void => {
+    const dx = x / 2;
+    const dy = y / 2;
+    projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
 });
 
 runtime.onRender((delta) => {

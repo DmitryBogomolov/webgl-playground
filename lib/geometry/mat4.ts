@@ -162,3 +162,25 @@ export function zrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
         0, 0, 0, 1,
     );
 }
+
+export interface OrthogrpahicOptions {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+    readonly near: number;
+    readonly far: number;
+}
+
+export function orthographic4x4(options: OrthogrpahicOptions, out: Mat4 = mat4()): Mat4 {
+    const { left, right, bottom, top, near, far } = options;
+    const lr = 1 / (left - right);
+    const bt = 1 / (bottom - top);
+    const nf = 1 / (near - far);
+    return set(out,
+        -2 * lr, 0, 0, 0,
+        0, -2 * bt, 0, 0,
+        0, 0, 2 * nf, 0,
+        (left + right) * lr, (bottom + top) * bt, (near + far) * nf, 1,
+    );
+}
