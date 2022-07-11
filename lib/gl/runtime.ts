@@ -180,7 +180,7 @@ export class Runtime {
     }
 
     clearBuffer(mask: BUFFER_MASK = BUFFER_MASK.COLOR): void {
-        this._logger.log('clear_buffer({0}', mask);
+        this._logger.log('clear_buffer({0})', BUFFER_MASK_2_STR[mask]);
         this.gl.clear(mask);
     }
 
@@ -262,7 +262,7 @@ export class Runtime {
         if (this._state.depthFunc === depthFunc) {
             return false;
         }
-        this._logger.log('set_depth_func({0})', depthFunc);
+        this._logger.log('set_depth_func({0})', DEPTH_FUNC[depthFunc]);
         this.gl.depthFunc(depthFunc);
         this._state.depthFunc = depthFunc;
         return true;
@@ -369,3 +369,13 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
 function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
     return CANVAS_TAG in canvas;
 }
+
+const BUFFER_MASK_2_STR = {
+    [BUFFER_MASK.COLOR]: 'color',
+    [BUFFER_MASK.DEPTH]: 'depth',
+    [BUFFER_MASK.STENCIL]: 'stencil',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH]: 'color|depth',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.STENCIL]: 'color|stencil',
+    [BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'depth|stencil',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'color|depth|stencil',
+};
