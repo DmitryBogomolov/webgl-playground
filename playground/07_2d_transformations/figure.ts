@@ -4,7 +4,8 @@ import {
     Mat3,
     mat3,
     identity3x3,
-    scale3x3,
+    apply3x3,
+    scaling3x3,
     mul3x3,
 } from 'lib';
 import { PrimitiveFactory } from './primitive';
@@ -18,7 +19,7 @@ export function makeFigureRenderer(makePrimitive: PrimitiveFactory, clr: Color, 
     const mat = mat3();
     return (projection, transformation) => {
         identity3x3(mat);
-        scale3x3(mat, size);
+        apply3x3(mat, scaling3x3, size);
         mul3x3(transformation, mat, mat);
         mul3x3(projection, mat, mat);
         primitive.program().setUniform('u_transform', mat, true);
