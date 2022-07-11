@@ -6,8 +6,8 @@ export interface Mat3 {
 
 const MAT_SIZE = 9;
 
-export function isMat3(arg: unknown): arg is Mat3 {
-    return Array.isArray(arg) && arg.length === MAT_SIZE;
+export function isMat3(mat: unknown): mat is Mat3 {
+    return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat3(): Mat3 {

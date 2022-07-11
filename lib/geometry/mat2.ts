@@ -4,8 +4,8 @@ export interface Mat2 {
 
 const MAT_SIZE = 4;
 
-export function isMat2(arg: unknown): arg is Mat2 {
-    return Array.isArray(arg) && arg.length === MAT_SIZE;
+export function isMat2(mat: unknown): mat is Mat2 {
+    return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat2(): Mat2 {

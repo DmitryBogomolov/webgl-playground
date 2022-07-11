@@ -6,8 +6,8 @@ export interface Mat4 {
 
 const MAT_SIZE = 16;
 
-export function isMat4(arg: unknown): arg is Mat4 {
-    return Array.isArray(arg) && arg.length === MAT_SIZE;
+export function isMat4(mat: unknown): mat is Mat4 {
+    return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat4(): Mat4 {
@@ -115,6 +115,39 @@ export function rotation4x4(axis: Vec3, rotation: number, out: Mat4 = mat4()): M
         x * x * t + c, y * x * t + z * s, z * x * t - y * s, 0,
         x * y * t - z * s, y * y * t + c, z * y * t + x * s, 0,
         x * z * t + y * s, y * z * t - x * s, z * z * t + c, 0,
+        0, 0, 0, 1,
+    );
+}
+
+export function xrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    return set(out,
+        1, 0, 0, 0,
+        0, +c, +s, 0,
+        0, -s, +c, 0,
+        0, 0, 0, 1,
+    );
+}
+
+export function yrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    return set(out,
+        +c, 0, -s, 0,
+        0, 1, 0, 0,
+        +s, 0, +c, 0,
+        0, 0, 0, 1,
+    );
+}
+
+export function zrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    return set(out,
+        +c, +s, 0, 0,
+        -s, +c, 0, 0,
+        0, 0, 1, 0,
         0, 0, 0, 1,
     );
 }
