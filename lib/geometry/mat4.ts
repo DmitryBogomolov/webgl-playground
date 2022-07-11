@@ -163,7 +163,7 @@ export function zrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
     );
 }
 
-export interface OrthogrpahicOptions {
+export interface Orthogrpahic4X4Options {
     readonly left: number;
     readonly right: number;
     readonly top: number;
@@ -172,7 +172,7 @@ export interface OrthogrpahicOptions {
     readonly far: number;
 }
 
-export function orthographic4x4(options: OrthogrpahicOptions, out: Mat4 = mat4()): Mat4 {
+export function orthographic4x4(options: Orthogrpahic4X4Options, out: Mat4 = mat4()): Mat4 {
     const { left, right, bottom, top, near, far } = options;
     const lr = 1 / (left - right);
     const bt = 1 / (bottom - top);

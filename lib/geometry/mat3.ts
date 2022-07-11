@@ -111,14 +111,14 @@ export function scaling3x3(scaling: Vec2, out: Mat3 = mat3()): Mat3 {
     );
 }
 
-export interface ProjectionOptions {
+export interface Projection3x3Options {
     readonly left: number;
     readonly right: number;
     readonly top: number;
     readonly bottom: number;
 }
 
-export function projection3x3(options: ProjectionOptions, out: Mat3 = mat3()): Mat3 {
+export function projection3x3(options: Projection3x3Options, out: Mat3 = mat3()): Mat3 {
     const kx = 2 / (options.right - options.left);
     const ky = 2 / (options.top - options.bottom);
     const dx = -(options.left + options.right) / 2 * kx;
