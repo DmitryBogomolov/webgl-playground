@@ -113,7 +113,7 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: Vec2 | n
 }
 
 runtime.onRender(() => {
-    runtime.clearColorBuffer();
+    runtime.clearBuffer();
     drawRect(layout.nearestUV, 'nearest', null);
     drawRect(layout.linearUV, 'linear', null);
     drawRect(layout.nearestCustom, 'nearest', texcoord);

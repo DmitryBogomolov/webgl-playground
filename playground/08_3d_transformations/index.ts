@@ -1,5 +1,6 @@
 import {
     Runtime,
+    BUFFER_MASK,
     color,
     mat4,
     identity4x4,
@@ -26,7 +27,7 @@ identity4x4(transform);
 rotation4x4({ x: 0, y: 0, z: 0.5 }, Math.PI / 100, transform);
 
 runtime.onRender((_delta) => {
-    runtime.clearColorBuffer();
+    runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_transform', transform, true);
     primitive.render();
     runtime.requestRender();

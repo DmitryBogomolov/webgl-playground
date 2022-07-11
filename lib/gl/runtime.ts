@@ -6,12 +6,9 @@ import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
 const {
-    COLOR_BUFFER_BIT,
-    ARRAY_BUFFER,
-    ELEMENT_ARRAY_BUFFER,
-    TEXTURE_2D,
-    TEXTURE0,
-    UNPACK_FLIP_Y_WEBGL,
+    COLOR_BUFFER_BIT, DEPTH_BUFFER_BIT, STENCIL_BUFFER_BIT,
+    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
+    TEXTURE_2D, TEXTURE0, UNPACK_FLIP_Y_WEBGL,
 } = WebGLRenderingContext.prototype;
 
 interface State {
@@ -25,6 +22,12 @@ interface State {
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
+}
+
+export enum BUFFER_MASK {
+    COLOR = COLOR_BUFFER_BIT,
+    DEPTH = DEPTH_BUFFER_BIT,
+    STENCIL = STENCIL_BUFFER_BIT,
 }
 
 export class Runtime {
@@ -157,9 +160,9 @@ export class Runtime {
         }
     }
 
-    clearColorBuffer(): void {
-        this._logger.log('clear_color_buffer');
-        this.gl.clear(COLOR_BUFFER_BIT);
+    clearBuffer(mask: BUFFER_MASK = BUFFER_MASK.COLOR): void {
+        this._logger.log('clear_buffer({0}', mask);
+        this.gl.clear(mask);
     }
 
     clearColor(): Color {
@@ -178,6 +181,26 @@ export class Runtime {
         this.gl.clearColor(r, g, b, a);
         this._state.clearColor = clearColor;
         return true;
+    }
+
+    depthColor(): Color {
+        // TODO...
+        return null as any;
+    }
+
+    setDepthColor(depthColor: Color): boolean {
+        // TODO...
+        return false;
+    }
+
+    stencilColor(): Color {
+        // TODO...
+        return null as any;
+    }
+
+    setStencilColor(stencilColor: Color): boolean {
+        // TODO...
+        return false;
     }
 
     onRender(callback: RenderFrameCallback): void {

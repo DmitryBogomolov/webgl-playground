@@ -40,7 +40,7 @@ const updateProjection = memoize((canvasSize: Vec2): void => {
 });
 
 runtime.onRender((delta) => {
-    runtime.clearColorBuffer();
+    runtime.clearBuffer();
     updateProjection(runtime.canvasSize());
     animate1(delta, transformation1);
     animate2(delta, transformation2);

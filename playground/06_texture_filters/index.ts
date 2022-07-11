@@ -96,7 +96,7 @@ let currentKernel: ConvolutionKernel = convolutionKernels[0];
 populateSelectControl(runtime);
 
 runtime.onRender(() => {
-    runtime.clearColorBuffer();
+    runtime.clearBuffer();
     const program = primitive.program();
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());
