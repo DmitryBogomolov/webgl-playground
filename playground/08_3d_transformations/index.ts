@@ -1,6 +1,7 @@
 import {
     Runtime,
     BUFFER_MASK,
+    DEPTH_FUNC,
     color,
     mat4,
     mul4x4,
@@ -20,6 +21,9 @@ export type DESCRIPTION = never;
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
+runtime.setDepthTest(true);
+runtime.setDepthFunc(DEPTH_FUNC.GREATER);
+runtime.setClearDepth(0);
 const primitive = makePrimitive(runtime);
 
 const projection = mat4();
@@ -28,7 +32,7 @@ orthographic4x4({ left: -4, right: +4, bottom: -4, top: +4, near: +4, far: -4 },
 const transform = mat4();
 identity4x4(transform);
 
-rotation4x4({ x: 0, y: 0, z: 0.5 }, Math.PI / 100, transform);
+rotation4x4({ x: 0, y: 1, z: 0 }, -Math.PI / 6, transform);
 
 mul4x4(projection, transform, transform);
 
