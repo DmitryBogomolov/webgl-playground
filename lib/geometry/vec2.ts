@@ -22,14 +22,15 @@ export function vec2(x: number, y: number): Vec2 {
     return new Vector2(x, y);
 }
 
-export function isVec2(arg: unknown): arg is Vec2 {
-    return 'x' in (arg as Vec2) && 'y' in (arg as Vec2);
+export function isVec2(v: unknown): v is Vec2 {
+    return 'x' in (v as Vec2) && 'y' in (v as Vec2);
 }
 
-export function vec2eq(v1: Vec2, v2: Vec2): boolean {
-    return v1 === v2 || (v1.x === v2.x && v1.y === v2.y);
+export function eq2(a: Vec2, b: Vec2): boolean {
+    return a === b || (a.x === b.x && a.y === b.y);
 }
 
+// TODO: Consider removing it.
 export function vec2arr(v: Vec2): [number, number] {
     return [v.x, v.y];
 }
@@ -46,8 +47,8 @@ export function dot2(a: Vec2, b: Vec2): number {
     return a.x * b.x + a.y * b.y;
 }
 
-export function mul2(a: Vec2, k: number): Vec2 {
-    return new Vector2(a.x * k, a.y * k);
+export function mul2(v: Vec2, k: number): Vec2 {
+    return new Vector2(v.x * k, v.y * k);
 }
 
 export function len2(v: Vec2): number {

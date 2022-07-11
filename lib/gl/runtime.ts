@@ -3,7 +3,7 @@ import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
-import { Vec2, ZERO2, vec2, isVec2, vec2eq } from '../geometry/vec2';
+import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
 const {
     COLOR_BUFFER_BIT,
@@ -134,7 +134,7 @@ export class Runtime {
             throw this._logger.error('set_size({0}): bad value', size);
         }
         const canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
-        if (vec2eq(this._size, size) && vec2eq(this._canvasSize, canvasSize)) {
+        if (eq2(this._size, size) && eq2(this._canvasSize, canvasSize)) {
             return false;
         }
         this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
