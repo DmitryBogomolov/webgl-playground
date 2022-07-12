@@ -5,11 +5,14 @@ import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
+// TODO: Add "GL_" prefix.
 const {
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
     TEXTURE_2D, TEXTURE0, UNPACK_FLIP_Y_WEBGL,
-    DEPTH_TEST,
 } = WebGLRenderingContext.prototype;
+
+const GL_DEPTH_TEST = WebGLRenderingContext.prototype.DEPTH_TEST;
+const GL_CULL_FACE = WebGLRenderingContext.prototype.CULL_FACE;
 
 interface State {
     clearColor: Color;
@@ -17,6 +20,8 @@ interface State {
     clearStencil: number;
     depthTest: boolean;
     depthFunc: DEPTH_FUNC;
+    culling: boolean;
+    cullFace: CULL_FACE;
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
@@ -43,6 +48,12 @@ export enum DEPTH_FUNC {
     EQUAL = WebGLRenderingContext.prototype.EQUAL,
     NOTEQUAL = WebGLRenderingContext.prototype.NOTEQUAL,
     ALWAYS = WebGLRenderingContext.prototype.ALWAYS,
+}
+
+export enum CULL_FACE {
+    BACK = WebGLRenderingContext.prototype.BACK,
+    FRONT = WebGLRenderingContext.prototype.FRONT,
+    FRONT_AND_BACK = WebGLRenderingContext.prototype.FRONT_AND_BACK,
 }
 
 export class Runtime {
@@ -83,6 +94,8 @@ export class Runtime {
             clearStencil: 0,
             depthTest: false,
             depthFunc: DEPTH_FUNC.LESS,
+            culling: false,
+            cullFace: CULL_FACE.BACK,
             currentProgram: null,
             vertexArrayObject: null,
             arrayBuffer: null,
@@ -246,9 +259,9 @@ export class Runtime {
         }
         this._logger.log('set_depth_test({0})', depthTest);
         if (depthTest) {
-            this.gl.enable(DEPTH_TEST);
+            this.gl.enable(GL_DEPTH_TEST);
         } else {
-            this.gl.disable(DEPTH_TEST);
+            this.gl.disable(GL_DEPTH_TEST);
         }
         this._state.depthTest = Boolean(depthTest);
         return true;
@@ -258,13 +271,51 @@ export class Runtime {
         return this._state.depthFunc;
     }
 
-    setDepthFunc(depthFunc: number): boolean {
+    setDepthFunc(depthFunc: DEPTH_FUNC): boolean {
+        if (!(depthFunc >= 0 && DEPTH_FUNC[depthFunc])) {
+            throw this._logger.error('set_depth_func({0}): bad value', depthFunc);
+        }
         if (this._state.depthFunc === depthFunc) {
             return false;
         }
         this._logger.log('set_depth_func({0})', DEPTH_FUNC[depthFunc]);
         this.gl.depthFunc(depthFunc);
         this._state.depthFunc = depthFunc;
+        return true;
+    }
+
+    getCulling(): boolean {
+        return this._state.culling;
+    }
+
+    setCulling(culling: boolean): boolean {
+        if (this._state.culling === culling) {
+            return false;
+        }
+        this._logger.log('set_culling({0})', culling);
+        if (culling) {
+            this.gl.enable(GL_CULL_FACE);
+        } else {
+            this.gl.disable(GL_CULL_FACE);
+        }
+        this._state.culling = Boolean(culling);
+        return true;
+    }
+
+    getCullFace(): CULL_FACE {
+        return this._state.cullFace;
+    }
+
+    setCullFace(cullFace: CULL_FACE): boolean {
+        if (!(cullFace >= 0 && CULL_FACE[cullFace])) {
+            throw this._logger.error('set_cull_face({0}): bad value', cullFace);
+        }
+        if (this._state.cullFace === cullFace) {
+            return false;
+        }
+        this._logger.log('set_cull_face({0})', CULL_FACE[cullFace]);
+        this.gl.cullFace(cullFace);
+        this._state.cullFace = cullFace;
         return true;
     }
 

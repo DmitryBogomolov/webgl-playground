@@ -138,11 +138,13 @@ export interface Projection3x3Options {
     readonly bottom: number;
 }
 
-export function projection3x3(options: Projection3x3Options, out: Mat3 = mat3()): Mat3 {
-    const kx = 2 / (options.right - options.left);
-    const ky = 2 / (options.top - options.bottom);
-    const dx = -(options.left + options.right) / 2 * kx;
-    const dy = -(options.bottom + options.top) / 2 * ky;
+export function projection3x3(
+    { left, top, right, bottom }: Projection3x3Options, out: Mat3 = mat3(),
+): Mat3 {
+    const kx = 2 / (right - left);
+    const ky = 2 / (top - bottom);
+    const dx = -(left + right) / 2 * kx;
+    const dy = -(bottom + top) / 2 * ky;
     return set(out,
         kx, 0, 0,
         0, ky, 0,

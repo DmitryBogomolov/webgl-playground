@@ -185,24 +185,51 @@ export function zrotation4x4(rotation: number, out: Mat4 = mat4()): Mat4 {
     );
 }
 
-export interface Orthogrpahic4X4Options {
+export interface Orthogrpahic4x4Options {
     readonly left: number;
     readonly right: number;
     readonly top: number;
     readonly bottom: number;
-    readonly near: number;
-    readonly far: number;
+    readonly zNear: number;
+    readonly zFar: number;
 }
 
-export function orthographic4x4(options: Orthogrpahic4X4Options, out: Mat4 = mat4()): Mat4 {
-    const { left, right, bottom, top, near, far } = options;
+export function orthographic4x4(
+    { left, right, bottom, top, zNear, zFar }: Orthogrpahic4x4Options, out: Mat4 = mat4(),
+): Mat4 {
     const lr = 1 / (left - right);
     const bt = 1 / (bottom - top);
-    const nf = 1 / (near - far);
+    const nf = 1 / (zNear - zFar);
     return set(out,
         -2 * lr, 0, 0, 0,
         0, -2 * bt, 0, 0,
         0, 0, 2 * nf, 0,
-        (left + right) * lr, (bottom + top) * bt, (near + far) * nf, 1,
+        (left + right) * lr, (bottom + top) * bt, (zNear + zFar) * nf, 1,
+    );
+}
+
+export interface Perspective4x4Options {
+    readonly yFov: number;
+    readonly aspect: number;
+    readonly zNear: number;
+    readonly zFar: number;
+}
+
+export function perspective4x4(
+    { yFov, aspect, zNear, zFar }: Perspective4x4Options, out: Mat4 = mat4(),
+): Mat4 {
+    const f = 1 / Math.tan(yFov / 2);
+    let p = -1;
+    let q = -2 * zNear;
+    if (Number.isFinite(zFar)) {
+        const nf = 1 / (zNear - zFar);
+        p = (zNear + zFar) * nf;
+        q = 2 * zFar * zNear * nf;
+    }
+    return set(out,
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, p, -1,
+        0, 0, q, 0,
     );
 }
