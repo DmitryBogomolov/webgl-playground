@@ -1,4 +1,5 @@
-import { Vec2 } from './vec2';
+import { vec2, Vec2 } from './vec2';
+import { Vec3, vec3 } from './vec3';
 
 export interface Mat3 {
     readonly [i: number]: number;
@@ -71,6 +72,25 @@ export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
         a11 * b13 + a12 * b23 + a13 * b33,
         a21 * b13 + a22 * b23 + a23 * b33,
         a31 * b13 + a32 * b23 + a33 * b33,
+    );
+}
+
+export function mul3v2(lhs: Mat3, rhs: Vec2): Vec2 {
+    const v = mul3v3(lhs, vec3(rhs.x, rhs.y, 1));
+    return vec2(v.x / v.z, v.y / v.z);
+}
+
+export function mul3v3(lhs: Mat3, rhs: Vec3): Vec3 {
+    const [
+        a11, a21, a31,
+        a12, a22, a32,
+        a13, a23, a33,
+    ] = lhs as number[];
+    const { x, y, z } = rhs;
+    return vec3(
+        a11 * x + a12 * y + a13 * z,
+        a21 * x + a22 * y + a23 * z,
+        a31 * x + a32 * y + a33 * z,
     );
 }
 

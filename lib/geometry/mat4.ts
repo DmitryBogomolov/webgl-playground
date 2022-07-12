@@ -1,4 +1,5 @@
-import { Vec3, norm3 } from './vec3';
+import { Vec3, vec3, norm3 } from './vec3';
+import { Vec4, vec4 } from './vec4';
 
 export interface Mat4 {
     readonly [i: number]: number;
@@ -85,6 +86,27 @@ export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
         a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44,
         a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44,
         a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44,
+    );
+}
+
+export function mul4v3(lhs: Mat4, rhs: Vec3): Vec3 {
+    const v = mul4v4(lhs, vec4(rhs.x, rhs.y, rhs.z, 1));
+    return vec3(v.x / v.w, v.y / v.w, v.z / v.w);
+}
+
+export function mul4v4(lhs: Mat4, rhs: Vec4): Vec4 {
+    const [
+        a11, a21, a31, a41,
+        a12, a22, a32, a42,
+        a13, a23, a33, a43,
+        a14, a24, a34, a44,
+    ] = lhs as number[];
+    const { x, y, z, w } = rhs;
+    return vec4(
+        a11 * x + a12 * y + a13 * z + a14 * w,
+        a21 * x + a22 * y + a23 * z + a24 * w,
+        a31 * x + a32 * y + a33 * z + a34 * w,
+        a41 * x + a42 * y + a43 * z + a44 * w,
     );
 }
 

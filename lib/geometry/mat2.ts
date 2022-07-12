@@ -1,3 +1,5 @@
+import { Vec2, vec2 } from './vec2';
+
 export interface Mat2 {
     readonly [i: number]: number;
 }
@@ -58,5 +60,17 @@ export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2 = mat2()): Mat2 {
         a21 * b11 + a12 * b21,
         a11 * b12 + a12 * b22,
         a21 * b12 + a22 * b22,
+    );
+}
+
+export function mul2v2(lhs: Mat2, rhs: Vec2): Vec2 {
+    const [
+        a11, a21,
+        a12, a22,
+    ] = lhs as number[];
+    const { x, y } = rhs;
+    return vec2(
+        a11 * x + a12 * y,
+        a21 * x + a22 * y,
     );
 }
