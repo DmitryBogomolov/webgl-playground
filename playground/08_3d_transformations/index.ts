@@ -11,7 +11,8 @@ import {
     perspective4x4,
     // mul4v3,
     apply4x4,
-    translation4x4,
+    // translation4x4,
+    lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
 
@@ -40,13 +41,22 @@ perspective4x4({
     zFar: 100,
 }, projection);
 
+const view = mat4();
+lookAt4x4({
+    eye: { x: 0, y: 0, z: 10 },
+    center: { x: 0, y: 0, z: 0 },
+    up: { x: 0, y: 1, z: 0 },
+}, view);
+console.log('@@@@@', view);
+
 const transform = mat4();
 identity4x4(transform);
 
 apply4x4(transform, rotation4x4, { x: 0, y: 1, z: 0 }, -Math.PI / 6);
 apply4x4(transform, rotation4x4, { x: 1, y: 0, z: 0 }, Math.PI / 6);
-apply4x4(transform, translation4x4, { x: 0, y: 0, z: -10 });
+//apply4x4(transform, translation4x4, { x: 0, y: 0, z: -10 });
 
+mul4x4(view, transform, transform);
 mul4x4(projection, transform, transform);
 
 runtime.onRender((_delta) => {

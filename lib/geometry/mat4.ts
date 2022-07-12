@@ -1,4 +1,4 @@
-import { Vec3, vec3, norm3 } from './vec3';
+import { Vec3, vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { Vec4, vec4 } from './vec4';
 
 export interface Mat4 {
@@ -231,5 +231,23 @@ export function perspective4x4(
         0, f, 0, 0,
         0, 0, p, -1,
         0, 0, q, 0,
+    );
+}
+
+export interface LookAt4x4Options {
+    readonly eye: Vec3;
+    readonly center: Vec3;
+    readonly up: Vec3;
+}
+
+export function lookAt4x4({ eye, center, up }: LookAt4x4Options, out: Mat4 = mat4()): Mat4 {
+    const zAxis = norm3(sub3(eye, center));
+    const xAxis = cross3(norm3(up), zAxis);
+    const yAxis = cross3(zAxis, xAxis);
+    return set(out,
+        xAxis.x, yAxis.x, zAxis.x, 0,
+        xAxis.y, yAxis.y, zAxis.y, 0,
+        xAxis.z, yAxis.z, zAxis.z, 0,
+        -dot3(xAxis, eye), -dot3(yAxis, eye), -dot3(zAxis, eye), 1,
     );
 }

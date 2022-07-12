@@ -59,3 +59,19 @@ export function neg3(v: Vec3): Vec3 {
 export function norm3(v: Vec3): Vec3 {
     return mul3(v, 1 / len3(v));
 }
+
+export function add3(a: Vec3, b: Vec3): Vec3 {
+    return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+export function sub3(a: Vec3, b: Vec3): Vec3 {
+    return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+export function cross3(a: Vec3, b: Vec3): Vec3 {
+    return new Vector3(
+        a.y * b.z - a.z * b.y,
+        -a.x * b.z + a.z * b.x,
+        a.x * b.y - a.y * b.x,
+    );
+}
