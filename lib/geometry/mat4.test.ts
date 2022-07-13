@@ -3,7 +3,7 @@ import { zero4x4, identity4x4, update4x4, det4x4, inverse4x4 } from './mat4';
 const EPS = 1E-7;
 
 expect.extend({
-    toBeMat(actual, expected) {
+    toBeMat(actual: number[], expected: number[]) {
         const list: [number, number][] = [];
         for (let i = 0; i < 4; ++i) {
             for (let j = 0; j < 4; ++j) {
@@ -34,7 +34,9 @@ expect.extend({
 });
 
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace jest {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R> {
             toBeMat(expected: number[]): CustomMatcherResult;
         }

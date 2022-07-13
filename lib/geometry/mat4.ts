@@ -14,10 +14,10 @@ export function isMat4(mat: unknown): mat is Mat4 {
 }
 
 export function mat4(): Mat4 {
-    return Array(MAT_SIZE).fill(0);
+    return Array<number>(MAT_SIZE).fill(0);
 }
 
-const _tmpMat: number[] = Array(MAT_SIZE);
+const _tmpMat = Array<number>(MAT_SIZE);
 
 function copy(src: Mat4, dst: Mat4): Mat4 {
     for (let i = 0; i < MAT_SIZE; ++i) {
@@ -153,7 +153,7 @@ function rowcol2idx(row: number, col: number): number {
 }
 
 function excludeRowCol(row: number, col: number): number[] {
-    const ret = Array((MAT_RANK - 1) ** 2);
+    const ret = Array<number>((MAT_RANK - 1) ** 2);
     let k = 0;
     for (let i = 0; i < MAT_RANK; ++i) {
         if (i === row) {
