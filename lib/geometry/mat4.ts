@@ -22,7 +22,7 @@ const _tmpMat: number[] = Array(MAT_SIZE);
 function copy(src: Mat4, dst: Mat4): Mat4 {
     for (let i = 0; i < MAT_SIZE; ++i) {
         (dst as number[])[i] = src[i];
-    };
+    }
     return dst;
 }
 
@@ -170,7 +170,7 @@ function excludeRowCol(row: number, col: number): number[] {
 }
 
 const DET4X4_MAP: ReadonlyArray<[number, number, ReadonlyArray<number>]> = Array(MAT_RANK).fill(0).map((_, i) =>
-    [1 - 2 * (i & 1), rowcol2idx(0, i), excludeRowCol(0, i)]
+    [1 - 2 * (i & 1), rowcol2idx(0, i), excludeRowCol(0, i)],
 );
 
 export function det4x4(mat: Mat4): number {
@@ -341,7 +341,7 @@ export interface LookAt4x4Options {
 }
 
 export function lookAt4x4(
-    { eye, center, up }: LookAt4x4Options, out: Mat4 = mat4()
+    { eye, center, up }: LookAt4x4Options, out: Mat4 = mat4(),
 ): Mat4 {
     const zAxis = norm3(sub3(eye, center));
     const xAxis = cross3(norm3(up), zAxis);
@@ -351,5 +351,25 @@ export function lookAt4x4(
         xAxis.y, yAxis.y, zAxis.y, 0,
         xAxis.z, yAxis.z, zAxis.z, 0,
         -dot3(xAxis, eye), -dot3(yAxis, eye), -dot3(zAxis, eye), 1,
+    );
+}
+
+export interface TargetTo4x4Options {
+    readonly eye: Vec3;
+    readonly target: Vec3;
+    readonly up: Vec3;
+}
+
+export function targetTo4x4(
+    { eye, target, up }: TargetTo4x4Options, out: Mat4 = mat4(),
+): Mat4 {
+    const zAxis = norm3(sub3(eye, target));
+    const xAxis = cross3(norm3(up), zAxis);
+    const yAxis = cross3(zAxis, xAxis);
+    return set(out,
+        xAxis.x, xAxis.y, xAxis.z, 0,
+        yAxis.x, yAxis.y, yAxis.z, 0,
+        zAxis.x, zAxis.y, zAxis.z, 0,
+        eye.x, eye.y, eye.z, 1,
     );
 }
