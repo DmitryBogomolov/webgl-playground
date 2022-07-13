@@ -5,19 +5,15 @@ export interface Mat4 {
     readonly [i: number]: number;
 }
 
-const MAT_SIZE = 16;
+const MAT_RANK = 4;
+const MAT_SIZE = MAT_RANK ** 2;
 
 export function isMat4(mat: unknown): mat is Mat4 {
     return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat4(): Mat4 {
-    return [
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-    ];
+    return Array(MAT_SIZE).fill(0);
 }
 
 function set(mat: Mat4, ...values: number[]): Mat4 {
@@ -27,6 +23,14 @@ function set(mat: Mat4, ...values: number[]): Mat4 {
     return mat;
 }
 
+export function zero4x4(out: Mat4 = mat4()): Mat4 {
+    return set(out,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    );
+}
 
 export function identity4x4(out: Mat4 = mat4()): Mat4 {
     return set(out,
@@ -34,6 +38,21 @@ export function identity4x4(out: Mat4 = mat4()): Mat4 {
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1,
+    );
+}
+
+export function update4x4(values: ReadonlyArray<number>, out: Mat4 = mat4()): Mat4 {
+    const [
+        m11, m12, m13, m14,
+        m21, m22, m23, m24,
+        m31, m32, m33, m34,
+        m41, m42, m43, m44,
+    ] = values;
+    return set(out,
+        m11, m21, m31, m41,
+        m12, m22, m32, m42,
+        m13, m23, m33, m43,
+        m14, m24, m34, m44,
     );
 }
 
@@ -109,6 +128,60 @@ export function mul4v4(lhs: Mat4, rhs: Vec4): Vec4 {
         a41 * x + a42 * y + a43 * z + a44 * w,
     );
 }
+
+function det3x3(mat: Mat4, indices: ReadonlyArray<number>): number {
+    return mat[indices[0]] * mat[indices[4]] * mat[indices[8]]
+        - mat[indices[0]] * mat[indices[7]] * mat[indices[5]]
+        - mat[indices[1]] * mat[indices[3]] * mat[indices[8]]
+        + mat[indices[1]] * mat[indices[6]] * mat[indices[5]]
+        + mat[indices[2]] * mat[indices[3]] * mat[indices[7]]
+        - mat[indices[2]] * mat[indices[6]] * mat[indices[4]];
+}
+
+function rowcol2idx(row: number, col: number): number {
+    return col * MAT_RANK + row;
+}
+
+function excludeRowCol(row: number, col: number): number[] {
+    const ret = Array((MAT_RANK - 1) ** 2);
+    let k = 0;
+    for (let i = 0; i < MAT_RANK; ++i) {
+        if (i === row) {
+            continue;
+        }
+        for (let j = 0; j < MAT_RANK; ++j) {
+            if (j === col) {
+                continue;
+            }
+            ret[k++] = rowcol2idx(i, j);
+        }
+    }
+    return ret;
+}
+
+const DET4X4_MAP: ReadonlyArray<[number, ReadonlyArray<number>]> = [
+    [rowcol2idx(0, 0), excludeRowCol(0, 0)],
+    [rowcol2idx(0, 1), excludeRowCol(0, 1)],
+    [rowcol2idx(0, 2), excludeRowCol(0, 2)],
+    [rowcol2idx(0, 3), excludeRowCol(0, 3)],
+];
+
+export function det4x4(mat: Mat4): number {
+    let sum = 0;
+    for (let i = 0; i < DET4X4_MAP.length; ++i) {
+        const sign = 1 - 2 * (i & 1);
+        sum += sign * mat[DET4X4_MAP[i][0]] * det3x3(mat, DET4X4_MAP[i][1]);
+    }
+    return sum;
+}
+
+// const ADJUGATE4X4_MAP = [
+
+// ];
+
+// export function adjugate4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
+
+// }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
@@ -240,7 +313,9 @@ export interface LookAt4x4Options {
     readonly up: Vec3;
 }
 
-export function lookAt4x4({ eye, center, up }: LookAt4x4Options, out: Mat4 = mat4()): Mat4 {
+export function lookAt4x4(
+    { eye, center, up }: LookAt4x4Options, out: Mat4 = mat4()
+): Mat4 {
     const zAxis = norm3(sub3(eye, center));
     const xAxis = cross3(norm3(up), zAxis);
     const yAxis = cross3(zAxis, xAxis);
