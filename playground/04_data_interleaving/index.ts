@@ -85,7 +85,7 @@ function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Prim
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
     runtime.onRender(() => {
-        runtime.clearColorBuffer();
+        runtime.clearBuffer();
         primitive.render();
     });
 }

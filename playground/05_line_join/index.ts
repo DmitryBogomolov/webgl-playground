@@ -30,7 +30,7 @@ interface LineConstructor<T extends Line> {
 function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): T {
     const line = new ctor(runtime);
     runtime.onRender(() => {
-        runtime.clearColorBuffer();
+        runtime.clearBuffer();
         line.render();
     });
     state.thicknessChanged.on(() => {

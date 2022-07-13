@@ -1,4 +1,5 @@
-import { Vec2, mul2 } from './vec2';
+import { vec2, Vec2 } from './vec2';
+import { Vec3, vec3 } from './vec3';
 
 export interface Mat3 {
     readonly [i: number]: number;
@@ -6,8 +7,8 @@ export interface Mat3 {
 
 const MAT_SIZE = 9;
 
-export function isMat3(arg: unknown): arg is Mat3 {
-    return Array.isArray(arg) && arg.length === MAT_SIZE;
+export function isMat3(mat: unknown): mat is Mat3 {
+    return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat3(): Mat3 {
@@ -24,9 +25,6 @@ function set(mat: Mat3, ...values: number[]): Mat3 {
     }
     return mat;
 }
-
-const _tmpMat = mat3();
-
 
 export function identity3x3(out: Mat3 = mat3()): Mat3 {
     return set(out,
@@ -77,17 +75,42 @@ export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
     );
 }
 
+export function mul3v2(lhs: Mat3, rhs: Vec2): Vec2 {
+    const v = mul3v3(lhs, vec3(rhs.x, rhs.y, 1));
+    return vec2(v.x / v.z, v.y / v.z);
+}
+
+export function mul3v3(lhs: Mat3, rhs: Vec3): Vec3 {
+    const [
+        a11, a21, a31,
+        a12, a22, a32,
+        a13, a23, a33,
+    ] = lhs as number[];
+    const { x, y, z } = rhs;
+    return vec3(
+        a11 * x + a12 * y + a13 * z,
+        a21 * x + a22 * y + a23 * z,
+        a31 * x + a32 * y + a33 * z,
+    );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
+const _tmpMat = mat3();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function apply3x3<T extends (...args: any[]) => any>(
+    mat: Mat3, func: T, ...args: SkipLast<Parameters<T>>
+): void {
+    func(...args, _tmpMat);
+    mul3x3(_tmpMat, mat, mat);
+}
+
 export function translation3x3(translation: Vec2, out: Mat3 = mat3()): Mat3 {
     return set(out,
         1, 0, 0,
         0, 1, 0,
         translation.x, translation.y, 1,
     );
-}
-
-export function translate3x3(mat: Mat3, translation: Vec2): void {
-    const t = translation3x3(translation, _tmpMat);
-    mul3x3(t, mat, mat);
 }
 
 export function rotation3x3(rotation: number, out: Mat3 = mat3()): Mat3 {
@@ -100,11 +123,6 @@ export function rotation3x3(rotation: number, out: Mat3 = mat3()): Mat3 {
     );
 }
 
-export function rotate3x3(mat: Mat3, rotation: number): void {
-    const t = rotation3x3(rotation, _tmpMat);
-    mul3x3(t, mat, mat);
-}
-
 export function scaling3x3(scaling: Vec2, out: Mat3 = mat3()): Mat3 {
     return set(out,
         scaling.x, 0, 0,
@@ -113,24 +131,23 @@ export function scaling3x3(scaling: Vec2, out: Mat3 = mat3()): Mat3 {
     );
 }
 
-export function scale3x3(mat: Mat3, scaling: Vec2): void {
-    const t = scaling3x3(scaling, _tmpMat);
-    mul3x3(t, mat, mat);
+export interface Projection3x3Options {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
 }
 
-export function projection3x3(size: Vec2, origin: Vec2 = mul2(size, 0.5), out: Mat3 = mat3()): Mat3 {
-    const kx = 2 / size.x;
-    const ky = 2 / size.y;
-    const dx = -(origin.x - size.x / 2) * kx;
-    const dy = -(origin.y - size.y / 2) * ky;
+export function projection3x3(
+    { left, top, right, bottom }: Projection3x3Options, out: Mat3 = mat3(),
+): Mat3 {
+    const kx = 2 / (right - left);
+    const ky = 2 / (top - bottom);
+    const dx = -(left + right) / 2 * kx;
+    const dy = -(bottom + top) / 2 * ky;
     return set(out,
         kx, 0, 0,
         0, ky, 0,
         dx, dy, 1,
     );
-}
-
-export function project3x3(mat: Mat3, size: Vec2, origin: Vec2 = mul2(size, 0.5)): void {
-    const t = projection3x3(size, origin, _tmpMat);
-    mul3x3(t, mat, mat);
 }

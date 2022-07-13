@@ -106,7 +106,7 @@ function runWorker(runtime: Runtime): void {
 
 
 runtime.onRender(() => {
-    runtime.clearColorBuffer();
+    runtime.clearBuffer();
     primitive.program().setUniform('u_scale', scale);
     primitive.program().setUniform('u_color', clr);
     primitive.render();

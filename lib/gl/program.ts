@@ -334,6 +334,7 @@ export class Program {
             }
             // Is there a way to validate type?
             // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
+            // TODO: Consider allowing cases when attr.size < shaderAttr.size (shader provides default values).
             if (attr.size !== shaderAttr.size) {
                 throw this._logger.error(
                     'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,

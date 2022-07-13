@@ -3,19 +3,25 @@ import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
-import { Vec2, ZERO2, vec2, isVec2, vec2eq } from '../geometry/vec2';
+import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
+// TODO: Add "GL_" prefix.
 const {
-    COLOR_BUFFER_BIT,
-    ARRAY_BUFFER,
-    ELEMENT_ARRAY_BUFFER,
-    TEXTURE_2D,
-    TEXTURE0,
-    UNPACK_FLIP_Y_WEBGL,
+    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
+    TEXTURE_2D, TEXTURE0, UNPACK_FLIP_Y_WEBGL,
 } = WebGLRenderingContext.prototype;
+
+const GL_DEPTH_TEST = WebGLRenderingContext.prototype.DEPTH_TEST;
+const GL_CULL_FACE = WebGLRenderingContext.prototype.CULL_FACE;
 
 interface State {
     clearColor: Color;
+    clearDepth: number;
+    clearStencil: number;
+    depthTest: boolean;
+    depthFunc: DEPTH_FUNC;
+    culling: boolean;
+    cullFace: CULL_FACE;
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
@@ -25,6 +31,29 @@ interface State {
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
+}
+
+export enum BUFFER_MASK {
+    COLOR = WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
+    DEPTH = WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
+    STENCIL = WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
+}
+
+export enum DEPTH_FUNC {
+    NEVER = WebGLRenderingContext.prototype.NEVER,
+    LESS = WebGLRenderingContext.prototype.LESS,
+    LEQUAL = WebGLRenderingContext.prototype.LEQUAL,
+    GREATER = WebGLRenderingContext.prototype.GREATER,
+    GEQUAL = WebGLRenderingContext.prototype.GEQUAL,
+    EQUAL = WebGLRenderingContext.prototype.EQUAL,
+    NOTEQUAL = WebGLRenderingContext.prototype.NOTEQUAL,
+    ALWAYS = WebGLRenderingContext.prototype.ALWAYS,
+}
+
+export enum CULL_FACE {
+    BACK = WebGLRenderingContext.prototype.BACK,
+    FRONT = WebGLRenderingContext.prototype.FRONT,
+    FRONT_AND_BACK = WebGLRenderingContext.prototype.FRONT_AND_BACK,
 }
 
 export class Runtime {
@@ -61,6 +90,12 @@ export class Runtime {
         // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
         this._state = {
             clearColor: color(0, 0, 0, 0),
+            clearDepth: 1,
+            clearStencil: 0,
+            depthTest: false,
+            depthFunc: DEPTH_FUNC.LESS,
+            culling: false,
+            cullFace: CULL_FACE.BACK,
             currentProgram: null,
             vertexArrayObject: null,
             arrayBuffer: null,
@@ -134,7 +169,7 @@ export class Runtime {
             throw this._logger.error('set_size({0}): bad value', size);
         }
         const canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
-        if (vec2eq(this._size, size) && vec2eq(this._canvasSize, canvasSize)) {
+        if (eq2(this._size, size) && eq2(this._canvasSize, canvasSize)) {
             return false;
         }
         this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
@@ -157,12 +192,12 @@ export class Runtime {
         }
     }
 
-    clearColorBuffer(): void {
-        this._logger.log('clear_color_buffer');
-        this.gl.clear(COLOR_BUFFER_BIT);
+    clearBuffer(mask: BUFFER_MASK = BUFFER_MASK.COLOR): void {
+        this._logger.log('clear_buffer({0})', BUFFER_MASK_2_STR[mask]);
+        this.gl.clear(mask);
     }
 
-    clearColor(): Color {
+    getClearColor(): Color {
         return this._state.clearColor;
     }
 
@@ -177,6 +212,110 @@ export class Runtime {
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this.gl.clearColor(r, g, b, a);
         this._state.clearColor = clearColor;
+        return true;
+    }
+
+    getClearDepth(): number {
+        return this._state.clearDepth;
+    }
+
+    setClearDepth(clearDepth: number): boolean {
+        if (!(0 <= clearDepth && clearDepth <= 1)) {
+            throw this._logger.error('set_clear_depth({0}): bad value', clearDepth);
+        }
+        if (this._state.clearDepth === clearDepth) {
+            return false;
+        }
+        this._logger.log('set_clear_depth({0})', clearDepth);
+        this.gl.clearDepth(clearDepth);
+        this._state.clearDepth = Number(clearDepth);
+        return true;
+    }
+
+    getClearStencil(): number {
+        return this._state.clearStencil;
+    }
+
+    setClearStencil(clearStencil: number): boolean {
+        if (!(0 <= clearStencil && clearStencil <= 1)) {
+            throw this._logger.error('set_clear_stencil({0}): bad value', clearStencil);
+        }
+        if (this._state.clearStencil === clearStencil) {
+            return false;
+        }
+        this._logger.log('set_clear_stencil({0})', clearStencil);
+        this.gl.clearStencil(clearStencil);
+        this._state.clearStencil = Number(clearStencil);
+        return true;
+    }
+
+    getDepthTest(): boolean {
+        return this._state.depthTest;
+    }
+
+    setDepthTest(depthTest: boolean): boolean {
+        if (this._state.depthTest === depthTest) {
+            return false;
+        }
+        this._logger.log('set_depth_test({0})', depthTest);
+        if (depthTest) {
+            this.gl.enable(GL_DEPTH_TEST);
+        } else {
+            this.gl.disable(GL_DEPTH_TEST);
+        }
+        this._state.depthTest = Boolean(depthTest);
+        return true;
+    }
+
+    getDepthFunc(): DEPTH_FUNC {
+        return this._state.depthFunc;
+    }
+
+    setDepthFunc(depthFunc: DEPTH_FUNC): boolean {
+        if (!(depthFunc >= 0 && DEPTH_FUNC[depthFunc])) {
+            throw this._logger.error('set_depth_func({0}): bad value', depthFunc);
+        }
+        if (this._state.depthFunc === depthFunc) {
+            return false;
+        }
+        this._logger.log('set_depth_func({0})', DEPTH_FUNC[depthFunc]);
+        this.gl.depthFunc(depthFunc);
+        this._state.depthFunc = depthFunc;
+        return true;
+    }
+
+    getCulling(): boolean {
+        return this._state.culling;
+    }
+
+    setCulling(culling: boolean): boolean {
+        if (this._state.culling === culling) {
+            return false;
+        }
+        this._logger.log('set_culling({0})', culling);
+        if (culling) {
+            this.gl.enable(GL_CULL_FACE);
+        } else {
+            this.gl.disable(GL_CULL_FACE);
+        }
+        this._state.culling = Boolean(culling);
+        return true;
+    }
+
+    getCullFace(): CULL_FACE {
+        return this._state.cullFace;
+    }
+
+    setCullFace(cullFace: CULL_FACE): boolean {
+        if (!(cullFace >= 0 && CULL_FACE[cullFace])) {
+            throw this._logger.error('set_cull_face({0}): bad value', cullFace);
+        }
+        if (this._state.cullFace === cullFace) {
+            return false;
+        }
+        this._logger.log('set_cull_face({0})', CULL_FACE[cullFace]);
+        this.gl.cullFace(cullFace);
+        this._state.cullFace = cullFace;
         return true;
     }
 
@@ -281,3 +420,13 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
 function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
     return CANVAS_TAG in canvas;
 }
+
+const BUFFER_MASK_2_STR = {
+    [BUFFER_MASK.COLOR]: 'COLOR',
+    [BUFFER_MASK.DEPTH]: 'DEPTH',
+    [BUFFER_MASK.STENCIL]: 'STENCIL',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH]: 'COLOR|DEPTH',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.STENCIL]: 'COLOR|STENCIL',
+    [BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'DEPTH|STENCIL',
+    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'COLOR|DEPTH|STENCIL',
+};
