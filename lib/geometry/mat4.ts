@@ -8,12 +8,22 @@ export interface Mat4 {
 const MAT_RANK = 4;
 const MAT_SIZE = MAT_RANK ** 2;
 
+
 export function isMat4(mat: unknown): mat is Mat4 {
     return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat4(): Mat4 {
     return Array(MAT_SIZE).fill(0);
+}
+
+const _tmpMat: number[] = Array(MAT_SIZE);
+
+function copy(src: Mat4, dst: Mat4): Mat4 {
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        (dst as number[])[i] = src[i];
+    };
+    return dst;
 }
 
 function set(mat: Mat4, ...values: number[]): Mat4 {
@@ -159,33 +169,50 @@ function excludeRowCol(row: number, col: number): number[] {
     return ret;
 }
 
-const DET4X4_MAP: ReadonlyArray<[number, ReadonlyArray<number>]> = [
-    [rowcol2idx(0, 0), excludeRowCol(0, 0)],
-    [rowcol2idx(0, 1), excludeRowCol(0, 1)],
-    [rowcol2idx(0, 2), excludeRowCol(0, 2)],
-    [rowcol2idx(0, 3), excludeRowCol(0, 3)],
-];
+const DET4X4_MAP: ReadonlyArray<[number, number, ReadonlyArray<number>]> = Array(MAT_RANK).fill(0).map((_, i) =>
+    [1 - 2 * (i & 1), rowcol2idx(0, i), excludeRowCol(0, i)]
+);
 
 export function det4x4(mat: Mat4): number {
     let sum = 0;
     for (let i = 0; i < DET4X4_MAP.length; ++i) {
-        const sign = 1 - 2 * (i & 1);
-        sum += sign * mat[DET4X4_MAP[i][0]] * det3x3(mat, DET4X4_MAP[i][1]);
+        const [sign, idx, indices] = DET4X4_MAP[i];
+        sum += sign * mat[idx] * det3x3(mat, indices);
     }
     return sum;
 }
 
-// const ADJUGATE4X4_MAP = [
+const ADJUGATE4X4_MAP: ReadonlyArray<[number, ReadonlyArray<number>]> = Array(MAT_SIZE).fill(0).map((_, i) => {
+    const row = i % MAT_RANK;
+    const col = (i / MAT_RANK) | 0;
+    const sign = 1 - 2 * ((row + col) & 1);
+    return [sign, excludeRowCol(col, row)];
+});
 
-// ];
+export function adjugate4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
+    const aux = _tmpMat;
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        const [sign, indices] = ADJUGATE4X4_MAP[i];
+        aux[i] = sign * det3x3(mat, indices);
+    }
+    return copy(aux, out);
+}
 
-// export function adjugate4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
-
-// }
+export function inverse4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
+    const aux = _tmpMat;
+    let k = 1 / det4x4(mat);
+    if (!Number.isFinite(k)) {
+        k = 0;
+    }
+    adjugate4x4(mat, aux);
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        aux[i] = aux[i] * k;
+    }
+    return copy(aux, out);
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
-const _tmpMat = mat4();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function apply4x4<T extends (...args: any[]) => any>(
     mat: Mat4, func: T, ...args: SkipLast<Parameters<T>>
