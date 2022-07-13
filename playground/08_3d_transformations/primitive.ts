@@ -28,18 +28,14 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const dx = 0.5;
     const dy = 0.4;
     const dz = 0.3;
-    // const c1 = color(0.7, 0.7, 0.1);
-    // const c2 = color(0.1, 0.7, 0.7);
-    // const c3 = color(0.7, 0.1, 0.7);
-    // const c4 = color(0.1, 0.1, 0.7);
-    // const c5 = color(0.7, 0.1, 0.1);
-    // const c6 = color(0.1, 0.7, 0.1);
-    const c1 = color(1, 0, 0);
-    const c2 = color(0, 1, 0);
-    const c3 = color(0, 0, 1);
-    const c4 = c1;
-    const c5 = c2;
-    const c6 = c3;
+    const k1 = 0.7;
+    const k2 = 0.1;
+    const c1 = color(k1, k1, k2);
+    const c2 = color(k2, k1, k1);
+    const c3 = color(k1, k2, k1);
+    const c4 = color(k2, k2, k1);
+    const c5 = color(k1, k2, k2);
+    const c6 = color(k2, k1, k2);
     const vertices: { pos: Vec3, clr: Color }[] = [
         // front
         { pos: vec3(-dx, -dy, +dz), clr: c1 },

@@ -18,6 +18,9 @@ export class Vector3 implements Vec3 {
 
 /** (0, 0, 0) */
 export const ZERO3 = vec3(0, 0, 0);
+export const XUNIT3 = vec3(1, 0, 0);
+export const YUNIT3 = vec3(0, 1, 0);
+export const ZUNIT3 = vec3(0, 0, 1);
 
 export function vec3(x: number, y: number, z: number): Vec3 {
     return new Vector3(x, y, z);
