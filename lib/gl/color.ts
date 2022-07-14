@@ -5,8 +5,22 @@ export interface Color {
     readonly a: number;
 }
 
+export class ColorImpl implements Color {
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
+    readonly a: number;
+
+    constructor(r: number, g: number, b: number, a: number) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+}
+
 export function color(r: number, g: number, b: number, a: number = 1): Color {
-    return { r, g, b, a };
+    return new ColorImpl(r, g, b, a);
 }
 
 export function isColor(arg: unknown): arg is Color {
