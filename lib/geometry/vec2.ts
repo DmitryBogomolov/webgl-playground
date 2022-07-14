@@ -31,11 +31,6 @@ export function eq2(a: Vec2, b: Vec2): boolean {
     return a === b || (a.x === b.x && a.y === b.y);
 }
 
-// TODO: Consider removing it.
-export function vec2arr(v: Vec2): [number, number] {
-    return [v.x, v.y];
-}
-
 export function add2(a: Vec2, b: Vec2): Vec2 {
     return vec2(a.x + b.x, a.y + b.y);
 }

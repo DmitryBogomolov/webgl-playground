@@ -37,11 +37,6 @@ export function eq4(a: Vec4, b: Vec4): boolean {
     return a === b || (a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w);
 }
 
-// TODO: Consider removing it.
-export function vec4arr(v: Vec4): [number, number, number, number] {
-    return [v.x, v.y, v.z, v.w];
-}
-
 export function dot4(a: Vec4, b: Vec4): number {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }

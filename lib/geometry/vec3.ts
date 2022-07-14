@@ -33,11 +33,6 @@ export function eq3(a: Vec3, b: Vec3): boolean {
     return a === b || (a.x === b.x && a.y === b.y && a.z === b.z);
 }
 
-// TODO: Consider removing it.
-export function vec3arr(v: Vec3): [number, number, number] {
-    return [v.x, v.y, v.z];
-}
-
 export function dot3(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
