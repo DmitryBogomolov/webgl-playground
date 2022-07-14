@@ -5,74 +5,113 @@ export interface Mat3 {
     readonly [i: number]: number;
 }
 
-const MAT_SIZE = 9;
+const MAT_RANK = 3;
+const MAT_SIZE = MAT_RANK ** 2;
 
 export function isMat3(mat: unknown): mat is Mat3 {
     return Array.isArray(mat) && mat.length === MAT_SIZE;
 }
 
 export function mat3(): Mat3 {
-    return [
-        0, 0, 0,
-        0, 0, 0,
-        0, 0, 0,
-    ];
+    return Array<number>(MAT_SIZE).fill(0);
 }
 
-function set(mat: Mat3, ...values: number[]): Mat3 {
-    for (let i = 0; i < MAT_SIZE; ++i) {
-        (mat as number[])[i] = values[i];
-    }
-    return mat;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function range<T extends (idx: number) => any>(
+    size: number, func: T,
+): ReadonlyArray<NonNullable<ReturnType<T>>> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return Array<number>(size).fill(0).map((_, i) => func(i)).filter((t) => t !== null);
 }
 
+type Pair = [number, number];
+
+function rowcol2idx(row: number, col: number): number {
+    return col * MAT_RANK + row;
+}
+
+function idx2rowcol(idx: number): Pair {
+    return [idx % MAT_RANK, (idx / MAT_RANK) | 0];
+}
+
+export function zero3x3(out: Mat3 = mat3()): Mat3 {
+    (out as number[]).fill(0);
+    return out;
+}
+
+const IDENTITY3X3_MAP = range(MAT_RANK, (i) => rowcol2idx(i, i));
 export function identity3x3(out: Mat3 = mat3()): Mat3 {
-    return set(out,
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1,
-    );
+    zero3x3(out);
+    for (const idx of IDENTITY3X3_MAP) {
+        (out as number[])[idx] = 1;
+    }
+    return out;
+}
+
+const UPDATE3X3_MAP = range(MAT_SIZE, (idx) => {
+    const [row, col] = idx2rowcol(idx);
+    return rowcol2idx(col, row);
+});
+export function update3x3(values: ReadonlyArray<number>, out: Mat3 = mat3()): Mat3 {
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        (out as number[])[i] = values[UPDATE3X3_MAP[i]];
+    }
+    return out;
 }
 
 export function clone3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
-    return set(out, ...(mat as number[]));
+    if (mat === out) {
+        return out;
+    }
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        (out as number[])[i] = mat[i];
+    }
+    return out;
 }
 
+const TRANSPOSE3X3_MAP = range(MAT_SIZE, (idx) => {
+    const [row, col] = idx2rowcol(idx);
+    return row < col ? [idx, rowcol2idx(col, row)] as Pair : null;
+});
 export function transpose3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
-    const [
-        m11, m21, m31,
-        m12, m22, m32,
-        m13, m23, m33,
-    ] = mat as number[];
-    return set(out,
-        m11, m12, m13,
-        m21, m22, m23,
-        m31, m32, m33,
-    );
+    clone3x3(mat, out);
+    for (const [idx1, idx2] of TRANSPOSE3X3_MAP) {
+        const tmp = out[idx1];
+        (out as number[])[idx1] = out[idx2];
+        (out as number[])[idx2] = tmp;
+    }
+    return out;
 }
 
+export function add3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        (out as number[])[i] = lhs[i] + rhs[i];
+    }
+    return out;
+}
+
+export function sub3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        (out as number[])[i] = lhs[i] - rhs[i];
+    }
+    return out;
+}
+
+const MUL3x3_MAP = range(MAT_SIZE, (idx) => {
+    const [row, col] = idx2rowcol(idx);
+    return range(MAT_RANK, (k) => [rowcol2idx(row, k), rowcol2idx(k, col)] as Pair);
+});
+const _mul3x3Aux = mat3() as number[];
 export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
-    const [
-        a11, a21, a31,
-        a12, a22, a32,
-        a13, a23, a33,
-    ] = lhs as number[];
-    const [
-        b11, b21, b31,
-        b12, b22, b32,
-        b13, b23, b33,
-    ] = rhs as number[];
-    return set(out,
-        a11 * b11 + a12 * b21 + a13 * b31,
-        a21 * b11 + a22 * b21 + a23 * b31,
-        a31 * b11 + a32 * b21 + a33 * b31,
-        a11 * b12 + a12 * b22 + a13 * b32,
-        a21 * b12 + a22 * b22 + a23 * b32,
-        a31 * b12 + a32 * b22 + a33 * b32,
-        a11 * b13 + a12 * b23 + a13 * b33,
-        a21 * b13 + a22 * b23 + a23 * b33,
-        a31 * b13 + a32 * b23 + a33 * b33,
-    );
+    const aux = _mul3x3Aux;
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        let val = 0;
+        for (const [lidx, ridx] of MUL3x3_MAP[i]) {
+            val += lhs[lidx] * rhs[ridx];
+        }
+        aux[i] = val;
+    }
+    return clone3x3(aux, out);
 }
 
 export function mul3v2(lhs: Mat3, rhs: Vec2): Vec2 {
@@ -94,6 +133,67 @@ export function mul3v3(lhs: Mat3, rhs: Vec3): Vec3 {
     );
 }
 
+function det2x2(mat: Mat3, indices: ReadonlyArray<number>): number {
+    return mat[indices[0]] * mat[indices[3]] - mat[indices[2]] * mat[indices[1]];
+}
+
+function excludeRowCol(row: number, col: number): number[] {
+    const ret = Array<number>((MAT_RANK - 1) ** 2);
+    let k = 0;
+    for (let i = 0; i < MAT_RANK; ++i) {
+        if (i === row) {
+            continue;
+        }
+        for (let j = 0; j < MAT_RANK; ++j) {
+            if (j === col) {
+                continue;
+            }
+            ret[k++] = rowcol2idx(i, j);
+        }
+    }
+    return ret;
+}
+
+const DET3X3_MAP = range(MAT_RANK, (col) =>
+    [1 - 2 * (col & 1), rowcol2idx(0, col), excludeRowCol(0, col)] as [number, number, ReadonlyArray<number>],
+);
+export function det3x3(mat: Mat3): number {
+    let sum = 0;
+    for (let i = 0; i < DET3X3_MAP.length; ++i) {
+        const [sign, idx, indices] = DET3X3_MAP[i];
+        sum += sign * mat[idx] * det2x2(mat, indices);
+    }
+    return sum;
+}
+
+const ADJUGATE3X3_MAP = range(MAT_SIZE, (idx) => {
+    const [row, col] = idx2rowcol(idx);
+    return [1 - 2 * ((row + col) & 1), excludeRowCol(col, row)] as [number, ReadonlyArray<number>];
+});
+const _adjugate3x3Aux = mat3() as number[];
+export function adjugate3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
+    const aux = _adjugate3x3Aux;
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        const [sign, indices] = ADJUGATE3X3_MAP[i];
+        aux[i] = sign * det2x2(mat, indices);
+    }
+    return clone3x3(aux, out);
+}
+
+const _inverse3x3Aux = mat3() as number[];
+export function inverse3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
+    const aux = _inverse3x3Aux;
+    let k = 1 / det3x3(mat);
+    if (!Number.isFinite(k)) {
+        k = 0;
+    }
+    adjugate3x3(mat, aux);
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        aux[i] = aux[i] * k;
+    }
+    return clone3x3(aux, out);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
 const _tmpMat = mat3();
@@ -105,30 +205,38 @@ export function apply3x3<T extends (...args: any[]) => any>(
     mul3x3(_tmpMat, mat, mat);
 }
 
+const TRANSLATION3X3_MAP = [rowcol2idx(0, 2), rowcol2idx(1, 2)] as const;
 export function translation3x3(translation: Vec2, out: Mat3 = mat3()): Mat3 {
-    return set(out,
-        1, 0, 0,
-        0, 1, 0,
-        translation.x, translation.y, 1,
-    );
+    identity3x3(out);
+    const [xidx, yidx] = TRANSLATION3X3_MAP;
+    (out as number[])[xidx] = translation.x;
+    (out as number[])[yidx] = translation.y;
+    return out;
 }
 
+const ROTATION3X3_MAP = [
+    rowcol2idx(0, 0), rowcol2idx(0, 1),
+    rowcol2idx(1, 0), rowcol2idx(1, 1),
+] as const;
 export function rotation3x3(rotation: number, out: Mat3 = mat3()): Mat3 {
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
-    return set(out,
-        +c, +s, 0,
-        -s, +c, 0,
-        0, 0, 1,
-    );
+    identity3x3(out);
+    const [xx, xy, yx, yy] = ROTATION3X3_MAP;
+    (out as number[])[xx] = +c;
+    (out as number[])[xy] = -s;
+    (out as number[])[yx] = +s;
+    (out as number[])[yy] = +c;
+    return out;
 }
 
+const SCALING3X3_MAP = [rowcol2idx(0, 0), rowcol2idx(1, 1)] as const;
 export function scaling3x3(scaling: Vec2, out: Mat3 = mat3()): Mat3 {
-    return set(out,
-        scaling.x, 0, 0,
-        0, scaling.y, 0,
-        0, 0, 1,
-    );
+    identity3x3(out);
+    const [xidx, yidx] = SCALING3X3_MAP;
+    (out as number[])[xidx] = scaling.x;
+    (out as number[])[yidx] = scaling.y;
+    return out;
 }
 
 export interface Projection3x3Options {
@@ -138,16 +246,24 @@ export interface Projection3x3Options {
     readonly bottom: number;
 }
 
+const PROJECTION4X4_MAP = [
+    rowcol2idx(0, 0), rowcol2idx(1, 1),
+    rowcol2idx(0, 2), rowcol2idx(1, 2),
+    rowcol2idx(2, 2),
+] as const;
 export function projection3x3(
-    { left, top, right, bottom }: Projection3x3Options, out: Mat3 = mat3(),
+    { left, right, bottom, top }: Projection3x3Options, out: Mat3 = mat3(),
 ): Mat3 {
     const kx = 2 / (right - left);
     const ky = 2 / (top - bottom);
     const dx = -(left + right) / 2 * kx;
     const dy = -(bottom + top) / 2 * ky;
-    return set(out,
-        kx, 0, 0,
-        0, ky, 0,
-        dx, dy, 1,
-    );
+    zero3x3(out);
+    const [xx, yy, xz, yz, zz] = PROJECTION4X4_MAP;
+    (out as number[])[xx] = kx;
+    (out as number[])[yy] = ky;
+    (out as number[])[xz] = dx;
+    (out as number[])[yz] = dy;
+    (out as number[])[zz] = 1;
+    return out;
 }
