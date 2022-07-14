@@ -6,7 +6,7 @@ import {
     Vec2,
     ZERO3, XUNIT3, YUNIT3, ZUNIT3, vec3,
     mat4,
-    mul4x4, identity4x4, apply4x4, scaling4x4, rotation4x4,
+    mul4x4, identity4x4, scaling4x4, rotation4x4,
     perspective4x4, lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
@@ -75,7 +75,7 @@ function updateView(angle: number): void {
 
 function updateWorld(angle: number): void {
     identity4x4(transform);
-    apply4x4(transform, scaling4x4, vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
-    apply4x4(transform, rotation4x4, ZUNIT3, angle);
-    apply4x4(transform, rotation4x4, XUNIT3, angle);
+    scaling4x4(vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE), transform);
+    rotation4x4(ZUNIT3, angle, transform);
+    rotation4x4(XUNIT3, angle, transform);
 }

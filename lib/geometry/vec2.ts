@@ -1,11 +1,9 @@
-import { mapper } from '../utils/mapper';
-
 export interface Vec2 {
     readonly x: number;
     readonly y: number;
 }
 
-export class Vector2 implements Vec2 {
+export class Vec2Impl implements Vec2 {
     readonly x: number;
     readonly y: number;
 
@@ -15,11 +13,12 @@ export class Vector2 implements Vec2 {
     }
 }
 
-/** (0, 0) */
 export const ZERO2 = vec2(0, 0);
+export const XUNIT2 = vec2(1, 0);
+export const YUNIT2 = vec2(0, 1);
 
 export function vec2(x: number, y: number): Vec2 {
-    return new Vector2(x, y);
+    return new Vec2Impl(x, y);
 }
 
 export function isVec2(v: unknown): v is Vec2 {
@@ -30,17 +29,12 @@ export function eq2(a: Vec2, b: Vec2): boolean {
     return a === b || (a.x === b.x && a.y === b.y);
 }
 
-// TODO: Consider removing it.
-export function vec2arr(v: Vec2): [number, number] {
-    return [v.x, v.y];
-}
-
 export function add2(a: Vec2, b: Vec2): Vec2 {
-    return new Vector2(a.x + b.x, a.y + b.y);
+    return vec2(a.x + b.x, a.y + b.y);
 }
 
 export function sub2(a: Vec2, b: Vec2): Vec2 {
-    return new Vector2(a.x - b.x, a.y - b.y);
+    return vec2(a.x - b.x, a.y - b.y);
 }
 
 export function dot2(a: Vec2, b: Vec2): number {
@@ -48,7 +42,7 @@ export function dot2(a: Vec2, b: Vec2): number {
 }
 
 export function mul2(v: Vec2, k: number): Vec2 {
-    return new Vector2(v.x * k, v.y * k);
+    return vec2(v.x * k, v.y * k);
 }
 
 export function len2(v: Vec2): number {
@@ -60,7 +54,7 @@ export function sqrlen2(v: Vec2): number {
 }
 
 export function neg2(v: Vec2): Vec2 {
-    return new Vector2(-v.x, -v.y);
+    return vec2(-v.x, -v.y);
 }
 
 export function norm2(v: Vec2): Vec2 {
@@ -81,10 +75,4 @@ export function sqrdist2(a: Vec2, b: Vec2): number {
 
 export function pointToLineDistance2(point: Vec2, p1: Vec2, p2: Vec2): number {
     return Math.abs((p2.x - p1.x) * (p1.y - point.y) - (p1.x - point.x) * (p2.y - p1.y)) / dist2(p1, p2);
-}
-
-export function mapper2(from1: Vec2, from2: Vec2, to1: Vec2, to2: Vec2): (arg: Vec2) => Vec2 {
-    const mapX = mapper(from1.x, from2.x, to1.x, to2.x);
-    const mapY = mapper(from1.y, from2.y, to1.y, to2.y);
-    return (v) => new Vector2(mapX(v.x), mapY(v.y));
 }

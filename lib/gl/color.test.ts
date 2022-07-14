@@ -1,7 +1,6 @@
 import {
     color, isColor,
     colorEq,
-    color2arr,
     color2uint, uint2color,
     color2hex, hex2color,
 } from './color';
@@ -32,10 +31,6 @@ describe('color', () => {
         expect(colorEq(color(2, 3, 4), c1)).toBe(false);
         expect(colorEq(color(2, 3, 4), c2)).toBe(true);
         expect(colorEq(c2, color(1, 2, 3))).toBe(false);
-    });
-
-    it('make array from Color', () => {
-        expect(color2arr({ r: 0.1, g: 0.2, b: 0.3, a: 0.4 })).toEqual([0.1, 0.2, 0.3, 0.4]);
     });
 
     it('make uint from Color', () => {

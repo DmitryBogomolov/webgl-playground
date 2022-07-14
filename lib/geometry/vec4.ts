@@ -5,7 +5,7 @@ export interface Vec4 {
     readonly w: number;
 }
 
-export class Vector4 implements Vec4 {
+export class Vec4Impl implements Vec4 {
     readonly x: number;
     readonly y: number;
     readonly z: number;
@@ -19,11 +19,14 @@ export class Vector4 implements Vec4 {
     }
 }
 
-/** (0, 0, 0, 0) */
 export const ZERO4 = vec4(0, 0, 0, 0);
+export const XUNIT4 = vec4(1, 0, 0, 0);
+export const YUNTI4 = vec4(0, 1, 0, 0);
+export const ZUNIT4 = vec4(0, 0, 1, 0);
+export const WUNIT4 = vec4(0, 0, 0, 1);
 
 export function vec4(x: number, y: number, z: number, w: number): Vec4 {
-    return new Vector4(x, y, z, w);
+    return new Vec4Impl(x, y, z, w);
 }
 
 export function isVec4(v: unknown): v is Vec4 {
@@ -34,7 +37,34 @@ export function eq4(a: Vec4, b: Vec4): boolean {
     return a === b || (a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w);
 }
 
-// TODO: Consider removing it.
-export function vec4arr(v: Vec4): [number, number, number, number] {
-    return [v.x, v.y, v.z, v.w];
+export function dot4(a: Vec4, b: Vec4): number {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+export function mul4(v: Vec4, k: number): Vec4 {
+    return vec4(v.x * k, v.y * k, v.z * k, v.w * k);
+}
+
+export function len4(v: Vec4): number {
+    return Math.hypot(v.x, v.y, v.z, v.w);
+}
+
+export function sqrlen4(v: Vec4): number {
+    return dot4(v, v);
+}
+
+export function neg4(v: Vec4): Vec4 {
+    return vec4(-v.x, -v.y, -v.z, -v.w);
+}
+
+export function norm4(v: Vec4): Vec4 {
+    return mul4(v, 1 / len4(v));
+}
+
+export function add4(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+
+export function sub4(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }

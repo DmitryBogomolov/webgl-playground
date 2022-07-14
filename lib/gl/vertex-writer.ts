@@ -1,10 +1,10 @@
 
 import { Logger } from '../utils/logger';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema';
-import { isVec2, Vec2, vec2arr } from '../geometry/vec2';
-import { isVec3, Vec3, vec3arr } from '../geometry/vec3';
-import { isVec4, Vec4, vec4arr } from '../geometry/vec4';
-import { Color, color2arr, isColor } from './color';
+import { isVec2, Vec2 } from '../geometry/vec2';
+import { isVec3, Vec3 } from '../geometry/vec3';
+import { isVec4, Vec4 } from '../geometry/vec4';
+import { Color, isColor } from './color';
 
 type Normalizer = (value: number) => number;
 
@@ -120,7 +120,7 @@ function unwrap1(value: AttrValue): number[] | null {
 
 function unwrap2(value: AttrValue): number[] | null {
     if (isVec2(value)) {
-        return vec2arr(value);
+        return [value.x, value.y];
     }
     if (isNumArray(value, 2)) {
         return value;
@@ -130,10 +130,10 @@ function unwrap2(value: AttrValue): number[] | null {
 
 function unwrap3(value: AttrValue): number[] | null {
     if (isVec3(value)) {
-        return vec3arr(value);
+        return [value.x, value.y, value.z];
     }
     if (isColor(value)) {
-        return color2arr(value);
+        return [value.r, value.g, value.b];
     }
     if (isNumArray(value, 3)) {
         return value;
@@ -143,10 +143,10 @@ function unwrap3(value: AttrValue): number[] | null {
 
 function unwrap4(value: AttrValue): number[] | null {
     if (isVec4(value)) {
-        return vec4arr(value);
+        return [value.x, value.y, value.z, value.w];
     }
     if (isColor(value)) {
-        return color2arr(value);
+        return [value.r, value.g, value.b, value.a];
     }
     if (isNumArray(value, 4)) {
         return value;

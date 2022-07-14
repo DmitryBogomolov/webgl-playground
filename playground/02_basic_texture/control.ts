@@ -1,4 +1,4 @@
-import { color2hex, vec2, mapper2, Tracker, Vec2 } from 'lib';
+import { color2hex, vec2, linearMapping, Tracker, Vec2 } from 'lib';
 import { TEXTURE_SIZE, pixels } from './image';
 
 export interface TexCoord {
@@ -37,7 +37,11 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
             process(coords);
         },
     });
-    const mapCoords = mapper2(vec2(xMin, yMax), vec2(xMax, yMin), vec2(0, 0), vec2(1, 1));
+    const mapX = linearMapping(xMin, xMax, 0, 1);
+    const mapY = linearMapping(yMax, yMin, 0, 1);
+    function mapCoords({ x, y }: Vec2): Vec2 {
+        return vec2(mapX(x), mapY(y));
+    }
 
     function process(coords: Vec2): void {
         const { x, y } = mapCoords(coords);
