@@ -41,3 +41,35 @@ export function eq4(a: Vec4, b: Vec4): boolean {
 export function vec4arr(v: Vec4): [number, number, number, number] {
     return [v.x, v.y, v.z, v.w];
 }
+
+export function dot4(a: Vec4, b: Vec4): number {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+export function mul4(v: Vec4, k: number): Vec4 {
+    return vec4(v.x * k, v.y * k, v.z * k, v.w * k);
+}
+
+export function len4(v: Vec4): number {
+    return Math.hypot(v.x, v.y, v.z, v.w);
+}
+
+export function sqrlen4(v: Vec4): number {
+    return dot4(v, v);
+}
+
+export function neg4(v: Vec4): Vec4 {
+    return vec4(-v.x, -v.y, -v.z, -v.w);
+}
+
+export function norm4(v: Vec4): Vec4 {
+    return mul4(v, 1 / len4(v));
+}
+
+export function add4(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+
+export function sub4(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+}
