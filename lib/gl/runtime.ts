@@ -5,12 +5,11 @@ import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
-// TODO: Add "GL_" prefix.
-const {
-    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
-    TEXTURE_2D, TEXTURE0, UNPACK_FLIP_Y_WEBGL,
-} = WebGLRenderingContext.prototype;
-
+const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
+const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
+const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
+const GL_TEXTURE0 = WebGLRenderingContext.prototype.TEXTURE0;
+const GL_UNPACK_FLIP_Y_WEBGL = WebGLRenderingContext.prototype.UNPACK_FLIP_Y_WEBGL;
 const GL_DEPTH_TEST = WebGLRenderingContext.prototype.DEPTH_TEST;
 const GL_CULL_FACE = WebGLRenderingContext.prototype.CULL_FACE;
 
@@ -354,7 +353,7 @@ export class Runtime {
             return;
         }
         this._logger.log('bind_array_buffer({0})', buffer ? id : null);
-        this.gl.bindBuffer(ARRAY_BUFFER, buffer);
+        this.gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
         this._state.arrayBuffer = buffer;
     }
 
@@ -363,7 +362,7 @@ export class Runtime {
             return;
         }
         this._logger.log('bind_element_array_buffer({0})', buffer ? id : null);
-        this.gl.bindBuffer(ELEMENT_ARRAY_BUFFER, buffer);
+        this.gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
         this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = buffer;
     }
 
@@ -372,7 +371,7 @@ export class Runtime {
             return;
         }
         this._logger.log('bind_texture({0})', texture ? id : null);
-        this.gl.bindTexture(TEXTURE_2D, texture);
+        this.gl.bindTexture(GL_TEXTURE_2D, texture);
         this._state.boundTextures[this._state.textureUnit] = texture;
     }
 
@@ -381,7 +380,7 @@ export class Runtime {
             return;
         }
         this._logger.log('active_texture({0})', unit);
-        this.gl.activeTexture(TEXTURE0 + unit);
+        this.gl.activeTexture(GL_TEXTURE0 + unit);
         this._state.textureUnit = unit;
     }
 
@@ -390,7 +389,7 @@ export class Runtime {
             return;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
-        this.gl.pixelStorei(UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
+        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
         this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
     }
 }
