@@ -5,7 +5,7 @@ export interface Vec4 {
     readonly w: number;
 }
 
-export class Vector4 implements Vec4 {
+export class Vec4Impl implements Vec4 {
     readonly x: number;
     readonly y: number;
     readonly z: number;
@@ -19,11 +19,14 @@ export class Vector4 implements Vec4 {
     }
 }
 
-/** (0, 0, 0, 0) */
 export const ZERO4 = vec4(0, 0, 0, 0);
+export const XUNIT4 = vec4(1, 0, 0, 0);
+export const YUNTI4 = vec4(0, 1, 0, 0);
+export const ZUNIT4 = vec4(0, 0, 1, 0);
+export const WUNIT4 = vec4(0, 0, 0, 1);
 
 export function vec4(x: number, y: number, z: number, w: number): Vec4 {
-    return new Vector4(x, y, z, w);
+    return new Vec4Impl(x, y, z, w);
 }
 
 export function isVec4(v: unknown): v is Vec4 {
