@@ -1,5 +1,3 @@
-import { mapper } from '../utils/mapper';
-
 export interface Vec2 {
     readonly x: number;
     readonly y: number;
@@ -77,10 +75,4 @@ export function sqrdist2(a: Vec2, b: Vec2): number {
 
 export function pointToLineDistance2(point: Vec2, p1: Vec2, p2: Vec2): number {
     return Math.abs((p2.x - p1.x) * (p1.y - point.y) - (p1.x - point.x) * (p2.y - p1.y)) / dist2(p1, p2);
-}
-
-export function mapper2(from1: Vec2, from2: Vec2, to1: Vec2, to2: Vec2): (arg: Vec2) => Vec2 {
-    const mapX = mapper(from1.x, from2.x, to1.x, to2.x);
-    const mapY = mapper(from1.y, from2.y, to1.y, to2.y);
-    return (v) => vec2(mapX(v.x), mapY(v.y));
 }
