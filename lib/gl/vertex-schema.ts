@@ -62,10 +62,18 @@ function getStride({ name, stride }: AttributeOptions): number {
     return 0;
 }
 
+export type AttributeTypeOption = (
+    | 'byte1' | 'byte2' | 'byte3' | 'byte4'
+    | 'ubyte1' | 'ubyte2' | 'ubyte3' | 'ubyte4'
+    | 'short1' | 'short2' | 'short3' | 'short4'
+    | 'ushort1' | 'ushort2' | 'ushort3' | 'ushort4'
+    | 'float1' | 'float2' | 'float3' | 'float4'
+);
+
 export interface AttributeOptions {
     readonly name: string;
     /** byte[1234] ubyte[1234] short[1234] ushort[1234] float[1234] */
-    readonly type: string;
+    readonly type: AttributeTypeOption;
     readonly normalized?: boolean;
     readonly offset?: number;
     readonly stride?: number;
