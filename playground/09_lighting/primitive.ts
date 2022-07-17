@@ -48,14 +48,20 @@ function generateData(): { vertices: Vec3[], indices: number[] } {
 
     const step = Math.PI / PARTITION;
     const lonCount = 2 * PARTITION;
+    const cosList: number[] = [];
+    const sinList: number[] = [];
+    for (let i = 0; i < lonCount; ++i) {
+        cosList[i] = Math.cos(i * step);
+        sinList[i] = Math.sin(i * step);
+    }
 
     vertices.push(vec3(0, +1, 0));
     for (let i = 1; i < PARTITION; ++i) {
-        const y = Math.cos(i * step);
-        const zx = Math.sin(i * step);
+        const y = cosList[i];
+        const zx = sinList[i];
         for (let j = 0; j < lonCount; ++j) {
-            const z = Math.cos(j * step) * zx;
-            const x = Math.sin(j * step) * zx;
+            const z = cosList[j] * zx;
+            const x = sinList[j] * zx;
             vertices.push(vec3(x, y, z));
         }
     }
