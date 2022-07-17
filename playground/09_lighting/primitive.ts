@@ -10,7 +10,7 @@ import {
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
 
-const PARTITION = 2;
+const PARTITION = 4;
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -47,24 +47,41 @@ function generateData(): { vertices: Vec3[], indices: number[] } {
     const indices: number[] = [];
 
     const step = Math.PI / PARTITION;
-    // const latCount = PARTITION + 1;
     const lonCount = 2 * PARTITION;
 
-    vertices.push(vec3(0, 1, 0));
-    const firstIdx = 0;
-    const y = Math.cos(step);
-    const zx = Math.sin(step);
-    const idx = 1;
-    for (let i = 0; i < lonCount; ++i) {
-        const z = Math.cos(i * step) * zx;
-        const x = Math.sin(i * step) * zx;
-        vertices.push(vec3(x, y, z));
-        indices.push(firstIdx, idx + i, idx + (i + 1) % lonCount);
+    vertices.push(vec3(0, +1, 0));
+    for (let i = 1; i < PARTITION; ++i) {
+        const y = Math.cos(i * step);
+        const zx = Math.sin(i * step);
+        for (let j = 0; j < lonCount; ++j) {
+            const z = Math.cos(j * step) * zx;
+            const x = Math.sin(j * step) * zx;
+            vertices.push(vec3(x, y, z));
+        }
     }
     vertices.push(vec3(0, -1, 0));
+
+    const firstIdx = 0;
     const lastIdx = vertices.length - 1;
-    for (let i = 0; i < lonCount; ++i) {
-        indices.push(lastIdx, idx + (i + 1) % lonCount, idx + i);
+    let idx = 1;
+    for (let j = 0; j < lonCount; ++j) {
+        const j1 = (j + 1) % lonCount;
+        indices.push(firstIdx, idx + j, idx + j1);
+    }
+    for (let i = 1; i < PARTITION - 1; ++i) {
+        for (let j = 0; j < lonCount; ++j) {
+            const j1 = (j + 1) % lonCount;
+            const idx1 = idx + lonCount;
+            indices.push(
+                idx + j, idx1 + j, idx1 + j1,
+                idx1 + j1, idx + j1, idx + j,
+            );
+        }
+        idx += lonCount;
+    }
+    for (let j = 0; j < lonCount; ++j) {
+        const j1 = (j + 1) % lonCount;
+        indices.push(lastIdx, idx + j1, idx + j);
     }
 
     return { vertices, indices };
