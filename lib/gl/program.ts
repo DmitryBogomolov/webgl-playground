@@ -343,6 +343,7 @@ export class Program {
             gl.vertexAttribPointer(
                 shaderAttr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
             );
+            // TODO: Make experiment with (on "color" attribute).
             gl.enableVertexAttribArray(shaderAttr.location);
         }
     }

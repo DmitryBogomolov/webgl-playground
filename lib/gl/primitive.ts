@@ -82,6 +82,7 @@ export class Primitive {
     }
 
     setIndexCount(indexCount: number): void {
+        // TODO: Provide index type and offset here. And use them later in "render".
         this._logger.log('set_index_count({0})', indexCount);
         this._indexCount = indexCount;
     }
@@ -96,6 +97,7 @@ export class Primitive {
             return;
         }
         this._program = program;
+        // TODO: This should be independent from program.
         this._runtime.bindVertexArrayObject(this._vao, this._id);
         this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
         this._program.setupVertexAttributes();
