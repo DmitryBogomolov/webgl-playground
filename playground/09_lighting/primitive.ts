@@ -10,9 +10,7 @@ import {
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
 
-const PARTITION = 4;
-
-export function makePrimitive(runtime: Runtime): Primitive {
+export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
     const primitive = new Primitive(runtime);
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
@@ -23,14 +21,13 @@ export function makePrimitive(runtime: Runtime): Primitive {
         schema,
     });
 
-    const { vertices, indices } = generateData();
+    const { vertices, indices } = generateData(partition, size);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 'a_position', vertices[i]);
     }
     const indexData = new Uint16Array(indices);
-
 
     primitive.setProgram(program);
     primitive.allocateVertexBuffer(vertexData.byteLength);
@@ -42,12 +39,12 @@ export function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-function generateData(): { vertices: Vec3[], indices: number[] } {
+function generateData(partition: number, size: Vec3): { vertices: Vec3[], indices: number[] } {
     const vertices: Vec3[] = [];
     const indices: number[] = [];
 
-    const step = Math.PI / PARTITION;
-    const lonCount = 2 * PARTITION;
+    const step = Math.PI / partition;
+    const lonCount = 2 * partition;
     const cosList: number[] = [];
     const sinList: number[] = [];
     for (let i = 0; i < lonCount; ++i) {
@@ -55,17 +52,17 @@ function generateData(): { vertices: Vec3[], indices: number[] } {
         sinList[i] = Math.sin(i * step);
     }
 
-    vertices.push(vec3(0, +1, 0));
-    for (let i = 1; i < PARTITION; ++i) {
-        const y = cosList[i];
+    vertices.push(vec3(0, +size.y, 0));
+    for (let i = 1; i < partition; ++i) {
+        const y = size.y * cosList[i];
         const zx = sinList[i];
         for (let j = 0; j < lonCount; ++j) {
-            const z = cosList[j] * zx;
-            const x = sinList[j] * zx;
+            const z = size.z * cosList[j] * zx;
+            const x = size.x * sinList[j] * zx;
             vertices.push(vec3(x, y, z));
         }
     }
-    vertices.push(vec3(0, -1, 0));
+    vertices.push(vec3(0, -size.y, 0));
 
     const firstIdx = 0;
     const lastIdx = vertices.length - 1;
@@ -74,7 +71,7 @@ function generateData(): { vertices: Vec3[], indices: number[] } {
         const j1 = (j + 1) % lonCount;
         indices.push(firstIdx, idx + j, idx + j1);
     }
-    for (let i = 1; i < PARTITION - 1; ++i) {
+    for (let i = 1; i < partition - 1; ++i) {
         for (let j = 0; j < lonCount; ++j) {
             const j1 = (j + 1) % lonCount;
             const idx1 = idx + lonCount;

@@ -26,7 +26,7 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
-const primitive = makePrimitive(runtime);
+const primitive = makePrimitive(runtime, 4, vec3(1, 1, 1));
 
 const proj = mat4();
 const view = mat4();
