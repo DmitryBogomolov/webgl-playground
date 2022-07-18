@@ -1,15 +1,9 @@
 import {
     Runtime,
     Vec2,
-    vec3,
-    ZERO3,
-    YUNIT3,
-    mat4,
+    vec3, ZERO3, YUNIT3, norm3,
+    mat4, perspective4x4, lookAt4x4, identity4x4, mul4x4,
     color,
-    perspective4x4,
-    lookAt4x4,
-    identity4x4,
-    mul4x4,
     memoize,
     BUFFER_MASK,
 } from 'lib';
@@ -26,7 +20,7 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
-const primitive = makePrimitive(runtime, 4, vec3(1, 1, 1));
+const primitive = makePrimitive(runtime, 8, vec3(1, 1, 1));
 
 const proj = mat4();
 const view = mat4();
@@ -43,6 +37,7 @@ runtime.onRender((_delta) => {
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_world_view_proj', worldViewProj, true);
     primitive.program().setUniform('u_color', clr);
+    primitive.program().setUniform('u_light_dir', norm3(vec3(-1, -1, -1)));
     primitive.render();
     // runtime.requestRender();
 });
