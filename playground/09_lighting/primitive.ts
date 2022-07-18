@@ -5,15 +5,21 @@ import {
     parseVertexSchema,
     VertexWriter,
     Vec3,
-    vec3,
+    vec3, cross3, norm3,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
+
+interface Vertex {
+    readonly position: Vec3;
+    readonly normal: Vec3;
+}
 
 export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
     const primitive = new Primitive(runtime);
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
+        { name: 'a_normal', type: 'float3' },
     ]);
     const program = new Program(runtime, {
         vertexShader: vertexShaderSource,
@@ -22,10 +28,14 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     });
 
     const { vertices, indices } = generateData(partition, size);
+
+    console.log('###');
+    console.log(vertices);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 'a_position', vertices[i]);
+        writer.writeAttribute(i, 'a_position', vertices[i].position);
+        writer.writeAttribute(i, 'a_normal', vertices[i].normal);
     }
     const indexData = new Uint16Array(indices);
 
@@ -39,8 +49,8 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     return primitive;
 }
 
-function generateData(partition: number, size: Vec3): { vertices: Vec3[], indices: number[] } {
-    const vertices: Vec3[] = [];
+function generateData(partition: number, size: Vec3): { vertices: Vertex[], indices: number[] } {
+    const vertices: Vertex[] = [];
     const indices: number[] = [];
 
     const step = Math.PI / partition;
@@ -52,17 +62,31 @@ function generateData(partition: number, size: Vec3): { vertices: Vec3[], indice
         sinList[i] = Math.sin(i * step);
     }
 
-    vertices.push(vec3(0, +size.y, 0));
+    vertices.push({ position: vec3(0, +size.y, 0), normal: vec3(0, +1, 0) });
     for (let i = 1; i < partition; ++i) {
-        const y = size.y * cosList[i];
-        const zx = sinList[i];
         for (let j = 0; j < lonCount; ++j) {
-            const z = size.z * cosList[j] * zx;
-            const x = size.x * sinList[j] * zx;
-            vertices.push(vec3(x, y, z));
+            const position = vec3(
+                size.x * sinList[i] * sinList[j],
+                size.y * cosList[i],
+                size.z * sinList[i] * cosList[j],
+            );
+
+            const v1 = vec3(
+                size.x * +cosList[i] * sinList[j],
+                size.y * -sinList[i],
+                size.z * +cosList[i] * cosList[j],
+            );
+            const v2 = vec3(
+                size.x * sinList[i] * +cosList[j],
+                0,
+                size.z * sinList[i] * -sinList[j],
+            );
+            const normal = norm3(cross3(v1, v2));
+
+            vertices.push({ position, normal });
         }
     }
-    vertices.push(vec3(0, -size.y, 0));
+    vertices.push({ position: vec3(0, -size.y, 0), normal: vec3(0, -1, 0) });
 
     const firstIdx = 0;
     const lastIdx = vertices.length - 1;
