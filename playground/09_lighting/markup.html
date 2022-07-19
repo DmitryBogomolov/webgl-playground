@@ -1,0 +1,64 @@
+<style>
+    .root {
+        position: relative;
+    }
+    .playground-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    .panel {
+        position: absolute;
+        width: 100%;
+    }
+    .control-text {
+        width: 80px;
+        padding-right: 2px;
+    }
+    .control-value {
+        padding-left: 2px;
+    }
+</style>
+<div class="root">
+    <div class="playground-container"></div>
+    <div class="panel">
+        <div id="control-template">
+            <label>
+                <span class="control-text">text</span>
+                <input type="range">
+                <span class="control-value">value</span>
+            </label>
+        </div>
+        <div>
+            <label>
+                camera lon
+                <input type="range" min="-90" max="+90">
+                TODO
+            </label>
+        </div>
+        <div>
+            <label>
+                light lat
+                <input type="range" min="-90" max="+90">
+                TODO
+            </label>
+        </div>
+        <div>
+            <label>
+                light lon
+                <input type="range" min="-90" max="+90">
+                TODO
+            </label>
+        </div>
+        <div>
+            <label>
+                light dist
+                <input type="range" min="-90" max="+90">
+                TODO
+            </label>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.playground-container').appendChild(document.querySelector('#playground-root'));
+</script>
