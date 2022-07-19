@@ -1,8 +1,8 @@
 import {
     Runtime,
     Vec2,
-    Vec3, vec3, ZERO3, YUNIT3, norm3, mul3, neg3,
-    mat4, perspective4x4, lookAt4x4, identity4x4, mul4x4,
+    vec3, ZERO3, YUNIT3, neg3,
+    mat4, perspective4x4, lookAt4x4, identity4x4, apply4x4, yrotation4x4, translation4x4, mul4x4,
     color,
     memoize,
     BUFFER_MASK,
@@ -19,47 +19,50 @@ import { createControls } from './controls';
  */
 export type DESCRIPTION = never;
 
-const CAMERA_DISTANCE = 5;
-
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
 
-let cameraLon = 0;
-let cameraLat = 30;
+let rotation = 0;
+let position = 0;
 let lightLon = 45;
 let lightLat = 45;
 
-const cameraLonChanged = new EventEmitter<number>();
-const cameraLatChanged = new EventEmitter<number>();
+const rotationChanged = new EventEmitter<number>();
+const positionChanged = new EventEmitter<number>();
 const lightLonChanged = new EventEmitter<number>();
 const lightLatChanged = new EventEmitter<number>();
 
 const proj = mat4();
-const view = mat4();
+const view = lookAt4x4({
+    eye: vec3(0, 3, 5),
+    center: ZERO3,
+    up: YUNIT3,
+});
+const model = mat4();
 const viewProj = mat4();
 const clr = color(0.2, 0.6, 0.1);
 let lightDir = ZERO3;
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
-    updateWorldViewProjection();
+    updateModelViewProjection();
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
-    primitive.program().setUniform('u_world_view_proj', viewProj, true);
+    primitive.program().setUniform('u_model_view_proj', viewProj, true);
     primitive.program().setUniform('u_color', clr);
     primitive.program().setUniform('u_light_dir', lightDir);
     primitive.render();
 });
 
-updateView();
+updateModel();
 updateLight();
 
 createControls([
-    { name: 'camera lon', value: cameraLon, min: -180, max: +180, emitter: cameraLonChanged },
-    { name: 'camera lat', value: cameraLat, min: -90, max: +90, emitter: cameraLatChanged },
+    { name: 'rotation', value: rotation, min: -180, max: +180, emitter: rotationChanged },
+    { name: 'position', value: position, min: -5, max: +5, emitter: positionChanged },
     { name: 'light lon', value: lightLon, min: -180, max: +180, emitter: lightLonChanged },
     { name: 'light lat', value: lightLat, min: -90, max: +90, emitter: lightLatChanged },
 ]);
@@ -73,38 +76,32 @@ const updateProjection = memoize((size: Vec2): void => {
     }, proj);
 });
 
-function getDirection(lon: number, lat: number): Vec3 {
-    const ln = deg2rad(lon);
-    const lt = deg2rad(lat);
-    return vec3(
-        Math.cos(lt) * Math.sin(ln),
-        Math.sin(lt),
-        Math.cos(lt) * Math.cos(ln),
-    );
-}
-
-function updateView(): void {
-    lookAt4x4({
-        eye: mul3(getDirection(cameraLon, cameraLat), CAMERA_DISTANCE),
-        center: ZERO3,
-        up: YUNIT3,
-    }, view);
+function updateModel(): void {
+    identity4x4(model);
+    apply4x4(model, yrotation4x4, deg2rad(rotation));
+    apply4x4(model, translation4x4, vec3(position, 0, 0));
     runtime.requestRender();
 }
 
 function updateLight(): void {
-    const dir = getDirection(lightLon, lightLat);
+    const lon = deg2rad(lightLon);
+    const lat = deg2rad(lightLat);
+    const dir = vec3(
+        Math.cos(lat) * Math.sin(lon),
+        Math.sin(lat),
+        Math.cos(lat) * Math.cos(lon),
+    );
     lightDir = neg3(dir);
     runtime.requestRender();
 }
 
-cameraLonChanged.on((value) => {
-    cameraLon = value;
-    updateView();
+rotationChanged.on((value) => {
+    rotation = value;
+    updateModel();
 });
-cameraLatChanged.on((value) => {
-    cameraLat = value;
-    updateView();
+positionChanged.on((value) => {
+    position = value;
+    updateModel();
 });
 
 lightLonChanged.on((value) => {
@@ -117,9 +114,9 @@ lightLatChanged.on((value) => {
     updateLight();
 });
 
-function updateWorldViewProjection(): void {
+function updateModelViewProjection(): void {
     identity4x4(viewProj);
-    mul4x4(world, viewProj, viewProj);
+    mul4x4(model, viewProj, viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
 }
