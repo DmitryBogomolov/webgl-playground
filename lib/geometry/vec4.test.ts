@@ -1,6 +1,7 @@
 import {
     Vec4,
-    neg4, len4, sqrlen4, norm4,
+    ZERO4, UNIT4, XUNIT4, YUNIT4, ZUNIT4, WUNIT4,
+    eq4, neg4, len4, sqrlen4, norm4,
     dot4, mul4, add4, sub4,
 } from './vec4';
 
@@ -43,6 +44,20 @@ describe('vec4', () => {
                 },
             };
         },
+    });
+
+    it('constants', () => {
+        expect(eq4(ZERO4, { x: 0, y: 0, z: 0, w: 0 })).toEqual(true);
+        expect(eq4(UNIT4, { x: 1, y: 1, z: 1, w: 1 })).toEqual(true);
+        expect(eq4(XUNIT4, { x: 1, y: 0, z: 0, w: 0 })).toEqual(true);
+        expect(eq4(YUNIT4, { x: 0, y: 1, z: 0, w: 0 })).toEqual(true);
+        expect(eq4(ZUNIT4, { x: 0, y: 0, z: 1, w: 0 })).toEqual(true);
+        expect(eq4(WUNIT4, { x: 0, y: 0, z: 0, w: 1 })).toEqual(true);
+    });
+
+    it('eq4', () => {
+        expect(eq4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 3, z: 4, w: 5 })).toEqual(false);
+        expect(eq4({ x: 1, y: 2, z: 3, w: 4 }, { x: 1, y: 2, z: 3, w: 4 })).toEqual(true);
     });
 
     it('dot4', () => {

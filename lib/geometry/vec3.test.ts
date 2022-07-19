@@ -1,6 +1,7 @@
 import {
     Vec3,
-    neg3, len3, sqrlen3, norm3,
+    ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
+    eq3, neg3, len3, sqrlen3, norm3,
     dot3, mul3, add3, sub3, cross3,
 } from './vec3';
 
@@ -43,6 +44,19 @@ describe('vec3', () => {
                 },
             };
         },
+    });
+
+    it('constants', () => {
+        expect(eq3(ZERO3, { x: 0, y: 0, z: 0 })).toEqual(true);
+        expect(eq3(UNIT3, { x: 1, y: 1, z: 1 })).toEqual(true);
+        expect(eq3(XUNIT3, { x: 1, y: 0, z: 0 })).toEqual(true);
+        expect(eq3(YUNIT3, { x: 0, y: 1, z: 0 })).toEqual(true);
+        expect(eq3(ZUNIT3, { x: 0, y: 0, z: 1 })).toEqual(true);
+    });
+
+    it('eq3', () => {
+        expect(eq3({ x: 1, y: 2, z: 3 }, { x: 2, y: 3, z: 4 })).toEqual(false);
+        expect(eq3({ x: 1, y: 2, z: 3 }, { x: 1, y: 2, z: 3 })).toEqual(true);
     });
 
     it('dot3', () => {

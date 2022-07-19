@@ -20,8 +20,9 @@ export class Vec4Impl implements Vec4 {
 }
 
 export const ZERO4 = vec4(0, 0, 0, 0);
+export const UNIT4 = vec4(1, 1, 1, 1);
 export const XUNIT4 = vec4(1, 0, 0, 0);
-export const YUNTI4 = vec4(0, 1, 0, 0);
+export const YUNIT4 = vec4(0, 1, 0, 0);
 export const ZUNIT4 = vec4(0, 0, 1, 0);
 export const WUNIT4 = vec4(0, 0, 0, 1);
 
@@ -33,8 +34,11 @@ export function isVec4(v: unknown): v is Vec4 {
     return 'x' in (v as Vec4) && 'y' in (v as Vec4) && 'z' in (v as Vec4) && 'w' in (v as Vec4);
 }
 
-export function eq4(a: Vec4, b: Vec4): boolean {
-    return a === b || (a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w);
+export function eq4(a: Vec4, b: Vec4, eps: number = 1E-7): boolean {
+    return a === b || (
+        Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps
+        && Math.abs(a.z - b.z) <= eps && Math.abs(a.w - b.w) <= eps
+    );
 }
 
 export function dot4(a: Vec4, b: Vec4): number {
