@@ -4,8 +4,8 @@ import {
     memoize,
     color,
     Vec2,
-    ZERO3, XUNIT3, YUNIT3, ZUNIT3, vec3,
-    mat4, mul4x4, identity4x4, scaling4x4, rotation4x4, perspective4x4, lookAt4x4, targetTo4x4, apply4x4,
+    ZERO3, YUNIT3, vec3,
+    mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
@@ -17,6 +17,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
+const CAMERA_HEIGHT = 3;
 const CAMERA_DISTANCE = 13;
 const PI2 = Math.PI * 2;
 
@@ -38,21 +39,16 @@ const figure3 = makeFigureRenderer(
 );
 
 const proj = mat4();
-const view = mat4();
+const view = lookAt4x4({
+    eye: vec3(0, CAMERA_HEIGHT, CAMERA_DISTANCE),
+    center: ZERO3,
+    up: YUNIT3,
+});
 const viewProj = mat4();
 const unit = identity4x4();
 
-let cameraAngle = 0;
-const cameraSpeed = 0.1 * PI2 / 1000;
-let worldAngle = 0;
-const worldSpeed = 0.2 * PI2 / 1000;
-
 runtime.onRender((delta) => {
-    cameraAngle = (cameraAngle + delta * cameraSpeed) % PI2;
-    worldAngle = (worldAngle + delta * worldSpeed) % PI2;
-
     updateProjection(runtime.canvasSize());
-    updateView(0);
     identity4x4(viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
@@ -75,13 +71,3 @@ const updateProjection = memoize(({ x, y }: Vec2): void => {
         zFar: 100,
     }, proj);
 });
-
-function updateView(angle: number): void {
-    const x = CAMERA_DISTANCE * Math.sin(angle);
-    const z = CAMERA_DISTANCE * Math.cos(angle);
-    lookAt4x4({
-        eye: { x, y: 3, z },
-        center: ZERO3,
-        up: YUNIT3,
-    }, view);
-}
