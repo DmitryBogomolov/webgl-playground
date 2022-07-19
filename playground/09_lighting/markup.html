@@ -1,0 +1,37 @@
+<style>
+    .root {
+        position: relative;
+    }
+    .controls-panel {
+        position: absolute;
+        top: 0;
+        padding: 4px;
+    }
+    .control-group {
+        padding: 2px;
+    }
+    .control-text {
+        width: 100px;
+        float: left;
+        padding-right: 4px;
+    }
+    .control-value {
+        width: 30px;
+        padding-left: 4px;
+        float: right;
+        text-align: right;
+    }
+</style>
+<div class="root">
+    <div class="playground-container"></div>
+    <div class="controls-panel">
+        <div id="control-template" class="control-group">
+            <div class="control-text">text</div>
+            <input type="range" class="control-slider">
+            <div class="control-value">value</div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.playground-container').appendChild(document.querySelector('#playground-root'));
+</script>

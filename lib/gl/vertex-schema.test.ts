@@ -1,4 +1,4 @@
-import { Attribute, parseVertexSchema } from './vertex-schema';
+import { Attribute, AttributeTypeOption, parseVertexSchema } from './vertex-schema';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {
@@ -14,7 +14,7 @@ describe('vertex schema', () => {
         it('validate type', () => {
             try {
                 parseVertexSchema([
-                    { name: 'field1', type: 'test3' },
+                    { name: 'field1', type: 'test3' as AttributeTypeOption },
                 ]);
                 expect(true).toBe(false);
             } catch (e) {
@@ -25,7 +25,7 @@ describe('vertex schema', () => {
         it('validate size', () => {
             try {
                 parseVertexSchema([
-                    { name: 'field1', type: 'float5' },
+                    { name: 'field1', type: 'float5' as AttributeTypeOption },
                 ]);
                 expect(true).toBe(false);
             } catch (e) {
