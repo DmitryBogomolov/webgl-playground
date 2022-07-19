@@ -2,7 +2,8 @@ import {
     Runtime,
     Vec2,
     vec3, ZERO3, YUNIT3, neg3,
-    mat4, perspective4x4, lookAt4x4, identity4x4, apply4x4, yrotation4x4, translation4x4, mul4x4,
+    mat4, perspective4x4, lookAt4x4, identity4x4,
+    apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
     color,
     memoize,
     BUFFER_MASK,
@@ -43,15 +44,18 @@ const view = lookAt4x4({
 });
 const model = mat4();
 const viewProj = mat4();
+const modelInvTrs = mat4();
 const clr = color(0.2, 0.6, 0.1);
 let lightDir = ZERO3;
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
     updateModelViewProjection();
+    updateModelInverseTranspose();
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_model_view_proj', viewProj, true);
+    primitive.program().setUniform('u_model', modelInvTrs, true);
     primitive.program().setUniform('u_color', clr);
     primitive.program().setUniform('u_light_dir', lightDir);
     primitive.render();
@@ -119,4 +123,9 @@ function updateModelViewProjection(): void {
     mul4x4(model, viewProj, viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
+}
+
+function updateModelInverseTranspose(): void {
+    inverse4x4(model, modelInvTrs);
+    transpose4x4(modelInvTrs, modelInvTrs);
 }
