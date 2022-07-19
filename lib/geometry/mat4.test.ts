@@ -1,6 +1,6 @@
 import {
     Mat4,
-    zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
+    eq4x4, zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
     add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
     det4x4, inverse4x4,
     translation4x4, scaling4x4, rotation4x4, xrotation4x4, yrotation4x4, zrotation4x4,
@@ -54,6 +54,41 @@ describe('mat4', () => {
                 },
             };
         },
+    });
+
+    it('eq4x4', () => {
+        expect(
+            eq4x4(
+                make([
+                    1, 2, 4, 1,
+                    3, 4, 5, 2,
+                    2, 1, 2, 3,
+                    1, 2, 3, 4,
+                ]),
+                make([
+                    1, 3, 4, 1,
+                    3, 1, 5, 2,
+                    2, 1, 2, 3,
+                    1, 2, 3, 4,
+                ]),
+            ),
+        ).toEqual(false);
+        expect(
+            eq4x4(
+                make([
+                    1, 2, 4, 1,
+                    3, 4, 5, 2,
+                    2, 1, 2, 3,
+                    1, 2, 3, 4,
+                ]),
+                make([
+                    1, 2, 4, 1,
+                    3, 4, 5, 2,
+                    2, 1, 2, 3,
+                    1, 2, 3, 4,
+                ]),
+            ),
+        ).toEqual(true);
     });
 
     it('zero4x4', () => {

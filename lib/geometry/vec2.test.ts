@@ -1,6 +1,7 @@
 import {
     Vec2,
-    neg2, len2, sqrlen2, norm2,
+    ZERO2, UNIT2, XUNIT2, YUNIT2,
+    eq2, neg2, len2, sqrlen2, norm2,
     dot2, mul2, add2, sub2,
 } from './vec2';
 
@@ -14,7 +15,7 @@ declare global {
     }
 }
 
-describe('vec3', () => {
+describe('vec2', () => {
     const EPS = 1E-4;
 
     expect.extend({
@@ -43,6 +44,18 @@ describe('vec3', () => {
                 },
             };
         },
+    });
+
+    it('constants', () => {
+        expect(eq2(ZERO2, { x: 0, y: 0 })).toEqual(true);
+        expect(eq2(UNIT2, { x: 1, y: 1 })).toEqual(true);
+        expect(eq2(XUNIT2, { x: 1, y: 0 })).toEqual(true);
+        expect(eq2(YUNIT2, { x: 0, y: 1 })).toEqual(true);
+    });
+
+    it('eq2', () => {
+        expect(eq2({ x: 1, y: 2 }, { x: 2, y: 3 })).toEqual(false);
+        expect(eq2({ x: 1, y: 2 }, { x: 1, y: 2 })).toEqual(true);
     });
 
     it('dot2', () => {

@@ -1,6 +1,6 @@
 import {
     Mat2,
-    zero2x2, identity2x2, clone2x2, update2x2, transpose2x2,
+    eq2x2, zero2x2, identity2x2, clone2x2, update2x2, transpose2x2,
     add2x2, sub2x2, mul2x2, mul2v2,
     det2x2, inverse2x2,
 } from './mat2';
@@ -52,6 +52,33 @@ describe('mat2', () => {
                 },
             };
         },
+    });
+
+    it('eq2x2', () => {
+        expect(
+            eq2x2(
+                make([
+                    1, 2,
+                    3, 4,
+                ]),
+                make([
+                    1, 3,
+                    3, 1,
+                ]),
+            ),
+        ).toEqual(false);
+        expect(
+            eq2x2(
+                make([
+                    1, 2,
+                    3, 4,
+                ]),
+                make([
+                    1, 2,
+                    3, 4,
+                ]),
+            ),
+        ).toEqual(true);
     });
 
     it('zero2x2', () => {

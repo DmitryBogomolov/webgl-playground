@@ -14,6 +14,7 @@ export class Vec2Impl implements Vec2 {
 }
 
 export const ZERO2 = vec2(0, 0);
+export const UNIT2 = vec2(1, 1);
 export const XUNIT2 = vec2(1, 0);
 export const YUNIT2 = vec2(0, 1);
 
@@ -25,8 +26,8 @@ export function isVec2(v: unknown): v is Vec2 {
     return 'x' in (v as Vec2) && 'y' in (v as Vec2);
 }
 
-export function eq2(a: Vec2, b: Vec2): boolean {
-    return a === b || (a.x === b.x && a.y === b.y);
+export function eq2(a: Vec2, b: Vec2, eps: number = 1E-7): boolean {
+    return a === b || (Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps);
 }
 
 export function add2(a: Vec2, b: Vec2): Vec2 {

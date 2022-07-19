@@ -1,6 +1,6 @@
 import {
     Mat3,
-    zero3x3, identity3x3, clone3x3, update3x3, transpose3x3,
+    eq3x3, zero3x3, identity3x3, clone3x3, update3x3, transpose3x3,
     add3x3, sub3x3, mul3x3, mul3v2, mul3v3,
     det3x3, inverse3x3,
     translation3x3, scaling3x3, rotation3x3,
@@ -54,6 +54,37 @@ describe('mat3', () => {
                 },
             };
         },
+    });
+
+    it('eq3x3', () => {
+        expect(
+            eq3x3(
+                make([
+                    1, 2, 4,
+                    3, 4, 5,
+                    2, 1, 2,
+                ]),
+                make([
+                    1, 3, 4,
+                    3, 1, 5,
+                    2, 1, 2,
+                ]),
+            ),
+        ).toEqual(false);
+        expect(
+            eq3x3(
+                make([
+                    1, 2, 4,
+                    3, 4, 5,
+                    2, 1, 2,
+                ]),
+                make([
+                    1, 2, 4,
+                    3, 4, 5,
+                    2, 1, 2,
+                ]),
+            ),
+        ).toEqual(true);
     });
 
     it('zero3x3', () => {

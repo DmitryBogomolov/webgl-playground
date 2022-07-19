@@ -22,6 +22,18 @@ function set(mat: Mat2, ...values: number[]): Mat2 {
     return mat;
 }
 
+export function eq2x2(lhs: Mat2, rhs: Mat2, eps: number = 1E-7): boolean {
+    if (lhs === rhs) {
+        return true;
+    }
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        if (Math.abs(lhs[i] - rhs[i]) > eps) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export function zero2x2(out: Mat2 = mat2()): Mat2 {
     (out as number[]).fill(0);
     return out;

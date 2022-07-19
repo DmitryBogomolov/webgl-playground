@@ -17,6 +17,7 @@ export class Vec3Impl implements Vec3 {
 }
 
 export const ZERO3 = vec3(0, 0, 0);
+export const UNIT3 = vec3(1, 1, 1);
 export const XUNIT3 = vec3(1, 0, 0);
 export const YUNIT3 = vec3(0, 1, 0);
 export const ZUNIT3 = vec3(0, 0, 1);
@@ -29,8 +30,10 @@ export function isVec3(v: unknown): v is Vec3 {
     return 'x' in (v as Vec3) && 'y' in (v as Vec3) && 'z' in (v as Vec3);
 }
 
-export function eq3(a: Vec3, b: Vec3): boolean {
-    return a === b || (a.x === b.x && a.y === b.y && a.z === b.z);
+export function eq3(a: Vec3, b: Vec3, eps: number = 1E-7): boolean {
+    return a === b || (
+        Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps && Math.abs(a.z - b.z) <= eps
+    );
 }
 
 export function dot3(a: Vec3, b: Vec3): number {

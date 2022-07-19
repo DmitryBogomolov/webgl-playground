@@ -34,6 +34,18 @@ function idx2rowcol(idx: number): Pair {
     return [idx % MAT_RANK, (idx / MAT_RANK) | 0];
 }
 
+export function eq3x3(lhs: Mat3, rhs: Mat3, eps: number = 1E-7): boolean {
+    if (lhs === rhs) {
+        return true;
+    }
+    for (let i = 0; i < MAT_SIZE; ++i) {
+        if (Math.abs(lhs[i] - rhs[i]) > eps) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export function zero3x3(out: Mat3 = mat3()): Mat3 {
     (out as number[]).fill(0);
     return out;
