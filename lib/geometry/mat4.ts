@@ -398,7 +398,7 @@ export function lookAt4x4(
     { eye, center, up }: LookAt4x4Options, out: Mat4 = mat4(),
 ): Mat4 {
     const zAxis = norm3(sub3(eye, center));
-    const xAxis = cross3(norm3(up), zAxis);
+    const xAxis = norm3(cross3(up, zAxis));
     const yAxis = cross3(zAxis, xAxis);
     zero4x4(out);
     const [
