@@ -1,7 +1,7 @@
 import {
     Runtime,
     Vec2,
-    vec3, ZERO3, YUNIT3, norm3,
+    vec3, ZERO3, YUNIT3, norm3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4, mul4x4,
     color,
     memoize,
@@ -16,21 +16,26 @@ import { makePrimitive } from './primitive';
  */
 export type DESCRIPTION = never;
 
+const CAMERA_DISTANCE = 5;
+
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
-const primitive = makePrimitive(runtime, 8, vec3(1, 1, 1));
+const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
 
 const proj = mat4();
-const view = mat4();
+const view = lookAt4x4({
+    eye: mul3(norm3(vec3(1, 4, 3)), CAMERA_DISTANCE),
+    center: ZERO3,
+    up: YUNIT3,
+})
 const world = mat4();
 const worldViewProj = mat4();
 const clr = color(0.2, 0.6, 0.1);
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
-    updateView();
     identity4x4(world);
     updateWorldViewProjection();
 
@@ -50,14 +55,6 @@ const updateProjection = memoize((size: Vec2): void => {
         zFar: 100,
     }, proj);
 });
-
-function updateView(): void {
-    lookAt4x4({
-        eye: vec3(0, 0, 5),
-        center: ZERO3,
-        up: YUNIT3,
-    }, view);
-}
 
 function updateWorldViewProjection(): void {
     identity4x4(worldViewProj);
