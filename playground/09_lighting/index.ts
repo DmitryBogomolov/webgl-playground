@@ -54,7 +54,7 @@ runtime.onRender((_delta) => {
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_model_view_proj', viewProj, true);
-    primitive.program().setUniform('u_model', modelInvTrs, true);
+    primitive.program().setUniform('u_model_inv_trs', modelInvTrs, true);
     primitive.program().setUniform('u_color', clr);
     primitive.program().setUniform('u_light_dir', lightDir);
     primitive.render();
