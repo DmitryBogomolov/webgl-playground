@@ -10,7 +10,7 @@ import {
     EventEmitter,
     deg2rad,
 } from 'lib';
-import { makePrimitive } from './primitive';
+import { makePrimitive, makeDirectionalProgram, makePointProgram } from './primitive';
 import { createControls } from './controls';
 
 /**
@@ -24,6 +24,8 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
+const directionalProgram = makeDirectionalProgram(runtime);
+const pointProgram = makePointProgram(runtime);
 const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
 
 let rotation = 0;
@@ -71,13 +73,26 @@ runtime.onRender((_delta) => {
     updateModelViewProjection();
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
-    primitive.program().setUniform('u_model_view_proj', viewProj, true);
-    primitive.program().setUniform('u_model', model, true);
-    primitive.program().setUniform('u_model_inv_trs', modelInvTrs, true);
-    primitive.program().setUniform('u_color', clr);
-    // primitive.program().setUniform('u_light_dir', lightDir);
-    primitive.program().setUniform('u_light_position', lightPos);
-    primitive.render();
+
+    {
+        const program = directionalProgram;
+        program.setUniform('u_model_view_proj', viewProj, true);
+        program.setUniform('u_model_inv_trs', modelInvTrs, true);
+        program.setUniform('u_color', clr);
+        program.setUniform('u_light_dir', lightDir);
+        primitive.setProgram(program);
+        primitive.render();
+    }
+    {
+        const program = pointProgram;
+        program.setUniform('u_model_view_proj', viewProj, true);
+        program.setUniform('u_model', model, true);
+        program.setUniform('u_model_inv_trs', modelInvTrs, true);
+        program.setUniform('u_color', clr);
+        program.setUniform('u_light_position', lightPos);
+        primitive.setProgram(program);
+        primitive.render();
+    }
 });
 
 updateModel();

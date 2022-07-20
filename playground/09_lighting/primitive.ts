@@ -7,25 +7,39 @@ import {
     Vec3,
     vec3, cross3, norm3,
 } from 'lib';
-import vertexShaderSource from './shaders/point.vert';
-import fragmentShaderSource from './shaders/point.frag';
+import directionalVertexShaderSource from './shaders/directional.vert';
+import directionalFragmentShaderSource from './shaders/directional.frag';
+import pointVertexShaderSource from './shaders/point.vert';
+import pointFragmentShaderSource from './shaders/point.frag';
 
 interface Vertex {
     readonly position: Vec3;
     readonly normal: Vec3;
 }
 
-export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
-    const primitive = new Primitive(runtime);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-        { name: 'a_normal', type: 'float3' },
-    ]);
-    const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+const schema = parseVertexSchema([
+    { name: 'a_position', type: 'float3' },
+    { name: 'a_normal', type: 'float3' },
+]);
+
+export function makeDirectionalProgram(runtime: Runtime): Program {
+    return new Program(runtime, {
+        vertexShader: directionalVertexShaderSource,
+        fragmentShader: directionalFragmentShaderSource,
         schema,
     });
+}
+
+export function makePointProgram(runtime: Runtime): Program {
+    return new Program(runtime, {
+        vertexShader: pointVertexShaderSource,
+        fragmentShader: pointFragmentShaderSource,
+        schema,
+    });
+}
+
+export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
+    const primitive = new Primitive(runtime);
 
     const { vertices, indices } = generateData(partition, size);
 
@@ -37,7 +51,6 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     }
     const indexData = new Uint16Array(indices);
 
-    primitive.setProgram(program);
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
