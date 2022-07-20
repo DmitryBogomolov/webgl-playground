@@ -379,11 +379,3 @@ export class Program {
         this._cache[name] = value;
     }
 }
-
-export const EMPTY_PROGRAM = {
-    program: null,
-    use() { /* empty */ },
-    setupVertexAttributes() { /* empty */ },
-    setUniforms() { /* empty */ },
-    schema() { return null; },
-} as unknown as Program;

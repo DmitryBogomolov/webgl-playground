@@ -1,5 +1,5 @@
 import { Runtime } from './runtime';
-import { Program, EMPTY_PROGRAM } from './program';
+import { Program } from './program';
 import { VertexSchema } from './vertex-schema';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
@@ -14,6 +14,13 @@ const EMPTY_SCHEMA: VertexSchema = {
     totalSize: -1,
 };
 
+const EMPTY_PROGRAM = {
+    program: null,
+    use() { /* empty */ },
+    setUniform() { /* empty */ },
+    schema() { return EMPTY_SCHEMA; },
+} as unknown as Program;
+
 export class Primitive {
     private readonly _id = generateId('Primitive');
     private readonly _logger = new Logger(this._id);
@@ -21,11 +28,11 @@ export class Primitive {
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
-    private _vertexBufferSize = 0;
-    private _indexBufferSize = 0;
+    private _vertexBufferSize: number = 0;
+    private _indexBufferSize: number = 0;
     private _schema: VertexSchema = EMPTY_SCHEMA;
-    private _program: Program = EMPTY_PROGRAM;
     private _indexCount: number = 0;
+    private _program: Program = EMPTY_PROGRAM;
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -135,11 +142,11 @@ export class Primitive {
 
     render(): void {
         const gl = this._runtime.gl;
-        this._program.use();
         if (this._program === EMPTY_PROGRAM) {
-            this._logger.warn('render with empty program');
+            this._logger.warn('render without program');
             return;
         }
+        this._program.use();
         this._runtime.bindVertexArrayObject(this._vao, this._id);
         gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
         this._runtime.bindVertexArrayObject(null, this._id);
