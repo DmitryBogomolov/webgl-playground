@@ -76,6 +76,7 @@ runtime.onRender((_delta) => {
 
     {
         const program = directionalProgram;
+        program.setUniform('u_offset', -0.3);
         program.setUniform('u_model_view_proj', viewProj, true);
         program.setUniform('u_model_inv_trs', modelInvTrs, true);
         program.setUniform('u_color', clr);
@@ -85,6 +86,7 @@ runtime.onRender((_delta) => {
     }
     {
         const program = pointProgram;
+        program.setUniform('u_offset', +0.3);
         program.setUniform('u_model_view_proj', viewProj, true);
         program.setUniform('u_model', model, true);
         program.setUniform('u_model_inv_trs', modelInvTrs, true);
