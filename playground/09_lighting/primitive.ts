@@ -29,8 +29,6 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
 
     const { vertices, indices } = generateData(partition, size);
 
-    console.log('###');
-    console.log(vertices);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
