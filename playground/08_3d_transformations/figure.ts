@@ -30,7 +30,7 @@ export function makeFigureRenderer(
         },
 
         render() {
-            primitive.program().setUniform('u_transform', transform, true);
+            primitive.program().setUniform('u_transform', transform);
             primitive.render();
         },
 

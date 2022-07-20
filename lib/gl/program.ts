@@ -194,10 +194,6 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
-interface UniformsCache {
-    [name: string]: UniformValue;
-}
-
 export interface ProgramOptions {
     readonly vertexShader: string;
     readonly fragmentShader: string;
@@ -213,7 +209,6 @@ export class Program {
     private readonly _schema: VertexSchema;
     // private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
-    private readonly _cache: UniformsCache = {};
     private readonly _program: WebGLProgram;
 
     constructor(runtime: Runtime, options: ProgramOptions) {
@@ -356,11 +351,7 @@ export class Program {
         this._runtime.useProgram(this._program, this._id);
     }
 
-    setUniform(name: string, value: UniformValue, force: boolean = false): void {
-        // TODO: Is caching actually required at all?
-        if (!force && this._cache[name] === value) {
-            return;
-        }
+    setUniform(name: string, value: UniformValue): void {
         this._logger.log('set_uniform({0}: {1})', name, value);
         const gl = this._runtime.gl;
         const uniform = this._uniforms[name];
@@ -376,6 +367,5 @@ export class Program {
         // > INVALID_OPERATION: uniformXXX: location is not from current program
         this.use();
         setter(this._logger, gl, uniform, value);
-        this._cache[name] = value;
     }
 }
