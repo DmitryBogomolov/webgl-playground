@@ -211,7 +211,7 @@ export class Program {
     private readonly _vertexShader: WebGLShader;
     private readonly _fragmentShader: WebGLShader;
     private readonly _schema: VertexSchema;
-    private readonly _attributes: AttributesMap = {};
+    // private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
     private readonly _cache: UniformsCache = {};
     private readonly _program: WebGLProgram;
@@ -219,13 +219,14 @@ export class Program {
     constructor(runtime: Runtime, options: ProgramOptions) {
         this._logger.log('init');
         this._runtime = runtime;
+        this._schema = options.schema;
         this._program = this._createProgram();
         this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
         this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
+        this._bindAttributes();
         this._linkProgram();
-        this._attributes = this._collectAttributes();
+        /* this._attributes = */this._collectAttributes();
         this._uniforms = this._collectUniforms();
-        this._schema = options.schema;
     }
 
     dispose(): void {
@@ -265,6 +266,13 @@ export class Program {
         gl.deleteShader(shader);
     }
 
+    private _bindAttributes(): void {
+        const gl = this._runtime.gl;
+        for (const attr of this._schema.attributes) {
+            gl.bindAttribLocation(this._program, attr.location, attr.name);
+        }
+    }
+
     private _linkProgram(): void {
         const gl = this._runtime.gl;
         gl.linkProgram(this._program);
@@ -286,16 +294,36 @@ export class Program {
 
     private _collectAttributes(): AttributesMap {
         const gl = this._runtime.gl;
-        const count = gl.getProgramParameter(this._program, ACTIVE_ATTRIBUTES) as number;
+        const program = this._program;
+        const count = gl.getProgramParameter(program, ACTIVE_ATTRIBUTES) as number;
         const attributes: Record<string, ShaderAttribute> = {};
         for (let i = 0; i < count; ++i) {
-            const info = gl.getActiveAttrib(this._program, i)!;
-            const location = gl.getAttribLocation(this._program, info.name);
+            const info = gl.getActiveAttrib(program, i)!;
+            const location = gl.getAttribLocation(program, info.name);
             attributes[info.name] = {
                 info,
                 location,
                 ...shaderTypes[info.type],
             };
+        }
+        for (const attr of this._schema.attributes) {
+            const shaderAttr = attributes[attr.name];
+            if (!shaderAttr) {
+                throw this._logger.error('attribute "{0}" is unknown', attr.name);
+            }
+            if (attr.location !== shaderAttr.location) {
+                throw this._logger.error(
+                    'attribute "{0}" location {1} does not match {2}', attr.name, attr.location, shaderAttr.location,
+                );
+            }
+            // Is there a way to validate type?
+            // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
+            // TODO: Consider allowing cases when attr.size < shaderAttr.size (shader provides default values).
+            if (attr.size !== shaderAttr.size) {
+                throw this._logger.error(
+                    'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,
+                );
+            }
         }
         return attributes;
     }
@@ -309,7 +337,7 @@ export class Program {
             const info = gl.getActiveUniform(program, i)!;
             const isArray = info.size > 1;
             // Uniform of array type have name like "something[0]". Postfix "[0]" is removed.
-            const name = isArray ? info.name.substr(0, info.name.length - 3) : info.name;
+            const name = isArray ? info.name.substring(0, info.name.length - 3) : info.name;
             const location = gl.getUniformLocation(program, info.name)!;
             uniforms[name] = {
                 info,
@@ -320,32 +348,12 @@ export class Program {
         return uniforms;
     }
 
-    use(): void {
-        this._runtime.useProgram(this._program, this._id);
+    schema(): VertexSchema {
+        return this._schema;
     }
 
-    setupVertexAttributes(): void {
-        this._logger.log('setup_vertex_attributes');
-        const gl = this._runtime.gl;
-        for (const attr of this._schema.attributes) {
-            const shaderAttr = this._attributes[attr.name];
-            if (!shaderAttr) {
-                throw this._logger.error('attribute "{0}" is unknown', attr.name);
-            }
-            // Is there a way to validate type?
-            // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
-            // TODO: Consider allowing cases when attr.size < shaderAttr.size (shader provides default values).
-            if (attr.size !== shaderAttr.size) {
-                throw this._logger.error(
-                    'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,
-                );
-            }
-            gl.vertexAttribPointer(
-                shaderAttr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
-            );
-            // TODO: Make experiment with (on "color" attribute).
-            gl.enableVertexAttribArray(shaderAttr.location);
-        }
+    use(): void {
+        this._runtime.useProgram(this._program, this._id);
     }
 
     setUniform(name: string, value: UniformValue, force: boolean = false): void {
@@ -377,4 +385,5 @@ export const EMPTY_PROGRAM = {
     use() { /* empty */ },
     setupVertexAttributes() { /* empty */ },
     setUniforms() { /* empty */ },
+    schema() { return null; },
 } as unknown as Program;

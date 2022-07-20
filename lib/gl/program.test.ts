@@ -1,6 +1,5 @@
 import { Program } from './program';
 import { Runtime } from './runtime';
-import { VertexSchema } from './vertex-schema';
 
 describe('program', () => {
     describe('Program', () => {
@@ -16,6 +15,7 @@ describe('program', () => {
         let compileShader: jest.Mock;
         let getShaderParameter: jest.Mock;
         let attachShader: jest.Mock;
+        let bindAttribLocation: jest.Mock;
         let linkProgram: jest.Mock;
         let getProgramParameter: jest.Mock;
 
@@ -30,6 +30,7 @@ describe('program', () => {
             compileShader = jest.fn();
             getShaderParameter = jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(true);
             attachShader = jest.fn();
+            bindAttribLocation = jest.fn();
             linkProgram = jest.fn();
             getProgramParameter = jest.fn().mockReturnValueOnce(true);
             ctx = {
@@ -40,6 +41,7 @@ describe('program', () => {
                 compileShader,
                 getShaderParameter,
                 attachShader,
+                bindAttribLocation,
                 linkProgram,
                 getProgramParameter,
             } as unknown as WebGLRenderingContext;
@@ -52,7 +54,10 @@ describe('program', () => {
             new Program(runtime, {
                 vertexShader: 'vertex-shader-source',
                 fragmentShader: 'fragment-shader-source',
-                schema: {} as unknown as VertexSchema,
+                schema: {
+                    totalSize: 0,
+                    attributes: [],
+                },
             });
             expect(createProgram.mock.calls).toEqual([
                 [],
@@ -72,6 +77,8 @@ describe('program', () => {
             expect(attachShader.mock.calls).toEqual([
                 [program, vShader],
                 [program, fShader],
+            ]);
+            expect(bindAttribLocation.mock.calls).toEqual([
             ]);
             expect(linkProgram.mock.calls).toEqual([
                 [program],

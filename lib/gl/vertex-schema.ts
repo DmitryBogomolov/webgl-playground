@@ -81,6 +81,7 @@ export interface AttributeOptions {
 
 export interface Attribute {
     readonly name: string;
+    readonly location: number;
     readonly type: AttributeType;
     readonly size: number;
     readonly normalized: boolean;
@@ -99,12 +100,14 @@ const logger = new Logger('VertexSchema');
 export function parseVertexSchema(attrOptions: ReadonlyArray<AttributeOptions>): VertexSchema {
     const attributes: Attribute[] = [];
     let currentOffset = 0;
-    for (const attrOption of attrOptions) {
+    for (let i = 0; i < attrOptions.length; ++i) {
+        const attrOption = attrOptions[i];
         const type = parseType(attrOption);
         const size = parseSize(attrOption);
         const offset = getOffset(attrOption, currentOffset);
         attributes.push({
             name: attrOption.name,
+            location: i,
             type,
             gltype: GL_TYPES[type],
             size,
