@@ -28,7 +28,6 @@ function makePrimitive(runtime: Runtime): Primitive {
         schema,
     });
     const primitive = new Primitive(runtime);
-    primitive.setProgram(program);
     const vertices = new Float32Array([
         -1, -1,
         +1, -1,
@@ -43,7 +42,9 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
+    primitive.setVertexSchema(schema);
     primitive.setIndexCount(indices.length);
+    primitive.setProgram(program);
     return primitive;
 }
 

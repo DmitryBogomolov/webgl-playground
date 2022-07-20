@@ -31,9 +31,10 @@ export class Line {
             fragmentShader: params.fragmentShader,
             schema: params.schema,
         });
-        this._primitive.setProgram(program);
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
+        this._primitive.setVertexSchema(params.schema);
+        this._primitive.setProgram(program);
     }
 
     dispose(): void {

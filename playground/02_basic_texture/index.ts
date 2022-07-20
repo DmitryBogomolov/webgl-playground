@@ -63,12 +63,13 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     const primitive = new Primitive(runtime);
 
-    primitive.setProgram(program);
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
+    primitive.setVertexSchema(schema);
     primitive.setIndexCount(indexData.length);
+    primitive.setProgram(program);
 
     return primitive;
 }
