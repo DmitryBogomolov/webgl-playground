@@ -51,7 +51,6 @@ let lightDir = ZERO3;
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
     updateModelViewProjection();
-    updateModelInverseTranspose();
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_model_view_proj', viewProj, true);
@@ -84,6 +83,8 @@ function updateModel(): void {
     identity4x4(model);
     apply4x4(model, yrotation4x4, deg2rad(rotation));
     apply4x4(model, translation4x4, vec3(position, 0, 0));
+    inverse4x4(model, modelInvTrs);
+    transpose4x4(modelInvTrs, modelInvTrs);
     runtime.requestRender();
 }
 
@@ -123,9 +124,4 @@ function updateModelViewProjection(): void {
     mul4x4(model, viewProj, viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
-}
-
-function updateModelInverseTranspose(): void {
-    inverse4x4(model, modelInvTrs);
-    transpose4x4(modelInvTrs, modelInvTrs);
 }
