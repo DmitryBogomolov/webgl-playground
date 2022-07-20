@@ -1,7 +1,7 @@
 import {
     Runtime,
     Vec2,
-    vec3, ZERO3, YUNIT3, neg3,
+    vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
     color,
@@ -64,6 +64,7 @@ const viewProj = mat4();
 const modelInvTrs = mat4();
 const clr = color(0.2, 0.6, 0.1);
 let lightDir = ZERO3;
+let lightPos = ZERO3;
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
@@ -71,9 +72,11 @@ runtime.onRender((_delta) => {
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
     primitive.program().setUniform('u_model_view_proj', viewProj, true);
+    primitive.program().setUniform('u_model', model, true);
     primitive.program().setUniform('u_model_inv_trs', modelInvTrs, true);
     primitive.program().setUniform('u_color', clr);
-    primitive.program().setUniform('u_light_dir', lightDir);
+    // primitive.program().setUniform('u_light_dir', lightDir);
+    primitive.program().setUniform('u_light_position', lightPos);
     primitive.render();
 });
 
@@ -114,6 +117,7 @@ function updateLight(): void {
         Math.cos(lat) * Math.cos(lon),
     );
     lightDir = neg3(dir);
+    lightPos = mul3(dir, 5);
     runtime.requestRender();
 }
 

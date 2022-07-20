@@ -7,8 +7,8 @@ import {
     Vec3,
     vec3, cross3, norm3,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertexShaderSource from './shaders/point.vert';
+import fragmentShaderSource from './shaders/point.frag';
 
 interface Vertex {
     readonly position: Vec3;
