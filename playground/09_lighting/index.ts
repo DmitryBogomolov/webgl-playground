@@ -36,6 +36,23 @@ const positionChanged = new EventEmitter<number>();
 const lightLonChanged = new EventEmitter<number>();
 const lightLatChanged = new EventEmitter<number>();
 
+rotationChanged.on((value) => {
+    rotation = value;
+    updateModel();
+});
+positionChanged.on((value) => {
+    position = value;
+    updateModel();
+});
+lightLonChanged.on((value) => {
+    lightLon = value;
+    updateLight();
+});
+lightLatChanged.on((value) => {
+    lightLat = value;
+    updateLight();
+});
+
 const proj = mat4();
 const view = lookAt4x4({
     eye: vec3(0, 3, 5),
@@ -99,25 +116,6 @@ function updateLight(): void {
     lightDir = neg3(dir);
     runtime.requestRender();
 }
-
-rotationChanged.on((value) => {
-    rotation = value;
-    updateModel();
-});
-positionChanged.on((value) => {
-    position = value;
-    updateModel();
-});
-
-lightLonChanged.on((value) => {
-    lightLon = value;
-    updateLight();
-});
-
-lightLatChanged.on((value) => {
-    lightLat = value;
-    updateLight();
-});
 
 function updateModelViewProjection(): void {
     identity4x4(viewProj);
