@@ -92,7 +92,6 @@ describe('render loop', () => {
             triggerFrame(25);
             triggerFrame(70);
 
-            console.log(callback.mock.calls);
             expect(callback.mock.calls).toEqual([
                 [0, 10],
                 [15, 25],
