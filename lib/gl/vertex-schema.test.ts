@@ -42,6 +42,7 @@ describe('vertex schema', () => {
 
             const attr1: Attribute = {
                 name: 'field1',
+                location: 0,
                 type: 'float',
                 size: 4,
                 gltype: WebGLRenderingContext.prototype.FLOAT,
@@ -51,6 +52,7 @@ describe('vertex schema', () => {
             };
             const attr2: Attribute = {
                 name: 'field2',
+                location: 1,
                 type: 'byte',
                 size: 3,
                 gltype: WebGLRenderingContext.prototype.BYTE,
@@ -60,6 +62,7 @@ describe('vertex schema', () => {
             };
             const attr3: Attribute = {
                 name: 'field3',
+                location: 2,
                 type: 'ushort',
                 size: 2,
                 gltype: WebGLRenderingContext.prototype.UNSIGNED_SHORT,
@@ -81,6 +84,7 @@ describe('vertex schema', () => {
 
             const attr1: Attribute = {
                 name: 'field1',
+                location: 0,
                 type: 'float',
                 size: 2,
                 gltype: WebGLRenderingContext.prototype.FLOAT,
@@ -90,6 +94,7 @@ describe('vertex schema', () => {
             };
             const attr2: Attribute = {
                 name: 'field2',
+                location: 1,
                 type: 'short',
                 size: 3,
                 gltype: WebGLRenderingContext.prototype.SHORT,

@@ -77,8 +77,8 @@ runtime.onRender((_delta) => {
     {
         const program = directionalProgram;
         program.setUniform('u_offset', -0.3);
-        program.setUniform('u_model_view_proj', viewProj, true);
-        program.setUniform('u_model_inv_trs', modelInvTrs, true);
+        program.setUniform('u_model_view_proj', viewProj);
+        program.setUniform('u_model_inv_trs', modelInvTrs);
         program.setUniform('u_color', clr);
         program.setUniform('u_light_dir', lightDir);
         primitive.setProgram(program);
@@ -87,9 +87,9 @@ runtime.onRender((_delta) => {
     {
         const program = pointProgram;
         program.setUniform('u_offset', +0.3);
-        program.setUniform('u_model_view_proj', viewProj, true);
-        program.setUniform('u_model', model, true);
-        program.setUniform('u_model_inv_trs', modelInvTrs, true);
+        program.setUniform('u_model_view_proj', viewProj);
+        program.setUniform('u_model', model);
+        program.setUniform('u_model_inv_trs', modelInvTrs);
         program.setUniform('u_color', clr);
         program.setUniform('u_light_position', lightPos);
         primitive.setProgram(program);

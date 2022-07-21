@@ -5,9 +5,18 @@ describe('vertex writer', () => {
     describe('VertexWriter', () => {
         const schema: VertexSchema = {
             attributes: [
-                { name: 'f1', type: 'float', size: 2, stride: 16, offset: 0, normalized: false, gltype: 0 },
-                { name: 'f2', type: 'short', size: 1, stride: 16, offset: 8, normalized: false, gltype: 0 },
-                { name: 'f3', type: 'ubyte', size: 3, stride: 16, offset: 12, normalized: false, gltype: 0 },
+                {
+                    name: 'f1', location: 0, type: 'float', size: 2,
+                    stride: 16, offset: 0, normalized: false, gltype: 0,
+                },
+                {
+                    name: 'f2', location: 1, type: 'short', size: 1,
+                    stride: 16, offset: 8, normalized: false, gltype: 0,
+                },
+                {
+                    name: 'f3', location: 2, type: 'ubyte', size: 3,
+                    stride: 16, offset: 12, normalized: false, gltype: 0,
+                },
             ],
             totalSize: 16,
         };

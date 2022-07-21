@@ -22,7 +22,7 @@ export function makeFigureRenderer(makePrimitive: PrimitiveFactory, clr: Color, 
         apply3x3(mat, scaling3x3, size);
         mul3x3(transformation, mat, mat);
         mul3x3(projection, mat, mat);
-        primitive.program().setUniform('u_transform', mat, true);
+        primitive.program().setUniform('u_transform', mat);
         primitive.render();
     };
 }
