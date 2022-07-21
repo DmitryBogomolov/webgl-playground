@@ -27,7 +27,7 @@ const GL_TYPES: AttributeTypeMap<number> = {
 };
 
 function parseType({ name, type }: AttributeOptions): AttributeType {
-    const ret = type.substr(0, type.length - 1);
+    const ret = type.substring(0, type.length - 1);
     if (!(ret in GL_TYPES)) {
         throw logger.error('item "{0}" type "{1}" name is not valid', name, type);
     }
