@@ -216,6 +216,7 @@ export class Program {
         this._runtime = runtime;
         this._schema = options.schema;
         this._program = this._createProgram();
+        // TODO: Improve disposing on error.
         this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
         this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
         this._bindAttributes();

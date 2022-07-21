@@ -116,6 +116,7 @@ export class Primitive {
 
     setIndexCount(indexCount: number): void {
         // TODO: Provide index type and offset here. And use them later in "render".
+        // TODO: Allow u32 index type; through an option for Runtime.
         this._logger.log('set_index_count({0})', indexCount);
         this._indexCount = indexCount;
     }
