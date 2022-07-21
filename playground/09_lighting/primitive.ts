@@ -11,6 +11,8 @@ import directionalVertexShaderSource from './shaders/directional.vert';
 import directionalFragmentShaderSource from './shaders/directional.frag';
 import pointVertexShaderSource from './shaders/point.vert';
 import pointFragmentShaderSource from './shaders/point.frag';
+import spotVertexShaderSource from './shaders/spot.vert';
+import spotFragmentShaderSource from './shaders/spot.frag';
 
 interface Vertex {
     readonly position: Vec3;
@@ -34,6 +36,14 @@ export function makePointProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertexShader: pointVertexShaderSource,
         fragmentShader: pointFragmentShaderSource,
+        schema,
+    });
+}
+
+export function makeSpotProgram(runtime: Runtime): Program {
+    return new Program(runtime, {
+        vertexShader: spotVertexShaderSource,
+        fragmentShader: spotFragmentShaderSource,
         schema,
     });
 }

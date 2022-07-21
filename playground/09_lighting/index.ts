@@ -10,7 +10,7 @@ import {
     EventEmitter,
     deg2rad,
 } from 'lib';
-import { makePrimitive, makeDirectionalProgram, makePointProgram } from './primitive';
+import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 import { createControls } from './controls';
 
 /**
@@ -26,6 +26,7 @@ runtime.setClearColor(color(0.4, 0.4, 0.4));
 runtime.setDepthTest(true);
 const directionalProgram = makeDirectionalProgram(runtime);
 const pointProgram = makePointProgram(runtime);
+const spotProgram = makeSpotProgram(runtime);
 const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
 
 let rotation = 0;
@@ -76,7 +77,7 @@ runtime.onRender((_delta) => {
 
     {
         const program = directionalProgram;
-        program.setUniform('u_offset', -0.3);
+        program.setUniform('u_offset', -0.5);
         program.setUniform('u_model_view_proj', viewProj);
         program.setUniform('u_model_inv_trs', modelInvTrs);
         program.setUniform('u_color', clr);
@@ -86,7 +87,18 @@ runtime.onRender((_delta) => {
     }
     {
         const program = pointProgram;
-        program.setUniform('u_offset', +0.3);
+        program.setUniform('u_offset', 0);
+        program.setUniform('u_model_view_proj', viewProj);
+        program.setUniform('u_model', model);
+        program.setUniform('u_model_inv_trs', modelInvTrs);
+        program.setUniform('u_color', clr);
+        program.setUniform('u_light_position', lightPos);
+        primitive.setProgram(program);
+        primitive.render();
+    }
+    {
+        const program = spotProgram;
+        program.setUniform('u_offset', +0.5);
         program.setUniform('u_model_view_proj', viewProj);
         program.setUniform('u_model', model);
         program.setUniform('u_model_inv_trs', modelInvTrs);
