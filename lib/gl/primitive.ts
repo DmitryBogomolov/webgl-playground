@@ -4,10 +4,9 @@ import { VertexSchema } from './vertex-schema';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 
-const {
-    ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER,
-    STATIC_DRAW, TRIANGLES, UNSIGNED_SHORT,
-} = WebGLRenderingContext.prototype;
+const GL_ARRAY_BUFFER = WebGLRenderingContext.ARRAY_BUFFER;
+const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
+const GL_STATIC_DRAW = WebGLRenderingContext.prototype.STATIC_DRAW;
 
 const EMPTY_SCHEMA: VertexSchema = {
     attributes: [],
@@ -21,6 +20,37 @@ const EMPTY_PROGRAM = {
     schema() { return EMPTY_SCHEMA; },
 } as unknown as Program;
 
+export type PRIMITIVE_MODE = (
+    'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'
+);
+const PRIMITIVE_MODE_MAP: Readonly<Record<PRIMITIVE_MODE, number>> = {
+    'points': WebGLRenderingContext.prototype.POINTS,
+    'line_strip': WebGLRenderingContext.prototype.LINE_STRIP,
+    'line_loop': WebGLRenderingContext.prototype.LINE_LOOP,
+    'lines': WebGLRenderingContext.prototype.LINES,
+    'triangle_strip': WebGLRenderingContext.prototype.TRIANGLE_STRIP,
+    'triangle_fan': WebGLRenderingContext.prototype.TRIANGLE_FAN,
+    'triangles': WebGLRenderingContext.prototype.TRIANGLES,
+};
+const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
+
+export type INDEX_TYPE = (
+    'u8' | 'u16' | 'u32'
+);
+const INDEX_TYPE_MAP: Readonly<Record<INDEX_TYPE, number>> = {
+    'u8': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'u16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+    'u32': WebGLRenderingContext.prototype.UNSIGNED_INT,
+};
+const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
+
+export interface IndexData {
+    readonly indexCount: number;
+    readonly indexOffset?: number;
+    readonly indexType?: INDEX_TYPE;
+    readonly primitiveMode?: PRIMITIVE_MODE;
+}
+
 export class Primitive {
     private readonly _id = generateId('Primitive');
     private readonly _logger = new Logger(this._id);
@@ -31,7 +61,10 @@ export class Primitive {
     private _vertexBufferSize: number = 0;
     private _indexBufferSize: number = 0;
     private _schema: VertexSchema = EMPTY_SCHEMA;
+    private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
     private _indexCount: number = 0;
+    private _indexOffset: number = 0;
+    private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
     constructor(runtime: Runtime) {
@@ -70,7 +103,7 @@ export class Primitive {
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
-        gl.bufferData(ARRAY_BUFFER, this._vertexBufferSize, STATIC_DRAW);
+        gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
     }
 
     allocateIndexBuffer(size: number): void {
@@ -78,21 +111,21 @@ export class Primitive {
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
-        gl.bufferData(ELEMENT_ARRAY_BUFFER, this._indexBufferSize, STATIC_DRAW);
+        gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
         const gl = this._runtime.gl;
         this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
-        gl.bufferSubData(ARRAY_BUFFER, offset, vertexData);
+        gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
         const gl = this._runtime.gl;
         this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
-        gl.bufferSubData(ELEMENT_ARRAY_BUFFER, offset, indexData);
+        gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
     setVertexSchema(schema: VertexSchema): void {
@@ -114,11 +147,33 @@ export class Primitive {
         this._runtime.bindVertexArrayObject(null, this._id);
     }
 
-    setIndexCount(indexCount: number): void {
-        // TODO: Provide index type and offset here. And use them later in "render".
-        // TODO: Allow u32 index type; through an option for Runtime.
-        this._logger.log('set_index_count({0})', indexCount);
+    setIndexData({ indexCount, indexOffset, indexType, primitiveMode }: IndexData): void {
+        this._logger.log('set_index_data(count={0}, offset={1}, type={2}, mode={3})',
+            indexCount, indexOffset, indexType, primitiveMode);
+        if (indexCount < 0) {
+            throw this._logger.error('bad index count: {0}', indexCount);
+        }
         this._indexCount = indexCount;
+        if (indexOffset !== undefined) {
+            if (indexOffset < 0) {
+                throw this._logger.error('bad index offset: {0}', indexOffset);
+            }
+            this._indexOffset = indexOffset;
+        }
+        if (indexType !== undefined) {
+            const value = INDEX_TYPE_MAP[indexType];
+            if (!value) {
+                throw this._logger.error('bad index type: {0}', indexType);
+            }
+            this._indexType = value;
+        }
+        if (primitiveMode !== undefined) {
+            const value = PRIMITIVE_MODE_MAP[primitiveMode];
+            if (!value) {
+                throw this._logger.error('bad primitive mode: {0}', primitiveMode);
+            }
+            this._primitiveMode = value;
+        }
     }
 
     schema(): VertexSchema {
@@ -149,7 +204,7 @@ export class Primitive {
         }
         this._program.use();
         this._runtime.bindVertexArrayObject(this._vao, this._id);
-        gl.drawElements(TRIANGLES, this._indexCount, UNSIGNED_SHORT, 0);
+        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null, this._id);
     }
 }

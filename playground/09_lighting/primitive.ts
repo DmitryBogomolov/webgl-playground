@@ -66,7 +66,7 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexCount(indexData.length);
+    primitive.setIndexData({ indexCount: indexData.length });
 
     return primitive;
 }

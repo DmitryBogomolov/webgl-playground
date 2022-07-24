@@ -1,9 +1,6 @@
 import {
     Runtime,
-    BUFFER_MASK,
-    memoize,
     color,
-    Vec2,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
@@ -48,7 +45,6 @@ const viewProj = mat4();
 const unit = identity4x4();
 
 runtime.onRender((delta) => {
-    updateProjection(runtime.canvasSize());
     identity4x4(viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
@@ -56,14 +52,15 @@ runtime.onRender((delta) => {
     figure2.update(viewProj, figure1.model(), delta);
     figure3.update(viewProj, figure1.model(), delta);
 
-    runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
+    runtime.clearBuffer('color|depth');
     figure1.render();
     figure2.render();
     figure3.render();
     runtime.requestRender();
 });
 
-const updateProjection = memoize(({ x, y }: Vec2): void => {
+runtime.onSizeChanged(() => {
+    const { x, y } = runtime.canvasSize();
     perspective4x4({
         aspect: x / y,
         yFov: Math.PI / 4,

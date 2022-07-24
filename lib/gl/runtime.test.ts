@@ -14,8 +14,10 @@ describe('runtime', () => {
         beforeEach(() => {
             container = document.createElement('div');
             canvas = document.createElement('canvas');
-            vaoExt = {} as unknown as OES_vertex_array_object;
-            getExtension = jest.fn().mockReturnValueOnce(vaoExt);
+            vaoExt = { tag: 'VAO' } as unknown as OES_vertex_array_object;
+            getExtension = jest.fn()
+                .mockReturnValueOnce(vaoExt)
+                .mockReturnValueOnce({ tag: 'U32INDEX' });
             viewport = jest.fn();
             clearColor = jest.fn();
             ctx = {
