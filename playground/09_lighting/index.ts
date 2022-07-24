@@ -1,6 +1,6 @@
 import {
     Runtime,
-    Vec2,
+    Vec2, vec2,
     vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
@@ -105,7 +105,7 @@ runtime.onRender((_delta) => {
         program.setUniform('u_color', clr);
         program.setUniform('u_light_position', lightPos);
         program.setUniform('u_light_direction', lightDir);
-        program.setUniform('u_light_limit', 0.98);
+        program.setUniform('u_light_limit', vec2(0.97, 0.998));
         primitive.setProgram(program);
         primitive.render();
     }
