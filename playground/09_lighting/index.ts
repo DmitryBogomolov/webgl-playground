@@ -81,7 +81,7 @@ runtime.onRender((_delta) => {
         program.setUniform('u_model_view_proj', viewProj);
         program.setUniform('u_model_inv_trs', modelInvTrs);
         program.setUniform('u_color', clr);
-        program.setUniform('u_light_dir', lightDir);
+        program.setUniform('u_light_direction', lightDir);
         primitive.setProgram(program);
         primitive.render();
     }
@@ -104,6 +104,8 @@ runtime.onRender((_delta) => {
         program.setUniform('u_model_inv_trs', modelInvTrs);
         program.setUniform('u_color', clr);
         program.setUniform('u_light_position', lightPos);
+        program.setUniform('u_light_direction', lightDir);
+        program.setUniform('u_light_limit', 0.98);
         primitive.setProgram(program);
         primitive.render();
     }
