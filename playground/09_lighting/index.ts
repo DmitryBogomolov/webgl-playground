@@ -1,5 +1,6 @@
 import {
     Runtime,
+    Program, UniformValue,
     Vec2, vec2,
     vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
@@ -71,45 +72,36 @@ let lightPos = ZERO3;
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
-    updateModelViewProjection();
+    makeModelViewProjection();
 
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
 
-    {
-        const program = directionalProgram;
-        program.setUniform('u_offset', -0.5);
-        program.setUniform('u_model_view_proj', viewProj);
-        program.setUniform('u_model_inv_trs', modelInvTrs);
-        program.setUniform('u_color', clr);
-        program.setUniform('u_light_direction', lightDir);
-        primitive.setProgram(program);
-        primitive.render();
-    }
-    {
-        const program = pointProgram;
-        program.setUniform('u_offset', 0);
-        program.setUniform('u_model_view_proj', viewProj);
-        program.setUniform('u_model', model);
-        program.setUniform('u_model_inv_trs', modelInvTrs);
-        program.setUniform('u_color', clr);
-        program.setUniform('u_light_position', lightPos);
-        primitive.setProgram(program);
-        primitive.render();
-    }
-    {
-        const program = spotProgram;
-        program.setUniform('u_offset', +0.5);
-        program.setUniform('u_model_view_proj', viewProj);
-        program.setUniform('u_model', model);
-        program.setUniform('u_model_inv_trs', modelInvTrs);
-        program.setUniform('u_color', clr);
-        program.setUniform('u_light_position', lightPos);
-        program.setUniform('u_light_direction', lightDir);
-        program.setUniform('u_light_limit', vec2(0.97, 0.998));
-        primitive.setProgram(program);
-        primitive.render();
-    }
+    renderPrimitive(directionalProgram, -0.5, {
+        'u_light_direction': lightDir,
+    });
+    renderPrimitive(pointProgram, 0, {
+        'u_model': model,
+        'u_light_position': lightPos,
+    });
+    renderPrimitive(spotProgram, +0.5, {
+        'u_model': model,
+        'u_light_position': lightPos,
+        'u_light_direction': lightDir,
+        'u_light_limit': vec2(0.97, 0.998),
+    });
 });
+
+function renderPrimitive(program: Program, offset: number, uniforms: Record<string, UniformValue>): void {
+    program.setUniform('u_offset', offset);
+    program.setUniform('u_model_view_proj', viewProj);
+    program.setUniform('u_model_inv_trs', modelInvTrs);
+    program.setUniform('u_color', clr);
+    for (const [name, value] of Object.entries(uniforms)) {
+        program.setUniform(name, value);
+    }
+    primitive.setProgram(program);
+    primitive.render();
+}
 
 updateModel();
 updateLight();
@@ -152,7 +144,7 @@ function updateLight(): void {
     runtime.requestRender();
 }
 
-function updateModelViewProjection(): void {
+function makeModelViewProjection(): void {
     identity4x4(viewProj);
     mul4x4(model, viewProj, viewProj);
     mul4x4(view, viewProj, viewProj);
