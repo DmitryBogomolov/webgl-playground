@@ -215,14 +215,18 @@ export class Program {
         this._logger.log('init');
         this._runtime = runtime;
         this._schema = options.schema;
-        this._program = this._createProgram();
-        // TODO: Improve disposing on error.
-        this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
-        this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
-        this._bindAttributes();
-        this._linkProgram();
-        /* this._attributes = */this._collectAttributes();
-        this._uniforms = this._collectUniforms();
+        try {
+            this._program = this._createProgram();
+            this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
+            this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
+            this._bindAttributes();
+            this._linkProgram();
+            /* this._attributes = */this._collectAttributes();
+            this._uniforms = this._collectUniforms();
+        } catch (err) {
+            this._dispose();
+            throw err;
+        }
     }
 
     dispose(): void {
@@ -258,8 +262,10 @@ export class Program {
 
     private _deleteShader(shader: WebGLShader): void {
         const gl = this._runtime.gl;
-        gl.detachShader(this._program, shader);
-        gl.deleteShader(shader);
+        if (shader) {
+            gl.detachShader(this._program, shader);
+            gl.deleteShader(shader);
+        }
     }
 
     private _bindAttributes(): void {
@@ -283,7 +289,6 @@ export class Program {
             if (fragmentInfo) {
                 message += '\n' + fragmentInfo;
             }
-            this._dispose();
             throw this._logger.error(message);
         }
     }
