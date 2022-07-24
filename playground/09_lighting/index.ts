@@ -1,7 +1,7 @@
 import {
     Runtime,
     Program, UniformValue,
-    Vec2, vec2,
+    Vec2, vec2, ZERO2,
     vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
@@ -30,15 +30,25 @@ const pointProgram = makePointProgram(runtime);
 const spotProgram = makeSpotProgram(runtime);
 const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
 
+let lightDirection = ZERO3;
+let lightPosition = ZERO3;
+let lightDistance = 5;
+let lightLimit = ZERO2;
+
 let rotation = 0;
 let position = 0;
 let lightLon = 45;
 let lightLat = 45;
+let lightLimitPoint = 5;
+let lightLimitRange = 10;
 
 const rotationChanged = new EventEmitter<number>();
 const positionChanged = new EventEmitter<number>();
 const lightLonChanged = new EventEmitter<number>();
 const lightLatChanged = new EventEmitter<number>();
+const lightDistChanged = new EventEmitter<number>();
+const lightLimitPointChanged = new EventEmitter<number>();
+const lightLimitRangeChanged = new EventEmitter<number>();
 
 rotationChanged.on((value) => {
     rotation = value;
@@ -56,6 +66,18 @@ lightLatChanged.on((value) => {
     lightLat = value;
     updateLight();
 });
+lightDistChanged.on((value) => {
+    lightDistance = value;
+    updateLight();
+});
+lightLimitPointChanged.on((value) => {
+    lightLimitPoint = value;
+    updateLightLimit();
+});
+lightLimitRangeChanged.on((value) => {
+    lightLimitRange = value;
+    updateLightLimit();
+});
 
 const proj = mat4();
 const view = lookAt4x4({
@@ -67,8 +89,6 @@ const model = mat4();
 const viewProj = mat4();
 const modelInvTrs = mat4();
 const clr = color(0.2, 0.6, 0.1);
-let lightDir = ZERO3;
-let lightPos = ZERO3;
 
 runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
@@ -77,17 +97,17 @@ runtime.onRender((_delta) => {
     runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
 
     renderPrimitive(directionalProgram, -0.5, {
-        'u_light_direction': lightDir,
+        'u_light_direction': lightDirection,
     });
     renderPrimitive(pointProgram, 0, {
         'u_model': model,
-        'u_light_position': lightPos,
+        'u_light_position': lightPosition,
     });
     renderPrimitive(spotProgram, +0.5, {
         'u_model': model,
-        'u_light_position': lightPos,
-        'u_light_direction': lightDir,
-        'u_light_limit': vec2(0.97, 0.998),
+        'u_light_position': lightPosition,
+        'u_light_direction': lightDirection,
+        'u_light_limit': lightLimit,
     });
 });
 
@@ -105,12 +125,16 @@ function renderPrimitive(program: Program, offset: number, uniforms: Record<stri
 
 updateModel();
 updateLight();
+updateLightLimit();
 
 createControls([
     { name: 'rotation', value: rotation, min: -180, max: +180, emitter: rotationChanged },
     { name: 'position', value: position, min: -5, max: +5, emitter: positionChanged },
     { name: 'light lon', value: lightLon, min: -180, max: +180, emitter: lightLonChanged },
     { name: 'light lat', value: lightLat, min: -90, max: +90, emitter: lightLatChanged },
+    { name: 'light dist', value: lightDistance, min: 2, max: 10, emitter: lightDistChanged },
+    { name: 'limit point', value: lightLimitPoint, min: 0, max: 30, emitter: lightLimitPointChanged },
+    { name: 'limit range', value: lightLimitRange, min: 0, max: 20, emitter: lightLimitRangeChanged },
 ]);
 
 const updateProjection = memoize((size: Vec2): void => {
@@ -139,8 +163,17 @@ function updateLight(): void {
         Math.sin(lat),
         Math.cos(lat) * Math.cos(lon),
     );
-    lightDir = neg3(dir);
-    lightPos = mul3(dir, 5);
+    lightDirection = neg3(dir);
+    lightPosition = mul3(dir, lightDistance);
+    runtime.requestRender();
+}
+
+function updateLightLimit(): void {
+    const point = deg2rad(lightLimitPoint);
+    const range = deg2rad(lightLimitRange);
+    const p1 = Math.max(point - range / 2, 0);
+    const p2 = point + range / 2;
+    lightLimit = vec2(Math.cos(p2), Math.cos(p1));
     runtime.requestRender();
 }
 
