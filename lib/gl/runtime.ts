@@ -83,9 +83,23 @@ const CULL_FACE_MAP: Readonly<Record<CULL_FACE, number>> = {
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
 };
 
+export interface RuntimeOptions {
+    alpha?: boolean,
+    antialias?: boolean,
+    premultipliedAlpha?: boolean,
+    trackWindowResize?: boolean,
+}
+const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
+    alpha: true,
+    antialias: false,
+    premultipliedAlpha: false,
+    trackWindowResize: true,
+};
+
 export class Runtime {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
+    private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private _size: Vec2 = ZERO2;
@@ -106,7 +120,8 @@ export class Runtime {
         this.adjustViewport();
     };
 
-    constructor(element: HTMLElement) {
+    constructor(element: HTMLElement, options?: RuntimeOptions) {
+        this._options = { ...DEFAULT_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
         this.gl = this._getContext();
@@ -135,8 +150,9 @@ export class Runtime {
             pixelStoreUnpackFlipYWebgl: false,
         };
         this.adjustViewport();
-        // TODO: Make it optional.
-        onWindowResize(this._handleWindowResize);
+        if (this._options.trackWindowResize) {
+            onWindowResize(this._handleWindowResize);
+        }
     }
 
     dispose(): void {
@@ -144,14 +160,16 @@ export class Runtime {
         this._renderLoop.cancel();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        offWindowResize(this._handleWindowResize);
+        if (this._options.trackWindowResize) {
+            offWindowResize(this._handleWindowResize);
+        }
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl', CONTEXT_OPTIONS);
+        const context = this._canvas.getContext('webgl', this._options as WebGLContextAttributes);
         if (!context) {
             throw this._logger.error('failed to get webgl context');
         }
@@ -434,12 +452,6 @@ export class Runtime {
 }
 
 const CANVAS_TAG = Symbol('CanvasTag');
-
-const CONTEXT_OPTIONS: WebGLContextAttributes = {
-    alpha: true,
-    antialias: false,
-    premultipliedAlpha: false,
-};
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
