@@ -1,12 +1,11 @@
 import {
     Runtime,
     Program, UniformValue,
-    Vec2, vec2, ZERO2,
+    vec2, ZERO2,
     vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
     color,
-    memoize,
     EventEmitter,
     deg2rad,
 } from 'lib';
@@ -90,7 +89,6 @@ const modelInvTrs = mat4();
 const clr = color(0.2, 0.6, 0.1);
 
 runtime.onRender((_delta) => {
-    updateProjection(runtime.canvasSize());
     makeModelViewProjection();
 
     runtime.clearBuffer('color|depth');
@@ -136,9 +134,10 @@ createControls([
     { name: 'limit range', value: lightLimitRange, min: 0, max: 20, emitter: lightLimitRangeChanged },
 ]);
 
-const updateProjection = memoize((size: Vec2): void => {
+runtime.onSizeChanged(() => {
+    const { x, y } = runtime.canvasSize();
     perspective4x4({
-        aspect: size.x / size.y,
+        aspect: x / y,
         yFov: Math.PI / 4,
         zNear: 0.01,
         zFar: 100,

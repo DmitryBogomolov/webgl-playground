@@ -1,8 +1,6 @@
 import {
     Runtime,
-    memoize,
     color,
-    Vec2,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
@@ -47,7 +45,6 @@ const viewProj = mat4();
 const unit = identity4x4();
 
 runtime.onRender((delta) => {
-    updateProjection(runtime.canvasSize());
     identity4x4(viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
@@ -62,7 +59,8 @@ runtime.onRender((delta) => {
     runtime.requestRender();
 });
 
-const updateProjection = memoize(({ x, y }: Vec2): void => {
+runtime.onSizeChanged(() => {
+    const { x, y } = runtime.canvasSize();
     perspective4x4({
         aspect: x / y,
         yFov: Math.PI / 4,

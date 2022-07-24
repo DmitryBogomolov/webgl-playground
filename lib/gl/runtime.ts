@@ -1,5 +1,6 @@
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
+import { EventEmitter } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
@@ -104,6 +105,7 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
+    private readonly _sizeChanged = new EventEmitter();
     private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -226,11 +228,11 @@ export class Runtime {
             return false;
         }
         this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
-        // TODO: Provide "canvasResized" event.
         this._size = size;
         this._canvasSize = canvasSize;
         this._canvas.width = canvasSize.x;
         this._canvas.height = canvasSize.y;
+        this._sizeChanged.emit();
         this.gl.viewport(0, 0, canvasSize.x, canvasSize.y);
         return true;
     }
@@ -385,6 +387,16 @@ export class Runtime {
 
     requestRender(): void {
         this._renderLoop.update();
+    }
+
+    onSizeChanged(callback: () => void): void {
+        this._sizeChanged.on(callback);
+        // Immediately notify subscriber so that it may perform initial calculation.
+        callback();
+    }
+
+    offSizeChanged(callback: () => void): void {
+        this._sizeChanged.off(callback);
     }
 
     useProgram(program: WebGLProgram | null, id: string): void {

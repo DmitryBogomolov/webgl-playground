@@ -1,13 +1,8 @@
 import {
     Runtime,
-    color,
-    colors,
-    Vec2,
+    color, colors,
     vec2,
-    mat3,
-    projection3x3,
-    mul3x3,
-    memoize,
+    mat3, projection3x3, mul3x3,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
@@ -35,7 +30,8 @@ const transformation2 = mat3();
 const transformation3 = mat3();
 
 const projection = mat3();
-const updateProjection = memoize(({ x, y }: Vec2): void => {
+runtime.onSizeChanged(() => {
+    const { x, y } = runtime.canvasSize();
     const dx = x / 2;
     const dy = y / 2;
     projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
@@ -43,7 +39,6 @@ const updateProjection = memoize(({ x, y }: Vec2): void => {
 
 runtime.onRender((delta) => {
     runtime.clearBuffer();
-    updateProjection(runtime.canvasSize());
     animate1(delta, transformation1);
     animate2(delta, transformation2);
     animate3(delta, transformation3);
