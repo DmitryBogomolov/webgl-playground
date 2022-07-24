@@ -32,28 +32,56 @@ interface State {
     pixelStoreUnpackFlipYWebgl: boolean;
 }
 
-export enum BUFFER_MASK {
-    COLOR = WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
-    DEPTH = WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
-    STENCIL = WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
-}
+export type BUFFER_MASK = (
+    | 'color' | 'depth' | 'stencil'
+    | 'color|depth' | 'color|stencil' | 'depth|stencil'
+    | 'color|depth|stencil'
+);
+const BUFFER_MASK_MAP: Readonly<Record<BUFFER_MASK, number>> = {
+    'color': WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
+    'depth': WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
+    'stencil': WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
+    'color|depth': (
+        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
+        | WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
+    ),
+    'color|stencil': (
+        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
+        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
+    ),
+    'depth|stencil': (
+        WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
+        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
+    ),
+    'color|depth|stencil': (
+        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
+        | WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
+        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
+    ),
+};
 
-export enum DEPTH_FUNC {
-    NEVER = WebGLRenderingContext.prototype.NEVER,
-    LESS = WebGLRenderingContext.prototype.LESS,
-    LEQUAL = WebGLRenderingContext.prototype.LEQUAL,
-    GREATER = WebGLRenderingContext.prototype.GREATER,
-    GEQUAL = WebGLRenderingContext.prototype.GEQUAL,
-    EQUAL = WebGLRenderingContext.prototype.EQUAL,
-    NOTEQUAL = WebGLRenderingContext.prototype.NOTEQUAL,
-    ALWAYS = WebGLRenderingContext.prototype.ALWAYS,
-}
+export type DEPTH_FUNC = (
+    'never' | 'less' | 'lequal' | 'greater' | 'gequal' | 'equal' | 'notequal' | 'always'
+);
+const DEPTH_FUNC_MAP: Readonly<Record<DEPTH_FUNC, number>> = {
+    'never': WebGLRenderingContext.prototype.NEVER,
+    'less': WebGLRenderingContext.prototype.LESS,
+    'lequal': WebGLRenderingContext.prototype.LEQUAL,
+    'greater': WebGLRenderingContext.prototype.GREATER,
+    'gequal': WebGLRenderingContext.prototype.GEQUAL,
+    'equal': WebGLRenderingContext.prototype.EQUAL,
+    'notequal': WebGLRenderingContext.prototype.NOTEQUAL,
+    'always': WebGLRenderingContext.prototype.ALWAYS,
+};
 
-export enum CULL_FACE {
-    BACK = WebGLRenderingContext.prototype.BACK,
-    FRONT = WebGLRenderingContext.prototype.FRONT,
-    FRONT_AND_BACK = WebGLRenderingContext.prototype.FRONT_AND_BACK,
-}
+export type CULL_FACE = (
+    'back' | 'front' | 'front_and_back'
+);
+const CULL_FACE_MAP: Readonly<Record<CULL_FACE, number>> = {
+    'back': WebGLRenderingContext.prototype.BACK,
+    'front': WebGLRenderingContext.prototype.FRONT,
+    'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
+};
 
 export class Runtime {
     private readonly _id = generateId('Runtime');
@@ -92,9 +120,9 @@ export class Runtime {
             clearDepth: 1,
             clearStencil: 0,
             depthTest: false,
-            depthFunc: DEPTH_FUNC.LESS,
+            depthFunc: 'less',
             culling: false,
-            cullFace: CULL_FACE.BACK,
+            cullFace: 'back',
             currentProgram: null,
             vertexArrayObject: null,
             arrayBuffer: null,
@@ -191,9 +219,10 @@ export class Runtime {
         }
     }
 
-    clearBuffer(mask: BUFFER_MASK = BUFFER_MASK.COLOR): void {
-        this._logger.log('clear_buffer({0})', BUFFER_MASK_2_STR[mask]);
-        this.gl.clear(mask);
+    clearBuffer(mask: BUFFER_MASK = 'color'): void {
+        const value = BUFFER_MASK_MAP[mask];
+        this._logger.log('clear_buffer({0})', mask);
+        this.gl.clear(value);
     }
 
     getClearColor(): Color {
@@ -271,14 +300,15 @@ export class Runtime {
     }
 
     setDepthFunc(depthFunc: DEPTH_FUNC): boolean {
-        if (!(depthFunc >= 0 && DEPTH_FUNC[depthFunc])) {
+        const value = DEPTH_FUNC_MAP[depthFunc];
+        if (!value) {
             throw this._logger.error('set_depth_func({0}): bad value', depthFunc);
         }
         if (this._state.depthFunc === depthFunc) {
             return false;
         }
-        this._logger.log('set_depth_func({0})', DEPTH_FUNC[depthFunc]);
-        this.gl.depthFunc(depthFunc);
+        this._logger.log('set_depth_func({0})', depthFunc);
+        this.gl.depthFunc(value);
         this._state.depthFunc = depthFunc;
         return true;
     }
@@ -306,14 +336,15 @@ export class Runtime {
     }
 
     setCullFace(cullFace: CULL_FACE): boolean {
-        if (!(cullFace >= 0 && CULL_FACE[cullFace])) {
+        const value = CULL_FACE_MAP[cullFace];
+        if (!value) {
             throw this._logger.error('set_cull_face({0}): bad value', cullFace);
         }
         if (this._state.cullFace === cullFace) {
             return false;
         }
-        this._logger.log('set_cull_face({0})', CULL_FACE[cullFace]);
-        this.gl.cullFace(cullFace);
+        this._logger.log('set_cull_face({0})', cullFace);
+        this.gl.cullFace(value);
         this._state.cullFace = cullFace;
         return true;
     }
@@ -419,13 +450,3 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
 function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
     return CANVAS_TAG in canvas;
 }
-
-const BUFFER_MASK_2_STR = {
-    [BUFFER_MASK.COLOR]: 'COLOR',
-    [BUFFER_MASK.DEPTH]: 'DEPTH',
-    [BUFFER_MASK.STENCIL]: 'STENCIL',
-    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH]: 'COLOR|DEPTH',
-    [BUFFER_MASK.COLOR | BUFFER_MASK.STENCIL]: 'COLOR|STENCIL',
-    [BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'DEPTH|STENCIL',
-    [BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH | BUFFER_MASK.STENCIL]: 'COLOR|DEPTH|STENCIL',
-};

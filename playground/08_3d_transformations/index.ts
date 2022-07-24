@@ -1,6 +1,5 @@
 import {
     Runtime,
-    BUFFER_MASK,
     memoize,
     color,
     Vec2,
@@ -56,7 +55,7 @@ runtime.onRender((delta) => {
     figure2.update(viewProj, figure1.model(), delta);
     figure3.update(viewProj, figure1.model(), delta);
 
-    runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
+    runtime.clearBuffer('color|depth');
     figure1.render();
     figure2.render();
     figure3.render();

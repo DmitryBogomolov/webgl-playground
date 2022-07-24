@@ -7,7 +7,6 @@ import {
     apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
     color,
     memoize,
-    BUFFER_MASK,
     EventEmitter,
     deg2rad,
 } from 'lib';
@@ -94,7 +93,7 @@ runtime.onRender((_delta) => {
     updateProjection(runtime.canvasSize());
     makeModelViewProjection();
 
-    runtime.clearBuffer(BUFFER_MASK.COLOR | BUFFER_MASK.DEPTH);
+    runtime.clearBuffer('color|depth');
 
     renderPrimitive(directionalProgram, -0.5, {
         'u_light_direction': lightDirection,
