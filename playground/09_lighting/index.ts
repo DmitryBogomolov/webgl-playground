@@ -16,7 +16,7 @@ import { createControls } from './controls';
 /**
  * Lighting.
  *
- * TODO...
+ * Different basic lighting techniques.
  */
 export type DESCRIPTION = never;
 
