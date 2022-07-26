@@ -1,13 +1,13 @@
 
-export type Kernel = readonly [number, number, number, number, number, number, number, number, number];
+export type Kernel = Readonly<[number, number, number, number, number, number, number, number, number]>;
 
 export interface ConvolutionKernel {
     readonly name: string;
-    readonly kernel: readonly [number, number, number, number, number, number, number, number, number];
+    readonly kernel: Kernel;
     readonly weight: number;
 }
 
-const data: [string, Kernel][] = [
+const data: ReadonlyArray<[string, Kernel]> = [
     [
         'Normal', [
             0, 0, 0,
