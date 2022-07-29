@@ -1,7 +1,6 @@
 import {
     Runtime,
-    vec3, ZERO3, YUNIT3,
-    mat4, perspective4x4, lookAt4x4, mul4x4,
+    mat4, perspective4x4,
     color,
 } from 'lib';
 import { makePrimitive } from './primitive';
@@ -22,38 +21,36 @@ const primitive = makePrimitive(runtime);
 makeTexture(runtime);
 
 const proj = mat4();
-const view = lookAt4x4({
-    eye: vec3(0, 0, 5),
-    center: ZERO3,
-    up: YUNIT3,
-});
-const viewProj = mat4();
+const FOV = Math.PI / 4;
+// Z-distance where [-1, +1] segment exactly matches full canvas height.
+// h / 2 = d * tan (FOV / 2)
+const DISTANCE = 1 / Math.tan(FOV / 2);
 
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
     perspective4x4({
-        yFov: Math.PI / 4,
+        yFov: FOV,
         aspect: x / y,
         zNear: 0.001,
         zFar: 100,
     }, proj);
-    mul4x4(proj, view, viewProj);
 });
 
 const RENDER_SCHEMA = [
     { offset: -0.8, size: 0.2 },
     { offset: -0.4, size: 0.4 },
-    { offset: 0, size: 0.8 },
-    { offset: +0.4, size: 1.0 },
-    { offset: +0.8, size: 1.5 },
+    { offset: 0, size: 0.5 },
+    { offset: +0.4, size: 0.7 },
+    { offset: +0.8, size: 0.8 },
 ];
 
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
 
-    program.setUniform('u_model_view_proj', viewProj);
+    program.setUniform('u_proj', proj);
     program.setUniform('u_texture', 1);
+    program.setUniform('u_distance', DISTANCE);
 
     for (const { offset, size } of RENDER_SCHEMA) {
         program.setUniform('u_offset', offset);
