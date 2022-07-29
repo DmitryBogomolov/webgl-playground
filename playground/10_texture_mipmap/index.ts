@@ -40,10 +40,24 @@ runtime.onSizeChanged(() => {
     mul4x4(proj, view, viewProj);
 });
 
+const RENDER_SCHEMA = [
+    { offset: -0.8, size: 0.2 },
+    { offset: -0.4, size: 0.4 },
+    { offset: 0, size: 0.8 },
+    { offset: +0.4, size: 1.0 },
+    { offset: +0.8, size: 1.5 },
+];
+
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
+    const program = primitive.program();
 
-    primitive.program().setUniform('u_model_view_proj', viewProj);
-    primitive.program().setUniform('u_texture', 1);
-    primitive.render();
+    program.setUniform('u_model_view_proj', viewProj);
+    program.setUniform('u_texture', 1);
+
+    for (const { offset, size } of RENDER_SCHEMA) {
+        program.setUniform('u_offset', offset);
+        program.setUniform('u_size', size);
+        primitive.render();
+    }
 });

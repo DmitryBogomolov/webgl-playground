@@ -8,17 +8,17 @@ import vertexShader from './shaders/texture.vert';
 import fragmentShader from './shaders/texture.frag';
 
 const schema = parseVertexSchema([
-    { name: 'a_position', type: 'float3' },
+    { name: 'a_position', type: 'float2' },
 ]);
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const vertices = new Float32Array([
-        -1, -1, 0,
-        +1, -1, 0,
-        +1, +1, 0,
-        -1, +1, 0,
+        -1, -1,
+        +1, -1,
+        +1, +1,
+        -1, +1,
     ]);
     const indices = new Uint16Array([
         0, 1, 2,
