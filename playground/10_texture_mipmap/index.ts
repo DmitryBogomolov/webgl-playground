@@ -1,5 +1,6 @@
 import {
     Runtime,
+    mul2,
     vec3,
     mat4, perspective4x4, apply4x4, identity4x4, translation4x4,
     color,
@@ -19,13 +20,16 @@ const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
-makeTexture(runtime);
+const texture = makeTexture(runtime);
 
 const proj = mat4();
 const YFOV = Math.PI / 4;
 // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
 // h / 2 = d * tan (FOV / 2) <=> d = h / 2 / tan(FOV / 2)
 const DISTANCE = 1 / 2 / Math.tan(YFOV / 2);
+
+// Shows amount pixels fit into segment of unit length.
+let world2pxRatio = 1;
 
 runtime.onSizeChanged(() => {
     identity4x4(proj);
@@ -37,14 +41,15 @@ runtime.onSizeChanged(() => {
         zNear: 0.001,
         zFar: 100,
     });
+    world2pxRatio = 1 / y;
 });
 
 const RENDER_SCHEMA = [
     { offset: -0.8, size: 0.2 },
     { offset: -0.4, size: 0.4 },
     { offset: 0, size: 0.5 },
-    { offset: +0.4, size: 0.7 },
-    { offset: +0.8, size: 0.8 },
+    { offset: +0.4, size: 1 },
+    { offset: +0.8, size: 1.2 },
 ];
 
 runtime.onRender(() => {
@@ -53,10 +58,11 @@ runtime.onRender(() => {
 
     program.setUniform('u_proj', proj);
     program.setUniform('u_texture', 1);
+    const unitSize = mul2(texture.size(), world2pxRatio)
 
     for (const { offset, size } of RENDER_SCHEMA) {
         program.setUniform('u_offset', offset);
-        program.setUniform('u_size', size);
+        program.setUniform('u_size', mul2(unitSize, size));
         primitive.render();
     }
 });
