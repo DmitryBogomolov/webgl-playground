@@ -1,6 +1,7 @@
 import {
     Runtime,
-    mat4, perspective4x4,
+    vec3,
+    mat4, perspective4x4, apply4x4, identity4x4, translation4x4,
     color,
 } from 'lib';
 import { makePrimitive } from './primitive';
@@ -21,19 +22,21 @@ const primitive = makePrimitive(runtime);
 makeTexture(runtime);
 
 const proj = mat4();
-const FOV = Math.PI / 4;
-// Z-distance where [-1, +1] segment exactly matches full canvas height.
-// h / 2 = d * tan (FOV / 2)
-const DISTANCE = 1 / Math.tan(FOV / 2);
+const YFOV = Math.PI / 4;
+// Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
+// h / 2 = d * tan (FOV / 2) <=> d = h / 2 / tan(FOV / 2)
+const DISTANCE = 1 / 2 / Math.tan(YFOV / 2);
 
 runtime.onSizeChanged(() => {
+    identity4x4(proj);
+    apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
     const { x, y } = runtime.canvasSize();
-    perspective4x4({
-        yFov: FOV,
+    apply4x4(proj, perspective4x4, {
+        yFov: YFOV,
         aspect: x / y,
         zNear: 0.001,
         zFar: 100,
-    }, proj);
+    });
 });
 
 const RENDER_SCHEMA = [
@@ -50,7 +53,6 @@ runtime.onRender(() => {
 
     program.setUniform('u_proj', proj);
     program.setUniform('u_texture', 1);
-    program.setUniform('u_distance', DISTANCE);
 
     for (const { offset, size } of RENDER_SCHEMA) {
         program.setUniform('u_offset', offset);

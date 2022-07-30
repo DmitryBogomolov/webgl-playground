@@ -15,10 +15,10 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const vertices = new Float32Array([
-        -1, -1,
-        +1, -1,
-        +1, +1,
-        -1, +1,
+        -0.5, -0.5,
+        +0.5, -0.5,
+        +0.5, +0.5,
+        -0.5, +0.5,
     ]);
     const indices = new Uint16Array([
         0, 1, 2,
