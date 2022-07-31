@@ -3,7 +3,7 @@ import {
     Texture,
 } from 'lib';
 
-export function makeTexture(runtime: Runtime): Texture {
+export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);
     texture.setUnit(1);
     texture.setParameters({
@@ -18,7 +18,7 @@ export function makeTexture(runtime: Runtime): Texture {
     image.onload = () => {
         image.onload = null;
         texture.setImageData(image, true);
-        runtime.requestRender();
+        onReady();
     };
 
     return texture;

@@ -21,15 +21,14 @@ const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime);
+const texture = makeTexture(runtime, () => {
+    runtime.requestRender();
+});
 
 const proj = mat4();
 const YFOV = Math.PI / 4;
 // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
 const DISTANCE = fovSize2Dist(YFOV, 1);
-
-// Shows amount pixels that fit into segment of unit length.
-let world2pxRatio = NaN;
 
 runtime.onSizeChanged(() => {
     identity4x4(proj);
@@ -41,7 +40,6 @@ runtime.onSizeChanged(() => {
         zNear: 0.001,
         zFar: 100,
     });
-    world2pxRatio = 1 / y;
 });
 
 const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
@@ -55,20 +53,33 @@ const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(+1, +0.8), size: 0.15 },
 ];
 
-runtime.onRender(() => {
+let animationAngle = 0;
+const PI2 = Math.PI * 2;
+const ANIMATION_SPEED = PI2 / 10;
+const ANIMATION_RADIUS = 10;
+
+runtime.onRender((delta) => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
 
+    const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
+
+    animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
+    const dx = ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
+    const dy = ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
+
     program.setUniform('u_proj', proj);
     program.setUniform('u_texture', 1);
-    const unitSize = mul2(texture.size(), world2pxRatio);
+    const unitSize = mul2(texture.size(), 1 / yCanvas);
     // tex / [-1, +1] ~ tex_size / screen_size
-    const kx = 2 * texture.size().x / runtime.canvasSize().x;
-    const ky = 2 * texture.size().y / runtime.canvasSize().y;
+    const kx = 2 * texture.size().x / xCanvas;
+    const ky = 2 * texture.size().y / yCanvas;
 
     for (const { offset, size } of RENDER_SCHEMA) {
-        program.setUniform('u_offset', vec2(offset.x * kx, offset.y * ky));
+        program.setUniform('u_offset', vec2(offset.x * kx + dx, offset.y * ky + dy));
         program.setUniform('u_size', mul2(unitSize, size));
         primitive.render();
     }
+
+    runtime.requestRender();
 });
