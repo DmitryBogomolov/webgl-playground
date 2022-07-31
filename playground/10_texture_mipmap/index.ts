@@ -49,10 +49,10 @@ const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(-1.5, +0.4), size: 0.2 },
     { offset: vec2(-1.5, -0.3), size: 0.4 },
     { offset: vec2(+2, 0), size: 1.2 },
-    { offset: vec2(-1, +0.9), size: 0.5 },
-    { offset: vec2(-1, -0.9), size: 0.3 },
-    { offset: vec2(+1, -0.9), size: 0.1 },
-    { offset: vec2(+1, +0.9), size: 0.15 },
+    { offset: vec2(-1, +0.8), size: 0.5 },
+    { offset: vec2(-1, -0.8), size: 0.3 },
+    { offset: vec2(+1, -0.8), size: 0.1 },
+    { offset: vec2(+1, +0.8), size: 0.15 },
 ];
 
 runtime.onRender(() => {
