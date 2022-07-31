@@ -1,6 +1,6 @@
 import {
     Runtime,
-    vec2, mul2,
+    Vec2, vec2, mul2,
     vec3,
     mat4, perspective4x4, apply4x4, identity4x4, translation4x4,
     color,
@@ -44,7 +44,7 @@ runtime.onSizeChanged(() => {
     world2pxRatio = 1 / y;
 });
 
-const RENDER_SCHEMA = [
+const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(0, 0), size: 1 },
     { offset: vec2(-1.5, +0.4), size: 0.2 },
     { offset: vec2(-1.5, -0.3), size: 0.4 },
