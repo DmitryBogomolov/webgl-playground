@@ -1,5 +1,6 @@
 import {
     deg2rad, rad2deg,
+    fovDist2Size, fovSize2Dist,
     linearMapping,
 } from './scalar';
 
@@ -24,6 +25,16 @@ describe('scalar', () => {
         expect(rad2deg(Math.PI)).toBeCloseTo(180);
         expect(rad2deg(Math.PI * 1.5)).toBeCloseTo(270);
         expect(rad2deg(Math.PI * 2)).toBeCloseTo(360);
+    });
+
+    it('fovDist2Size', () => {
+        expect(fovDist2Size(Math.PI / 4, 1)).toBeCloseTo(0.8284);
+        expect(fovDist2Size(Math.PI / 4, 1.2071)).toBeCloseTo(1);
+    });
+
+    it('fovSize2Dist', () => {
+        expect(fovSize2Dist(Math.PI / 4, 1)).toBeCloseTo(1.2071);
+        expect(fovSize2Dist(Math.PI / 4, 0.8284)).toBeCloseTo(1);
     });
 
     it('linear mapping', () => {
