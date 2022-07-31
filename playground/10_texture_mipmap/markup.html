@@ -1,0 +1,44 @@
+<style>
+    .root {
+        position: relative;
+    }
+    .controls-panel {
+        position: absolute;
+        top: 0;
+        padding: 4px;
+    }
+    /* .control-group {
+        padding: 2px;
+    }
+    .control-text {
+        width: 100px;
+        float: left;
+        padding-right: 4px;
+    }
+    .control-value {
+        width: 30px;
+        padding-left: 4px;
+        float: right;
+        text-align: right;
+    } */
+</style>
+<div class="root">
+    <div class="playground-container"></div>
+    <div class="controls-panel">
+        <div>
+            <span>animation</span>
+            <input class="animation" type="checkbox" checked="true"></input>
+        </div>
+        <div>
+            <span>x rotation</span>
+            <input class="x-rotation" type="range" min="-30" max="30" value="0"></input>
+        </div>
+        <div>
+            <span>y rotation</span>
+            <input class="y-rotation" type="range" min="-30" max="30" value="0"></input>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.playground-container').appendChild(document.querySelector('#playground-root'));
+</script>

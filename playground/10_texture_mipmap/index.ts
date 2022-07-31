@@ -2,12 +2,13 @@ import {
     Runtime,
     Vec2, vec2, mul2,
     vec3,
-    mat4, perspective4x4, apply4x4, identity4x4, translation4x4,
+    mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
     color,
-    fovSize2Dist,
+    fovSize2Dist, deg2rad,
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
+import { setupControls } from './controls';
 
 /**
  * Texture mipmap.
@@ -53,10 +54,34 @@ const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(+1, +0.8), size: 0.15 },
 ];
 
+let animationFlag = 1;
 let animationAngle = 0;
 const PI2 = Math.PI * 2;
 const ANIMATION_SPEED = PI2 / 10;
 const ANIMATION_RADIUS = 10;
+
+let xRotation = 0;
+let yRotation = 0;
+const mat = mat4();
+
+setupControls({
+    animation: Boolean(animationFlag),
+    xRotation,
+    yRotation,
+}, {
+    animation(enabled) {
+        animationFlag = Number(enabled);
+        runtime.requestRender();
+    },
+    xRotation(value) {
+        xRotation = value;
+        runtime.requestRender();
+    },
+    yRotation(value) {
+        yRotation = value;
+        runtime.requestRender();
+    },
+});
 
 runtime.onRender((delta) => {
     runtime.clearBuffer('color|depth');
@@ -65,10 +90,15 @@ runtime.onRender((delta) => {
     const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
 
     animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
-    const dx = ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
-    const dy = ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
+    const dx = animationFlag * ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
+    const dy = animationFlag * ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
 
-    program.setUniform('u_proj', proj);
+    identity4x4(mat);
+    apply4x4(mat, xrotation4x4, deg2rad(xRotation));
+    apply4x4(mat, yrotation4x4, deg2rad(yRotation));
+    mul4x4(proj, mat, mat);
+
+    program.setUniform('u_proj', mat);
     program.setUniform('u_texture', 1);
     const unitSize = mul2(texture.size(), 1 / yCanvas);
     // tex / [-1, +1] ~ tex_size / screen_size
@@ -81,5 +111,7 @@ runtime.onRender((delta) => {
         primitive.render();
     }
 
-    runtime.requestRender();
+    if (animationFlag) {
+        runtime.requestRender();
+    }
 });
