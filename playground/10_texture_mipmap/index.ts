@@ -25,6 +25,7 @@ const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime, () => {
     runtime.requestRender();
 });
+texture.setUnit(4);
 
 const proj = mat4();
 const YFOV = Math.PI / 4;
@@ -99,7 +100,7 @@ runtime.onRender((delta) => {
     mul4x4(proj, mat, mat);
 
     program.setUniform('u_proj', mat);
-    program.setUniform('u_texture', 1);
+    program.setUniform('u_texture', 4);
     const unitSize = mul2(texture.size(), 1 / yCanvas);
     // tex / [-1, +1] ~ tex_size / screen_size
     const kx = 2 * texture.size().x / xCanvas;

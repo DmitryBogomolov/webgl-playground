@@ -5,7 +5,6 @@ import {
 
 export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);
-    texture.setUnit(1);
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',
@@ -17,7 +16,7 @@ export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     image.src = '/static/mip-low-res-enlarged.png';
     image.onload = () => {
         image.onload = null;
-        texture.setImageData(image, true);
+        texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
         onReady();
     };
 

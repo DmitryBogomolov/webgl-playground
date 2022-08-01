@@ -50,7 +50,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 
 function makeTexture(runtime: Runtime): Texture {
     const texture = new Texture(runtime);
-    texture.setUnit(1);
+    texture.setUnit(3);
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',
@@ -62,7 +62,7 @@ function makeTexture(runtime: Runtime): Texture {
     image.src = '/static/leaves.jpg';
     image.onload = () => {
         image.onload = null;
-        texture.setImageData(image, true);
+        texture.setImageData(image, { unpackFlipY: true });
         runtime.requestRender();
     };
 
@@ -101,7 +101,7 @@ runtime.onRender(() => {
     const program = primitive.program();
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());
-    program.setUniform('u_texture', 1);
+    program.setUniform('u_texture', 3);
     program.setUniform('u_kernel', currentKernel.kernel);
     program.setUniform('u_kernel_weight', currentKernel.weight);
     primitive.render();

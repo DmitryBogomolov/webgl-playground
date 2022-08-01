@@ -80,7 +80,8 @@ function makeTexture(runtime: Runtime): Texture {
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
     });
-    texture.setImageData(textureData, true);
+    texture.setImageData(textureData, { unpackFlipY: true });
+    texture.setUnit(2);
     return texture;
 }
 
@@ -102,11 +103,10 @@ function drawRect(pos: Position, filter: TextureFilterValues, texcoord: Vec2 | n
         min_filter: filter,
         mag_filter: filter,
     });
-    texture.setUnit(1);
     const program = primitive.program();
     program.setUniform('u_position', pos);
     program.setUniform('u_use_custom', !!texcoord);
-    program.setUniform('u_texture', 1);
+    program.setUniform('u_texture', 2);
     if (texcoord) {
         program.setUniform('u_texcoord', texcoord);
     }

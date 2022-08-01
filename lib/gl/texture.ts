@@ -44,6 +44,11 @@ const PARAM_VALUE_MAP: ParamValueMap = {
     clamp_to_edge: CLAMP_TO_EDGE,
 };
 
+export interface ImageDataOptions {
+    readonly unpackFlipY?: boolean;
+    readonly generateMipmap?: boolean;
+}
+
 export interface TextureData {
     readonly size: readonly [number, number];
     readonly data: Uint8ClampedArray;
@@ -83,8 +88,14 @@ export class Texture {
         return texture;
     }
 
-    setImageData(source: TextureData | TexImageSource, unpackFlipY: boolean = false): void {
+    setImageData(source: TextureData | TexImageSource, options?: ImageDataOptions): void {
         const gl = this._runtime.gl;
+        let unpackFlipY = false;
+        let generateMipmap = false;
+        if (options) {
+            unpackFlipY = !!options.unpackFlipY;
+            generateMipmap = !!options.generateMipmap;
+        }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.bindTexture(this._texture, this._id);
         if (isTextureData(source)) {
@@ -97,6 +108,9 @@ export class Texture {
             gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
             this._size = vec2(source.width, source.height);
         }
+        if (generateMipmap) {
+            gl.generateMipmap(TEXTURE_2D);
+        }
     }
 
     setParameters(params: TextureParameters): void {
@@ -104,9 +118,9 @@ export class Texture {
         const gl = this._runtime.gl;
         this._runtime.bindTexture(this._texture, this._id);
         for (const [name, value] of Object.entries(params)) {
-            const pname = PARAM_NAME_MAP[name as Names];
-            const pvalue = PARAM_VALUE_MAP[value as Values];
-            gl.texParameteri(TEXTURE_2D, pname, pvalue);
+            const paramName = PARAM_NAME_MAP[name as Names];
+            const paramValue = PARAM_VALUE_MAP[value as Values];
+            gl.texParameteri(TEXTURE_2D, paramName, paramValue);
         }
     }
 
