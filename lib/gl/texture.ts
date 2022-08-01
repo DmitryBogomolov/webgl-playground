@@ -39,8 +39,8 @@ const MIN_FILTER_MAP: Readonly<Record<TextureMinFilterValues, number>> = {
 export interface TextureParameters {
     readonly wrap_s?: TextureWrapValues;
     readonly wrap_t?: TextureWrapValues;
-    readonly min_filter?: TextureMagFilterValues;
     readonly mag_filter?: TextureMagFilterValues;
+    readonly min_filter?: TextureMinFilterValues;
 }
 
 export interface ImageDataOptions {

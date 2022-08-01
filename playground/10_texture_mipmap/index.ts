@@ -1,5 +1,6 @@
 import {
     Runtime,
+    TextureMagFilterValues, TextureMinFilterValues,
     Vec2, vec2, mul2,
     vec3,
     mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
@@ -69,6 +70,11 @@ setupControls({
     animation: Boolean(animationFlag),
     xRotation,
     yRotation,
+    magFilter: ['nearest', 'linear'],
+    minFilter: [
+        'nearest', 'linear',
+        'nearest_mipmap_nearest', 'linear_mipmap_nearest', 'nearest_mipmap_linear', 'linear_mipmap_linear',
+    ],
 }, {
     animation(enabled) {
         animationFlag = Number(enabled);
@@ -80,6 +86,18 @@ setupControls({
     },
     yRotation(value) {
         yRotation = value;
+        runtime.requestRender();
+    },
+    magFilter(value) {
+        texture.setParameters({
+            mag_filter: value as TextureMagFilterValues,
+        });
+        runtime.requestRender();
+    },
+    minFilter(value) {
+        texture.setParameters({
+            min_filter: value as TextureMinFilterValues,
+        });
         runtime.requestRender();
     },
 });
