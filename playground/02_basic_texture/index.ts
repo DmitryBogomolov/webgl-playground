@@ -4,7 +4,7 @@ import {
     Runtime,
     Primitive,
     Program,
-    Texture, TextureFilterValues,
+    Texture, TextureMagFilterValues,
     Vec2, vec2,
 } from 'lib';
 import { textureData } from './image';
@@ -98,7 +98,7 @@ makeControl({ u: texcoord.x, v: texcoord.y }, ({ u, v }) => {
 
 const layout = doLayout(container);
 
-function drawRect(pos: Position, filter: TextureFilterValues, texcoord: Vec2 | null): void {
+function drawRect(pos: Position, filter: TextureMagFilterValues, texcoord: Vec2 | null): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,

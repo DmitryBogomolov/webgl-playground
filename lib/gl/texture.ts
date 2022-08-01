@@ -7,42 +7,41 @@ const {
     TEXTURE_2D,
     TEXTURE_WRAP_S, TEXTURE_WRAP_T,
     TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
-    REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
     RGBA, UNSIGNED_BYTE,
 } = WebGLRenderingContext.prototype;
 
 export type TextureWrapValues = 'repeat' | 'clamp_to_edge';
-export type TextureFilterValues = 'nearest' | 'linear';
+export type TextureMagFilterValues = 'nearest' | 'linear';
+export type TextureMinFilterValues = (
+    | 'nearest' | 'linear'
+    | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
+);
+
+const WRAP_MAP: Readonly<Record<TextureWrapValues, number>> = {
+    'repeat': WebGLRenderingContext.prototype.REPEAT,
+    'clamp_to_edge': WebGLRenderingContext.prototype.CLAMP_TO_EDGE,
+};
+
+const MAG_FILTER_MAP: Readonly<Record<TextureMagFilterValues, number>> = {
+    'nearest': WebGLRenderingContext.prototype.NEAREST,
+    'linear': WebGLRenderingContext.prototype.LINEAR,
+};
+
+const MIN_FILTER_MAP: Readonly<Record<TextureMinFilterValues, number>> = {
+    'nearest': WebGLRenderingContext.prototype.NEAREST,
+    'linear': WebGLRenderingContext.prototype.LINEAR,
+    'nearest_mipmap_nearest': WebGLRenderingContext.prototype.NEAREST_MIPMAP_NEAREST,
+    'linear_mipmap_nearest': WebGLRenderingContext.prototype.LINEAR_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': WebGLRenderingContext.prototype.NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_linear': WebGLRenderingContext.prototype.LINEAR_MIPMAP_LINEAR,
+};
 
 export interface TextureParameters {
     readonly wrap_s?: TextureWrapValues;
     readonly wrap_t?: TextureWrapValues;
-    readonly min_filter?: TextureFilterValues;
-    readonly mag_filter?: TextureFilterValues;
+    readonly min_filter?: TextureMagFilterValues;
+    readonly mag_filter?: TextureMagFilterValues;
 }
-
-type Names = keyof TextureParameters;
-type ParamNameMap = {
-    readonly [key in Names]: number;
-};
-type Values = TextureWrapValues | TextureFilterValues;
-type ParamValueMap = {
-    readonly [key in Values]: number;
-};
-
-const PARAM_NAME_MAP: ParamNameMap = {
-    wrap_s: TEXTURE_WRAP_S,
-    wrap_t: TEXTURE_WRAP_T,
-    min_filter: TEXTURE_MIN_FILTER,
-    mag_filter: TEXTURE_MAG_FILTER,
-};
-
-const PARAM_VALUE_MAP: ParamValueMap = {
-    nearest: NEAREST,
-    linear: LINEAR,
-    repeat: REPEAT,
-    clamp_to_edge: CLAMP_TO_EDGE,
-};
 
 export interface ImageDataOptions {
     readonly unpackFlipY?: boolean;
@@ -64,6 +63,10 @@ export class Texture {
     private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
+    private _wrapS: TextureWrapValues = 'repeat';
+    private _wrapT: TextureWrapValues = 'repeat';
+    private _magFilter: TextureMagFilterValues = 'linear';
+    private _minFilter: TextureMinFilterValues = 'nearest_mipmap_linear';
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -116,11 +119,49 @@ export class Texture {
     setParameters(params: TextureParameters): void {
         this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
-        this._runtime.bindTexture(this._texture, this._id);
-        for (const [name, value] of Object.entries(params)) {
-            const paramName = PARAM_NAME_MAP[name as Names];
-            const paramValue = PARAM_VALUE_MAP[value as Values];
-            gl.texParameteri(TEXTURE_2D, paramName, paramValue);
+        if (params.wrap_s !== undefined) {
+            const value = WRAP_MAP[params.wrap_s];
+            if (!value) {
+                throw this._logger.error('bad wrap_s value: {0}', params.wrap_s);
+            }
+            if (this._wrapS !== params.wrap_s) {
+                this._runtime.bindTexture(this._texture, this._id);
+                gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, value);
+                this._wrapS = params.wrap_s;
+            }
+        }
+        if (params.wrap_t !== undefined) {
+            const value = WRAP_MAP[params.wrap_t];
+            if (!value) {
+                throw this._logger.error('bad wrap_t value: {0}', params.wrap_t);
+            }
+            if (this._wrapT !== params.wrap_t) {
+                this._runtime.bindTexture(this._texture, this._id);
+                gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, value);
+                this._wrapT = params.wrap_t;
+            }
+        }
+        if (params.mag_filter !== undefined) {
+            const value = MAG_FILTER_MAP[params.mag_filter];
+            if (!value) {
+                throw this._logger.error('bad mag_filter value: {0}', params.mag_filter);
+            }
+            if (this._magFilter !== params.mag_filter) {
+                this._runtime.bindTexture(this._texture, this._id);
+                gl.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, value);
+                this._magFilter = params.mag_filter;
+            }
+        }
+        if (params.min_filter !== undefined) {
+            const value = MIN_FILTER_MAP[params.min_filter];
+            if (!value) {
+                throw this._logger.error('bad min_filter value: {0}', params.min_filter);
+            }
+            if (this._minFilter !== params.min_filter) {
+                this._runtime.bindTexture(this._texture, this._id);
+                gl.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, value);
+                this._minFilter = params.min_filter;
+            }
         }
     }
 
