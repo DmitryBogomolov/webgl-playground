@@ -1,4 +1,5 @@
 import { Runtime } from './runtime';
+import { GLValuesMap } from './gl-values-map';
 import { Program } from './program';
 import { VertexSchema } from './vertex-schema';
 import { generateId } from '../utils/id-generator';
@@ -23,7 +24,7 @@ const EMPTY_PROGRAM = {
 export type PRIMITIVE_MODE = (
     'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'
 );
-const PRIMITIVE_MODE_MAP: Readonly<Record<PRIMITIVE_MODE, number>> = {
+const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGLRenderingContext.prototype.POINTS,
     'line_strip': WebGLRenderingContext.prototype.LINE_STRIP,
     'line_loop': WebGLRenderingContext.prototype.LINE_LOOP,
@@ -37,7 +38,7 @@ const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 export type INDEX_TYPE = (
     'u8' | 'u16' | 'u32'
 );
-const INDEX_TYPE_MAP: Readonly<Record<INDEX_TYPE, number>> = {
+const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'u8': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
     'u16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
     'u32': WebGLRenderingContext.prototype.UNSIGNED_INT,

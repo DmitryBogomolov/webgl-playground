@@ -1,48 +1,67 @@
 import { Runtime } from './runtime';
+import { GLValuesMap } from './gl-values-map';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
 
-const {
-    TEXTURE_2D,
-    TEXTURE_WRAP_S, TEXTURE_WRAP_T,
-    TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
-    REPEAT, CLAMP_TO_EDGE, NEAREST, LINEAR,
-    RGBA, UNSIGNED_BYTE,
-} = WebGLRenderingContext.prototype;
+const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
+const GL_RGBA = WebGLRenderingContext.prototype.RGBA;
+const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;
 
-export type TextureWrapValues = 'repeat' | 'clamp_to_edge';
-export type TextureFilterValues = 'nearest' | 'linear';
+export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
+export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
+export type TEXTURE_MIN_FILTER = (
+    | 'nearest' | 'linear'
+    | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
+);
 
-export interface TextureParameters {
-    readonly wrap_s?: TextureWrapValues;
-    readonly wrap_t?: TextureWrapValues;
-    readonly min_filter?: TextureFilterValues;
-    readonly mag_filter?: TextureFilterValues;
+const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
+    'repeat': WebGLRenderingContext.prototype.REPEAT,
+    'clamp_to_edge': WebGLRenderingContext.prototype.CLAMP_TO_EDGE,
+};
+
+const MAG_FILTER_MAP: GLValuesMap<TEXTURE_MAG_FILTER> = {
+    'nearest': WebGLRenderingContext.prototype.NEAREST,
+    'linear': WebGLRenderingContext.prototype.LINEAR,
+};
+
+const MIN_FILTER_MAP: GLValuesMap<TEXTURE_MIN_FILTER> = {
+    'nearest': WebGLRenderingContext.prototype.NEAREST,
+    'linear': WebGLRenderingContext.prototype.LINEAR,
+    'nearest_mipmap_nearest': WebGLRenderingContext.prototype.NEAREST_MIPMAP_NEAREST,
+    'linear_mipmap_nearest': WebGLRenderingContext.prototype.LINEAR_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': WebGLRenderingContext.prototype.NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_linear': WebGLRenderingContext.prototype.LINEAR_MIPMAP_LINEAR,
+};
+
+const GL_PARAMETER_NAMES: GLValuesMap<keyof RawState> = {
+    'wrap_s': WebGLRenderingContext.prototype.TEXTURE_WRAP_S,
+    'wrap_t': WebGLRenderingContext.prototype.TEXTURE_WRAP_T,
+    'mag_filter': WebGLRenderingContext.prototype.TEXTURE_MAG_FILTER,
+    'min_filter': WebGLRenderingContext.prototype.TEXTURE_MIN_FILTER,
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const GL_MAPS: Readonly<Record<keyof RawState, any>> = {
+    'wrap_s': WRAP_MAP,
+    'wrap_t': WRAP_MAP,
+    'mag_filter': MAG_FILTER_MAP,
+    'min_filter': MIN_FILTER_MAP,
+};
+
+interface RawState {
+    wrap_s?: TEXTURE_WRAP;
+    wrap_t?: TEXTURE_WRAP;
+    mag_filter?: TEXTURE_MAG_FILTER;
+    min_filter?: TEXTURE_MIN_FILTER;
 }
+type State = Required<RawState>;
+export type TextureParameters = Readonly<RawState>;
 
-type Names = keyof TextureParameters;
-type ParamNameMap = {
-    readonly [key in Names]: number;
-};
-type Values = TextureWrapValues | TextureFilterValues;
-type ParamValueMap = {
-    readonly [key in Values]: number;
-};
-
-const PARAM_NAME_MAP: ParamNameMap = {
-    wrap_s: TEXTURE_WRAP_S,
-    wrap_t: TEXTURE_WRAP_T,
-    min_filter: TEXTURE_MIN_FILTER,
-    mag_filter: TEXTURE_MAG_FILTER,
-};
-
-const PARAM_VALUE_MAP: ParamValueMap = {
-    nearest: NEAREST,
-    linear: LINEAR,
-    repeat: REPEAT,
-    clamp_to_edge: CLAMP_TO_EDGE,
-};
+export interface ImageDataOptions {
+    readonly unpackFlipY?: boolean;
+    readonly generateMipmap?: boolean;
+}
 
 export interface TextureData {
     readonly size: readonly [number, number];
@@ -59,6 +78,12 @@ export class Texture {
     private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
+    private _state: State = {
+        wrap_s: 'repeat',
+        wrap_t: 'repeat',
+        mag_filter: 'linear',
+        min_filter: 'nearest_mipmap_linear',
+    };
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -83,30 +108,48 @@ export class Texture {
         return texture;
     }
 
-    setImageData(source: TextureData | TexImageSource, unpackFlipY: boolean = false): void {
+    setImageData(source: TextureData | TexImageSource, options?: ImageDataOptions): void {
         const gl = this._runtime.gl;
+        let unpackFlipY = false;
+        let generateMipmap = false;
+        if (options) {
+            unpackFlipY = !!options.unpackFlipY;
+            generateMipmap = !!options.generateMipmap;
+        }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.bindTexture(this._texture, this._id);
         if (isTextureData(source)) {
             const { size, data } = source;
             this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
-            gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
+            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             this._size = vec2(size[0], size[1]);
         } else {
             this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
+            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, source);
             this._size = vec2(source.width, source.height);
+        }
+        if (generateMipmap) {
+            gl.generateMipmap(GL_TEXTURE_2D);
         }
     }
 
     setParameters(params: TextureParameters): void {
-        this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
-        this._runtime.bindTexture(this._texture, this._id);
-        for (const [name, value] of Object.entries(params)) {
-            const pname = PARAM_NAME_MAP[name as Names];
-            const pvalue = PARAM_VALUE_MAP[value as Values];
-            gl.texParameteri(TEXTURE_2D, pname, pvalue);
+        for (const [key, val] of Object.entries(params)) {
+            if (val !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                const value = GL_MAPS[key as keyof State][val] as number;
+                if (!value) {
+                    throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
+                }
+                if (this._state[key as keyof State] !== val) {
+                    this._logger.log('set_parameter({0} = {1})', key, val);
+                    this._runtime.bindTexture(this._texture, this._id);
+                    gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (this._state[key as keyof State] as any) = val;
+                }
+            }
         }
     }
 

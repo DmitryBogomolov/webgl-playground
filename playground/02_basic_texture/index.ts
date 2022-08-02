@@ -1,10 +1,10 @@
 import {
-    parseVertexSchema,
-    VertexWriter,
     Runtime,
     Primitive,
     Program,
-    Texture, TextureFilterValues,
+    Texture,
+    parseVertexSchema,
+    VertexWriter,
     Vec2, vec2,
 } from 'lib';
 import { textureData } from './image';
@@ -80,7 +80,8 @@ function makeTexture(runtime: Runtime): Texture {
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
     });
-    texture.setImageData(textureData, true);
+    texture.setImageData(textureData, { unpackFlipY: true });
+    texture.setUnit(2);
     return texture;
 }
 
@@ -97,16 +98,15 @@ makeControl({ u: texcoord.x, v: texcoord.y }, ({ u, v }) => {
 
 const layout = doLayout(container);
 
-function drawRect(pos: Position, filter: TextureFilterValues, texcoord: Vec2 | null): void {
+function drawRect(pos: Position, filter: 'nearest' | 'linear', texcoord: Vec2 | null): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,
     });
-    texture.setUnit(1);
     const program = primitive.program();
     program.setUniform('u_position', pos);
     program.setUniform('u_use_custom', !!texcoord);
-    program.setUniform('u_texture', 1);
+    program.setUniform('u_texture', 2);
     if (texcoord) {
         program.setUniform('u_texcoord', texcoord);
     }

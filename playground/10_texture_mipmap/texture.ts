@@ -1,0 +1,22 @@
+import {
+    Runtime,
+    Texture,
+} from 'lib';
+
+export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
+    const texture = new Texture(runtime);
+    texture.setParameters({
+        wrap_s: 'clamp_to_edge',
+        wrap_t: 'clamp_to_edge',
+    });
+
+    const image = new Image();
+    image.src = '/static/mip-low-res-enlarged.png';
+    image.onload = () => {
+        image.onload = null;
+        texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
+        onReady();
+    };
+
+    return texture;
+}

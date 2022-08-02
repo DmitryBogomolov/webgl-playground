@@ -2,6 +2,7 @@ import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { EventEmitter } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
+import { GLValuesMap } from './gl-values-map';
 import { RenderFrameCallback, RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
@@ -38,7 +39,7 @@ export type BUFFER_MASK = (
     | 'color|depth' | 'color|stencil' | 'depth|stencil'
     | 'color|depth|stencil'
 );
-const BUFFER_MASK_MAP: Readonly<Record<BUFFER_MASK, number>> = {
+const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     'color': WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
     'depth': WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
     'stencil': WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
@@ -64,7 +65,7 @@ const BUFFER_MASK_MAP: Readonly<Record<BUFFER_MASK, number>> = {
 export type DEPTH_FUNC = (
     'never' | 'less' | 'lequal' | 'greater' | 'gequal' | 'equal' | 'notequal' | 'always'
 );
-const DEPTH_FUNC_MAP: Readonly<Record<DEPTH_FUNC, number>> = {
+const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'never': WebGLRenderingContext.prototype.NEVER,
     'less': WebGLRenderingContext.prototype.LESS,
     'lequal': WebGLRenderingContext.prototype.LEQUAL,
@@ -78,7 +79,7 @@ const DEPTH_FUNC_MAP: Readonly<Record<DEPTH_FUNC, number>> = {
 export type CULL_FACE = (
     'back' | 'front' | 'front_and_back'
 );
-const CULL_FACE_MAP: Readonly<Record<CULL_FACE, number>> = {
+const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'back': WebGLRenderingContext.prototype.BACK,
     'front': WebGLRenderingContext.prototype.FRONT,
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,

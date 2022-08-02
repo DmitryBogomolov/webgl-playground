@@ -1,0 +1,49 @@
+<style>
+    .root {
+        position: relative;
+    }
+    .controls-panel {
+        position: absolute;
+        top: 0;
+        padding: 4px;
+    }
+    .control-group {
+        padding: 2px;
+    }
+    .control-label {
+        width: 50px;
+    }
+    .control-editor {
+        float: right;
+        width: 200px;
+        margin-left: 8px;
+    }
+</style>
+<div class="root">
+    <div class="playground-container"></div>
+    <div class="controls-panel">
+        <div class="control-group">
+            <span class="control-label">animation</span>
+            <input class="animation control-editor" type="checkbox" checked="true"></input>
+        </div>
+        <div class="control-group">
+            <span class="control-label">x rotation</span>
+            <input class="x-rotation control-editor" type="range" min="-30" max="30" value="0"></input>
+        </div>
+        <div class="control-group">
+            <span class="control-label">y rotation</span>
+            <input class="y-rotation control-editor" type="range" min="-30" max="30" value="0"></input>
+        </div>
+        <div class="control-group">
+            <span class="control-label">mag filter</span>
+            <select class="mag-filter control-editor"></select>
+        </div>
+        <div class="control-group">
+            <span class="control-label">min filter</span>
+            <select class="min-filter control-editor"></select>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.playground-container').appendChild(document.querySelector('#playground-root'));
+</script>
