@@ -4,12 +4,9 @@ import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
 
-const {
-    TEXTURE_2D,
-    TEXTURE_WRAP_S, TEXTURE_WRAP_T,
-    TEXTURE_MIN_FILTER, TEXTURE_MAG_FILTER,
-    RGBA, UNSIGNED_BYTE,
-} = WebGLRenderingContext.prototype;
+const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
+const GL_RGBA = WebGLRenderingContext.prototype.RGBA;
+const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
@@ -37,12 +34,29 @@ const MIN_FILTER_MAP: GLValuesMap<TEXTURE_MIN_FILTER> = {
     'linear_mipmap_linear': WebGLRenderingContext.prototype.LINEAR_MIPMAP_LINEAR,
 };
 
-export interface TextureParameters {
-    readonly wrap_s?: TEXTURE_WRAP;
-    readonly wrap_t?: TEXTURE_WRAP;
-    readonly mag_filter?: TEXTURE_MAG_FILTER;
-    readonly min_filter?: TEXTURE_MIN_FILTER;
+const GL_PARAMETER_NAMES: GLValuesMap<keyof RawState> = {
+    'wrap_s': WebGLRenderingContext.prototype.TEXTURE_WRAP_S,
+    'wrap_t': WebGLRenderingContext.prototype.TEXTURE_WRAP_T,
+    'mag_filter': WebGLRenderingContext.prototype.TEXTURE_MAG_FILTER,
+    'min_filter': WebGLRenderingContext.prototype.TEXTURE_MIN_FILTER,
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const GL_MAPS: Readonly<Record<keyof RawState, any>> = {
+    'wrap_s': WRAP_MAP,
+    'wrap_t': WRAP_MAP,
+    'mag_filter': MAG_FILTER_MAP,
+    'min_filter': MIN_FILTER_MAP,
+};
+
+interface RawState {
+    wrap_s?: TEXTURE_WRAP;
+    wrap_t?: TEXTURE_WRAP;
+    mag_filter?: TEXTURE_MAG_FILTER;
+    min_filter?: TEXTURE_MIN_FILTER;
 }
+type State = Required<RawState>;
+export type TextureParameters = Readonly<RawState>;
 
 export interface ImageDataOptions {
     readonly unpackFlipY?: boolean;
@@ -64,10 +78,12 @@ export class Texture {
     private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
-    private _wrapS: TEXTURE_WRAP = 'repeat';
-    private _wrapT: TEXTURE_WRAP = 'repeat';
-    private _magFilter: TEXTURE_MAG_FILTER = 'linear';
-    private _minFilter: TEXTURE_MIN_FILTER = 'nearest_mipmap_linear';
+    private _state: State = {
+        wrap_s: 'repeat',
+        wrap_t: 'repeat',
+        mag_filter: 'linear',
+        min_filter: 'nearest_mipmap_linear',
+    };
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -105,63 +121,34 @@ export class Texture {
         if (isTextureData(source)) {
             const { size, data } = source;
             this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
-            gl.texImage2D(TEXTURE_2D, 0, RGBA, size[0], size[1], 0, RGBA, UNSIGNED_BYTE, data);
+            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             this._size = vec2(size[0], size[1]);
         } else {
             this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, source);
+            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, source);
             this._size = vec2(source.width, source.height);
         }
         if (generateMipmap) {
-            gl.generateMipmap(TEXTURE_2D);
+            gl.generateMipmap(GL_TEXTURE_2D);
         }
     }
 
     setParameters(params: TextureParameters): void {
-        this._logger.log('set_parameters({0})', params);
         const gl = this._runtime.gl;
-        if (params.wrap_s !== undefined) {
-            const value = WRAP_MAP[params.wrap_s];
-            if (!value) {
-                throw this._logger.error('bad wrap_s value: {0}', params.wrap_s);
-            }
-            if (this._wrapS !== params.wrap_s) {
-                this._runtime.bindTexture(this._texture, this._id);
-                gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, value);
-                this._wrapS = params.wrap_s;
-            }
-        }
-        if (params.wrap_t !== undefined) {
-            const value = WRAP_MAP[params.wrap_t];
-            if (!value) {
-                throw this._logger.error('bad wrap_t value: {0}', params.wrap_t);
-            }
-            if (this._wrapT !== params.wrap_t) {
-                this._runtime.bindTexture(this._texture, this._id);
-                gl.texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, value);
-                this._wrapT = params.wrap_t;
-            }
-        }
-        if (params.mag_filter !== undefined) {
-            const value = MAG_FILTER_MAP[params.mag_filter];
-            if (!value) {
-                throw this._logger.error('bad mag_filter value: {0}', params.mag_filter);
-            }
-            if (this._magFilter !== params.mag_filter) {
-                this._runtime.bindTexture(this._texture, this._id);
-                gl.texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, value);
-                this._magFilter = params.mag_filter;
-            }
-        }
-        if (params.min_filter !== undefined) {
-            const value = MIN_FILTER_MAP[params.min_filter];
-            if (!value) {
-                throw this._logger.error('bad min_filter value: {0}', params.min_filter);
-            }
-            if (this._minFilter !== params.min_filter) {
-                this._runtime.bindTexture(this._texture, this._id);
-                gl.texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, value);
-                this._minFilter = params.min_filter;
+        for (const [key, val] of Object.entries(params)) {
+            if (val !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                const value = GL_MAPS[key as keyof State][val] as number;
+                if (!value) {
+                    throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
+                }
+                if (this._state[key as keyof State] !== val) {
+                    this._logger.log('set_parameter({0} = {1})', key, val);
+                    this._runtime.bindTexture(this._texture, this._id);
+                    gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (this._state[key as keyof State] as any) = val;
+                }
             }
         }
     }
