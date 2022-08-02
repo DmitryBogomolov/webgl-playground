@@ -6,8 +6,6 @@ import {
 export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);
     texture.setParameters({
-        min_filter: 'nearest',
-        mag_filter: 'nearest',
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
     });

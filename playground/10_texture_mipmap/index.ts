@@ -14,7 +14,7 @@ import { setupControls } from './controls';
 /**
  * Texture mipmap.
  *
- * TODO...
+ * Texture magnification and minification filters.
  */
 export type DESCRIPTION = never;
 
@@ -27,6 +27,10 @@ const texture = makeTexture(runtime, () => {
     runtime.requestRender();
 });
 texture.setUnit(4);
+texture.setParameters({
+    mag_filter: 'nearest',
+    min_filter: 'nearest',
+});
 
 const proj = mat4();
 const YFOV = Math.PI / 4;
