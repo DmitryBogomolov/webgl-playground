@@ -10,8 +10,8 @@ const {
     RGBA, UNSIGNED_BYTE,
 } = WebGLRenderingContext.prototype;
 
-export type TextureWrapValues = 'repeat' | 'clamp_to_edge';
-export type TextureMagFilterValues = 'nearest' | 'linear';
+export type TextureWrapValues = ('repeat' | 'clamp_to_edge');
+export type TextureMagFilterValues = ('nearest' | 'linear');
 export type TextureMinFilterValues = (
     | 'nearest' | 'linear'
     | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
