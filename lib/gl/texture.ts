@@ -1,4 +1,5 @@
 import { Runtime } from './runtime';
+import { GLValuesMap } from './gl-values-map';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
@@ -17,17 +18,17 @@ export type TextureMinFilterValues = (
     | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
 );
 
-const WRAP_MAP: Readonly<Record<TextureWrapValues, number>> = {
+const WRAP_MAP: GLValuesMap<TextureWrapValues> = {
     'repeat': WebGLRenderingContext.prototype.REPEAT,
     'clamp_to_edge': WebGLRenderingContext.prototype.CLAMP_TO_EDGE,
 };
 
-const MAG_FILTER_MAP: Readonly<Record<TextureMagFilterValues, number>> = {
+const MAG_FILTER_MAP: GLValuesMap<TextureMagFilterValues> = {
     'nearest': WebGLRenderingContext.prototype.NEAREST,
     'linear': WebGLRenderingContext.prototype.LINEAR,
 };
 
-const MIN_FILTER_MAP: Readonly<Record<TextureMinFilterValues, number>> = {
+const MIN_FILTER_MAP: GLValuesMap<TextureMinFilterValues> = {
     'nearest': WebGLRenderingContext.prototype.NEAREST,
     'linear': WebGLRenderingContext.prototype.LINEAR,
     'nearest_mipmap_nearest': WebGLRenderingContext.prototype.NEAREST_MIPMAP_NEAREST,
