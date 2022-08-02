@@ -11,24 +11,24 @@ const {
     RGBA, UNSIGNED_BYTE,
 } = WebGLRenderingContext.prototype;
 
-export type TextureWrapValues = ('repeat' | 'clamp_to_edge');
-export type TextureMagFilterValues = ('nearest' | 'linear');
-export type TextureMinFilterValues = (
+export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
+export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
+export type TEXTURE_MIN_FILTER = (
     | 'nearest' | 'linear'
     | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
 );
 
-const WRAP_MAP: GLValuesMap<TextureWrapValues> = {
+const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGLRenderingContext.prototype.REPEAT,
     'clamp_to_edge': WebGLRenderingContext.prototype.CLAMP_TO_EDGE,
 };
 
-const MAG_FILTER_MAP: GLValuesMap<TextureMagFilterValues> = {
+const MAG_FILTER_MAP: GLValuesMap<TEXTURE_MAG_FILTER> = {
     'nearest': WebGLRenderingContext.prototype.NEAREST,
     'linear': WebGLRenderingContext.prototype.LINEAR,
 };
 
-const MIN_FILTER_MAP: GLValuesMap<TextureMinFilterValues> = {
+const MIN_FILTER_MAP: GLValuesMap<TEXTURE_MIN_FILTER> = {
     'nearest': WebGLRenderingContext.prototype.NEAREST,
     'linear': WebGLRenderingContext.prototype.LINEAR,
     'nearest_mipmap_nearest': WebGLRenderingContext.prototype.NEAREST_MIPMAP_NEAREST,
@@ -38,10 +38,10 @@ const MIN_FILTER_MAP: GLValuesMap<TextureMinFilterValues> = {
 };
 
 export interface TextureParameters {
-    readonly wrap_s?: TextureWrapValues;
-    readonly wrap_t?: TextureWrapValues;
-    readonly mag_filter?: TextureMagFilterValues;
-    readonly min_filter?: TextureMinFilterValues;
+    readonly wrap_s?: TEXTURE_WRAP;
+    readonly wrap_t?: TEXTURE_WRAP;
+    readonly mag_filter?: TEXTURE_MAG_FILTER;
+    readonly min_filter?: TEXTURE_MIN_FILTER;
 }
 
 export interface ImageDataOptions {
@@ -64,10 +64,10 @@ export class Texture {
     private readonly _runtime: Runtime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
-    private _wrapS: TextureWrapValues = 'repeat';
-    private _wrapT: TextureWrapValues = 'repeat';
-    private _magFilter: TextureMagFilterValues = 'linear';
-    private _minFilter: TextureMinFilterValues = 'nearest_mipmap_linear';
+    private _wrapS: TEXTURE_WRAP = 'repeat';
+    private _wrapT: TEXTURE_WRAP = 'repeat';
+    private _magFilter: TEXTURE_MAG_FILTER = 'linear';
+    private _minFilter: TEXTURE_MIN_FILTER = 'nearest_mipmap_linear';
 
     constructor(runtime: Runtime) {
         this._logger.log('init');

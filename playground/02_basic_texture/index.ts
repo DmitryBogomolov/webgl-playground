@@ -1,10 +1,10 @@
 import {
-    parseVertexSchema,
-    VertexWriter,
     Runtime,
     Primitive,
     Program,
-    Texture, TextureMagFilterValues,
+    Texture,
+    parseVertexSchema,
+    VertexWriter,
     Vec2, vec2,
 } from 'lib';
 import { textureData } from './image';
@@ -98,7 +98,7 @@ makeControl({ u: texcoord.x, v: texcoord.y }, ({ u, v }) => {
 
 const layout = doLayout(container);
 
-function drawRect(pos: Position, filter: TextureMagFilterValues, texcoord: Vec2 | null): void {
+function drawRect(pos: Position, filter: 'nearest' | 'linear', texcoord: Vec2 | null): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,

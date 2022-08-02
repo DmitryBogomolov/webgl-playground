@@ -1,6 +1,6 @@
 import {
     Runtime,
-    TextureMagFilterValues, TextureMinFilterValues,
+    TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     Vec2, vec2, mul2,
     vec3,
     mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
@@ -90,13 +90,13 @@ setupControls({
     },
     magFilter(value) {
         texture.setParameters({
-            mag_filter: value as TextureMagFilterValues,
+            mag_filter: value as TEXTURE_MAG_FILTER,
         });
         runtime.requestRender();
     },
     minFilter(value) {
         texture.setParameters({
-            min_filter: value as TextureMinFilterValues,
+            min_filter: value as TEXTURE_MIN_FILTER,
         });
         runtime.requestRender();
     },
