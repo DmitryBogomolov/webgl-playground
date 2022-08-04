@@ -31,14 +31,14 @@ const view = lookAt4x4({
     up: YUNIT3,
 });
 
-const textureMat = lookAt4x4({
+const planarMat = lookAt4x4({
     eye: vec3(0, 0, 4),
     center: ZERO3,
     up: YUNIT3,
 });
 const k = 1;
 const dk = 0.5;
-apply4x4(textureMat, orthographic4x4, {
+apply4x4(planarMat, orthographic4x4, {
     left: -dk * k,
     right: +dk * k,
     bottom: -dk,
@@ -66,6 +66,7 @@ runtime.onRender(() => {
     program.setUniform('u_proj', proj);
     program.setUniform('u_view', view);
     program.setUniform('u_texture', 4);
-    program.setUniform('u_texture_mat', textureMat);
+    program.setUniform('u_planar_texture', 5);
+    program.setUniform('u_planar_mat', planarMat);
     primitive.render();
 });
