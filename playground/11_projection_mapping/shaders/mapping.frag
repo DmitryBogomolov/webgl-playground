@@ -14,7 +14,7 @@ void main() {
     //     color.g = 0.0;
     // }
     if (step(vec2(1.0), abs(planar_texcoord)) == vec2(0.0)) {
-        color = texture2D(u_planar_texture, planar_texcoord);
+        color = texture2D(u_planar_texture, (planar_texcoord + vec2(1.0)) / 2.0);
     }
     gl_FragColor = color;
 }
