@@ -14,13 +14,17 @@ export function makePrimitive(runtime: Runtime): Primitive {
 
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
+        { name: 'a_normal', type: 'float3' },
     ]);
 
-    const { vertices, indices } = generateSphere(vec3(2, 2, 2), (position) => position, 8);
+    const { vertices, indices } = generateSphere(vec3(2, 2, 2),
+        (position, normal) => ({ position, normal }), 8);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 'a_position', vertices[i]);
+        const { position, normal } = vertices[i];
+        writer.writeAttribute(i, 'a_position', position);
+        writer.writeAttribute(i, 'a_normal', normal);
     }
     const indexData = new Uint16Array(indices);
 

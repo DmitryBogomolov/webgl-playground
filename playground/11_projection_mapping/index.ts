@@ -1,7 +1,7 @@
 import {
     Runtime,
     color,
-    vec3, ZERO3, YUNIT3,
+    vec3, norm3, ZERO3, YUNIT3,
     mat4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
@@ -13,6 +13,8 @@ import { makeTexture } from './texture';
  * TODO...
  */
 export type DESCRIPTION = never;
+
+const lightDirection = norm3(vec3(-0.1, -0.3, -1));
 
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
@@ -50,5 +52,6 @@ runtime.onRender(() => {
     const program = primitive.program();
     program.setUniform('u_proj', proj);
     program.setUniform('u_view', view);
+    program.setUniform('u_light_direction', lightDirection);
     primitive.render();
 });
