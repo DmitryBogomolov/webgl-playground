@@ -1,11 +1,11 @@
 import {
     Runtime,
     color,
-    vec3, norm3, ZERO3, YUNIT3,
-    mat4, perspective4x4, lookAt4x4, apply4x4, scaling4x4, orthographic4x4,
+    vec3, ZERO3, YUNIT3,
+    mat4, perspective4x4, lookAt4x4, apply4x4, orthographic4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
-import { makeTexture } from './texture';
+import { makeFillTexture, makeMappingTexture } from './texture';
 
 /**
  * Projection mapping.
@@ -14,20 +14,14 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-const lightDirection = norm3(vec3(-0.1, -0.3, -1));
-
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime, () => {
+const fillTexture = makeFillTexture(runtime);
+const mappingTexture = makeMappingTexture(runtime, () => {
     runtime.requestRender();
-});
-texture.setUnit(5);
-texture.setParameters({
-    mag_filter: 'nearest',
-    min_filter: 'nearest',
 });
 
 const proj = mat4();
@@ -66,9 +60,12 @@ runtime.onSizeChanged(() => {
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
+    // TODO: Do the same in other samples (move "setUnit" to "onRender").
+    fillTexture.setUnit(4);
+    mappingTexture.setUnit(5);
     program.setUniform('u_proj', proj);
     program.setUniform('u_view', view);
+    program.setUniform('u_texture', 4);
     program.setUniform('u_texture_mat', textureMat);
-    program.setUniform('u_light_direction', lightDirection);
     primitive.render();
 });
