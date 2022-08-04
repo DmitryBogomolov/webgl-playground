@@ -2,7 +2,7 @@ import {
     Runtime,
     color,
     vec3, norm3, ZERO3, YUNIT3,
-    mat4, perspective4x4, lookAt4x4,
+    mat4, perspective4x4, lookAt4x4, apply4x4, scaling4x4, orthographic4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
@@ -37,6 +37,22 @@ const view = lookAt4x4({
     up: YUNIT3,
 });
 
+const textureMat = lookAt4x4({
+    eye: vec3(0, 0, 4),
+    center: ZERO3,
+    up: YUNIT3,
+});
+const k = 1;
+const dk = 0.4;
+apply4x4(textureMat, orthographic4x4, {
+    left: -dk * k,
+    right: +dk * k,
+    bottom: -dk,
+    top: +dk,
+    zNear: 0.01,
+    zFar: 100,
+});
+
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
     perspective4x4({
@@ -52,6 +68,7 @@ runtime.onRender(() => {
     const program = primitive.program();
     program.setUniform('u_proj', proj);
     program.setUniform('u_view', view);
+    program.setUniform('u_texture_mat', textureMat);
     program.setUniform('u_light_direction', lightDirection);
     primitive.render();
 });
