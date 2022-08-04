@@ -62,7 +62,7 @@ export function generateSphere<T>(
     const lonCount = 2 * partition;
     const cosList: number[] = [];
     const sinList: number[] = [];
-    for (let i = 0; i < lonCount; ++i) {
+    for (let i = 0; i <= lonCount; ++i) {
         cosList[i] = Math.cos(i * step);
         sinList[i] = Math.sin(i * step);
     }
@@ -73,7 +73,7 @@ export function generateSphere<T>(
 
     vertices.push(makeVertex(vec3(0, +ry, 0), vec3(0, +1, 0), vertices.length));
     for (let i = 1; i < partition; ++i) {
-        for (let j = 0; j < lonCount; ++j) {
+        for (let j = 0; j <= lonCount; ++j) {
             const position = vec3(
                 rx * sinList[i] * sinList[j],
                 ry * cosList[i],
@@ -101,22 +101,22 @@ export function generateSphere<T>(
     const lastIdx = vertices.length - 1;
     let idx = 1;
     for (let j = 0; j < lonCount; ++j) {
-        const j1 = (j + 1) % lonCount;
+        const j1 = j + 1;
         indices.push(firstIdx, idx + j, idx + j1);
     }
     for (let i = 1; i < partition - 1; ++i) {
         for (let j = 0; j < lonCount; ++j) {
-            const j1 = (j + 1) % lonCount;
-            const idx1 = idx + lonCount;
+            const j1 = j + 1;
+            const idx1 = idx + lonCount + 1;
             indices.push(
                 idx + j, idx1 + j, idx1 + j1,
                 idx1 + j1, idx + j1, idx + j,
             );
         }
-        idx += lonCount;
+        idx += lonCount + 1;
     }
     for (let j = 0; j < lonCount; ++j) {
-        const j1 = (j + 1) % lonCount;
+        const j1 = j + 1;
         indices.push(lastIdx, idx + j1, idx + j);
     }
 
