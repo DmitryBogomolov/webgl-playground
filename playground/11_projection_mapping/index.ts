@@ -43,7 +43,7 @@ const textureMat = lookAt4x4({
     up: YUNIT3,
 });
 const k = 1;
-const dk = 0.4;
+const dk = 0.5;
 apply4x4(textureMat, orthographic4x4, {
     left: -dk * k,
     right: +dk * k,
