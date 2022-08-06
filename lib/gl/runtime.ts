@@ -445,13 +445,18 @@ export class Runtime {
         this._state.boundTextures[this._state.textureUnit] = texture;
     }
 
-    activeTexture(unit: number): void {
-        if (this._state.textureUnit === unit) {
+    activeTexture(unit: number, texture: WebGLTexture | null, id: string): void {
+        if ((this._state.boundTextures[unit] || null) === texture) {
             return;
         }
-        this._logger.log('active_texture({0})', unit);
-        this.gl.activeTexture(GL_TEXTURE0 + unit);
-        this._state.textureUnit = unit;
+        if (this._state.textureUnit !== unit) {
+            this._logger.log('active_texture({0})', unit);
+            this.gl.activeTexture(GL_TEXTURE0 + unit);
+            this._state.textureUnit = unit;
+        }
+        this._logger.log('bind_texture({0})', texture ? id : null);
+        this.gl.bindTexture(GL_TEXTURE_2D, texture);
+        this._state.boundTextures[unit] = texture;
     }
 
     pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {

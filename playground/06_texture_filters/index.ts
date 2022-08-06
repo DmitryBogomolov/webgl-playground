@@ -50,7 +50,6 @@ function makePrimitive(runtime: Runtime): Primitive {
 
 function makeTexture(runtime: Runtime): Texture {
     const texture = new Texture(runtime);
-    texture.setUnit(3);
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',
@@ -98,6 +97,7 @@ populateSelectControl(runtime);
 
 runtime.onRender(() => {
     runtime.clearBuffer();
+    texture.setUnit(3);
     const program = primitive.program();
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());

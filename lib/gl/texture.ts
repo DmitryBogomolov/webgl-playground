@@ -171,7 +171,6 @@ export class Texture {
 
     setUnit(unit: number): void {
         this._logger.log('set_unit({0})', unit);
-        this._runtime.activeTexture(unit);
-        this._runtime.bindTexture(this._texture, this._id);
+        this._runtime.activeTexture(unit, this._texture, this._id);
     }
 }

@@ -60,7 +60,6 @@ runtime.onSizeChanged(() => {
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
-    // TODO: Do the same in other samples (move "setUnit" to "onRender").
     fillTexture.setUnit(4);
     mappingTexture.setUnit(5);
     program.setUniform('u_proj', proj);

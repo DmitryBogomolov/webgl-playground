@@ -81,7 +81,6 @@ function makeTexture(runtime: Runtime): Texture {
         wrap_t: 'clamp_to_edge',
     });
     texture.setImageData(textureData, { unpackFlipY: true });
-    texture.setUnit(2);
     return texture;
 }
 
@@ -103,6 +102,7 @@ function drawRect(pos: Position, filter: 'nearest' | 'linear', texcoord: Vec2 | 
         min_filter: filter,
         mag_filter: filter,
     });
+    texture.setUnit(2);
     const program = primitive.program();
     program.setUniform('u_position', pos);
     program.setUniform('u_use_custom', !!texcoord);
