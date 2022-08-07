@@ -4,7 +4,7 @@ import {
     vec2, ZERO2,
     vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
-    apply4x4, yrotation4x4, translation4x4, mul4x4, inverse4x4, transpose4x4,
+    apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     color,
     EventEmitter,
     deg2rad,
@@ -148,8 +148,7 @@ function updateModel(): void {
     identity4x4(model);
     apply4x4(model, yrotation4x4, deg2rad(rotation));
     apply4x4(model, translation4x4, vec3(position, 0, 0));
-    inverse4x4(model, modelInvTrs);
-    transpose4x4(modelInvTrs, modelInvTrs);
+    inversetranspose4x4(model, modelInvTrs);
     runtime.requestRender();
 }
 

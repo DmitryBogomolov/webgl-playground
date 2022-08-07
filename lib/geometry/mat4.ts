@@ -213,6 +213,12 @@ export function inverse4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
     return clone4x4(aux, out);
 }
 
+export function inversetranspose4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
+    inverse4x4(mat, out);
+    transpose4x4(out, out);
+    return out;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
 const _apply4x4Aux = mat4() as number[];
