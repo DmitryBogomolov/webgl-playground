@@ -5,7 +5,6 @@ import { Logger } from '../utils/logger';
 import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
 
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
-const GL_RGBA = WebGLRenderingContext.prototype.RGBA;
 const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
@@ -14,6 +13,8 @@ export type TEXTURE_MIN_FILTER = (
     | 'nearest' | 'linear'
     | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
 );
+
+export type TEXTURE_FORMAT = ('rgba' | 'rgb' | 'luminance' | 'alpha' | 'luminance_alpha');
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGLRenderingContext.prototype.REPEAT,
@@ -33,6 +34,15 @@ const MIN_FILTER_MAP: GLValuesMap<TEXTURE_MIN_FILTER> = {
     'nearest_mipmap_linear': WebGLRenderingContext.prototype.NEAREST_MIPMAP_LINEAR,
     'linear_mipmap_linear': WebGLRenderingContext.prototype.LINEAR_MIPMAP_LINEAR,
 };
+
+const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
+    'rgba': WebGLRenderingContext.prototype.RGBA,
+    'rgb': WebGLRenderingContext.prototype.RGB,
+    'luminance': WebGLRenderingContext.prototype.LUMINANCE,
+    'alpha': WebGLRenderingContext.prototype.ALPHA,
+    'luminance_alpha': WebGLRenderingContext.prototype.LUMINANCE_ALPHA,
+};
+const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
 
 const GL_PARAMETER_NAMES: GLValuesMap<keyof RawState> = {
     'wrap_s': WebGLRenderingContext.prototype.TEXTURE_WRAP_S,
@@ -61,11 +71,12 @@ export type TextureParameters = Readonly<RawState>;
 export interface ImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly generateMipmap?: boolean;
+    readonly format?: TEXTURE_FORMAT;
 }
 
 export interface TextureData {
     readonly size: readonly [number, number];
-    readonly data: Uint8ClampedArray;
+    readonly data: ArrayBufferView;
 }
 
 function isTextureData(source: TextureData | TexImageSource): source is TextureData {
@@ -112,20 +123,25 @@ export class Texture {
         const gl = this._runtime.gl;
         let unpackFlipY = false;
         let generateMipmap = false;
+        let format = DEFAULT_TEXTURE_FORMAT;
         if (options) {
             unpackFlipY = !!options.unpackFlipY;
             generateMipmap = !!options.generateMipmap;
+            if (options.format) {
+                format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
+            }
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.bindTexture(this._texture, this._id);
         if (isTextureData(source)) {
             const { size, data } = source;
-            this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.length);
-            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size[0], size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            this._size = vec2(size[0], size[1]);
+            const [width, height] = size;
+            this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.byteLength);
+            gl.texImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            this._size = vec2(width, height);
         } else {
             this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, source);
+            gl.texImage2D(GL_TEXTURE_2D, 0, format, format, GL_UNSIGNED_BYTE, source);
             this._size = vec2(source.width, source.height);
         }
         if (generateMipmap) {
@@ -155,7 +171,6 @@ export class Texture {
 
     setUnit(unit: number): void {
         this._logger.log('set_unit({0})', unit);
-        this._runtime.activeTexture(unit);
-        this._runtime.bindTexture(this._texture, this._id);
+        this._runtime.activeTexture(unit, this._texture, this._id);
     }
 }

@@ -11,6 +11,7 @@ export * from './geometry/vec4';
 export * from './geometry/mat2';
 export * from './geometry/mat3';
 export * from './geometry/mat4';
+export * from './geometry/figures';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree';
 export * from './gl/color';

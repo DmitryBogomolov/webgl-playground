@@ -4,10 +4,9 @@ import {
     Program,
     parseVertexSchema,
     VertexWriter,
-    Vec3,
     vec3,
-    Color,
-    color,
+    Color, color,
+    generateCube,
 } from 'lib';
 import vertexShaderSource from './shaders/shader.vert';
 import fragmentShaderSource from './shaders/shader.frag';
@@ -25,9 +24,6 @@ export function makePrimitive(runtime: Runtime): Primitive {
         schema,
     });
 
-    const dx = 0.5;
-    const dy = 0.4;
-    const dz = 0.3;
     const k1 = 0.7;
     const k2 = 0.1;
     const c1 = color(k1, k1, k2);
@@ -36,43 +32,18 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const c4 = color(k2, k2, k1);
     const c5 = color(k1, k2, k2);
     const c6 = color(k2, k1, k2);
-    const vertices: { pos: Vec3, clr: Color }[] = [
-        // front
-        { pos: vec3(-dx, -dy, +dz), clr: c1 },
-        { pos: vec3(+dx, -dy, +dz), clr: c1 },
-        { pos: vec3(+dx, +dy, +dz), clr: c1 },
-        { pos: vec3(-dx, +dy, +dz), clr: c1 },
-        // right
-        { pos: vec3(+dx, -dy, +dz), clr: c2 },
-        { pos: vec3(+dx, -dy, -dz), clr: c2 },
-        { pos: vec3(+dx, +dy, -dz), clr: c2 },
-        { pos: vec3(+dx, +dy, +dz), clr: c2 },
-        // back
-        { pos: vec3(+dx, -dy, -dz), clr: c3 },
-        { pos: vec3(-dx, -dy, -dz), clr: c3 },
-        { pos: vec3(-dx, +dy, -dz), clr: c3 },
-        { pos: vec3(+dx, +dy, -dz), clr: c3 },
-        // left
-        { pos: vec3(-dx, -dy, -dz), clr: c4 },
-        { pos: vec3(-dx, -dy, +dz), clr: c4 },
-        { pos: vec3(-dx, +dy, +dz), clr: c4 },
-        { pos: vec3(-dx, +dy, -dz), clr: c4 },
-        // bottom
-        { pos: vec3(-dx, -dy, -dz), clr: c5 },
-        { pos: vec3(+dx, -dy, -dz), clr: c5 },
-        { pos: vec3(+dx, -dy, +dz), clr: c5 },
-        { pos: vec3(-dx, -dy, +dz), clr: c5 },
-        // top
-        { pos: vec3(-dx, +dy, +dz), clr: c6 },
-        { pos: vec3(+dx, +dy, +dz), clr: c6 },
-        { pos: vec3(+dx, +dy, -dz), clr: c6 },
-        { pos: vec3(-dx, +dy, -dz), clr: c6 },
-    ];
-    const indices: number[] = [];
-    for (let i = 0; i < 6; ++i) {
-        const b = i * 4;
-        indices.push(b + 0, b + 1, b + 2, b + 2, b + 3, b + 0);
-    }
+    const clrs: Record<string, Color> = {
+        '001': c1,
+        '100': c2,
+        '00-1': c3,
+        '-100': c4,
+        '0-10': c5,
+        '010': c6,
+    };
+    const { vertices, indices } = generateCube(vec3(1, 0.8, 0.6), (position, normal) => {
+        const key = `${normal.x | 0}${normal.y | 0}${normal.z | 0}`;
+        return { pos: position, clr: clrs[key] };
+    });
 
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);

@@ -26,7 +26,6 @@ const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime, () => {
     runtime.requestRender();
 });
-texture.setUnit(4);
 texture.setParameters({
     mag_filter: 'nearest',
     min_filter: 'nearest',
@@ -121,6 +120,7 @@ runtime.onRender((delta) => {
     apply4x4(mat, yrotation4x4, deg2rad(yRotation));
     mul4x4(proj, mat, mat);
 
+    texture.setUnit(4);
     program.setUniform('u_proj', mat);
     program.setUniform('u_texture', 4);
     const unitSize = mul2(texture.size(), 1 / yCanvas);

@@ -26,7 +26,7 @@ runtime.setDepthTest(true);
 const directionalProgram = makeDirectionalProgram(runtime);
 const pointProgram = makePointProgram(runtime);
 const spotProgram = makeSpotProgram(runtime);
-const primitive = makePrimitive(runtime, 8, vec3(1.6, 1, 1.2));
+const primitive = makePrimitive(runtime, 8, vec3(3.2, 2, 2.4));
 
 let lightDirection = ZERO3;
 let lightPosition = ZERO3;
