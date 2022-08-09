@@ -1,14 +1,9 @@
-import { makeStyles } from './styles';
+import { BaseControl } from './base-control';
 import { RangeControl, RangeControlOptions } from './range-control';
 
-export class ControlsPanel {
-    private readonly _root: HTMLDivElement;
-
+export class ControlsPanel extends BaseControl {
     constructor(container: HTMLElement) {
-        this._root = document.createElement('div');
-        this._root.classList.add('controls-panel');
-        container.appendChild(this._root);
-        makeStyles('controls-panel', STYLES);
+        super(container);
     }
 
     addRangeControl(options: RangeControlOptions): this {
@@ -18,3 +13,11 @@ export class ControlsPanel {
 }
 
 const STYLES = '.controls-panel { position: absolute; top: 0; padding: 4px; }\n';
+
+// @ts-ignore 2445,2540
+ControlsPanel.prototype._NAME = 'controls-panel';
+// @ts-ignore 2445,2540
+ControlsPanel.prototype._STYLES = STYLES;
+// @ts-ignore 2445,2540
+ControlsPanel.prototype._CLASS = 'controls-panel';
+
