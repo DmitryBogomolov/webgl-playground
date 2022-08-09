@@ -34,10 +34,12 @@ export function observable<T>(initial: T): Observable<T> {
 }
 
 export interface ComputedHandler<T> {
-    (values: ReadonlyArray<T>): number;
+    (values: ReadonlyArray<any>): T;
 }
 
-export function computed<T>(handler: ComputedHandler<T>, observables: ReadonlyArray<Observable<T>>): Observable<T> {
+export function computed<T>(
+    handler: ComputedHandler<T>, observables: ReadonlyArray<Observable<any>>,
+): Observable<T> {
     const emitter = new EventEmitter<T>();
     patchWithEmitter(target as unknown as Observable<T>, emitter);
     const valuesCache: T[] = [];
@@ -54,7 +56,7 @@ export function computed<T>(handler: ComputedHandler<T>, observables: ReadonlyAr
 
     return target as unknown as Observable<T>;
 
-    function target(): number {
+    function target(): T {
         return currentValue;
     }
 }
