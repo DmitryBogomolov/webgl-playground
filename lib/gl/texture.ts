@@ -51,8 +51,7 @@ const GL_PARAMETER_NAMES: GLValuesMap<keyof RawState> = {
     'min_filter': WebGLRenderingContext.prototype.TEXTURE_MIN_FILTER,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GL_MAPS: Readonly<Record<keyof RawState, any>> = {
+const GL_MAPS: Readonly<Record<keyof RawState, GLValuesMap<string>>> = {
     'wrap_s': WRAP_MAP,
     'wrap_t': WRAP_MAP,
     'mag_filter': MAG_FILTER_MAP,
@@ -153,8 +152,7 @@ export class Texture {
         const gl = this._runtime.gl;
         for (const [key, val] of Object.entries(params)) {
             if (val !== undefined) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                const value = GL_MAPS[key as keyof State][val] as number;
+                const value = GL_MAPS[key as keyof State][val];
                 if (!value) {
                     throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
                 }
@@ -162,8 +160,7 @@ export class Texture {
                     this._logger.log('set_parameter({0} = {1})', key, val);
                     this._runtime.bindTexture(this._texture, this._id);
                     gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (this._state[key as keyof State] as any) = val;
+                    this._state[key as keyof State] = val as never;
                 }
             }
         }

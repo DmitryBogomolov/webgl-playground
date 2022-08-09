@@ -186,8 +186,7 @@ export class Primitive {
     }
 
     setProgram(program: Program): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        this._logger.log('set_program({0})', (program as any)._id);
+        this._logger.log('set_program({0})', program['_id']);
         if (this._program === program) {
             return;
         }

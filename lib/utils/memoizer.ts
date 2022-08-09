@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function memoize<T extends (...args: any[]) => any>(func: T): T {
+export function memoize<T extends (...args: readonly unknown[]) => unknown>(func: T): T {
     let memoizedArgs: Parameters<T> = [] as unknown as Parameters<T>;
     let memoizedValue: ReturnType<T>;
     function memoizedFunc(...args: Parameters<T>): ReturnType<T> {
@@ -7,14 +6,12 @@ export function memoize<T extends (...args: any[]) => any>(func: T): T {
             memoizedArgs = args;
             memoizedValue = func(...memoizedArgs) as ReturnType<T>;
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return memoizedValue;
     }
     return memoizedFunc as T;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function compareArgs<TArgs extends any[]>(args1: TArgs, args2: TArgs): boolean {
+function compareArgs<TArgs extends readonly unknown[]>(args1: TArgs, args2: TArgs): boolean {
     if (args1.length !== args2.length) {
         return false;
     }
