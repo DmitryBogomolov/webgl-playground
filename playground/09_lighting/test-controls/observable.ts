@@ -24,11 +24,9 @@ export function observable<T>(initial: T): Observable<T> {
         if (value === undefined) {
             return currentValue;
         }
-        if (currentValue !== value) {
-            currentValue = value;
-            // @ts-ignore TODO: Resolve it!
-            emitter.emit(currentValue);
-        }
+        currentValue = value;
+        // @ts-ignore TODO: Resolve it!
+        emitter.emit(currentValue);
         return target as unknown as Observable<T>;
     }
 }

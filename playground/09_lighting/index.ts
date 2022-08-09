@@ -48,9 +48,10 @@ const view = observable(
     }),
 );
 
+const _model = mat4();
 const model = computed(
     ([rotation, position]) => {
-        const mat = mat4();
+        const mat = _model;
         identity4x4(mat);
         apply4x4(mat, yrotation4x4, deg2rad(rotation));
         apply4x4(mat, translation4x4, vec3(position, 0, 0));
@@ -59,9 +60,10 @@ const model = computed(
     [rotation, position],
 );
 
+const _modelViewProj = mat4();
 const modelViewProj = computed(
     ([model, view, proj]) => {
-        const mat = mat4();
+        const mat = _modelViewProj;
         identity4x4(mat);
         mul4x4(model, mat, mat);
         mul4x4(view, mat, mat);
@@ -71,9 +73,12 @@ const modelViewProj = computed(
     [model, view, proj],
 );
 
+const _modelInvTrs = mat4();
 const modelInvTrs = computed(
     ([model]) => {
-        return inversetranspose4x4(model);
+        const mat = _modelInvTrs;
+        inversetranspose4x4(model, mat);
+        return mat;
     },
     [model],
 );
@@ -114,14 +119,16 @@ const rerender = (): void => runtime.requestRender();
 [proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
     .forEach((item) => item.on(rerender));
 
+const _proj = mat4();
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
-    proj(perspective4x4({
+    perspective4x4({
         aspect: x / y,
         yFov: Math.PI / 4,
         zNear: 0.01,
         zFar: 100,
-    }));
+    }, _proj);
+    proj(_proj);
 });
 
 runtime.onRender((_delta) => {
