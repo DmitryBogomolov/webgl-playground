@@ -6,11 +6,10 @@ import {
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     color,
-    EventEmitter,
     deg2rad,
 } from 'lib';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
-import { createControls } from './controls';
+import { ControlsPanel } from './test-controls/controls-panel';
 
 /**
  * Lighting.
@@ -37,45 +36,8 @@ let rotation = 0;
 let position = 0;
 let lightLon = 45;
 let lightLat = 45;
-let lightLimitPoint = 5;
+const lightLimitPoint = 5;
 let lightLimitRange = 10;
-
-const rotationChanged = new EventEmitter<number>();
-const positionChanged = new EventEmitter<number>();
-const lightLonChanged = new EventEmitter<number>();
-const lightLatChanged = new EventEmitter<number>();
-const lightDistChanged = new EventEmitter<number>();
-const lightLimitPointChanged = new EventEmitter<number>();
-const lightLimitRangeChanged = new EventEmitter<number>();
-
-rotationChanged.on((value) => {
-    rotation = value;
-    updateModel();
-});
-positionChanged.on((value) => {
-    position = value;
-    updateModel();
-});
-lightLonChanged.on((value) => {
-    lightLon = value;
-    updateLight();
-});
-lightLatChanged.on((value) => {
-    lightLat = value;
-    updateLight();
-});
-lightDistChanged.on((value) => {
-    lightDistance = value;
-    updateLight();
-});
-lightLimitPointChanged.on((value) => {
-    lightLimitPoint = value;
-    updateLightLimit();
-});
-lightLimitRangeChanged.on((value) => {
-    lightLimitRange = value;
-    updateLightLimit();
-});
 
 const proj = mat4();
 const view = lookAt4x4({
@@ -124,15 +86,56 @@ updateModel();
 updateLight();
 updateLightLimit();
 
-createControls([
-    { name: 'rotation', value: rotation, min: -180, max: +180, emitter: rotationChanged },
-    { name: 'position', value: position, min: -5, max: +5, emitter: positionChanged },
-    { name: 'light lon', value: lightLon, min: -180, max: +180, emitter: lightLonChanged },
-    { name: 'light lat', value: lightLat, min: -90, max: +90, emitter: lightLatChanged },
-    { name: 'light dist', value: lightDistance, min: 2, max: 10, emitter: lightDistChanged },
-    { name: 'limit point', value: lightLimitPoint, min: 0, max: 30, emitter: lightLimitPointChanged },
-    { name: 'limit range', value: lightLimitRange, min: 0, max: 20, emitter: lightLimitRangeChanged },
-]);
+new ControlsPanel(container)
+    .addRangeControl({
+        label: 'rotation', min: -180, max: +180, value: rotation,
+        valueChanged: (value) => {
+            rotation = value;
+            updateModel();
+        },
+    })
+    .addRangeControl({
+        label: 'position', min: -5, max: +5, value: position,
+        valueChanged: (value) => {
+            position = value;
+            updateModel();
+        },
+    })
+    .addRangeControl({
+        label: 'light lon', value: lightLon, min: -180, max: +180,
+        valueChanged: (value) => {
+            lightLon = value;
+            updateLight();
+        },
+    })
+    .addRangeControl({
+        label: 'light lat', value: lightLat, min: -90, max: +90,
+        valueChanged: (value) => {
+            lightLat = value;
+            updateLight();
+        },
+    })
+    .addRangeControl({
+        label: 'light dist', value: lightDistance, min: 2, max: 10,
+        valueChanged: (value) => {
+            lightDistance = value;
+            updateLight();
+        },
+    })
+    .addRangeControl({
+        label: 'limit point', value: lightLimitPoint, min: 0, max: 30,
+        valueChanged: (value) => {
+            lightDistance = value;
+            updateLight();
+        },
+    })
+    .addRangeControl({
+        label: 'limit range', value: lightLimitRange, min: 0, max: 20,
+        valueChanged: (value) => {
+            lightLimitRange = value;
+            updateLightLimit();
+        },
+    });
 
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();

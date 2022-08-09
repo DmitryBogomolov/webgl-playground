@@ -1,9 +1,10 @@
+import { makeStyles } from './styles';
+
 export interface RangeControlOptions {
     readonly label: string;
     readonly min: number;
     readonly max: number;
     readonly value: number;
-    readonly format: (value: number) => string;
     readonly valueChanged: (value: number) => void;
 }
 
@@ -20,7 +21,7 @@ export class RangeControl {
         this._root.classList.add('range-control-root');
 
         const label = document.createElement('div');
-        label.classList.add('range-control-label');
+        label.classList.add('range-control-text');
         label.textContent = options.label;
 
         this._input = document.createElement('input');
@@ -33,7 +34,7 @@ export class RangeControl {
         this._input.addEventListener('input', this._handleValueChange);
 
         this._text = document.createElement('div');
-        this._text.classList.add('range-control-text');
+        this._text.classList.add('range-control-value');
         this._updateText();
 
         this._root.appendChild(label);
@@ -41,11 +42,11 @@ export class RangeControl {
         this._root.appendChild(this._text);
         container.appendChild(this._root);
 
-        makeStyles();
+        makeStyles('range-control', STYLES);
     }
 
     private _updateText(): void {
-        this._text.textContent = this._options.format(Number(this._input.value));
+        this._text.textContent = formatText(Number(this._input.value));
     }
 
     private readonly _handleValueChange = (): void => {
@@ -55,15 +56,15 @@ export class RangeControl {
     };
 }
 
-const ROOT_STYLE = '.range-control-group { padding: 2px; }';
-const TEXT_STYLE = '.range-control-text { width: 100px; float: left; padding-left: 4px; }';
-const VALUE_STYLE = '.range-control-value { width: 30px; padding-left: 4px; float: right; text-align: right; }'
-
-function makeStyles(): void {
-    const style = document.createElement('style');
-    const sheet = style.sheet!;
-    sheet.insertRule(ROOT_STYLE);
-    sheet.insertRule(TEXT_STYLE);
-    sheet.insertRule(VALUE_STYLE);
-    document.querySelector('head')!.appendChild(style);
+function formatText(value: number): string {
+    if (value === 0) {
+        return '0';
+    }
+    return `${value > 0 ? '+' : '-'}${Math.abs(value)}`;
 }
+
+const STYLES = [
+    '.range-control-root { padding: 2px; }',
+    '.range-control-text { width: 100px; float: left; padding-left: 4px; }',
+    '.range-control-value { width: 40px; padding-left: 4px; float: right; text-align: right; }',
+].join('\n');
