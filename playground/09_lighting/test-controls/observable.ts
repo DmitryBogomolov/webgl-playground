@@ -41,15 +41,12 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
 ): Observable<T> {
     const emitter = new EventEmitter<T>();
     patchWithEmitter(target as unknown as Observable<T>, emitter);
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-    /* eslint-disable @typescript-eslint/no-unsafe-call */
-    /* eslint-disable @typescript-eslint/no-unsafe-argument */
-    const valuesCache: any = [];
+    const valuesCache = [] as unknown as ObservableListTypes<K>;
     observables.forEach((item, i) => {
-        valuesCache[i] = (item as any)();
-        (item as any).on((value: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        valuesCache[i] = item();
+        item.on((value) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             valuesCache[i] = value;
             currentValue = handler(valuesCache);
             // @ts-ignore TODO: Resolve it!
@@ -57,11 +54,6 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
         });
     });
     let currentValue = handler(valuesCache);
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
-    /* eslint-enable @typescript-eslint/no-unsafe-call */
-    /* eslint-enable @typescript-eslint/no-unsafe-argument */
 
     return target as unknown as Observable<T>;
 
