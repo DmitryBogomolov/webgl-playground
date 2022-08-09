@@ -29,14 +29,15 @@ const primitive = makePrimitive(runtime, 8, vec3(3.2, 2, 2.4));
 
 let lightDirection = ZERO3;
 let lightPosition = ZERO3;
-let lightDistance = 5;
 let lightLimit = ZERO2;
+
 
 let rotation = 0;
 let position = 0;
 let lightLon = 45;
 let lightLat = 45;
-const lightLimitPoint = 5;
+let lightDistance = 5;
+let lightLimitPoint = 5;
 let lightLimitRange = 10;
 
 const proj = mat4();
@@ -125,8 +126,8 @@ new ControlsPanel(container)
     .addRangeControl({
         label: 'limit point', value: lightLimitPoint, min: 0, max: 30,
         valueChanged: (value) => {
-            lightDistance = value;
-            updateLight();
+            lightLimitPoint = value;
+            updateLightLimit();
         },
     })
     .addRangeControl({
