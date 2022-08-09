@@ -1,9 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ToArray<T> = T extends any[] ? T : [T];
+export type EventListener<T extends readonly unknown[] = []> = (...args: T) => void;
 
-export type EventListener<T = []> = (...args: ToArray<T>) => void;
-
-export class EventEmitter<T = []> {
+export class EventEmitter<T extends readonly unknown[] = []> {
     private readonly _listeners: EventListener<T>[] = [];
 
     on(listener: EventListener<T>): this {
@@ -19,7 +16,7 @@ export class EventEmitter<T = []> {
         return this;
     }
 
-    emit(...args: ToArray<T>): this {
+    emit(...args: T): this {
         for (const listener of this._listeners) {
             listener(...args);
         }

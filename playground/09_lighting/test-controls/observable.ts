@@ -15,7 +15,7 @@ export interface Observable<T> {
 
 export function observable<T>(initial: T): Observable<T> {
     let currentValue = initial;
-    const emitter = new EventEmitter<T>();
+    const emitter = new EventEmitter<[T]>();
     patchWithEmitter(target as unknown as Observable<T>, emitter);
 
     return target as unknown as Observable<T>;
@@ -39,7 +39,7 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     handler: (args: ObservableListTypes<K>) => T,
     observables: K,
 ): Observable<T> {
-    const emitter = new EventEmitter<T>();
+    const emitter = new EventEmitter<[T]>();
     patchWithEmitter(target as unknown as Observable<T>, emitter);
     const valuesCache = [] as unknown as ObservableListTypes<K>;
     observables.forEach((item, i) => {
@@ -49,7 +49,6 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             valuesCache[i] = value;
             currentValue = handler(valuesCache);
-            // @ts-ignore TODO: Resolve it!
             emitter.emit(currentValue);
         });
     });
@@ -62,9 +61,7 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     }
 }
 
-function patchWithEmitter<T>(target: Observable<T>, emitter: EventEmitter<T>): void {
-    // @ts-ignore TODO: Resolve it!
+function patchWithEmitter<T>(target: Observable<T>, emitter: EventEmitter<[T]>): void {
     target.on = (handler: ChangeHandler<T>) => emitter.on(handler);
-    // @ts-ignore TODO: Resolve it!
     target.off = (handler: ChangeHandler<T>) => emitter.off(handler);
 }

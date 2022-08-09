@@ -27,7 +27,7 @@ const pickColor = (function () {
 
 export class State {
     readonly verticesChanged = new EventEmitter();
-    readonly vertexUpdated = new EventEmitter<number>();
+    readonly vertexUpdated = new EventEmitter<[number]>();
     readonly thicknessChanged = new EventEmitter();
     vertices: Vertex[] = [
         { position: vec2(-0.7, -0.8), color: pickColor() },

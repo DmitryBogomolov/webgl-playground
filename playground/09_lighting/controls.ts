@@ -7,7 +7,7 @@ export interface ControlDescription {
     readonly value: number;
     readonly min: number;
     readonly max: number;
-    readonly emitter: EventEmitter<number>;
+    readonly emitter: EventEmitter<[number]>;
 }
 
 export function createControls(controls: ReadonlyArray<ControlDescription>): void {
