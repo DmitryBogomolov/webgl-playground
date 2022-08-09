@@ -2,7 +2,7 @@ import {
     Runtime,
     Program, UniformValue,
     vec2,
-    vec3, ZERO3, YUNIT3, neg3, mul3,
+    Vec3, vec3, ZERO3, YUNIT3, neg3, mul3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     color,
@@ -99,7 +99,7 @@ const lightDirection = computed(
 
 const lightPosition = computed(
     ([lightDirection, lightDistance]) => {
-        return mul3(lightDirection, -lightDistance);
+        return mul3(lightDirection as Vec3, -lightDistance);
     },
     [lightDirection, lightDistance],
 );
