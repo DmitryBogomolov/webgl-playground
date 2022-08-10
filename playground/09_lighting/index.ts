@@ -162,7 +162,7 @@ function renderPrimitive(program: Program, offset: number, uniforms: Record<stri
 
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
-    { label: 'position', min: -5, max: +5, value: position },
+    { label: 'position', min: -5, max: +5, step: 0.5, value: position },
     { label: 'light lon', min: -180, max: +180, value: lightLon },
     { label: 'light lat', min: -90, max: +90, value: lightLat },
     { label: 'light dist', min: 2, max: 10, value: lightDistance },

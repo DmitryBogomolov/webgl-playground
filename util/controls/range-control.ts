@@ -6,6 +6,7 @@ export interface RangeControlOptions {
     readonly label: string;
     readonly min: number;
     readonly max: number;
+    readonly step?: number;
     readonly value: Observable<number>;
 }
 
@@ -18,10 +19,12 @@ export class RangeControl extends BaseControl {
     private readonly _options: RangeControlOptions;
     private readonly _input: HTMLInputElement;
     private readonly _text: HTMLDivElement;
+    private readonly _formatText: (value: number) => string;
 
     constructor(container: HTMLElement, options: RangeControlOptions) {
         super(container);
         this._options = options;
+        this._formatText = options.min * options.max < 0 ? formatTextSigned : formatText;
 
         const label = document.createElement('div');
         label.className = LABEL_CLASS;
@@ -32,6 +35,9 @@ export class RangeControl extends BaseControl {
         this._input.className = INPUT_CLASS;
         this._input.min = String(options.min);
         this._input.max = String(options.max);
+        if (options.step !== undefined) {
+            this._input.step = String(options.step);
+        }
         this._input.addEventListener('change', this._handleInputChange);
         this._input.addEventListener('input', this._handleInputChange);
 
@@ -53,7 +59,7 @@ export class RangeControl extends BaseControl {
     }
 
     private _updateText(): void {
-        this._text.textContent = formatText(this._options.value());
+        this._text.textContent = this._formatText(this._options.value());
     }
 
     private readonly _handleValueChange = (): void => {
@@ -82,6 +88,10 @@ Object.assign(RangeControl.prototype, {
 });
 
 function formatText(value: number): string {
+    return `${value}`;
+}
+
+function formatTextSigned(value: number): string {
     if (value === 0) {
         return '0';
     }

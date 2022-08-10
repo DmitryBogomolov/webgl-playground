@@ -32,6 +32,8 @@ const rotation = observable(0);
 const position = observable(0);
 const planarLon = observable(0);
 const planarLat = observable(0);
+const planarWidth = observable(1);
+const planarHeight = observable(1);
 
 const _model = mat4();
 const model = computed(
@@ -57,7 +59,7 @@ const view = observable(
 );
 
 const _planarMat = mat4();
-const planarMat = computed(([planarLon, planarLat]) => {
+const planarMat = computed(([planarLon, planarLat, planarWidth, planarHeight]) => {
     const lon = deg2rad(planarLon);
     const lat = deg2rad(planarLat);
     const dir = vec3(
@@ -72,18 +74,16 @@ const planarMat = computed(([planarLon, planarLat]) => {
         center: ZERO3,
         up: YUNIT3,
     });
-    const k = 1;
-    const dk = 0.5;
     apply4x4(mat, orthographic4x4, {
-        left: -dk * k,
-        right: +dk * k,
-        bottom: -dk,
-        top: +dk,
+        left: -planarWidth / 2,
+        right: +planarWidth / 2,
+        bottom: -planarHeight / 2,
+        top: +planarHeight / 2,
         zNear: 0.01,
         zFar: 100,
     });
     return mat;
-}, [planarLon, planarLat]);
+}, [planarLon, planarLat, planarWidth, planarHeight]);
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
@@ -97,7 +97,7 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[rotation, position, planarLon, planarLat]
+[rotation, position, planarLon, planarLat, planarWidth, planarHeight]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
@@ -116,7 +116,9 @@ runtime.onRender(() => {
 
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
-    { label: 'position', min: -5, max: +5, value: position },
+    { label: 'position', min: -5, max: +5, step: 0.5, value: position },
     { label: 'planar lon', min: -180, max: +180, value: planarLon },
     { label: 'planar lat', min: -90, max: +90, value: planarLat },
+    { label: 'planar width', min: 0.1, max: 2, step: 0.1, value: planarWidth },
+    { label: 'planar height', min: 0.1, max: 2, step: 0.1, value: planarHeight },
 ]);
