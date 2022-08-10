@@ -1,8 +1,9 @@
 import { ControlsPanel } from './controls-panel';
 import { RangeControlOptions } from './range-control';
 import { SelectControlOptions } from './select-control';
+import { CheckControlOptions } from './check-control';
 
-export type SharedControlOptions = RangeControlOptions | SelectControlOptions;
+export type SharedControlOptions = RangeControlOptions | SelectControlOptions | CheckControlOptions;
 
 function isRange(options: SharedControlOptions): options is RangeControlOptions {
     return 'min' in options && 'max' in options;
@@ -10,6 +11,10 @@ function isRange(options: SharedControlOptions): options is RangeControlOptions 
 
 function isSelect(options: SharedControlOptions): options is SelectControlOptions {
     return 'options' in options;
+}
+
+function isCheck(options: SharedControlOptions): options is CheckControlOptions {
+    return 'checked' in options;
 }
 
 export function createControls(
@@ -22,6 +27,9 @@ export function createControls(
         }
         if (isSelect(options)) {
             panel.addSelectControl(options);
+        }
+        if (isCheck(options)) {
+            panel.addCheckControl(options);
         }
     });
     return panel;

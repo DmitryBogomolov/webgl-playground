@@ -1,6 +1,7 @@
 import { BaseControl } from './base-control';
 import { RangeControl, RangeControlOptions } from './range-control';
 import { SelectControl, SelectControlOptions } from './select-control';
+import { CheckControl, CheckControlOptions } from './check-control';
 
 const NAME = 'controls-panel';
 
@@ -18,6 +19,11 @@ export class ControlsPanel extends BaseControl {
 
     addSelectControl(options: SelectControlOptions): this {
         this._controls.push(new SelectControl(this._root, options));
+        return this;
+    }
+
+    addCheckControl(options: CheckControlOptions): this {
+        this._controls.push(new CheckControl(this._root, options));
         return this;
     }
 }

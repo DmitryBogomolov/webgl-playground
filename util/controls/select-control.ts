@@ -4,7 +4,7 @@ import { Observable } from '../observable';
 export interface SelectControlOptions {
     readonly label: string;
     readonly options: ReadonlyArray<string>;
-    readonly value: Observable<string>;
+    readonly selection: Observable<string>;
 }
 
 const NAME = 'select-control';
@@ -31,7 +31,7 @@ export class SelectControl extends BaseControl {
             this._select.appendChild(option);
         });
         this._select.addEventListener('change', this._handleSelectionChange);
-        this._options.value.on(this._handleValueChange);
+        this._options.selection.on(this._handleValueChange);
 
         this._updateSelectedIndex();
 
@@ -40,7 +40,7 @@ export class SelectControl extends BaseControl {
     }
 
     private _updateSelectedIndex(): void {
-        this._select.selectedIndex = this._options.options.indexOf(this._options.value());
+        this._select.selectedIndex = this._options.options.indexOf(this._options.selection());
     }
 
     private readonly _handleValueChange = (): void => {
@@ -49,8 +49,8 @@ export class SelectControl extends BaseControl {
 
     private readonly _handleSelectionChange = (): void => {
         const value = this._options.options[this._select.selectedIndex];
-        if (value !== this._options.value()) {
-            this._options.value(value);
+        if (value !== this._options.selection()) {
+            this._options.selection(value);
         }
     };
 }
