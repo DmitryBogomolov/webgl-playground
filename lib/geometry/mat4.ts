@@ -219,8 +219,7 @@ export function inversetranspose4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
     return out;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
+type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
 const _apply4x4Aux = mat4() as number[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function apply4x4<T extends (...args: any[]) => any>(

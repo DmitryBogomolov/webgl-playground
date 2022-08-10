@@ -206,8 +206,7 @@ export function inverse3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
     return clone3x3(aux, out);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SkipLast<T> = T extends [...args: infer P, last?: any] ? P : never;
+type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
 const _tmpMat = mat3();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function apply3x3<T extends (...args: any[]) => any>(
