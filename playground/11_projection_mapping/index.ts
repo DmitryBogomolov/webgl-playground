@@ -2,7 +2,7 @@ import {
     Runtime,
     color,
     vec3, ZERO3, YUNIT3, mul3,
-    mat4, perspective4x4, lookAt4x4, apply4x4, orthographic4x4, identity4x4,
+    mat4, perspective4x4, lookAt4x4, mul4x4, apply4x4, orthographic4x4, identity4x4,
     yrotation4x4, translation4x4,
     deg2rad,
 } from 'lib';
@@ -58,8 +58,8 @@ const view = observable(
     }),
 );
 
-const _planarMat = mat4();
-const planarMat = computed(([planarLon, planarLat, planarWidth, planarHeight]) => {
+const _planarView = mat4();
+const planarView = computed(([planarLon, planarLat]) => {
     const lon = deg2rad(planarLon);
     const lat = deg2rad(planarLat);
     const dir = vec3(
@@ -67,23 +67,32 @@ const planarMat = computed(([planarLon, planarLat, planarWidth, planarHeight]) =
         Math.sin(lat),
         Math.cos(lat) * Math.cos(lon),
     );
-    const mat = _planarMat;
-    identity4x4(mat);
-    apply4x4(mat, lookAt4x4, {
+    lookAt4x4({
         eye: mul3(dir, 4),
         center: ZERO3,
         up: YUNIT3,
-    });
-    apply4x4(mat, orthographic4x4, {
+    }, _planarView);
+    return _planarView;
+}, [planarLon, planarLat]);
+
+const _planarProj = mat4();
+const planarProj = computed(([planarWidth, planarHeight]) => {
+    orthographic4x4({
         left: -planarWidth / 2,
         right: +planarWidth / 2,
         bottom: -planarHeight / 2,
         top: +planarHeight / 2,
         zNear: 0.01,
         zFar: 100,
-    });
-    return mat;
-}, [planarLon, planarLat, planarWidth, planarHeight]);
+    }, _planarProj);
+    return _planarProj;
+}, [planarWidth, planarHeight]);
+
+const _planarMat = mat4();
+const planarMat = computed(([planarView, planarProj]) => {
+    mul4x4(planarProj, planarView, _planarMat);
+    return _planarMat;
+}, [planarView, planarProj]);
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
