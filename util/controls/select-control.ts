@@ -1,10 +1,10 @@
 import { BaseControl } from './base-control';
+import { Observable } from '../observable';
 
 export interface SelectControlOptions {
     readonly label: string;
     readonly options: ReadonlyArray<string>;
-    readonly value: string;
-    readonly valueChanged: (value: string) => void;
+    readonly value: Observable<string>;
 }
 
 const NAME = 'select-control';
@@ -30,16 +30,28 @@ export class SelectControl extends BaseControl {
             option.textContent = value;
             this._select.appendChild(option);
         });
-        this._select.selectedIndex = options.options.indexOf(options.value);
         this._select.addEventListener('change', this._handleSelectionChange);
+        this._options.value.on(this._handleValueChange);
+
+        this._updateSelectedIndex();
 
         this._root.appendChild(label);
         this._root.appendChild(this._select);
     }
 
+    private _updateSelectedIndex(): void {
+        this._select.selectedIndex = this._options.options.indexOf(this._options.value());
+    }
+
+    private readonly _handleValueChange = (): void => {
+        this._updateSelectedIndex();
+    };
+
     private readonly _handleSelectionChange = (): void => {
         const value = this._options.options[this._select.selectedIndex];
-        this._options.valueChanged(value);
+        if (value !== this._options.value()) {
+            this._options.value(value);
+        }
     };
 }
 

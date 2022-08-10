@@ -162,11 +162,11 @@ function renderPrimitive(program: Program, offset: number, uniforms: Record<stri
 }
 
 createControls(container, [
-    { label: 'rotation', min: -180, max: +180, value: rotation(), valueChanged: rotation },
-    { label: 'position', min: -5, max: +5, value: position(), valueChanged: position },
-    { label: 'light lon', min: -180, max: +180, value: lightLon(), valueChanged: lightLon },
-    { label: 'light lat', min: -90, max: +90, value: lightLat(), valueChanged: lightLat },
-    { label: 'light dist', min: 2, max: 10, value: lightDistance(), valueChanged: lightDistance },
-    { label: 'limit point', min: 0, max: 30, value: lightLimitPoint(), valueChanged: lightLimitPoint },
-    { label: 'limit range', min: 0, max: 20, value: lightLimitRange(), valueChanged: lightLimitRange },
+    { label: 'rotation', min: -180, max: +180, value: rotation },
+    { label: 'position', min: -5, max: +5, value: position },
+    { label: 'light lon', min: -180, max: +180, value: lightLon },
+    { label: 'light lat', min: -90, max: +90, value: lightLat },
+    { label: 'light dist', min: 2, max: 10, value: lightDistance },
+    { label: 'limit point', min: 0, max: 30, value: lightLimitPoint },
+    { label: 'limit range', min: 0, max: 20, value: lightLimitRange },
 ]);
