@@ -1,7 +1,7 @@
 import {
     Runtime,
     color,
-    vec3, ZERO3, YUNIT3,
+    vec3, ZERO3, YUNIT3, mul3,
     mat4, perspective4x4, lookAt4x4, apply4x4, orthographic4x4, identity4x4,
     yrotation4x4, translation4x4,
     deg2rad,
@@ -30,6 +30,8 @@ const mappingTexture = makeMappingTexture(runtime, () => {
 
 const rotation = observable(0);
 const position = observable(0);
+const planarLon = observable(0);
+const planarLat = observable(0);
 
 const _model = mat4();
 const model = computed(
@@ -54,21 +56,34 @@ const view = observable(
     }),
 );
 
-const planarMat = lookAt4x4({
-    eye: vec3(0, 0, 4),
-    center: ZERO3,
-    up: YUNIT3,
-});
-const k = 1;
-const dk = 0.5;
-apply4x4(planarMat, orthographic4x4, {
-    left: -dk * k,
-    right: +dk * k,
-    bottom: -dk,
-    top: +dk,
-    zNear: 0.01,
-    zFar: 100,
-});
+const _planarMat = mat4();
+const planarMat = computed(([planarLon, planarLat]) => {
+    const lon = deg2rad(planarLon);
+    const lat = deg2rad(planarLat);
+    const dir = vec3(
+        Math.cos(lat) * Math.sin(lon),
+        Math.sin(lat),
+        Math.cos(lat) * Math.cos(lon),
+    );
+    const mat = _planarMat;
+    identity4x4(mat);
+    apply4x4(mat, lookAt4x4, {
+        eye: mul3(dir, 4),
+        center: ZERO3,
+        up: YUNIT3,
+    });
+    const k = 1;
+    const dk = 0.5;
+    apply4x4(mat, orthographic4x4, {
+        left: -dk * k,
+        right: +dk * k,
+        bottom: -dk,
+        top: +dk,
+        zNear: 0.01,
+        zFar: 100,
+    });
+    return mat;
+}, [planarLon, planarLat]);
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
@@ -82,7 +97,7 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[rotation, position]
+[rotation, position, planarLon, planarLat]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
@@ -95,11 +110,13 @@ runtime.onRender(() => {
     program.setUniform('u_model', model());
     program.setUniform('u_texture', 4);
     program.setUniform('u_planar_texture', 5);
-    program.setUniform('u_planar_mat', planarMat);
+    program.setUniform('u_planar_mat', planarMat());
     primitive.render();
 });
 
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
     { label: 'position', min: -5, max: +5, value: position },
+    { label: 'planar lon', min: -180, max: +180, value: planarLon },
+    { label: 'planar lat', min: -90, max: +90, value: planarLat },
 ]);
