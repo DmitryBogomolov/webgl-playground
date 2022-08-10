@@ -38,7 +38,7 @@ const lightLimitPoint = observable(5);
 const lightLimitRange = observable(10);
 
 const proj = observable(
-    identity4x4(),
+    mat4(),
 );
 const view = observable(
     lookAt4x4({
