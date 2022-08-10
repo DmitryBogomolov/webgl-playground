@@ -8,9 +8,9 @@ import {
     color,
     deg2rad,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
-import { createControls } from './test-controls/util';
-import { observable, computed } from './test-controls/observable';
 
 /**
  * Lighting.
