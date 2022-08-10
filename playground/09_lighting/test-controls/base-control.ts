@@ -13,7 +13,6 @@ function makeStyles(key: string, content: string): void {
 export abstract class BaseControl {
     protected readonly _NAME!: string;
     protected readonly _STYLES!: string;
-    protected readonly _CLASS!: string;
     protected readonly _root: HTMLDivElement;
     protected readonly _container: HTMLElement;
 
