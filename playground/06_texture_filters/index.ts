@@ -5,9 +5,11 @@ import {
     Texture,
     parseVertexSchema,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import vertexShaderSource from './shaders/vert.glsl';
 import fragmentShaderSource from './shaders/frag.glsl';
-import { ConvolutionKernel, convolutionKernels } from './convolution_kernels';
+import { convolutionKernels } from './convolution_kernels';
 
 /**
  * Texture filters.
@@ -68,32 +70,15 @@ function makeTexture(runtime: Runtime): Texture {
     return texture;
 }
 
-function populateSelectControl(runtime: Runtime): void {
-    const element = document.querySelector<HTMLSelectElement>('#kernel-select')!;
-    const map = new Map<string, ConvolutionKernel>();
-    convolutionKernels.forEach((kernel) => {
-        const option = document.createElement('option');
-        const { name } = kernel;
-        map.set(name, kernel);
-        option.value = name;
-        option.textContent = name;
-        if (currentKernel === kernel) {
-            option.selected = true;
-        }
-        element.appendChild(option);
-    });
-    element.addEventListener('change', () => {
-        currentKernel = map.get(element.value)!;
-        runtime.requestRender();
-    });
-}
-
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
 
-let currentKernel: ConvolutionKernel = convolutionKernels[0];
-populateSelectControl(runtime);
+const kernelName = observable(convolutionKernels[0].name);
+const currentKernel = computed(([name]) => {
+    return convolutionKernels.find((kernel) => kernel.name === name)!;
+}, [kernelName]);
+currentKernel.on(() => runtime.requestRender());
 
 runtime.onRender(() => {
     runtime.clearBuffer();
@@ -102,8 +87,11 @@ runtime.onRender(() => {
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());
     program.setUniform('u_texture', 3);
-    program.setUniform('u_kernel', currentKernel.kernel);
-    program.setUniform('u_kernel_weight', currentKernel.weight);
+    program.setUniform('u_kernel', currentKernel().kernel);
+    program.setUniform('u_kernel_weight', currentKernel().weight);
     primitive.render();
 });
 
+createControls(container, [
+    { label: 'kernel', options: convolutionKernels.map((kernel) => kernel.name), selection: kernelName },
+]);

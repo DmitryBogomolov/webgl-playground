@@ -2,7 +2,7 @@ import {
     Mat4,
     eq4x4, zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
     add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
-    det4x4, inverse4x4,
+    det4x4, inverse4x4, inversetranspose4x4,
     translation4x4, scaling4x4, rotation4x4, xrotation4x4, yrotation4x4, zrotation4x4,
     orthographic4x4, perspective4x4, lookAt4x4, targetTo4x4,
 } from './mat4';
@@ -324,6 +324,51 @@ describe('mat4', () => {
                 0, 1, 0, 3,
                 0, 0, 1, 4,
                 0, 0, 0, 1,
+            ])),
+        ).toBeMat([
+            1, 0, 0, -2,
+            0, 1, 0, -3,
+            0, 0, 1, -4,
+            0, 0, 0, 1,
+        ]);
+    });
+
+    it('inversetranspose4x4', () => {
+        expect(
+            inversetranspose4x4(zero4x4()),
+        ).toBeMat([
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+        ]);
+        expect(
+            inversetranspose4x4(identity4x4()),
+        ).toBeMat([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        ]);
+        expect(
+            inversetranspose4x4(make([
+                1, 0, 0, 0,
+                0, 2, 0, 0,
+                0, 0, 10, 0,
+                0, 0, 0, 0.25,
+            ])),
+        ).toBeMat([
+            1, 0, 0, 0,
+            0, 0.5, 0, 0,
+            0, 0, 0.1, 0,
+            0, 0, 0, 4,
+        ]);
+        expect(
+            inversetranspose4x4(make([
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                2, 3, 4, 1,
             ])),
         ).toBeMat([
             1, 0, 0, -2,

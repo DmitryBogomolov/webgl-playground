@@ -11,10 +11,11 @@ export function makeControl(initial: TexCoord, callback: (tc: TexCoord) => void)
     const ctx = canvas.getContext('2d')!;
     const width = canvas.width = canvas.clientWidth * devicePixelRatio;
     const height = canvas.height = canvas.clientHeight * devicePixelRatio;
-    const xMin = 40;
-    const xMax = width - 40;
-    const yMin = 40;
-    const yMax = height - 40;
+    const size = Math.min(width, height) - 80;
+    const xMin = width / 2 - size / 2;
+    const xMax = width / 2 + size / 2;
+    const yMin = height / 2 - size / 2;
+    const yMax = height / 2 + size / 2;
     const dx = (xMax - xMin) / TEXTURE_SIZE;
     const dy = (yMax - yMin) / TEXTURE_SIZE;
     let { u, v } = initial;

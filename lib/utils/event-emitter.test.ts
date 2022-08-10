@@ -3,7 +3,7 @@ import { EventEmitter } from './event-emitter';
 describe('event-emitter', () => {
     describe('EventEmitter', () => {
         it('emit events', () => {
-            const emitter = new EventEmitter<number>();
+            const emitter = new EventEmitter<[number]>();
             const stub1 = jest.fn();
             const stub2 = jest.fn();
             emitter.emit(0);
@@ -27,7 +27,7 @@ describe('event-emitter', () => {
         });
 
         it('cancel subscriptions', () => {
-            const emitter = new EventEmitter<number>();
+            const emitter = new EventEmitter<[number]>();
             const stub1 = jest.fn();
             const stub2 = jest.fn();
             emitter.on(stub1);
@@ -51,7 +51,7 @@ describe('event-emitter', () => {
         });
 
         it('add or remove listeners twice', () => {
-            const emitter = new EventEmitter<number>();
+            const emitter = new EventEmitter<[number]>();
             const stub = jest.fn();
             emitter.on(stub);
             emitter.on(stub);
@@ -83,7 +83,7 @@ describe('event-emitter', () => {
         });
 
         it('remove all listeners', () => {
-            const emitter = new EventEmitter<number>();
+            const emitter = new EventEmitter<[number]>();
             const stub1 = jest.fn();
             const stub2 = jest.fn();
             const stub3 = jest.fn();

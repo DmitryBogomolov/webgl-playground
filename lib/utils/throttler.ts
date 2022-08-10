@@ -1,4 +1,4 @@
-export function throttle<T extends (...args: any[]) => void>(func: T, duration: number): T {
+export function throttle<T extends (...args: readonly unknown[]) => void>(func: T, duration: number): T {
     let timeout = 0;
     let lastTime = 0;
     let pendingArgs: Parameters<T> | null = null;
@@ -16,8 +16,7 @@ export function throttle<T extends (...args: any[]) => void>(func: T, duration: 
             func(...args);
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
-        timeout = timeout || setTimeout(handler as TimerHandler, duration - timespan);
+        timeout = timeout || window.setTimeout(handler, duration - timespan);
         pendingArgs = args;
     }
     return throttledFunc as T;

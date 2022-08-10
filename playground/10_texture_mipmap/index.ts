@@ -7,9 +7,10 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
+import { observable } from 'util/observable';
+import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
-import { setupControls } from './controls';
 
 /**
  * Texture mipmap.
@@ -59,51 +60,38 @@ const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(+1, +0.8), size: 0.15 },
 ];
 
-let animationFlag = 1;
+const animationFlag = observable(true);
 let animationAngle = 0;
+
 const PI2 = Math.PI * 2;
 const ANIMATION_SPEED = PI2 / 10;
 const ANIMATION_RADIUS = 10;
 
-let xRotation = 0;
-let yRotation = 0;
+const xRotation = observable(0);
+const yRotation = observable(0);
 const mat = mat4();
 
-setupControls({
-    animation: Boolean(animationFlag),
-    xRotation,
-    yRotation,
-    magFilter: ['nearest', 'linear'],
-    minFilter: [
-        'nearest', 'linear',
-        'nearest_mipmap_nearest', 'linear_mipmap_nearest', 'nearest_mipmap_linear', 'linear_mipmap_linear',
-    ],
-}, {
-    animation(enabled) {
-        animationFlag = Number(enabled);
-        runtime.requestRender();
-    },
-    xRotation(value) {
-        xRotation = value;
-        runtime.requestRender();
-    },
-    yRotation(value) {
-        yRotation = value;
-        runtime.requestRender();
-    },
-    magFilter(value) {
-        texture.setParameters({
-            mag_filter: value as TEXTURE_MAG_FILTER,
-        });
-        runtime.requestRender();
-    },
-    minFilter(value) {
-        texture.setParameters({
-            min_filter: value as TEXTURE_MIN_FILTER,
-        });
-        runtime.requestRender();
-    },
+const MAG_FILTER_OPTIONS = ['nearest', 'linear'];
+const MIN_FILTER_OPTIONS = [
+    'nearest', 'linear',
+    'nearest_mipmap_nearest', 'linear_mipmap_nearest', 'nearest_mipmap_linear', 'linear_mipmap_linear',
+];
+const magFilter = observable(MAG_FILTER_OPTIONS[0]);
+const minFilter = observable(MIN_FILTER_OPTIONS[0]);
+
+magFilter.on((value) => {
+    texture.setParameters({
+        mag_filter: value as TEXTURE_MAG_FILTER,
+    });
 });
+minFilter.on((value) => {
+    texture.setParameters({
+        min_filter: value as TEXTURE_MIN_FILTER,
+    });
+});
+
+[animationFlag, xRotation, yRotation, magFilter, minFilter]
+    .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender((delta) => {
     runtime.clearBuffer('color|depth');
@@ -112,12 +100,12 @@ runtime.onRender((delta) => {
     const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
 
     animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
-    const dx = animationFlag * ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
-    const dy = animationFlag * ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
+    const dx = Number(animationFlag()) * ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
+    const dy = Number(animationFlag()) * ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
 
     identity4x4(mat);
-    apply4x4(mat, xrotation4x4, deg2rad(xRotation));
-    apply4x4(mat, yrotation4x4, deg2rad(yRotation));
+    apply4x4(mat, xrotation4x4, deg2rad(xRotation()));
+    apply4x4(mat, yrotation4x4, deg2rad(yRotation()));
     mul4x4(proj, mat, mat);
 
     texture.setUnit(4);
@@ -134,7 +122,15 @@ runtime.onRender((delta) => {
         primitive.render();
     }
 
-    if (animationFlag) {
+    if (animationFlag()) {
         runtime.requestRender();
     }
 });
+
+createControls(container, [
+    { label: 'animation', checked: animationFlag },
+    { label: 'x rotation', min: -30, max: +30, value: xRotation },
+    { label: 'y rotation', min: -30, max: +30, value: yRotation },
+    { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
+    { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter },
+]);

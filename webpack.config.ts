@@ -86,6 +86,7 @@ const config: Configuration = {
         extensions: ['.ts', '.js'],
         alias: {
             lib: path.join(__dirname, './lib/index.ts'),
+            util: path.join(__dirname, './util'),
         },
     },
     module: {
