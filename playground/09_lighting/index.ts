@@ -9,7 +9,7 @@ import {
     deg2rad,
 } from 'lib';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
-import { ControlsPanel } from './test-controls/controls-panel';
+import { createControls } from './test-controls/util';
 import { observable, computed } from './test-controls/observable';
 
 /**
@@ -161,25 +161,12 @@ function renderPrimitive(program: Program, offset: number, uniforms: Record<stri
     primitive.render();
 }
 
-new ControlsPanel(container)
-    .addRangeControl({
-        label: 'rotation', min: -180, max: +180, value: rotation(), valueChanged: rotation,
-    })
-    .addRangeControl({
-        label: 'position', min: -5, max: +5, value: position(), valueChanged: position,
-    })
-    .addRangeControl({
-        label: 'light lon', min: -180, max: +180, value: lightLon(), valueChanged: lightLon,
-    })
-    .addRangeControl({
-        label: 'light lat', min: -90, max: +90, value: lightLat(), valueChanged: lightLat,
-    })
-    .addRangeControl({
-        label: 'light dist', min: 2, max: 10, value: lightDistance(), valueChanged: lightDistance,
-    })
-    .addRangeControl({
-        label: 'limit point', min: 0, max: 30, value: lightLimitPoint(), valueChanged: lightLimitPoint,
-    })
-    .addRangeControl({
-        label: 'limit range', min: 0, max: 20, value: lightLimitRange(), valueChanged: lightLimitRange,
-    });
+createControls(container, [
+    { label: 'rotation', min: -180, max: +180, value: rotation(), valueChanged: rotation },
+    { label: 'position', min: -5, max: +5, value: position(), valueChanged: position },
+    { label: 'light lon', min: -180, max: +180, value: lightLon(), valueChanged: lightLon },
+    { label: 'light lat', min: -90, max: +90, value: lightLat(), valueChanged: lightLat },
+    { label: 'light dist', min: 2, max: 10, value: lightDistance(), valueChanged: lightDistance },
+    { label: 'limit point', min: 0, max: 30, value: lightLimitPoint(), valueChanged: lightLimitPoint },
+    { label: 'limit range', min: 0, max: 20, value: lightLimitRange(), valueChanged: lightLimitRange },
+]);

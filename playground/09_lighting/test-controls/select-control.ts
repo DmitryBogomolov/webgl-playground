@@ -2,7 +2,7 @@ import { BaseControl } from './base-control';
 
 export interface SelectControlOptions {
     readonly label: string;
-    readonly values: ReadonlyArray<string>;
+    readonly options: ReadonlyArray<string>;
     readonly value: string;
     readonly valueChanged: (value: string) => void;
 }
@@ -25,12 +25,12 @@ export class SelectControl extends BaseControl {
 
         this._select = document.createElement('select');
         this._select.className = SELECT_CLASS;
-        options.values.forEach((value) => {
+        options.options.forEach((value) => {
             const option = document.createElement('option');
             option.textContent = value;
             this._select.appendChild(option);
         });
-        this._select.selectedIndex = options.values.indexOf(options.value);
+        this._select.selectedIndex = options.options.indexOf(options.value);
         this._select.addEventListener('change', this._handleSelectionChange);
 
         this._root.appendChild(label);
@@ -38,7 +38,7 @@ export class SelectControl extends BaseControl {
     }
 
     private readonly _handleSelectionChange = (): void => {
-        const value = this._options.values[this._select.selectedIndex];
+        const value = this._options.options[this._select.selectedIndex];
         this._options.valueChanged(value);
     };
 }
