@@ -25,7 +25,6 @@ export function observable<T>(initial: T): Observable<T> {
             return currentValue;
         }
         currentValue = value;
-        // @ts-ignore TODO: Resolve it!
         emitter.emit(currentValue);
         return target as unknown as Observable<T>;
     }
