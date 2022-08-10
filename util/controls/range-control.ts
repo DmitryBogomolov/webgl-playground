@@ -1,4 +1,5 @@
 import { BaseControl } from './base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
 import { Observable } from '../observable';
 
 export interface RangeControlOptions {
@@ -69,9 +70,9 @@ export class RangeControl extends BaseControl {
 }
 
 const STYLES = [
-    `.${NAME} { padding: 2px; }`,
-    `.${LABEL_CLASS} { width: 100px; float: left; padding-left: 4px; }`,
-    `.${INPUT_CLASS} { width: 120px; }`,
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${INPUT_CLASS} ${INPUT_STYLE}`,
     `.${VALUE_CLASS} { width: 40px; padding-left: 4px; float: right; text-align: right; }`,
 ].join('\n');
 

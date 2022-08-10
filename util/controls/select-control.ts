@@ -1,4 +1,5 @@
 import { BaseControl } from './base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
 import { Observable } from '../observable';
 
 export interface SelectControlOptions {
@@ -56,9 +57,9 @@ export class SelectControl extends BaseControl {
 }
 
 const STYLES = [
-    `.${NAME} { padding: 2px; }`,
-    `.${LABEL_CLASS} { width: 100px; float: left; padding-left: 4px; }`,
-    `.${SELECT_CLASS} { width: 120px; }`,
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${SELECT_CLASS} ${INPUT_STYLE}`,
 ].join('\n');
 
 Object.assign(SelectControl.prototype, {

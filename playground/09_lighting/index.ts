@@ -115,9 +115,8 @@ const lightLimit = computed(
     [lightLimitPoint, lightLimitRange],
 );
 
-const rerender = (): void => runtime.requestRender();
 [proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
-    .forEach((item) => item.on(rerender));
+    .forEach((item) => item.on(() => runtime.requestRender()));
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {

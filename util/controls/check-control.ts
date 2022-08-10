@@ -1,4 +1,5 @@
 import { BaseControl } from './base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
 import { Observable } from '../observable';
 
 export interface CheckControlOptions {
@@ -23,7 +24,7 @@ export class CheckControl extends BaseControl {
         label.textContent = options.label;
 
         this._input = document.createElement('input');
-        this._input.type = 'check';
+        this._input.type = 'checkbox';
         this._input.className = INPUT_CLASS;
         this._input.addEventListener('change', this._handleInputChange);
         this._input.addEventListener('input', this._handleInputChange);
@@ -53,9 +54,9 @@ export class CheckControl extends BaseControl {
 }
 
 const STYLES = [
-    `.${NAME} { padding: 2px; }`,
-    `.${LABEL_CLASS} { width: 100px; float: left; padding-left: 4px; }`,
-    `.${INPUT_CLASS} { width: 120px; }`,
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${INPUT_CLASS} ${INPUT_STYLE}`,
 ].join('\n');
 
 Object.assign(CheckControl.prototype, {
