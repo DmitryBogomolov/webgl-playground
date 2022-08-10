@@ -1,7 +1,6 @@
 import {
     Vec2,
     KDTree, KDTreeAxisFuncList, KDTreeDistanceFunc,
-    EventListener,
 } from 'lib';
 import { State } from './state';
 
@@ -23,7 +22,7 @@ export class SearchTree {
         this._update();
     }
 
-    private readonly _update: EventListener = () => {
+    private readonly _update = (): void => {
         this._tree = new KDTree(
             this._state.vertices.map((v) => v.position), this._axisFuncList, this._distFunc,
         );

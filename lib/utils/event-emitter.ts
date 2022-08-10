@@ -1,34 +1,36 @@
-export type EventListener<T extends readonly unknown[] = []> = (...args: T) => void;
+export interface EventHandler<T extends readonly unknown[] = []> {
+    (...args: T): void;
+}
 
 export class EventEmitter<T extends readonly unknown[] = []> {
-    private readonly _listeners: EventListener<T>[] = [];
+    private readonly _handlers: EventHandler<T>[] = [];
 
-    on(listener: EventListener<T>): this {
-        this._listeners.push(listener);
+    on(handler: EventHandler<T>): this {
+        this._handlers.push(handler);
         return this;
     }
 
-    off(listener: EventListener<T>): this {
-        const i = this._listeners.indexOf(listener);
+    off(handler: EventHandler<T>): this {
+        const i = this._handlers.indexOf(handler);
         if (i >= 0) {
-            this._listeners.splice(i, 1);
+            this._handlers.splice(i, 1);
         }
         return this;
     }
 
     emit(...args: T): this {
-        for (const listener of this._listeners) {
-            listener(...args);
+        for (const handler of this._handlers) {
+            handler(...args);
         }
         return this;
     }
 
     count(): number {
-        return this._listeners.length;
+        return this._handlers.length;
     }
 
     clear(): this {
-        this._listeners.length = 0;
+        this._handlers.length = 0;
         return this;
     }
 }

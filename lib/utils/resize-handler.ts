@@ -1,8 +1,8 @@
-import { EventEmitter, EventListener } from './event-emitter';
+import { EventEmitter } from './event-emitter';
 import { throttle } from './throttler';
 
 const emitter = new EventEmitter();
-const index = new Map<() => void, EventListener>();
+const index = new Map<() => void, () => void>();
 
 function handleResize(): void {
     emitter.emit();
@@ -12,7 +12,7 @@ export function onWindowResize(callback: () => void, timespan: number = 250): vo
     if (emitter.count() === 0) {
         window.addEventListener('resize', handleResize);
     }
-    const listener = throttle(callback, timespan) as EventListener;
+    const listener = throttle(callback, timespan);
     emitter.on(listener);
     index.set(callback, listener);
 }
