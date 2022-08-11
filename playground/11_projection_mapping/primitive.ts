@@ -9,6 +9,8 @@ import {
 } from 'lib';
 import vertexShader from './shaders/mapping.vert';
 import fragmentShader from './shaders/mapping.frag';
+import wireframeVertexShader from './shaders/wireframe.vert';
+import wireframeFragmentShader from './shaders/wireframe.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -46,7 +48,46 @@ export function makePrimitive(runtime: Runtime): Primitive {
         fragmentShader,
         schema,
     });
+    primitive.setProgram(program);
 
+    return primitive;
+}
+
+export function makeWireframe(runtime: Runtime): Primitive {
+    const primitive = new Primitive(runtime);
+    const schema = parseVertexSchema([
+        { name: 'a_position', type: 'float3' },
+    ]);
+
+    const t = 0.5;
+    const vertices = new Float32Array([
+        -t, -t, +t,
+        +t, -t, +t,
+        +t, +t, +t,
+        -t, +t, +t,
+        -t, -t, -t,
+        +t, -t, -t,
+        +t, +t, -t,
+        -t, +t, -t,
+    ]);
+    const indices = new Uint16Array([
+        0, 1, 1, 2, 2, 3, 3, 0,
+        0, 4, 1, 5, 2, 6, 3, 7,
+        4, 5, 5, 6, 6, 7, 7, 4,
+    ]);
+
+    primitive.allocateVertexBuffer(vertices.byteLength);
+    primitive.updateVertexData(vertices);
+    primitive.allocateIndexBuffer(indices.byteLength);
+    primitive.updateIndexData(indices);
+    primitive.setVertexSchema(schema);
+    primitive.setIndexData({ indexCount: indices.length, primitiveMode: 'lines' });
+
+    const program = new Program(runtime, {
+        vertexShader: wireframeVertexShader,
+        fragmentShader: wireframeFragmentShader,
+        schema,
+    });
     primitive.setProgram(program);
 
     return primitive;

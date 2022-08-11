@@ -3,12 +3,13 @@ import {
     color,
     vec3, ZERO3, YUNIT3, mul3,
     mat4, perspective4x4, lookAt4x4, mul4x4, apply4x4, orthographic4x4, identity4x4,
-    yrotation4x4, translation4x4,
+    yrotation4x4, translation4x4, inverse4x4,
     deg2rad,
+    clone4x4,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makePrimitive } from './primitive';
+import { makePrimitive, makeWireframe } from './primitive';
 import { makeFillTexture, makeMappingTexture } from './texture';
 
 /**
@@ -23,6 +24,7 @@ const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
+const wireframe = makeWireframe(runtime);
 const fillTexture = makeFillTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
     runtime.requestRender();
@@ -90,7 +92,9 @@ const planarProj = computed(([planarWidth, planarHeight]) => {
 
 const _planarMat = mat4();
 const planarMat = computed(([planarView, planarProj]) => {
-    mul4x4(planarProj, planarView, _planarMat);
+    //mul4x4(planarProj, planarView, _planarMat);
+    clone4x4(planarView, _planarMat);
+    //inverse4x4(_planarMat, _planarMat);
     return _planarMat;
 }, [planarView, planarProj]);
 
@@ -111,16 +115,27 @@ runtime.onSizeChanged(() => {
 
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
-    const program = primitive.program();
-    fillTexture.setUnit(4);
-    mappingTexture.setUnit(5);
-    program.setUniform('u_proj', proj());
-    program.setUniform('u_view', view());
-    program.setUniform('u_model', model());
-    program.setUniform('u_texture', 4);
-    program.setUniform('u_planar_texture', 5);
-    program.setUniform('u_planar_mat', planarMat());
-    primitive.render();
+    {
+        runtime.setDepthTest(true);
+        const program = primitive.program();
+        fillTexture.setUnit(4);
+        mappingTexture.setUnit(5);
+        program.setUniform('u_proj', proj());
+        program.setUniform('u_view', view());
+        program.setUniform('u_model', model());
+        program.setUniform('u_texture', 4);
+        program.setUniform('u_planar_texture', 5);
+        program.setUniform('u_planar_mat', planarMat());
+        primitive.render();
+    }
+    {
+        runtime.setDepthTest(false);
+        const program = wireframe.program();
+        program.setUniform('u_proj', proj());
+        program.setUniform('u_view', view());
+        program.setUniform('u_model', planarMat());
+        wireframe.render();
+    }
 });
 
 createControls(container, [
