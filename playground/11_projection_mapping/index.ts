@@ -5,7 +5,7 @@ import {
     mat4, perspective4x4, lookAt4x4, mul4x4, apply4x4, orthographic4x4, identity4x4,
     yrotation4x4, translation4x4, inverse4x4,
     deg2rad,
-    clone4x4,
+    clone4x4, scaling4x4,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -92,11 +92,15 @@ const planarProj = computed(([planarWidth, planarHeight]) => {
 
 const _planarMat = mat4();
 const planarMat = computed(([planarView, planarProj]) => {
-    //mul4x4(planarProj, planarView, _planarMat);
-    clone4x4(planarView, _planarMat);
-    //inverse4x4(_planarMat, _planarMat);
+    mul4x4(planarProj, planarView, _planarMat);
     return _planarMat;
 }, [planarView, planarProj]);
+
+const _wireframeMat = mat4();
+const wireframeMat = computed(([planarMat]) => {
+    inverse4x4(planarMat, _wireframeMat);
+    return _wireframeMat;
+}, [planarMat]);
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
@@ -133,7 +137,7 @@ runtime.onRender(() => {
         const program = wireframe.program();
         program.setUniform('u_proj', proj());
         program.setUniform('u_view', view());
-        program.setUniform('u_model', planarMat());
+        program.setUniform('u_model', wireframeMat());
         wireframe.render();
     }
 });

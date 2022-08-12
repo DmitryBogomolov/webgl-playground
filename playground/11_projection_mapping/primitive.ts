@@ -59,7 +59,7 @@ export function makeWireframe(runtime: Runtime): Primitive {
         { name: 'a_position', type: 'float3' },
     ]);
 
-    const t = 0.5;
+    const t = 1;
     const vertices = new Float32Array([
         -t, -t, +t,
         +t, -t, +t,
