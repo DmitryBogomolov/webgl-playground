@@ -2,12 +2,11 @@ import {
     Runtime,
     color,
     vec3, ZERO3, YUNIT3, mul3,
-    mat4, perspective4x4, lookAt4x4, mul4x4, apply4x4, orthographic4x4, identity4x4,
-    yrotation4x4, translation4x4, inverse4x4,
+    mat4, perspective4x4, lookAt4x4, orthographic4x4, apply4x4,
+    mul4x4, identity4x4, yrotation4x4, translation4x4, inverse4x4,
     deg2rad,
-    clone4x4, scaling4x4,
 } from 'lib';
-import { observable, computed } from 'util/observable';
+import { Observable, observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive, makeWireframe } from './primitive';
 import { makeFillTexture, makeMappingTexture } from './texture';
@@ -38,6 +37,8 @@ const projectionLon = observable(0);
 const projectionLat = observable(0);
 const projectionWidth = observable(1);
 const projectionHeight = observable(1);
+const projectionFOV = observable(45);
+const isPerpsectiveProjection = observable(false);
 const isWireframeShown = observable(true);
 
 const _model = mat4();
@@ -63,8 +64,8 @@ const view = observable(
     }),
 );
 
-const _planarView = mat4();
-const planarView = computed(([planarLon, planarLat]) => {
+const _projectionView = mat4();
+const projectionView = computed(([planarLon, planarLat]) => {
     const lon = deg2rad(planarLon);
     const lat = deg2rad(planarLat);
     const dir = vec3(
@@ -76,34 +77,45 @@ const planarView = computed(([planarLon, planarLat]) => {
         eye: mul3(dir, 4),
         center: ZERO3,
         up: YUNIT3,
-    }, _planarView);
-    return _planarView;
+    }, _projectionView);
+    return _projectionView;
 }, [projectionLon, projectionLat]);
 
-const _planarProj = mat4();
-const planarProj = computed(([planarWidth, planarHeight]) => {
-    orthographic4x4({
-        left: -planarWidth / 2,
-        right: +planarWidth / 2,
-        bottom: -planarHeight / 2,
-        top: +planarHeight / 2,
-        zNear: 0.01,
-        zFar: 100,
-    }, _planarProj);
-    return _planarProj;
-}, [projectionWidth, projectionHeight]);
+const _projectionProj = mat4();
+const projectionProj = computed(([projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection]) => {
+    if (isPerpsectiveProjection) {
+        perspective4x4({
+            yFov: deg2rad(projectionFOV),
+            aspect: projectionWidth / projectionHeight,
+            zNear: 0.01,
+            zFar: 100,
+        }, _projectionProj);
+    } else {
+        orthographic4x4({
+            left: -projectionWidth / 2,
+            right: +projectionWidth / 2,
+            bottom: -projectionHeight / 2,
+            top: +projectionHeight / 2,
+            zNear: 0.01,
+            zFar: 100,
+        }, _projectionProj);
+    }
+    return _projectionProj;
+}, [
+    projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
+] as [Observable<number>, Observable<number>, Observable<number>, Observable<boolean>]);
 
-const _planarMat = mat4();
-const planarMat = computed(([planarView, planarProj]) => {
-    mul4x4(planarProj, planarView, _planarMat);
-    return _planarMat;
-}, [planarView, planarProj]);
+const _projectionMat = mat4();
+const projectionMat = computed(([projectionView, projectionProj]) => {
+    mul4x4(projectionProj, projectionView, _projectionMat);
+    return _projectionMat;
+}, [projectionView, projectionProj]);
 
 const _wireframeMat = mat4();
 const wireframeMat = computed(([planarMat]) => {
     inverse4x4(planarMat, _wireframeMat);
     return _wireframeMat;
-}, [planarMat]);
+}, [projectionMat]);
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
@@ -117,8 +129,11 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[rotation, position, projectionLon, projectionLat, projectionWidth, projectionHeight, isWireframeShown]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+[
+    rotation, position,
+    projectionLon, projectionLat, projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
+    isWireframeShown,
+].forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
@@ -132,7 +147,7 @@ runtime.onRender(() => {
         program.setUniform('u_model', model());
         program.setUniform('u_texture', 4);
         program.setUniform('u_planar_texture', 5);
-        program.setUniform('u_planar_mat', planarMat());
+        program.setUniform('u_planar_mat', projectionMat());
         primitive.render();
     }
     if (isWireframeShown()) {
@@ -153,5 +168,7 @@ createControls(container, [
     { label: 'proj lat', min: -90, max: +90, value: projectionLat },
     { label: 'proj width', min: 0.1, max: 2, step: 0.1, value: projectionWidth },
     { label: 'proj height', min: 0.1, max: 2, step: 0.1, value: projectionHeight },
+    { label: 'proj FOV', min: 1, max: 90, value: projectionFOV },
+    { label: 'perspective', checked: isPerpsectiveProjection },
     { label: 'wifeframe', checked: isWireframeShown },
 ]);
