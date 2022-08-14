@@ -33,6 +33,7 @@ const wireframeColor = color(0.1, 0.1, 0.1);
 
 const rotation = observable(0);
 const position = observable(0);
+const projectionDist = observable(2);
 const projectionLon = observable(0);
 const projectionLat = observable(0);
 const projectionWidth = observable(1);
@@ -65,21 +66,21 @@ const view = observable(
 );
 
 const _projectionView = mat4();
-const projectionView = computed(([planarLon, planarLat]) => {
-    const lon = deg2rad(planarLon);
-    const lat = deg2rad(planarLat);
+const projectionView = computed(([projectionDist, projectionLon, projectionLat]) => {
+    const lon = deg2rad(projectionLon);
+    const lat = deg2rad(projectionLat);
     const dir = vec3(
         Math.cos(lat) * Math.sin(lon),
         Math.sin(lat),
         Math.cos(lat) * Math.cos(lon),
     );
     lookAt4x4({
-        eye: mul3(dir, 4),
+        eye: mul3(dir, projectionDist),
         center: ZERO3,
         up: YUNIT3,
     }, _projectionView);
     return _projectionView;
-}, [projectionLon, projectionLat]);
+}, [projectionDist, projectionLon, projectionLat]);
 
 const _projectionProj = mat4();
 const projectionProj = computed(([projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection]) => {
@@ -129,11 +130,8 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[
-    rotation, position,
-    projectionLon, projectionLat, projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
-    isWireframeShown,
-].forEach((item) => item.on(() => runtime.requestRender()));
+[model, view, proj, projectionMat, wireframeMat, isWireframeShown]
+    .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
@@ -164,6 +162,7 @@ runtime.onRender(() => {
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
     { label: 'position', min: -5, max: +5, step: 0.5, value: position },
+    { label: 'proj dist', min: 0.1, max: 5, step: 0.2, value: projectionDist },
     { label: 'proj lon', min: -180, max: +180, value: projectionLon },
     { label: 'proj lat', min: -90, max: +90, value: projectionLat },
     { label: 'proj width', min: 0.1, max: 2, step: 0.1, value: projectionWidth },
