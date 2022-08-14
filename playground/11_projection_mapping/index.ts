@@ -34,10 +34,10 @@ const wireframeColor = color(0.1, 0.1, 0.1);
 
 const rotation = observable(0);
 const position = observable(0);
-const planarLon = observable(0);
-const planarLat = observable(0);
-const planarWidth = observable(1);
-const planarHeight = observable(1);
+const projectionLon = observable(0);
+const projectionLat = observable(0);
+const projectionWidth = observable(1);
+const projectionHeight = observable(1);
 const isWireframeShown = observable(true);
 
 const _model = mat4();
@@ -78,7 +78,7 @@ const planarView = computed(([planarLon, planarLat]) => {
         up: YUNIT3,
     }, _planarView);
     return _planarView;
-}, [planarLon, planarLat]);
+}, [projectionLon, projectionLat]);
 
 const _planarProj = mat4();
 const planarProj = computed(([planarWidth, planarHeight]) => {
@@ -91,7 +91,7 @@ const planarProj = computed(([planarWidth, planarHeight]) => {
         zFar: 100,
     }, _planarProj);
     return _planarProj;
-}, [planarWidth, planarHeight]);
+}, [projectionWidth, projectionHeight]);
 
 const _planarMat = mat4();
 const planarMat = computed(([planarView, planarProj]) => {
@@ -117,7 +117,7 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[rotation, position, planarLon, planarLat, planarWidth, planarHeight, isWireframeShown]
+[rotation, position, projectionLon, projectionLat, projectionWidth, projectionHeight, isWireframeShown]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
@@ -149,9 +149,9 @@ runtime.onRender(() => {
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
     { label: 'position', min: -5, max: +5, step: 0.5, value: position },
-    { label: 'planar lon', min: -180, max: +180, value: planarLon },
-    { label: 'planar lat', min: -90, max: +90, value: planarLat },
-    { label: 'planar width', min: 0.1, max: 2, step: 0.1, value: planarWidth },
-    { label: 'planar height', min: 0.1, max: 2, step: 0.1, value: planarHeight },
+    { label: 'proj lon', min: -180, max: +180, value: projectionLon },
+    { label: 'proj lat', min: -90, max: +90, value: projectionLat },
+    { label: 'proj width', min: 0.1, max: 2, step: 0.1, value: projectionWidth },
+    { label: 'proj height', min: 0.1, max: 2, step: 0.1, value: projectionHeight },
     { label: 'wifeframe', checked: isWireframeShown },
 ]);
