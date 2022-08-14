@@ -2,7 +2,7 @@ import {
     Vec3,
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
     eq3, neg3, len3, sqrlen3, norm3,
-    dot3, mul3, add3, sub3, cross3,
+    dot3, mul3, add3, sub3, cross3, rotate3,
 } from './vec3';
 
 declare global {
@@ -93,5 +93,12 @@ describe('vec3', () => {
 
     it('cross3', () => {
         expect(cross3({ x: 1, y: 2, z: 3 }, { x: 2, y: -1, z: -2 })).toBeVec({ x: -1, y: 8, z: -5 });
+    });
+
+    it('rotate3', () => {
+        expect(rotate3({ x: 0, y: 3, z: 0 }, { x: 2, y: 0, z: 0 }, Math.PI / 4))
+            .toBeVec({ x: 0, y: 2.1213, z: 2.1213 });
+        expect(rotate3({ x: 2.1213, y: 0, z: 2.1213 }, { x: 0, y: 0.1, z: 0 }, -Math.PI / 4))
+            .toBeVec({ x: 0, y: 0, z: 3 });
     });
 });
