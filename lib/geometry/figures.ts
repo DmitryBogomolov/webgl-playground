@@ -1,8 +1,15 @@
+import { Vec2, vec2 } from './vec2';
 import { Vec3, vec3, mul3, norm3, cross3 } from './vec3';
 
 export interface VertexIndexData<T> {
     readonly vertices: ReadonlyArray<T>;
     readonly indices: ReadonlyArray<number>;
+}
+
+export interface VertexData {
+    readonly position: Vec3;
+    readonly normal: Vec3;
+    readonly texcoord: Vec2;
 }
 
 export function generateCube<T>(
@@ -55,7 +62,7 @@ export function generateCube<T>(
 
 export function generateSphere<T>(
     size: Vec3,
-    makeVertex: (position: Vec3, normal: Vec3, idx: number) => T,
+    makeVertex: (vertex: VertexData, idx: number) => T,
     partition: number = 4,
 ): VertexIndexData<T> {
     const step = Math.PI / partition;
@@ -71,7 +78,12 @@ export function generateSphere<T>(
     const vertices: T[] = [];
     const indices: number[] = [];
 
-    vertices.push(makeVertex(vec3(0, +ry, 0), vec3(0, +1, 0), vertices.length));
+    vertices.push(
+        makeVertex(
+            { position: vec3(0, +ry, 0), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) },
+            vertices.length,
+        ),
+    );
     for (let i = 1; i < partition; ++i) {
         for (let j = 0; j <= lonCount; ++j) {
             const position = vec3(
@@ -92,10 +104,17 @@ export function generateSphere<T>(
             );
             const normal = norm3(cross3(v1, v2));
 
-            vertices.push(makeVertex(position, normal, vertices.length));
+            const texcoord = vec2(j / lonCount, 1 - i / partition);
+
+            vertices.push(makeVertex({ position, normal, texcoord }, vertices.length));
         }
     }
-    vertices.push(makeVertex(vec3(0, -ry, 0), vec3(0, -1, 0), vertices.length));
+    vertices.push(
+        makeVertex(
+            { position: vec3(0, -ry, 0), normal: vec3(0, -1, 0), texcoord: vec2(0, 0) },
+            vertices.length,
+        ),
+    );
 
     const firstIdx = 0;
     const lastIdx = vertices.length - 1;
