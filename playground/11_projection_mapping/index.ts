@@ -30,12 +30,15 @@ const mappingTexture = makeMappingTexture(runtime, () => {
     runtime.requestRender();
 });
 
+const wireframeColor = color(0.1, 0.1, 0.1);
+
 const rotation = observable(0);
 const position = observable(0);
 const planarLon = observable(0);
 const planarLat = observable(0);
 const planarWidth = observable(1);
 const planarHeight = observable(1);
+const isWireframeShown = observable(true);
 
 const _model = mat4();
 const model = computed(
@@ -114,7 +117,7 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[rotation, position, planarLon, planarLat, planarWidth, planarHeight]
+[rotation, position, planarLon, planarLat, planarWidth, planarHeight, isWireframeShown]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
@@ -132,12 +135,13 @@ runtime.onRender(() => {
         program.setUniform('u_planar_mat', planarMat());
         primitive.render();
     }
-    {
+    if (isWireframeShown()) {
         runtime.setDepthTest(false);
         const program = wireframe.program();
         program.setUniform('u_proj', proj());
         program.setUniform('u_view', view());
         program.setUniform('u_model', wireframeMat());
+        program.setUniform('u_color', wireframeColor);
         wireframe.render();
     }
 });
@@ -149,4 +153,5 @@ createControls(container, [
     { label: 'planar lat', min: -90, max: +90, value: planarLat },
     { label: 'planar width', min: 0.1, max: 2, step: 0.1, value: planarWidth },
     { label: 'planar height', min: 0.1, max: 2, step: 0.1, value: planarHeight },
+    { label: 'wifeframe', checked: isWireframeShown },
 ]);
