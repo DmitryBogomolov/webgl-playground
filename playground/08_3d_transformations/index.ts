@@ -63,7 +63,7 @@ runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
     perspective4x4({
         aspect: x / y,
-        yFov: Math.PI / 4,
+        yFov: Math.PI / 3,
         zNear: 0.001,
         zFar: 100,
     }, proj);
