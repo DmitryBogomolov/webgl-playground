@@ -52,16 +52,15 @@ export function makeWireframe(runtime: Runtime): Primitive {
         { name: 'a_position', type: 'float3' },
     ]);
 
-    const t = 1;
     const vertices = new Float32Array([
-        -t, -t, +t,
-        +t, -t, +t,
-        +t, +t, +t,
-        -t, +t, +t,
-        -t, -t, -t,
-        +t, -t, -t,
-        +t, +t, -t,
-        -t, +t, -t,
+        -1, -1, +1,
+        +1, -1, +1,
+        +1, +1, +1,
+        -1, +1, +1,
+        -1, -1, -1,
+        +1, -1, -1,
+        +1, +1, -1,
+        -1, +1, -1,
     ]);
     const indices = new Uint16Array([
         0, 1, 1, 2, 2, 3, 3, 0,
