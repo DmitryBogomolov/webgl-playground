@@ -14,42 +14,42 @@ export interface VertexData {
 
 export function generateCube<T>(
     size: Vec3,
-    makeVertex: (position: Vec3, normal: Vec3, idx: number) => T,
+    makeVertex: (vertex: VertexData, idx: number) => T,
 ): VertexIndexData<T> {
     const { x: dx, y: dy, z: dz } = mul3(size, 0.5);
 
     let idx = 0;
     const vertices = [
         // front
-        makeVertex(vec3(-dx, -dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(+dx, -dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(-dx, +dy, +dz), vec3(0, 0, +1), idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(0, 1) }, idx++),
         // right
-        makeVertex(vec3(+dx, -dy, +dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, -dy, -dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(+1, 0, 0), idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(+1, 0, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(+1, 0, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(+1, 0, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(+1, 0, 0), texcoord: vec2(0, 1) }, idx++),
         // back
-        makeVertex(vec3(+dx, -dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(-dx, -dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(0, 0, -1), idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(0, 1) }, idx++),
         // left
-        makeVertex(vec3(-dx, -dy, -dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, -dy, +dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, +dy, +dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(-1, 0, 0), idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(-1, 0, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(-1, 0, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(-1, 0, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(-1, 0, 0), texcoord: vec2(0, 1) }, idx++),
         // bottom
-        makeVertex(vec3(-dx, -dy, -dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(+dx, -dy, -dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(+dx, -dy, +dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(-dx, -dy, +dz), vec3(0, -1, 0), idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(0, -1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(0, -1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(0, -1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(0, -1, 0), texcoord: vec2(0, 1) }, idx++),
         // top
-        makeVertex(vec3(-dx, +dy, +dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(0, +1, 0), idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) }, idx++),
     ];
     const indices: number[] = [];
     for (let i = 0; i < 6; ++i) {
