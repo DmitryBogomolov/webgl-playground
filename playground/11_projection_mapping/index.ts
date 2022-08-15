@@ -14,7 +14,7 @@ import { makeFillTexture, makeMappingTexture } from './texture';
 /**
  * Projection mapping.
  *
- * TODO...
+ * Shows projection mapping and projection wifeframe.
  */
 export type DESCRIPTION = never;
 
