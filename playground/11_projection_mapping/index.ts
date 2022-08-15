@@ -38,7 +38,7 @@ const projectionLon = observable(0);
 const projectionLat = observable(0);
 const projectionWidth = observable(1);
 const projectionHeight = observable(1);
-const projectionFOV = observable(45);
+const projectionFOV = observable(40);
 const isPerpsectiveProjection = observable(false);
 const isWireframeShown = observable(true);
 
@@ -59,7 +59,7 @@ const proj = observable(
 );
 const view = observable(
     lookAt4x4({
-        eye: vec3(0, 0, 5),
+        eye: vec3(0, 2, 5),
         center: ZERO3,
         up: YUNIT3,
     }),
@@ -162,7 +162,7 @@ runtime.onRender(() => {
 createControls(container, [
     { label: 'rotation', min: -180, max: +180, value: rotation },
     { label: 'position', min: -5, max: +5, step: 0.5, value: position },
-    { label: 'proj dist', min: 0.1, max: 5, step: 0.2, value: projectionDist },
+    { label: 'proj dist', min: 0.2, max: 5, step: 0.2, value: projectionDist },
     { label: 'proj lon', min: -180, max: +180, value: projectionLon },
     { label: 'proj lat', min: -90, max: +90, value: projectionLat },
     { label: 'proj width', min: 0.1, max: 2, step: 0.1, value: projectionWidth },
