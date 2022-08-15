@@ -1,9 +1,13 @@
-import { Vec2, vec2 } from './vec2';
+import { Vec2, vec2, mul2 } from './vec2';
 import { Vec3, vec3, mul3, norm3, cross3 } from './vec3';
 
 export interface VertexIndexData<T> {
     readonly vertices: ReadonlyArray<T>;
     readonly indices: ReadonlyArray<number>;
+}
+
+export interface VertexMaker<T> {
+    (vertex: VertexData, idx: number): T;
 }
 
 export interface VertexData {
@@ -12,9 +16,53 @@ export interface VertexData {
     readonly texcoord: Vec2;
 }
 
+export function generatePlaneX<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(0, -dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(0, +dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(0, +dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(0, -dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
+export function generatePlaneY<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(-dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
+export function generatePlaneZ<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(-dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
 export function generateCube<T>(
-    size: Vec3,
-    makeVertex: (vertex: VertexData, idx: number) => T,
+    size: Vec3, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dx, y: dy, z: dz } = mul3(size, 0.5);
 
@@ -61,9 +109,7 @@ export function generateCube<T>(
 }
 
 export function generateSphere<T>(
-    size: Vec3,
-    makeVertex: (vertex: VertexData, idx: number) => T,
-    partition: number = 4,
+    size: Vec3, makeVertex: VertexMaker<T>, partition: number = 4,
 ): VertexIndexData<T> {
     const step = Math.PI / partition;
     const lonCount = 2 * partition;
