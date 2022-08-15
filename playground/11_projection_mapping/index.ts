@@ -1,14 +1,14 @@
 import {
     Runtime,
     color,
-    vec3, ZERO3, YUNIT3, mul3,
+    vec3, ZERO3, YUNIT3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, orthographic4x4, apply4x4,
     mul4x4, identity4x4, yrotation4x4, translation4x4, inverse4x4,
-    deg2rad,
+    deg2rad, fovDist2Size, Primitive,
 } from 'lib';
 import { Observable, observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makePrimitive, makeWireframe } from './primitive';
+import { makeProgram, makeSphere, makeCube, makeWireframe } from './primitive';
 import { makeFillTexture, makeMappingTexture } from './texture';
 
 /**
@@ -18,11 +18,20 @@ import { makeFillTexture, makeMappingTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
+interface PrimitiveData {
+    readonly primitive: Primitive;
+    readonly offset: number;
+}
+
 const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
-const primitive = makePrimitive(runtime);
+const program = makeProgram(runtime);
+const primitives: ReadonlyArray<PrimitiveData> = [
+    { primitive: makeSphere(runtime, program), offset: -1 },
+    { primitive: makeCube(runtime, program), offset: +1 },
+];
 const wireframe = makeWireframe(runtime);
 const fillTexture = makeFillTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
@@ -30,7 +39,12 @@ const mappingTexture = makeMappingTexture(runtime, () => {
 });
 
 const wireframeColor = color(0.1, 0.1, 0.1);
+const VIEW_DIR = norm3(vec3(0, 2, 5));
+const VIEW_DIST = 5;
+const YFOV = Math.PI / 3;
+const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
 
+const offsetCoeff = observable(0);
 const rotation = observable(0);
 const position = observable(0);
 const projectionDist = observable(2);
@@ -59,7 +73,7 @@ const proj = observable(
 );
 const view = observable(
     lookAt4x4({
-        eye: vec3(0, 2, 5),
+        eye: mul3(VIEW_DIR, VIEW_DIST),
         center: ZERO3,
         up: YUNIT3,
     }),
@@ -121,8 +135,10 @@ const wireframeMat = computed(([planarMat]) => {
 const _proj = mat4();
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
+    const xViewSize = x / y * Y_VIEW_SIZE;
+    offsetCoeff(2 / xViewSize);
     perspective4x4({
-        yFov: Math.PI / 4,
+        yFov: YFOV,
         aspect: x / y,
         zNear: 0.01,
         zFar: 100,
@@ -130,16 +146,17 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-[model, view, proj, projectionMat, wireframeMat, isWireframeShown]
+[offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 runtime.onRender(() => {
     runtime.clearBuffer('color|depth');
-    {
-        runtime.setDepthTest(true);
+    const coeff = 3 * offsetCoeff();
+    for (const { primitive, offset } of primitives) {
         const program = primitive.program();
         fillTexture.setUnit(4);
         mappingTexture.setUnit(5);
+        program.setUniform('u_offset', coeff * offset);
         program.setUniform('u_proj', proj());
         program.setUniform('u_view', view());
         program.setUniform('u_model', model());
@@ -147,15 +164,16 @@ runtime.onRender(() => {
         program.setUniform('u_planar_texture', 5);
         program.setUniform('u_planar_mat', projectionMat());
         primitive.render();
-    }
-    if (isWireframeShown()) {
-        runtime.setDepthTest(false);
-        const program = wireframe.program();
-        program.setUniform('u_proj', proj());
-        program.setUniform('u_view', view());
-        program.setUniform('u_model', wireframeMat());
-        program.setUniform('u_color', wireframeColor);
-        wireframe.render();
+
+        if (isWireframeShown()) {
+            const program = wireframe.program();
+            program.setUniform('u_offset', coeff * offset);
+            program.setUniform('u_proj', proj());
+            program.setUniform('u_view', view());
+            program.setUniform('u_model', wireframeMat());
+            program.setUniform('u_color', wireframeColor);
+            wireframe.render();
+        }
     }
 });
 

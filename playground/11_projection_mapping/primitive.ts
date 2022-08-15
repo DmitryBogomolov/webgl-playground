@@ -4,22 +4,31 @@ import {
     Program,
     parseVertexSchema, VertexWriter,
     vec3,
-    generateSphere,
+    generateSphere, generateCube, VertexIndexData, VertexData,
 } from 'lib';
 import vertexShader from './shaders/mapping.vert';
 import fragmentShader from './shaders/mapping.frag';
 import wireframeVertexShader from './shaders/wireframe.vert';
 import wireframeFragmentShader from './shaders/wireframe.frag';
 
-export function makePrimitive(runtime: Runtime): Primitive {
+const schema = parseVertexSchema([
+    { name: 'a_position', type: 'float3' },
+    { name: 'a_texcoord', type: 'float2' },
+]);
+
+export function makeProgram(runtime: Runtime): Program {
+    return new Program(runtime, {
+        vertexShader,
+        fragmentShader,
+        schema,
+    });
+}
+
+function makePrimitive(
+    runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
+): Primitive {
     const primitive = new Primitive(runtime);
 
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-        { name: 'a_texcoord', type: 'float2' },
-    ]);
-
-    const { vertices, indices } = generateSphere(vec3(2, 2, 2), (vertex) => vertex, 8);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
@@ -35,15 +44,25 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
     primitive.setIndexData({ indexCount: indexData.length });
-
-    const program = new Program(runtime, {
-        vertexShader,
-        fragmentShader,
-        schema,
-    });
     primitive.setProgram(program);
 
     return primitive;
+}
+
+export function makeSphere(runtime: Runtime, program: Program): Primitive {
+    return makePrimitive(
+        runtime,
+        program,
+        generateSphere(vec3(2, 2, 2), (vertex) => vertex, 8),
+    );
+}
+
+export function makeCube(runtime: Runtime, program: Program): Primitive {
+    return makePrimitive(
+        runtime,
+        program,
+        generateCube(vec3(2, 2, 2), (vertex) => vertex),
+    );
 }
 
 export function makeWireframe(runtime: Runtime): Primitive {
