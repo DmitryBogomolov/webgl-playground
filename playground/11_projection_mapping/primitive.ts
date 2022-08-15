@@ -3,8 +3,9 @@ import {
     Primitive,
     Program,
     parseVertexSchema, VertexWriter,
+    vec2,
     vec3,
-    generateSphere, generateCube, VertexIndexData, VertexData,
+    generateSphere, generateCube, generatePlaneZ, VertexIndexData, VertexData,
 } from 'lib';
 import vertexShader from './shaders/mapping.vert';
 import fragmentShader from './shaders/mapping.frag';
@@ -57,11 +58,27 @@ export function makeSphere(runtime: Runtime, program: Program): Primitive {
     );
 }
 
+export function makeEllipse(runtime: Runtime, program: Program): Primitive {
+    return makePrimitive(
+        runtime,
+        program,
+        generateSphere(vec3(2, 1.8, 1.6), (vertex) => vertex, 8),
+    );
+}
+
 export function makeCube(runtime: Runtime, program: Program): Primitive {
     return makePrimitive(
         runtime,
         program,
         generateCube(vec3(2, 2, 2), (vertex) => vertex),
+    );
+}
+
+export function makePlane(runtime: Runtime, program: Program): Primitive {
+    return makePrimitive(
+        runtime,
+        program,
+        generatePlaneZ(vec2(2, 2), (vertex) => vertex),
     );
 }
 

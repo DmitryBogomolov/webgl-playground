@@ -8,7 +8,7 @@ import {
 } from 'lib';
 import { Observable, observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makeProgram, makeSphere, makeCube, makeWireframe } from './primitive';
+import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeFillTexture, makeMappingTexture } from './texture';
 
 /**
@@ -29,8 +29,10 @@ runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const program = makeProgram(runtime);
 const primitives: ReadonlyArray<PrimitiveData> = [
-    { primitive: makeSphere(runtime, program), offset: -1 },
-    { primitive: makeCube(runtime, program), offset: +1 },
+    { primitive: makeSphere(runtime, program), offset: -1.5 },
+    { primitive: makeEllipse(runtime, program), offset: -0.5 },
+    { primitive: makeCube(runtime, program), offset: +0.5 },
+    { primitive: makePlane(runtime, program), offset: +1.5 },
 ];
 const wireframe = makeWireframe(runtime);
 const fillTexture = makeFillTexture(runtime);
