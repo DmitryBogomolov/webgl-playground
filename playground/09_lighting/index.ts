@@ -2,11 +2,11 @@ import {
     Runtime,
     Program, UniformValue,
     vec2,
-    Vec3, vec3, ZERO3, YUNIT3, neg3, mul3,
+    Vec3, ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     color,
-    deg2rad,
+    deg2rad, fovDist2Size,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -27,8 +27,14 @@ const directionalProgram = makeDirectionalProgram(runtime);
 const pointProgram = makePointProgram(runtime);
 const spotProgram = makeSpotProgram(runtime);
 const primitive = makePrimitive(runtime, 8, vec3(3.2, 2, 2.4));
+
+const VIEW_DIR = norm3(vec3(0, 3, 5));
+const VIEW_DIST = 5;
+const YFOV = Math.PI / 3;
+const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
 const clr = color(0.2, 0.6, 0.1);
 
+const offsetCoeff = observable(0);
 const rotation = observable(0);
 const position = observable(0);
 const lightLon = observable(45);
@@ -42,7 +48,7 @@ const proj = observable(
 );
 const view = observable(
     lookAt4x4({
-        eye: vec3(0, 3, 5),
+        eye: mul3(VIEW_DIR, VIEW_DIST),
         center: ZERO3,
         up: YUNIT3,
     }),
@@ -115,15 +121,17 @@ const lightLimit = computed(
     [lightLimitPoint, lightLimitRange],
 );
 
-[proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
+[offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
     .forEach((item) => item.on(() => runtime.requestRender()));
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
     const { x, y } = runtime.canvasSize();
+    const xViewSize = x / y * Y_VIEW_SIZE;
+    offsetCoeff(2 / xViewSize);
     perspective4x4({
         aspect: x / y,
-        yFov: Math.PI / 3,
+        yFov: YFOV,
         zNear: 0.01,
         zFar: 100,
     }, _proj);
@@ -133,14 +141,16 @@ runtime.onSizeChanged(() => {
 runtime.onRender((_delta) => {
     runtime.clearBuffer('color|depth');
 
-    renderPrimitive(directionalProgram, -0.5, {
+    // Sphere x-diameter is 3.2. Let offset a little bigger.
+    const coeff = 4 * offsetCoeff();
+    renderPrimitive(directionalProgram, -coeff, {
         'u_light_direction': lightDirection(),
     });
     renderPrimitive(pointProgram, 0, {
         'u_model': model(),
         'u_light_position': lightPosition(),
     });
-    renderPrimitive(spotProgram, +0.5, {
+    renderPrimitive(spotProgram, +coeff, {
         'u_model': model(),
         'u_light_position': lightPosition(),
         'u_light_direction': lightDirection(),
