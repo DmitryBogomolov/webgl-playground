@@ -163,14 +163,14 @@ export class Primitive {
         }
         if (indexType !== undefined) {
             const value = INDEX_TYPE_MAP[indexType];
-            if (!value) {
+            if (value === undefined) {
                 throw this._logger.error('bad index type: {0}', indexType);
             }
             this._indexType = value;
         }
         if (primitiveMode !== undefined) {
             const value = PRIMITIVE_MODE_MAP[primitiveMode];
-            if (!value) {
+            if (value === undefined) {
                 throw this._logger.error('bad primitive mode: {0}', primitiveMode);
             }
             this._primitiveMode = value;

@@ -40,7 +40,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
         '0-10': c5,
         '010': c6,
     };
-    const { vertices, indices } = generateCube(vec3(1, 0.8, 0.6), (position, normal) => {
+    const { vertices, indices } = generateCube(vec3(1, 0.8, 0.6), ({ position, normal }) => {
         const key = `${normal.x | 0}${normal.y | 0}${normal.z | 0}`;
         return { pos: position, clr: clrs[key] };
     });

@@ -33,7 +33,7 @@ texture.setParameters({
 });
 
 const proj = mat4();
-const YFOV = Math.PI / 4;
+const YFOV = Math.PI / 3;
 // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
 const DISTANCE = fovSize2Dist(YFOV, 1);
 

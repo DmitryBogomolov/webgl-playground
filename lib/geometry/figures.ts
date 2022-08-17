@@ -1,3 +1,4 @@
+import { Vec2, vec2, mul2 } from './vec2';
 import { Vec3, vec3, mul3, norm3, cross3 } from './vec3';
 
 export interface VertexIndexData<T> {
@@ -5,44 +6,98 @@ export interface VertexIndexData<T> {
     readonly indices: ReadonlyArray<number>;
 }
 
+export interface VertexMaker<T> {
+    (vertex: VertexData, idx: number): T;
+}
+
+export interface VertexData {
+    readonly position: Vec3;
+    readonly normal: Vec3;
+    readonly texcoord: Vec2;
+}
+
+export function generatePlaneX<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(0, -dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(0, +dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(0, +dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(0, -dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
+export function generatePlaneY<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(-dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
+export function generatePlaneZ<T>(
+    size: Vec2, makeVertex: VertexMaker<T>,
+): VertexIndexData<T> {
+    const { x: dw, y: dh } = mul2(size, 0.5);
+    let idx = 0;
+    const vertices = [
+        makeVertex({ position: vec3(-dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+    return { vertices, indices };
+}
+
 export function generateCube<T>(
-    size: Vec3,
-    makeVertex: (position: Vec3, normal: Vec3, idx: number) => T,
+    size: Vec3, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dx, y: dy, z: dz } = mul3(size, 0.5);
 
     let idx = 0;
     const vertices = [
         // front
-        makeVertex(vec3(-dx, -dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(+dx, -dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(0, 0, +1), idx++),
-        makeVertex(vec3(-dx, +dy, +dz), vec3(0, 0, +1), idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(0, 0, +1), texcoord: vec2(0, 1) }, idx++),
         // right
-        makeVertex(vec3(+dx, -dy, +dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, -dy, -dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(+1, 0, 0), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(+1, 0, 0), idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(+1, 0, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(+1, 0, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(+1, 0, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(+1, 0, 0), texcoord: vec2(0, 1) }, idx++),
         // back
-        makeVertex(vec3(+dx, -dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(-dx, -dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(0, 0, -1), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(0, 0, -1), idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(0, 0, -1), texcoord: vec2(0, 1) }, idx++),
         // left
-        makeVertex(vec3(-dx, -dy, -dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, -dy, +dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, +dy, +dz), vec3(-1, 0, 0), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(-1, 0, 0), idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(-1, 0, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(-1, 0, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(-1, 0, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(-1, 0, 0), texcoord: vec2(0, 1) }, idx++),
         // bottom
-        makeVertex(vec3(-dx, -dy, -dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(+dx, -dy, -dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(+dx, -dy, +dz), vec3(0, -1, 0), idx++),
-        makeVertex(vec3(-dx, -dy, +dz), vec3(0, -1, 0), idx++),
+        makeVertex({ position: vec3(-dx, -dy, -dz), normal: vec3(0, -1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, -dz), normal: vec3(0, -1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, -dy, +dz), normal: vec3(0, -1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, -dy, +dz), normal: vec3(0, -1, 0), texcoord: vec2(0, 1) }, idx++),
         // top
-        makeVertex(vec3(-dx, +dy, +dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(+dx, +dy, +dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(+dx, +dy, -dz), vec3(0, +1, 0), idx++),
-        makeVertex(vec3(-dx, +dy, -dz), vec3(0, +1, 0), idx++),
+        makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 0) }, idx++),
+        makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) }, idx++),
     ];
     const indices: number[] = [];
     for (let i = 0; i < 6; ++i) {
@@ -54,9 +109,7 @@ export function generateCube<T>(
 }
 
 export function generateSphere<T>(
-    size: Vec3,
-    makeVertex: (position: Vec3, normal: Vec3, idx: number) => T,
-    partition: number = 4,
+    size: Vec3, makeVertex: VertexMaker<T>, partition: number = 4,
 ): VertexIndexData<T> {
     const step = Math.PI / partition;
     const lonCount = 2 * partition;
@@ -71,7 +124,12 @@ export function generateSphere<T>(
     const vertices: T[] = [];
     const indices: number[] = [];
 
-    vertices.push(makeVertex(vec3(0, +ry, 0), vec3(0, +1, 0), vertices.length));
+    vertices.push(
+        makeVertex(
+            { position: vec3(0, +ry, 0), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) },
+            vertices.length,
+        ),
+    );
     for (let i = 1; i < partition; ++i) {
         for (let j = 0; j <= lonCount; ++j) {
             const position = vec3(
@@ -92,10 +150,17 @@ export function generateSphere<T>(
             );
             const normal = norm3(cross3(v1, v2));
 
-            vertices.push(makeVertex(position, normal, vertices.length));
+            const texcoord = vec2(j / lonCount, 1 - i / partition);
+
+            vertices.push(makeVertex({ position, normal, texcoord }, vertices.length));
         }
     }
-    vertices.push(makeVertex(vec3(0, -ry, 0), vec3(0, -1, 0), vertices.length));
+    vertices.push(
+        makeVertex(
+            { position: vec3(0, -ry, 0), normal: vec3(0, -1, 0), texcoord: vec2(0, 0) },
+            vertices.length,
+        ),
+    );
 
     const firstIdx = 0;
     const lastIdx = vertices.length - 1;

@@ -46,7 +46,7 @@ export function makeSpotProgram(runtime: Runtime): Program {
 export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
     const primitive = new Primitive(runtime);
 
-    const { vertices, indices } = generateSphere(size, (position, normal) => ({ position, normal }), partition);
+    const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
