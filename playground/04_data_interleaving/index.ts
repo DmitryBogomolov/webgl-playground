@@ -1,10 +1,8 @@
 import {
-    VertexWriter,
-    parseVertexSchema,
     Runtime,
     Primitive,
     Program,
-    VertexSchema,
+    VertexSchema, parseVertexSchema, VertexWriter,
     Color, color,
     Vec2, vec2,
 } from 'lib';
