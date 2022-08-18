@@ -85,17 +85,24 @@ const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
 };
 
+export type EXTENSION = ('element_index_uint');
+const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
+    'element_index_uint': 'OES_element_index_uint',
+};
+
 export interface RuntimeOptions {
-    alpha?: boolean,
-    antialias?: boolean,
-    premultipliedAlpha?: boolean,
-    trackWindowResize?: boolean,
+    alpha?: boolean;
+    antialias?: boolean;
+    premultipliedAlpha?: boolean;
+    trackWindowResize?: boolean;
+    extensions?: EXTENSION[];
 }
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
     antialias: false,
     premultipliedAlpha: false,
     trackWindowResize: true,
+    extensions: [],
 };
 
 export class Runtime {
@@ -129,7 +136,7 @@ export class Runtime {
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
         this.gl = this._getContext();
         this.vaoExt = this._getVaoExt();
-        this._getU32IndexExt();
+        this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         // Initial state is formed according to specification.
@@ -187,10 +194,16 @@ export class Runtime {
         return ext;
     }
 
-    private _getU32IndexExt(): void {
-        const ext = this.gl.getExtension('OES_element_index_uint');
-        if (!ext) {
-            throw this._logger.error('failed to get OES_element_index_uint extension');
+    private _enableExtensions(): void {
+        for (const ext of this._options.extensions) {
+            const name = EXTENSION_MAP[ext];
+            if (!name) {
+                throw this._logger.error('extension {0}: bad value', ext);
+            }
+            const ret = this.gl.getExtension(name) as unknown;
+            if (!ret) {
+                throw this._logger.error('failed to get {0} extension', name);
+            }
         }
     }
 
