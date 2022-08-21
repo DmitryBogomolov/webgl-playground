@@ -2,7 +2,7 @@ import { Vec2 } from 'lib/geometry/vec2';
 import { GetEventCoordsFunc, makeEventCoordsGetter } from './pointer-event';
 
 export interface TrackerEvent {
-    readonly e: PointerEvent | MouseEvent;
+    readonly nativeEvent: PointerEvent | MouseEvent;
     readonly coords: Vec2;
 }
 
@@ -58,30 +58,30 @@ export class Tracker {
         this._addDocumentListeners();
         e.preventDefault();
         const coords = this._getEventCoords(e);
-        this._onStart!({ coords, e });
+        this._onStart!({ coords, nativeEvent: e });
     }
 
     private _handlePointerMove(e: PointerEvent): void {
         const coords = this._getEventCoords(e);
-        this._onMove!({ coords, e });
+        this._onMove!({ coords, nativeEvent: e });
     }
 
     private _handlePointerUp(e: PointerEvent): void {
         this._removeDocumentListeners();
         const coords = this._getEventCoords(e);
-        this._onEnd!({ coords, e });
+        this._onEnd!({ coords, nativeEvent: e });
     }
 
     private _handleClick(e: MouseEvent): void {
         e.preventDefault();
         const coords = this._getEventCoords(e);
-        this._onClick!({ coords, e });
+        this._onClick!({ coords, nativeEvent: e });
     }
 
     private _handleDblClick(e: MouseEvent): void {
         e.preventDefault();
         const coords = this._getEventCoords(e);
-        this._onDblClick!({ coords, e });
+        this._onDblClick!({ coords, nativeEvent: e });
     }
 
     private _addDocumentListeners(): void {
