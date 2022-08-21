@@ -141,7 +141,7 @@ runtime.onSizeChanged(() => {
 runtime.onRender((_delta) => {
     runtime.clearBuffer('color|depth');
 
-    // Sphere x-diameter is 3.2. Let offset a little bigger.
+    // Sphere x-diameter is 3.2. Let offset be a little bigger.
     const coeff = 4 * offsetCoeff();
     renderPrimitive(directionalProgram, -coeff, {
         'u_light_direction': lightDirection(),

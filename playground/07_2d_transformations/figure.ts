@@ -1,12 +1,7 @@
 import {
     Color,
     Vec2,
-    Mat3,
-    mat3,
-    identity3x3,
-    apply3x3,
-    scaling3x3,
-    mul3x3,
+    Mat3, mat3, identity3x3, apply3x3, scaling3x3, mul3x3,
 } from 'lib';
 import { PrimitiveFactory } from './primitive';
 

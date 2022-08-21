@@ -5,7 +5,7 @@ import {
     Texture,
     parseVertexSchema,
     Tracker,
-    Vec2, vec2, ZERO2, sub2, mul2,
+    Vec2, vec2, ZERO2, sub2, mul2, inv2,
 } from 'lib';
 import { observable } from 'util/observable';
 import { makeTextureData } from './image';
@@ -183,18 +183,15 @@ texcoord.on(layoutElements);
 runtime.onRender(() => {
     runtime.clearBuffer();
 
-    const canvasSize = runtime.canvasSize();
-    const xRatio = 2 / canvasSize.x;
-    const yRatio = 2 / canvasSize.y;
+    const ratio = mul2(inv2(runtime.canvasSize()), 2);
 
-    const size = vec2(TEXTURE_SIZE / 2 * xRatio, TEXTURE_SIZE / 2 * yRatio);
-    const xOffset = (OFFSET + TEXTURE_SIZE / 2) * xRatio;
-    const yOffset = (OFFSET + TEXTURE_SIZE / 2) * yRatio;
+    const size = mul2(ratio, TEXTURE_SIZE / 2);
+    const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);
 
-    drawRect(size, vec2(-xOffset, +yOffset), 'nearest', null);
-    drawRect(size, vec2(-xOffset, -yOffset), 'linear', null);
-    drawRect(size, vec2(+xOffset, +yOffset), 'nearest', texcoord());
-    drawRect(size, vec2(+xOffset, -yOffset), 'linear', texcoord());
+    drawRect(size, vec2(-offset.x, +offset.y), 'nearest', null);
+    drawRect(size, vec2(-offset.x, -offset.y), 'linear', null);
+    drawRect(size, vec2(+offset.x, +offset.y), 'nearest', texcoord());
+    drawRect(size, vec2(+offset.x, -offset.y), 'linear', texcoord());
 });
 
 function drawRect(size: Vec2, offset: Vec2, filter: 'nearest' | 'linear', texcoord: Vec2 | null): void {
