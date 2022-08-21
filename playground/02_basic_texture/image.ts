@@ -9,16 +9,17 @@ export const pixels: ReadonlyArray<Color> = [
 
 export const TEXTURE_SIZE: number = 4;
 
-const data = new Uint8ClampedArray(TEXTURE_SIZE * TEXTURE_SIZE * 4);
-let i = 0;
-for (const { r, g, b, a } of pixels) {
-    data[i++] = r * 0xFF;
-    data[i++] = g * 0xFF;
-    data[i++] = b * 0xFF;
-    data[i++] = a * 0xFF;
+export function makeTextureData(): TextureData {
+    const data = new Uint8ClampedArray(TEXTURE_SIZE * TEXTURE_SIZE * 4);
+    let i = 0;
+    for (const { r, g, b, a } of pixels) {
+        data[i++] = r * 0xFF;
+        data[i++] = g * 0xFF;
+        data[i++] = b * 0xFF;
+        data[i++] = a * 0xFF;
+    }
+    return {
+        size: [TEXTURE_SIZE, TEXTURE_SIZE],
+        data,
+    };
 }
-
-export const textureData: TextureData = {
-    size: [TEXTURE_SIZE, TEXTURE_SIZE],
-    data,
-};

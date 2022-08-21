@@ -1,86 +1,32 @@
 <style>
-    .root {
-        display: flex;
-        flex-direction: row;
-    }
-    .display {
-        flex: 1 0 auto;
-        display: flex;
-        flex-direction: row;
-    }
-    .control {
-        flex: 0 1 400px;
-        display: flex;
-        flex-direction: column;
-    }
-    .control-container {
-        position: relative;
-        height: 100%;
-        border: 1px solid black;
-    }
-    #control-canvas {
+    .label {
         position: absolute;
-        display: inline-block;
-        width: 100%;
-        height: 100%;
+        transform: translate(-50%, -50%);
+        color: #f8f9fa;
+        font-size: 1.2rem;
+        user-select: none;
     }
-    .display-main {
-        flex: 1 0 auto;
-        display: flex;
-        flex-direction: column;
+    .label-left {
+        transform: translate(-100%, -50%);
     }
-    .display-aux {
-        flex: 0 1 80px;
-        display: flex;
-        flex-direction: column;
+    .label-top {
+        transform: translate(-50%, -100%);
     }
-    .row-cells {
-        display: flex;
-        flex-direction: row;
+    .label-bottom {
+        transform: translate(-50%, 0%);
     }
-    .col-cells {
-        display: flex;
-        flex-direction: column;
-    }
-    .row-text-cell {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        text-align: center;
-    }
-    .col-text-cell {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
+    .cross {
+        position: absolute;
+        background-color: #1761aa;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        width: 1rem;
+        height: 1rem;
     }
 </style>
-<div class="root">
-    <div class="display">
-        <div class="display-aux">
-            <div class="row-text-cell">&nbsp;</div>
-            <div class="col-cells" style="flex: 1 1 auto;">
-                <div class="col-text-cell" style="flex: auto;">Nearest</div>
-                <div class="col-text-cell" style="flex: auto;">Linear</div>
-            </div>
-        </div>
-        <div class="display-main">
-            <div class="row-cells">
-                <div class="row-text-cell" style="flex: 1 1 80%;" id="uv-col">UV</div>
-                <div class="row-text-cell" style="flex: 1 1 20%;" id="custom-col">Custom</div>
-            </div>
-            <div>
-                <div id="placeholder"></div>
-            </div>
-        </div>
-    </div>
-    <div class="control">
-        <div class="row-text-cell">&nbsp;</div>
-        <div class="control-container">
-            <canvas id="control-canvas"></canvas>
-        </div>
-    </div>
-</div>
-<script>
-    document.querySelector('#placeholder').appendChild(document.querySelector('#playground-root'));
-</script>
+<span id="u-nearest" class="label label-bottom"></span>
+<span id="v-nearest" class="label label-left"></span>
+<span id="u-linear" class="label label-top"></span>
+<span id="v-linear" class="label label-left"></span>
+<div id="cross-nearest" class="cross"></div>
+<div id="cross-linear" class="cross"></div>
