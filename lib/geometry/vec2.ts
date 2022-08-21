@@ -58,6 +58,10 @@ export function neg2(v: Vec2): Vec2 {
     return vec2(-v.x, -v.y);
 }
 
+export function inv2(v: Vec2): Vec2 {
+    return vec2(1 / v.x, 1 / v.y);
+}
+
 export function norm2(v: Vec2): Vec2 {
     return mul2(v, 1 / len2(v));
 }

@@ -1,7 +1,7 @@
 import {
     Vec4,
     ZERO4, UNIT4, XUNIT4, YUNIT4, ZUNIT4, WUNIT4,
-    eq4, neg4, len4, sqrlen4, norm4,
+    eq4, neg4, inv4, len4, sqrlen4, norm4,
     dot4, mul4, add4, sub4,
 } from './vec4';
 
@@ -66,6 +66,10 @@ describe('vec4', () => {
 
     it('neg4', () => {
         expect(neg4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec({ x: -1, y: -2, z: -3, w: -4 });
+    });
+
+    it('inv4', () => {
+        expect(inv4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec({ x: 1, y: 0.5, z: 0.3333, w: 0.25 });
     });
 
     it('mul4', () => {

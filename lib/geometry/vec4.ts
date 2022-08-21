@@ -61,6 +61,10 @@ export function neg4(v: Vec4): Vec4 {
     return vec4(-v.x, -v.y, -v.z, -v.w);
 }
 
+export function inv4(v: Vec4): Vec4 {
+    return vec4(1 / v.x, 1 / v.y, 1 / v.z, 1 / v.w);
+}
+
 export function norm4(v: Vec4): Vec4 {
     return mul4(v, 1 / len4(v));
 }

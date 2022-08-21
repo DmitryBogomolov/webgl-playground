@@ -1,7 +1,7 @@
 import {
     Vec3,
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
-    eq3, neg3, len3, sqrlen3, norm3,
+    eq3, neg3, inv3, len3, sqrlen3, norm3,
     dot3, mul3, add3, sub3, cross3, rotate3,
 } from './vec3';
 
@@ -65,6 +65,10 @@ describe('vec3', () => {
 
     it('neg3', () => {
         expect(neg3({ x: 1, y: 2, z: 3 })).toBeVec({ x: -1, y: -2, z: -3 });
+    });
+
+    it('inv3', () => {
+        expect(inv3({ x: 1, y: 2, z: 3 })).toBeVec({ x: 1, y: 0.5, z: 0.3333 });
     });
 
     it('mul3', () => {

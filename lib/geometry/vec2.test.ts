@@ -1,7 +1,7 @@
 import {
     Vec2,
     ZERO2, UNIT2, XUNIT2, YUNIT2,
-    eq2, neg2, len2, sqrlen2, norm2,
+    eq2, neg2, inv2, len2, sqrlen2, norm2,
     dot2, mul2, add2, sub2,
 } from './vec2';
 
@@ -64,6 +64,10 @@ describe('vec2', () => {
 
     it('neg2', () => {
         expect(neg2({ x: 1, y: 2 })).toBeVec({ x: -1, y: -2 });
+    });
+
+    it('inv2', () => {
+        expect(inv2({ x: 1, y: 2 })).toBeVec({ x: 1, y: 0.5 });
     });
 
     it('mul2', () => {
