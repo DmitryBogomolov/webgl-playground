@@ -69,9 +69,7 @@ export class RangeControl extends BaseControl {
 
     private readonly _handleInputChange = (): void => {
         const value = Number(this._input.value);
-        if (value !== this._options.value()) {
-            this._options.value(value);
-        }
+        this._options.value(value);
     };
 }
 

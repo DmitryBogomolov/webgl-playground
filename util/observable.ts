@@ -13,10 +13,15 @@ export interface Observable<T> {
     off(handler: ChangeHandler<T>): void;
 }
 
-export function observable<T>(initial: T): Observable<T> {
+export interface ObservableOptions {
+    readonly noEqualityCheck?: boolean;
+}
+
+export function observable<T>(initial: T, options?: ObservableOptions): Observable<T> {
     let currentValue = initial;
     const emitter = new EventEmitter<[T]>();
     patchWithEmitter(target as Observable<T>, emitter);
+    const noEqualityCheck = options ? Boolean(options.noEqualityCheck) : false;
 
     return target as Observable<T>;
 
@@ -24,8 +29,10 @@ export function observable<T>(initial: T): Observable<T> {
         if (value === undefined) {
             return currentValue;
         }
-        currentValue = value;
-        emitter.emit(currentValue);
+        if (noEqualityCheck || value !== currentValue) {
+            currentValue = value;
+            emitter.emit(currentValue);
+        }
         return target as Observable<T>;
     }
 }

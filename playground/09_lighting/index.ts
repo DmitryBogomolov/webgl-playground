@@ -45,6 +45,7 @@ const lightLimitRange = observable(10);
 
 const proj = observable(
     mat4(),
+    { noEqualityCheck: true },
 );
 const view = observable(
     lookAt4x4({
@@ -52,6 +53,7 @@ const view = observable(
         center: ZERO3,
         up: YUNIT3,
     }),
+    { noEqualityCheck: true },
 );
 
 const _model = mat4();
