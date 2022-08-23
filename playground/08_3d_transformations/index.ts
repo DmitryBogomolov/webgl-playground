@@ -59,7 +59,7 @@ runtime.frameRendered().on((delta) => {
     runtime.requestFrameRender();
 });
 
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     perspective4x4({
         aspect: x / y,

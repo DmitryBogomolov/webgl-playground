@@ -30,7 +30,7 @@ const transformation2 = mat3();
 const transformation3 = mat3();
 
 const projection = mat3();
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
     projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
 });

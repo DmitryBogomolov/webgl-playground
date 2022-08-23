@@ -125,7 +125,7 @@ const lightLimit = computed(
     .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
 const _proj = mat4();
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);

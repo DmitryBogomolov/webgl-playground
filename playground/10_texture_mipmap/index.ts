@@ -37,7 +37,7 @@ const YFOV = Math.PI / 3;
 // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
 const DISTANCE = fovSize2Dist(YFOV, 1);
 
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     identity4x4(proj);
     apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
     const { x, y } = runtime.canvasSize();

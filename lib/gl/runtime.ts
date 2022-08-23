@@ -113,7 +113,10 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
-    private readonly _sizeChanged = new EventEmitter();
+    private readonly _sizeChanged = new EventEmitter((handler) => {
+        // Immediately notify subscriber so that it may perform initial calculation.
+        handler();
+    });
     private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -399,14 +402,8 @@ export class Runtime {
         this._renderLoop.update();
     }
 
-    onSizeChanged(callback: () => void): void {
-        this._sizeChanged.on(callback);
-        // Immediately notify subscriber so that it may perform initial calculation.
-        callback();
-    }
-
-    offSizeChanged(callback: () => void): void {
-        this._sizeChanged.off(callback);
+    sizeChanged(): EventProxy {
+        return this._sizeChanged;
     }
 
     useProgram(program: WebGLProgram | null, id: string): void {
