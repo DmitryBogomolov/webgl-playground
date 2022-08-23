@@ -16,17 +16,17 @@ export interface Observable<T> {
 export function observable<T>(initial: T): Observable<T> {
     let currentValue = initial;
     const emitter = new EventEmitter<[T]>();
-    patchWithEmitter(target as unknown as Observable<T>, emitter);
+    patchWithEmitter(target as Observable<T>, emitter);
 
-    return target as unknown as Observable<T>;
+    return target as Observable<T>;
 
-    function target(value: T | undefined): T | Observable<T> {
+    function target(value?: T): T | Observable<T> {
         if (value === undefined) {
             return currentValue;
         }
         currentValue = value;
         emitter.emit(currentValue);
-        return target as unknown as Observable<T>;
+        return target as Observable<T>;
     }
 }
 
@@ -39,7 +39,7 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     observables: K,
 ): Observable<T> {
     const emitter = new EventEmitter<[T]>();
-    patchWithEmitter(target as unknown as Observable<T>, emitter);
+    patchWithEmitter(target as Observable<T>, emitter);
     const valuesCache = [] as unknown as ObservableListTypes<K>;
     observables.forEach((item, i) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -53,14 +53,21 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     });
     let currentValue = handler(valuesCache);
 
-    return target as unknown as Observable<T>;
+    return target as Observable<T>;
 
-    function target(): T {
-        return currentValue;
+    function target(value?: T): T | Observable<T> {
+        if (value === undefined) {
+            return currentValue;
+        }
+        throw new Error('computed is read only');
     }
 }
 
 function patchWithEmitter<T>(target: Observable<T>, emitter: EventEmitter<[T]>): void {
-    target.on = (handler: ChangeHandler<T>) => emitter.on(handler);
-    target.off = (handler: ChangeHandler<T>) => emitter.off(handler);
+    target.on = function (handler) {
+        emitter.on(handler);
+    };
+    target.off = function (handler) {
+        emitter.off(handler);
+    };
 }
