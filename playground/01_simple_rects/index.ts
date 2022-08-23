@@ -87,7 +87,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 
 const runtime = new Runtime(container);
 const primitive = makePrimitive(runtime);
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer();
     primitive.render();
 });

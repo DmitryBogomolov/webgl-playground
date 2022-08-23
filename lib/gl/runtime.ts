@@ -1,9 +1,9 @@
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
-import { EventEmitter } from '../utils/event-emitter';
+import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
 import { GLValuesMap } from './gl-values-map';
-import { RenderFrameCallback, RenderLoop } from './render-loop';
+import { RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
@@ -391,15 +391,11 @@ export class Runtime {
         return true;
     }
 
-    onRender(callback: RenderFrameCallback): void {
-        this._renderLoop.onRender(callback);
+    frameRendered(): EventProxy<[number, number]> {
+        return this._renderLoop.frameRendered();
     }
 
-    offRender(callback: RenderFrameCallback): void {
-        this._renderLoop.offRender(callback);
-    }
-
-    requestRender(): void {
+    requestFrameRender(): void {
         this._renderLoop.update();
     }
 

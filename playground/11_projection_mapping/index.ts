@@ -37,7 +37,7 @@ const primitives: ReadonlyArray<PrimitiveData> = [
 const wireframe = makeWireframe(runtime);
 const fillTexture = makeFillTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
 
 const wireframeColor = color(0.1, 0.1, 0.1);
@@ -149,9 +149,9 @@ runtime.onSizeChanged(() => {
 });
 
 [offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
     const coeff = 3 * offsetCoeff();
     for (const { primitive, offset } of primitives) {

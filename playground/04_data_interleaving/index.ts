@@ -83,7 +83,7 @@ function makePrimitive(runtime: Runtime, schema: VertexSchema, arrayBufferSize: 
 function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Primitive): void {
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
-    runtime.onRender(() => {
+    runtime.frameRendered().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });

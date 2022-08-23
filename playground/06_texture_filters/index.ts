@@ -64,7 +64,7 @@ function makeTexture(runtime: Runtime): Texture {
     image.onload = () => {
         image.onload = null;
         texture.setImageData(image, { unpackFlipY: true });
-        runtime.requestRender();
+        runtime.requestFrameRender();
     };
 
     return texture;
@@ -78,9 +78,9 @@ const kernelName = observable(convolutionKernels[0].name);
 const currentKernel = computed(([name]) => {
     return convolutionKernels.find((kernel) => kernel.name === name)!;
 }, [kernelName]);
-currentKernel.on(() => runtime.requestRender());
+currentKernel.on(() => runtime.requestFrameRender());
 
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer();
     texture.setUnit(3);
     const program = primitive.program();

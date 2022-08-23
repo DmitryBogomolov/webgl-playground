@@ -44,7 +44,7 @@ const view = lookAt4x4({
 const viewProj = mat4();
 const unit = identity4x4();
 
-runtime.onRender((delta) => {
+runtime.frameRendered().on((delta) => {
     identity4x4(viewProj);
     mul4x4(view, viewProj, viewProj);
     mul4x4(proj, viewProj, viewProj);
@@ -56,7 +56,7 @@ runtime.onRender((delta) => {
     figure1.render();
     figure2.render();
     figure3.render();
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
 
 runtime.onSizeChanged(() => {

@@ -1,9 +1,11 @@
-import { EventEmitter } from '../utils/event-emitter';
+import { EventEmitter, EventProxy } from '../utils/event-emitter';
 
 export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
-    private readonly _frameRendered = new EventEmitter<Parameters<RenderFrameCallback>>();
+    private readonly _frameRendered = new EventEmitter<[number, number]>(() => {
+        this.update();
+    });
     private readonly _renderFrame: FrameRequestCallback = (timestamp) => {
         this._requestId = 0;
         const delta = (timestamp - this._timestamp) || 0; // ms
@@ -24,13 +26,8 @@ export class RenderLoop {
         }
     }
 
-    onRender(callback: RenderFrameCallback): void {
-        this._frameRendered.on(callback);
-        this.update();
-    }
-
-    offRender(callback: RenderFrameCallback): void {
-        this._frameRendered.off(callback);
+    frameRendered(): EventProxy<[number, number]> {
+        return this._frameRendered.proxy();
     }
 
     clearRenderCallbacks(): void {

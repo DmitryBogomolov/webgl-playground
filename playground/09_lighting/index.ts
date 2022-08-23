@@ -122,7 +122,7 @@ const lightLimit = computed(
 );
 
 [offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
 const _proj = mat4();
 runtime.onSizeChanged(() => {
@@ -138,7 +138,7 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-runtime.onRender((_delta) => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
 
     // Sphere x-diameter is 3.2. Let offset be a little bigger.

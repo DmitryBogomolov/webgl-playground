@@ -29,21 +29,21 @@ interface LineConstructor<T extends Line> {
 
 function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): T {
     const line = new ctor(runtime);
-    runtime.onRender(() => {
+    runtime.frameRendered().on(() => {
         runtime.clearBuffer();
         line.render();
     });
     state.thicknessChanged.on(() => {
         line.setThickness(state.thickness);
-        runtime.requestRender();
+        runtime.requestFrameRender();
     });
     state.verticesChanged.on(() => {
         line.setVertices(state.vertices);
-        runtime.requestRender();
+        runtime.requestFrameRender();
     });
     state.vertexUpdated.on((idx) => {
         line.updateVertex(state.vertices, idx);
-        runtime.requestRender();
+        runtime.requestFrameRender();
     });
     line.setVertices(state.vertices);
     line.setThickness(state.thickness);

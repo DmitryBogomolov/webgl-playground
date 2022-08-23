@@ -177,10 +177,10 @@ new Tracker(container, {
     },
 });
 
-texcoord.on(() => runtime.requestRender());
+texcoord.on(() => runtime.requestFrameRender());
 texcoord.on(layoutElements);
 
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer();
 
     const ratio = mul2(inv2(runtime.canvasSize()), 2);

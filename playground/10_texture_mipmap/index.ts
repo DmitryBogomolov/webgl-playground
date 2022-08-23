@@ -25,7 +25,7 @@ runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime, () => {
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
 texture.setParameters({
     mag_filter: 'nearest',
@@ -91,9 +91,9 @@ minFilter.on((value) => {
 });
 
 [animationFlag, xRotation, yRotation, magFilter, minFilter]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-runtime.onRender((delta) => {
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
 
@@ -123,7 +123,7 @@ runtime.onRender((delta) => {
     }
 
     if (animationFlag()) {
-        runtime.requestRender();
+        runtime.requestFrameRender();
     }
 });
 

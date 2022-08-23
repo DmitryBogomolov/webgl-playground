@@ -35,7 +35,7 @@ runtime.onSizeChanged(() => {
     projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
 });
 
-runtime.onRender((delta) => {
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer();
     animate1(delta, transformation1);
     animate2(delta, transformation2);
@@ -45,5 +45,5 @@ runtime.onRender((delta) => {
     render1(projection, transformation1);
     render2(projection, transformation2);
     render3(projection, transformation3);
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
