@@ -74,11 +74,11 @@ function runWorker(runtime: Runtime): void {
     const messenger = new WorkerMessenger(new Worker(), {
         [TYPE_SCALE](payload) {
             scale = payload as number;
-            runtime.requestRender();
+            runtime.requestFrameRender();
         },
         [TYPE_COLOR](payload) {
             clr = payload as Color;
-            runtime.requestRender();
+            runtime.requestFrameRender();
         },
     });
 
@@ -106,7 +106,7 @@ function runWorker(runtime: Runtime): void {
 
 
 
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer();
     primitive.program().setUniform('u_scale', scale);
     primitive.program().setUniform('u_color', clr);

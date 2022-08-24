@@ -56,6 +56,10 @@ export function neg3(v: Vec3): Vec3 {
     return vec3(-v.x, -v.y, -v.z);
 }
 
+export function inv3(v: Vec3): Vec3 {
+    return vec3(1 / v.x, 1 / v.y, 1 / v.z);
+}
+
 export function norm3(v: Vec3): Vec3 {
     return mul3(v, 1 / len3(v));
 }

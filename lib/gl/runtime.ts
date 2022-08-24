@@ -1,9 +1,9 @@
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
-import { EventEmitter } from '../utils/event-emitter';
+import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
 import { GLValuesMap } from './gl-values-map';
-import { RenderFrameCallback, RenderLoop } from './render-loop';
+import { RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
@@ -85,17 +85,24 @@ const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
 };
 
+export type EXTENSION = ('element_index_uint');
+const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
+    'element_index_uint': 'OES_element_index_uint',
+};
+
 export interface RuntimeOptions {
-    alpha?: boolean,
-    antialias?: boolean,
-    premultipliedAlpha?: boolean,
-    trackWindowResize?: boolean,
+    alpha?: boolean;
+    antialias?: boolean;
+    premultipliedAlpha?: boolean;
+    trackWindowResize?: boolean;
+    extensions?: EXTENSION[];
 }
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
     antialias: false,
     premultipliedAlpha: false,
     trackWindowResize: true,
+    extensions: [],
 };
 
 export class Runtime {
@@ -106,7 +113,10 @@ export class Runtime {
     private readonly _renderLoop = new RenderLoop();
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
-    private readonly _sizeChanged = new EventEmitter();
+    private readonly _sizeChanged = new EventEmitter((handler) => {
+        // Immediately notify subscriber so that it may perform initial calculation.
+        handler();
+    });
     private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -129,7 +139,7 @@ export class Runtime {
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
         this.gl = this._getContext();
         this.vaoExt = this._getVaoExt();
-        this._getU32IndexExt();
+        this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         // Initial state is formed according to specification.
@@ -187,10 +197,16 @@ export class Runtime {
         return ext;
     }
 
-    private _getU32IndexExt(): void {
-        const ext = this.gl.getExtension('OES_element_index_uint');
-        if (!ext) {
-            throw this._logger.error('failed to get OES_element_index_uint extension');
+    private _enableExtensions(): void {
+        for (const ext of this._options.extensions) {
+            const name = EXTENSION_MAP[ext];
+            if (!name) {
+                throw this._logger.error('extension {0}: bad value', ext);
+            }
+            const ret = this.gl.getExtension(name) as unknown;
+            if (!ret) {
+                throw this._logger.error('failed to get {0} extension', name);
+            }
         }
     }
 
@@ -378,26 +394,16 @@ export class Runtime {
         return true;
     }
 
-    onRender(callback: RenderFrameCallback): void {
-        this._renderLoop.onRender(callback);
+    frameRendered(): EventProxy<[number, number]> {
+        return this._renderLoop.frameRendered();
     }
 
-    offRender(callback: RenderFrameCallback): void {
-        this._renderLoop.offRender(callback);
-    }
-
-    requestRender(): void {
+    requestFrameRender(): void {
         this._renderLoop.update();
     }
 
-    onSizeChanged(callback: () => void): void {
-        this._sizeChanged.on(callback);
-        // Immediately notify subscriber so that it may perform initial calculation.
-        callback();
-    }
-
-    offSizeChanged(callback: () => void): void {
-        this._sizeChanged.off(callback);
+    sizeChanged(): EventProxy {
+        return this._sizeChanged;
     }
 
     useProgram(program: WebGLProgram | null, id: string): void {

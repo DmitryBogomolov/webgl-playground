@@ -1,6 +1,6 @@
-import { BaseControl } from './base-control';
-import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
-import { Observable } from '../observable';
+import { BaseControl } from '../base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from '../settings';
+import { Observable } from '../../observable';
 
 export interface RangeControlOptions {
     readonly label: string;
@@ -69,9 +69,7 @@ export class RangeControl extends BaseControl {
 
     private readonly _handleInputChange = (): void => {
         const value = Number(this._input.value);
-        if (value !== this._options.value()) {
-            this._options.value(value);
-        }
+        this._options.value(value);
     };
 }
 

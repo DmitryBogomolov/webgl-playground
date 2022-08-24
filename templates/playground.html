@@ -6,11 +6,14 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ &bootstrap_url }}">
     <style>
+        .playground-container {
+            height: 600px;
+        }
         .playground-root {
             position: relative;
             width: 100%;
-            height: 600px;
-            border: 1px solid black;
+            height: 100%;
+            border: 2px solid black;
             background-color: darkgrey;
         }
     </style>
@@ -27,7 +30,7 @@
             <h3 class="panel-title">{{ title }}</h1>
         </div>
         <a class="btn btn-link" href="/">Home</a>
-        <div class="panel-body">
+        <div class="panel-body playground-container">
             <div id="playground-root" class="playground-root"></div>
 {{ &custom_markup }}
         </div>

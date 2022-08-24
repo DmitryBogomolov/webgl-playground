@@ -10,8 +10,8 @@ export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsFunc 
     return (e) => {
         const { left, top } = element.getBoundingClientRect();
         return vec2(
-            e.clientX - left,
-            e.clientY - top,
+            e.clientX - Math.round(left),
+            e.clientY - Math.round(top),
         );
     };
 }

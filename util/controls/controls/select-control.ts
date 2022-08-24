@@ -1,6 +1,6 @@
-import { BaseControl } from './base-control';
-import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
-import { Observable } from '../observable';
+import { BaseControl } from '../base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from '../settings';
+import { Observable } from '../../observable';
 
 export interface SelectControlOptions {
     readonly label: string;
@@ -50,9 +50,7 @@ export class SelectControl extends BaseControl {
 
     private readonly _handleSelectionChange = (): void => {
         const value = this._options.options[this._select.selectedIndex];
-        if (value !== this._options.selection()) {
-            this._options.selection(value);
-        }
+        this._options.selection(value);
     };
 }
 

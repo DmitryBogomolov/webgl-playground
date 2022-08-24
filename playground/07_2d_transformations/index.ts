@@ -1,7 +1,7 @@
 import {
     Runtime,
     color, colors,
-    vec2,
+    vec2, mul2,
     mat3, projection3x3, mul3x3,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
@@ -30,14 +30,12 @@ const transformation2 = mat3();
 const transformation3 = mat3();
 
 const projection = mat3();
-runtime.onSizeChanged(() => {
-    const { x, y } = runtime.canvasSize();
-    const dx = x / 2;
-    const dy = y / 2;
+runtime.sizeChanged().on(() => {
+    const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
     projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
 });
 
-runtime.onRender((delta) => {
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer();
     animate1(delta, transformation1);
     animate2(delta, transformation2);
@@ -47,5 +45,5 @@ runtime.onRender((delta) => {
     render1(projection, transformation1);
     render2(projection, transformation2);
     render3(projection, transformation3);
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });

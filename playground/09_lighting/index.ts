@@ -45,6 +45,7 @@ const lightLimitRange = observable(10);
 
 const proj = observable(
     mat4(),
+    { noEqualityCheck: true },
 );
 const view = observable(
     lookAt4x4({
@@ -52,6 +53,7 @@ const view = observable(
         center: ZERO3,
         up: YUNIT3,
     }),
+    { noEqualityCheck: true },
 );
 
 const _model = mat4();
@@ -122,10 +124,10 @@ const lightLimit = computed(
 );
 
 [offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
 const _proj = mat4();
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);
@@ -138,10 +140,10 @@ runtime.onSizeChanged(() => {
     proj(_proj);
 });
 
-runtime.onRender((_delta) => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
 
-    // Sphere x-diameter is 3.2. Let offset a little bigger.
+    // Sphere x-diameter is 3.2. Let offset be a little bigger.
     const coeff = 4 * offsetCoeff();
     renderPrimitive(directionalProgram, -coeff, {
         'u_light_direction': lightDirection(),

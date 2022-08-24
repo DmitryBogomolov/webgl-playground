@@ -25,7 +25,7 @@ runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime, () => {
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
 texture.setParameters({
     mag_filter: 'nearest',
@@ -37,7 +37,7 @@ const YFOV = Math.PI / 3;
 // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
 const DISTANCE = fovSize2Dist(YFOV, 1);
 
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     identity4x4(proj);
     apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
     const { x, y } = runtime.canvasSize();
@@ -91,9 +91,9 @@ minFilter.on((value) => {
 });
 
 [animationFlag, xRotation, yRotation, magFilter, minFilter]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-runtime.onRender((delta) => {
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer('color|depth');
     const program = primitive.program();
 
@@ -123,7 +123,7 @@ runtime.onRender((delta) => {
     }
 
     if (animationFlag()) {
-        runtime.requestRender();
+        runtime.requestFrameRender();
     }
 });
 

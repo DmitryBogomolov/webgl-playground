@@ -37,7 +37,7 @@ const primitives: ReadonlyArray<PrimitiveData> = [
 const wireframe = makeWireframe(runtime);
 const fillTexture = makeFillTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
-    runtime.requestRender();
+    runtime.requestFrameRender();
 });
 
 const wireframeColor = color(0.1, 0.1, 0.1);
@@ -72,6 +72,7 @@ const model = computed(
 
 const proj = observable(
     mat4(),
+    { noEqualityCheck: true },
 );
 const view = observable(
     lookAt4x4({
@@ -79,6 +80,7 @@ const view = observable(
         center: ZERO3,
         up: YUNIT3,
     }),
+    { noEqualityCheck: true },
 );
 
 const _projectionView = mat4();
@@ -135,7 +137,7 @@ const wireframeMat = computed(([planarMat]) => {
 }, [projectionMat]);
 
 const _proj = mat4();
-runtime.onSizeChanged(() => {
+runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);
@@ -149,9 +151,9 @@ runtime.onSizeChanged(() => {
 });
 
 [offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
-    .forEach((item) => item.on(() => runtime.requestRender()));
+    .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-runtime.onRender(() => {
+runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
     const coeff = 3 * offsetCoeff();
     for (const { primitive, offset } of primitives) {
