@@ -1,7 +1,7 @@
 import { BaseControl } from './base-control';
-import { RangeControl, RangeControlOptions } from './range-control';
-import { SelectControl, SelectControlOptions } from './select-control';
-import { CheckControl, CheckControlOptions } from './check-control';
+import { RangeControl, RangeControlOptions } from './controls/range-control';
+import { SelectControl, SelectControlOptions } from './controls/select-control';
+import { CheckControl, CheckControlOptions } from './controls/check-control';
 
 const NAME = 'controls-panel';
 

@@ -1,6 +1,6 @@
-import { BaseControl } from './base-control';
-import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from './settings';
-import { Observable } from '../observable';
+import { BaseControl } from '../base-control';
+import { CONTROL_STYLE, LABEL_STYLE, INPUT_STYLE } from '../settings';
+import { Observable } from '../../observable';
 
 export interface SelectControlOptions {
     readonly label: string;
