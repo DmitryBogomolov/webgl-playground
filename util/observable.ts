@@ -9,6 +9,7 @@ export interface ChangeHandler<T> {
 export interface Observable<T> {
     (): T;
     (value: T): Observable<T>;
+    dispose(): void;
     on(handler: ChangeHandler<T>): void;
     off(handler: ChangeHandler<T>): void;
 }
@@ -19,8 +20,10 @@ export interface ObservableOptions {
 
 export function observable<T>(initial: T, options?: ObservableOptions): Observable<T> {
     let currentValue = initial;
+    let notifyTimeout = 0;
+    let disposed = false;
     const emitter = new EventEmitter<[T]>();
-    patchWithEmitter(target as Observable<T>, emitter);
+    patchWithMethods(target as Observable<T>, emitter, dispose);
     const noEqualityCheck = options ? Boolean(options.noEqualityCheck) : false;
 
     return target as Observable<T>;
@@ -29,11 +32,22 @@ export function observable<T>(initial: T, options?: ObservableOptions): Observab
         if (value === undefined) {
             return currentValue;
         }
+        if (disposed) {
+            throw new Error('disposed');
+        }
         if (noEqualityCheck || value !== currentValue) {
             currentValue = value;
-            emitter.emit(currentValue);
+            window.clearTimeout(notifyTimeout);
+            notifyTimeout = window.setTimeout(notify, 0);
         }
         return target as Observable<T>;
+    }
+    function dispose(): void {
+        disposed = true;
+        window.clearTimeout(notifyTimeout);
+    }
+    function notify(): void {
+        emitter.emit(currentValue);
     }
 }
 
@@ -45,18 +59,22 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     handler: (args: ObservableListTypes<K>) => T,
     observables: K,
 ): Observable<T> {
+    let notifyTimeout = 0;
+    let disposed = false;
     const emitter = new EventEmitter<[T]>();
-    patchWithEmitter(target as Observable<T>, emitter);
+    patchWithMethods(target as Observable<T>, emitter, dispose);
     const valuesCache = [] as unknown as ObservableListTypes<K>;
+    const handlers = [] as ((value: unknown) => void)[];
     observables.forEach((item, i) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         valuesCache[i] = item();
-        item.on((value) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        handlers[i] = (value) => {
             valuesCache[i] = value;
             currentValue = handler(valuesCache);
-            emitter.emit(currentValue);
-        });
+            window.clearTimeout(notifyTimeout);
+            notifyTimeout = window.setTimeout(notify, 0);
+        };
+        item.on(handlers[i]);
     });
     let currentValue = handler(valuesCache);
 
@@ -66,11 +84,25 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
         if (value === undefined) {
             return currentValue;
         }
+        if (disposed) {
+            throw new Error('disposed');
+        }
         throw new Error('computed is read only');
+    }
+    function notify(): void {
+        emitter.emit(currentValue);
+    }
+    function dispose(): void {
+        disposed = true;
+        observables.forEach((item, i) => {
+            item.off(handlers[i]);
+        });
+        window.clearTimeout(notifyTimeout);
     }
 }
 
-function patchWithEmitter<T>(target: Observable<T>, emitter: EventEmitter<[T]>): void {
+function patchWithMethods<T>(target: Observable<T>, emitter: EventEmitter<[T]>, dispose: () => void): void {
+    target.dispose = dispose;
     target.on = function (handler) {
         emitter.on(handler);
     };
