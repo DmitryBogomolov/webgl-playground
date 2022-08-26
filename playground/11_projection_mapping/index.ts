@@ -48,7 +48,7 @@ const YFOV = Math.PI / 3;
 const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
 
 const camera = new Camera();
-camera.eyePos(mul3(VIEW_DIR, VIEW_DIST));
+camera.setEyePos(mul3(VIEW_DIR, VIEW_DIST));
 const projectionCamera = new Camera();
 
 const offsetCoeff = observable(0);
@@ -102,7 +102,7 @@ const projectionView = computed(([projectionDist, projectionLon, projectionLat])
         center: ZERO3,
         up: YUNIT3,
     }, _projectionView);
-    projectionCamera.eyePos(mul3(dir, projectionDist));
+    projectionCamera.setEyePos(mul3(dir, projectionDist));
     return _projectionView;
 }, [projectionDist, projectionLon, projectionLat]);
 
@@ -125,9 +125,9 @@ const projectionProj = computed(([projectionWidth, projectionHeight, projectionF
             zFar: 100,
         }, _projectionProj);
     }
-    projectionCamera.projType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
-    projectionCamera.yFOV(deg2rad(projectionFOV));
-    projectionCamera.viewportSize({ x: projectionWidth, y: projectionHeight });
+    projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+    projectionCamera.setYFOV(deg2rad(projectionFOV));
+    projectionCamera.setViewportSize({ x: projectionWidth, y: projectionHeight });
     return _projectionProj;
 }, [
     projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
@@ -150,7 +150,7 @@ runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);
-    camera.viewportSize({ x, y });
+    camera.setViewportSize({ x, y });
     perspective4x4({
         yFov: YFOV,
         aspect: x / y,

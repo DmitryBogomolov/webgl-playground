@@ -48,12 +48,11 @@ export class Camera {
         this._invtransformDirty = true;
     }
 
-    projType(): CAMERA_PROJECTION;
-    projType(value: CAMERA_PROJECTION): this;
-    projType(value?: CAMERA_PROJECTION): CAMERA_PROJECTION | this {
-        if (value === undefined) {
-            return this._projType;
-        }
+    projType(): CAMERA_PROJECTION {
+        return this._projType;
+    }
+
+    setProjType(value: CAMERA_PROJECTION): void {
         if (!(value === 'perspective' || value === 'orthographic')) {
             throw this._logger.error('bad "projType" value: {0}', value);
         }
@@ -61,15 +60,13 @@ export class Camera {
             this._projType = value;
             this._markProjDirty();
         }
-        return this;
     }
 
-    zNear(): number;
-    zNear(value: number): this;
-    zNear(value?: number): number | this {
-        if (value === undefined) {
-            return this._zNear;
-        }
+    zNear(): number {
+        return this._zNear;
+    }
+
+    setZNear(value: number): void {
         if (!(value > 0 && value < this._zFar)) {
             throw this._logger.error('bad "zNear" value: {0}', value);
         }
@@ -77,15 +74,13 @@ export class Camera {
             this._zNear = value;
             this._markProjDirty();
         }
-        return this;
     }
 
-    zFar(): number;
-    zFar(value: number): this;
-    zFar(value?: number): number | this {
-        if (value === undefined) {
-            return this._zFar;
-        }
+    zFar(): number {
+        return this._zFar;
+    }
+
+    setZFar(value: number): void {
         if (!(value > 0 && value > this._zNear)) {
             throw this._logger.error('bad "zFar" value: {0}', value);
         }
@@ -93,15 +88,13 @@ export class Camera {
             this._zFar = value;
             this._markProjDirty();
         }
-        return this;
     }
 
-    viewportSize(): Vec2;
-    viewportSize(value: Vec2): this;
-    viewportSize(value?: Vec2): Vec2 | this {
-        if (value === undefined) {
-            return this._viewportSize;
-        }
+    viewportSize(): Vec2 {
+        return this._viewportSize;
+    }
+
+    setViewportSize(value: Vec2): void {
         if (!(isVec2(value) && value.x > 0 && value.y > 0)) {
             throw this._logger.error('bad "viewportSize" value: {0}', value);
         }
@@ -109,15 +102,13 @@ export class Camera {
             this._viewportSize = value;
             this._markProjDirty();
         }
-        return this;
     }
 
-    yFOV(): number;
-    yFOV(value: number): this;
-    yFOV(value?: number): number | this {
-        if (value === undefined) {
-            return this._yFOV;
-        }
+    yFOV(): number {
+        return this._yFOV;
+    }
+
+    setYFOV(value: number): void {
         if (!(value > 0)) {
             throw this._logger.error('bad "yFOV" value: {0}', value);
         }
@@ -125,15 +116,13 @@ export class Camera {
             this._yFOV = value;
             this._markProjDirty();
         }
-        return this;
     }
 
-    upDir(): Vec3;
-    upDir(value: Vec3): this;
-    upDir(value?: Vec3): Vec3 | this {
-        if (value === undefined) {
-            return this._upDir;
-        }
+    upDir(): Vec3 {
+        return this._upDir;
+    }
+
+    setUpDir(value: Vec3): void {
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
             throw this._logger.error('bad "upDir" value: {0}', value);
         }
@@ -142,15 +131,13 @@ export class Camera {
             this._upDir = upDir;
             this._markViewDirty();
         }
-        return this;
     }
 
-    centerPos(): Vec3;
-    centerPos(value: Vec3): this;
-    centerPos(value?: Vec3): Vec3 | this {
-        if (value === undefined) {
-            this._centerPos;
-        }
+    centerPos(): Vec3 {
+        return this._centerPos;
+    }
+
+    setCenterPos(value: Vec3): void {
         if (!isVec3(value)) {
             throw this._logger.error('bad "centerPos" value: {0}', value);
         }
@@ -158,15 +145,13 @@ export class Camera {
             this._centerPos = value;
             this._markViewDirty();
         }
-        return this;
     }
 
-    eyePos(): Vec3;
-    eyePos(value: Vec3): this;
-    eyePos(value?: Vec3): Vec3 | this {
-        if (value === undefined) {
-            return this._eyePos;
-        }
+    eyePos(): Vec3 {
+        return this._eyePos;
+    }
+
+    setEyePos(value: Vec3): void {
         if (!isVec3(value)) {
             throw this._logger.error('bad "eyePos" value: {0}', value);
         }
@@ -174,7 +159,6 @@ export class Camera {
             this._eyePos = value;
             this._markViewDirty();
         }
-        return this;
     }
 
     private _buildPerspectiveMat(): void {
