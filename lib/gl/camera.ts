@@ -1,6 +1,7 @@
 import { Logger } from '../utils/logger';
+import { fovDist2Size, fovSize2Dist } from '../geometry/scalar';
 import { Vec2, vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
-import { Vec3, ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3 } from '../geometry/vec3';
+import { Vec3, ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
 import {
     Mat4, mat4,
     perspective4x4, orthographic4x4, lookAt4x4,
@@ -9,9 +10,8 @@ import {
 
 export type CAMERA_PROJECTION = ('perspective' | 'orthographic');
 
-const logger = new Logger('Camera');
-
 export class Camera {
+    private readonly _logger = new Logger('Camera');
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
     private readonly _transformMat: Mat4 = mat4();
@@ -29,6 +29,25 @@ export class Camera {
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
 
+    private _markProjDirty(): void {
+        this._projDirty = true;
+        this._markTransformDirty();
+    }
+
+    private _markViewDirty(): void {
+        this._viewDirty = true;
+        this._markTransformDirty();
+    }
+
+    private _markTransformDirty(): void {
+        this._transformDirty = true;
+        this._markInvtransformDirty();
+    }
+
+    private _markInvtransformDirty(): void {
+        this._invtransformDirty = true;
+    }
+
     projType(): CAMERA_PROJECTION;
     projType(value: CAMERA_PROJECTION): this;
     projType(value?: CAMERA_PROJECTION): CAMERA_PROJECTION | this {
@@ -36,11 +55,11 @@ export class Camera {
             return this._projType;
         }
         if (!(value === 'perspective' || value === 'orthographic')) {
-            throw logger.error('bad "projType" value: {0}', value);
+            throw this._logger.error('bad "projType" value: {0}', value);
         }
         if (this._projType !== value) {
             this._projType = value;
-            this._projDirty = true;
+            this._markProjDirty();
         }
         return this;
     }
@@ -52,11 +71,11 @@ export class Camera {
             return this._zNear;
         }
         if (!(value > 0 && value < this._zFar)) {
-            throw logger.error('bad "zNear" value: {0}', value);
+            throw this._logger.error('bad "zNear" value: {0}', value);
         }
         if (this._zNear !== value) {
             this._zNear = value;
-            this._projDirty = true;
+            this._markProjDirty();
         }
         return this;
     }
@@ -68,11 +87,11 @@ export class Camera {
             return this._zFar;
         }
         if (!(value > 0 && value > this._zNear)) {
-            throw logger.error('bad "zFar" value: {0}', value);
+            throw this._logger.error('bad "zFar" value: {0}', value);
         }
         if (this._zFar !== value) {
             this._zFar = value;
-            this._projDirty = true;
+            this._markProjDirty();
         }
         return this;
     }
@@ -84,11 +103,11 @@ export class Camera {
             return this._viewportSize;
         }
         if (!(isVec2(value) && value.x > 0 && value.y > 0)) {
-            throw logger.error('bad "viewportSize" value: {0}', value);
+            throw this._logger.error('bad "viewportSize" value: {0}', value);
         }
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = value;
-            this._projDirty = true;
+            this._markProjDirty();
         }
         return this;
     }
@@ -100,11 +119,11 @@ export class Camera {
             return this._yFOV;
         }
         if (!(value > 0)) {
-            throw logger.error('bad "yFOV" value: {0}', value);
+            throw this._logger.error('bad "yFOV" value: {0}', value);
         }
         if (this._yFOV !== value) {
             this._yFOV = value;
-            this._projDirty = true;
+            this._markProjDirty();
         }
         return this;
     }
@@ -116,12 +135,12 @@ export class Camera {
             return this._upDir;
         }
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
-            throw logger.error('bad "upDir" value: {0}', value);
+            throw this._logger.error('bad "upDir" value: {0}', value);
         }
         const upDir = norm3(value);
         if (!eq3(this._upDir, upDir)) {
             this._upDir = upDir;
-            this._viewDirty = true;
+            this._markViewDirty();
         }
         return this;
     }
@@ -133,11 +152,11 @@ export class Camera {
             this._centerPos;
         }
         if (!isVec3(value)) {
-            throw logger.error('bad "centerPos" value: {0}', value);
+            throw this._logger.error('bad "centerPos" value: {0}', value);
         }
         if (!eq3(this._centerPos, value)) {
             this._centerPos = value;
-            this._viewDirty = true;
+            this._markViewDirty();
         }
         return this;
     }
@@ -149,11 +168,11 @@ export class Camera {
             return this._eyePos;
         }
         if (!isVec3(value)) {
-            throw logger.error('bad "eyePos" value: {0}', value);
+            throw this._logger.error('bad "eyePos" value: {0}', value);
         }
         if (!eq3(this._eyePos, value)) {
             this._eyePos = value;
-            this._viewDirty = true;
+            this._markViewDirty();
         }
         return this;
     }
@@ -180,17 +199,21 @@ export class Camera {
         }, this._projMat);
     }
 
+    private _buildProjMat(): void {
+        switch (this._projType) {
+        case 'perspective':
+            this._buildPerspectiveMat();
+            break;
+        case 'orthographic':
+            this._buildOrthographicMat();
+            break;
+        }
+    }
+
     projMat(): Mat4 {
         if (this._projDirty) {
             this._projDirty = false;
-            switch (this._projType) {
-            case 'perspective':
-                this._buildPerspectiveMat();
-                break;
-            case 'orthographic':
-                this._buildOrthographicMat();
-                break;
-            }
+            this._buildProjMat();
         }
         return this._projMat;
     }
@@ -233,5 +256,17 @@ export class Camera {
             this._buildInvtransformMat();
         }
         return this._invtransformMat;
+    }
+
+    viewDistance(): number {
+        return dist3(this._eyePos, this._centerPos);
+    }
+
+    fovDist2Size(dist: number): number {
+        return fovDist2Size(this._yFOV, dist);
+    }
+
+    fovSize2Dist(size: number): number {
+        return fovSize2Dist(this._yFOV, size);
     }
 }

@@ -1,5 +1,6 @@
 import {
     Runtime,
+    Camera,
     color,
     vec3, ZERO3, YUNIT3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, orthographic4x4, apply4x4,
@@ -45,6 +46,10 @@ const VIEW_DIR = norm3(vec3(0, 2, 5));
 const VIEW_DIST = 5;
 const YFOV = Math.PI / 3;
 const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
+
+const camera = new Camera();
+camera.eyePos(mul3(VIEW_DIR, VIEW_DIST));
+const projectionCamera = new Camera();
 
 const offsetCoeff = observable(0);
 const rotation = observable(0);
@@ -97,6 +102,7 @@ const projectionView = computed(([projectionDist, projectionLon, projectionLat])
         center: ZERO3,
         up: YUNIT3,
     }, _projectionView);
+    projectionCamera.eyePos(mul3(dir, projectionDist));
     return _projectionView;
 }, [projectionDist, projectionLon, projectionLat]);
 
@@ -119,6 +125,9 @@ const projectionProj = computed(([projectionWidth, projectionHeight, projectionF
             zFar: 100,
         }, _projectionProj);
     }
+    projectionCamera.projType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+    projectionCamera.yFOV(deg2rad(projectionFOV));
+    projectionCamera.viewportSize({ x: projectionWidth, y: projectionHeight });
     return _projectionProj;
 }, [
     projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
@@ -141,6 +150,7 @@ runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);
+    camera.viewportSize({ x, y });
     perspective4x4({
         yFov: YFOV,
         aspect: x / y,
@@ -161,20 +171,26 @@ runtime.frameRendered().on(() => {
         fillTexture.setUnit(4);
         mappingTexture.setUnit(5);
         program.setUniform('u_offset', coeff * offset);
-        program.setUniform('u_proj', proj());
-        program.setUniform('u_view', view());
+        // program.setUniform('u_proj', proj());
+        // program.setUniform('u_view', view());
+        program.setUniform('u_proj', camera.projMat());
+        program.setUniform('u_view', camera.viewMat());
         program.setUniform('u_model', model());
         program.setUniform('u_texture', 4);
         program.setUniform('u_planar_texture', 5);
-        program.setUniform('u_planar_mat', projectionMat());
+        // program.setUniform('u_planar_mat', projectionMat());
+        program.setUniform('u_planar_mat', projectionCamera.transformMat());
         primitive.render();
 
         if (isWireframeShown()) {
             const program = wireframe.program();
             program.setUniform('u_offset', coeff * offset);
-            program.setUniform('u_proj', proj());
-            program.setUniform('u_view', view());
-            program.setUniform('u_model', wireframeMat());
+            // program.setUniform('u_proj', proj());
+            // program.setUniform('u_view', view());
+            program.setUniform('u_proj', camera.projMat());
+            program.setUniform('u_view', camera.viewMat());
+            // program.setUniform('u_model', wireframeMat());
+            program.setUniform('u_model', projectionCamera.invtransformMat());
             program.setUniform('u_color', wireframeColor);
             wireframe.render();
         }
