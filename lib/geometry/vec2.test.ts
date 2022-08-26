@@ -2,7 +2,7 @@ import {
     Vec2,
     ZERO2, UNIT2, XUNIT2, YUNIT2,
     eq2, neg2, inv2, len2, sqrlen2, norm2,
-    dot2, mul2, add2, sub2,
+    dot2, mul2, add2, sub2, dir2, dist2, sqrdist2,
 } from './vec2';
 
 declare global {
@@ -92,5 +92,17 @@ describe('vec2', () => {
 
     it('norm2', () => {
         expect(norm2({ x: 3, y: 4 })).toBeVec({ x: 0.6, y: 0.8 });
+    });
+
+    it('dir2', () => {
+        expect(dir2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeVec({ x: 0.9487, y: -0.3162 });
+    });
+
+    it('dist2', () => {
+        expect(dist2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeCloseTo(3.1623);
+    });
+
+    it('sqrdist2', () => {
+        expect(sqrdist2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeCloseTo(10);
     });
 });

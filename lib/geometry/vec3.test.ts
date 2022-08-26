@@ -1,7 +1,7 @@
 import {
     Vec3,
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
-    eq3, neg3, inv3, len3, sqrlen3, norm3,
+    eq3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
     dot3, mul3, add3, sub3, cross3, rotate3,
 } from './vec3';
 
@@ -89,6 +89,18 @@ describe('vec3', () => {
 
     it('sqrlen3', () => {
         expect(sqrlen3({ x: 1, y: 2, z: 3 })).toEqual(14);
+    });
+
+    it('dir3', () => {
+        expect(dir3({ x: 1, y: 2, z: 1 }, { x: 4, y: 1, z: 3 })).toBeVec({ x: 0.8018, y: -0.2673, z: 0.5345 });
+    });
+
+    it('dist3', () => {
+        expect(dist3({ x: 1, y: 2, z: 1 }, { x: 4, y: 1, z: 3 })).toBeCloseTo(3.7417);
+    });
+
+    it('sqrdist3', () => {
+        expect(sqrdist3({ x: 1, y: 2, z: 1 }, { x: 4, y: 1, z: 3 })).toBeCloseTo(14);
     });
 
     it('norm3', () => {
