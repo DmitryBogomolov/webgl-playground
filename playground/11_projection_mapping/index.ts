@@ -126,7 +126,7 @@ const projectionProj = computed(([projectionWidth, projectionHeight, projectionF
         }, _projectionProj);
     }
     projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
-    projectionCamera.setYFOV(deg2rad(projectionFOV));
+    projectionCamera.setYFov(deg2rad(projectionFOV));
     projectionCamera.setViewportSize({ x: projectionWidth, y: projectionHeight });
     return _projectionProj;
 }, [

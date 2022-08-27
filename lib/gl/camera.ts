@@ -21,10 +21,11 @@ export class Camera {
     private _transformDirty: boolean = true;
     private _invtransformDirty: boolean = true;
     private _projType: CAMERA_PROJECTION = 'perspective';
+    private _projImpl: ProjImpl = perspectiveImpl;
     private _zNear: number = 0.01;
     private _zFar: number = 100;
     private _viewportSize: Vec2 = vec2(2, 2);
-    private _yFOV: number = Math.PI / 3;
+    private _yFov: number = Math.PI / 3;
     private _upDir: Vec3 = YUNIT3;
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
@@ -57,6 +58,14 @@ export class Camera {
             throw this._logger.error('bad "projType" value: {0}', value);
         }
         if (this._projType !== value) {
+            switch (value) {
+            case 'perspective':
+                this._projImpl = perspectiveImpl;
+                break;
+            case 'orthographic':
+                this._projImpl = orthographicImpl;
+                break;
+            }
             this._projType = value;
             this._markProjDirty();
         }
@@ -104,20 +113,20 @@ export class Camera {
         }
     }
 
-    getYFOV(): number {
-        return this._yFOV;
+    getYFov(): number {
+        return this._yFov;
     }
 
-    getXFOV(): number {
-        return 2 * Math.atan((this._viewportSize.x / this._viewportSize.y) * Math.tan(this._yFOV / 2));
+    getXFov(): number {
+        return 2 * Math.atan((this._viewportSize.x / this._viewportSize.y) * Math.tan(this._yFov / 2));
     }
 
-    setYFOV(value: number): void {
+    setYFov(value: number): void {
         if (!(value > 0)) {
             throw this._logger.error('bad "yFOV" value: {0}', value);
         }
-        if (this._yFOV !== value) {
-            this._yFOV = value;
+        if (this._yFov !== value) {
+            this._yFov = value;
             this._markProjDirty();
         }
     }
@@ -165,37 +174,8 @@ export class Camera {
         }
     }
 
-    private _buildPerspectiveMat(): void {
-        const { x, y } = this._viewportSize;
-        perspective4x4({
-            zNear: this._zNear,
-            zFar: this._zFar,
-            yFov: this._yFOV,
-            aspect: x / y,
-        }, this._projMat);
-    }
-
-    private _buildOrthographicMat(): void {
-        const { x, y } = mul2(this._viewportSize, 0.5);
-        orthographic4x4({
-            zNear: this._zNear,
-            zFar: this._zFar,
-            left: -x,
-            right: +x,
-            top: +y,
-            bottom: -y,
-        }, this._projMat);
-    }
-
     private _buildProjMat(): void {
-        switch (this._projType) {
-        case 'perspective':
-            this._buildPerspectiveMat();
-            break;
-        case 'orthographic':
-            this._buildOrthographicMat();
-            break;
-        }
+        this._projImpl.buildMat(this._zNear, this._zFar, this._yFov, this._viewportSize, this._projMat);
     }
 
     getProjMat(): Mat4 {
@@ -250,11 +230,58 @@ export class Camera {
         return dist3(this._eyePos, this._centerPos);
     }
 
-    getYViewSize(): number {
-        return fovDist2Size(this.getYFOV(), this.getViewDist());
+    getXViewSize(): number {
+        return this._projImpl.getXViewSize(this._yFov, this._viewportSize, this.getViewDist());
     }
 
-    getXViewSize(): number {
-        return (this._viewportSize.x / this._viewportSize.y) * this.getYViewSize();
+    getYViewSize(): number {
+        return this._projImpl.getYViewSize(this._yFov, this._viewportSize, this.getViewDist());
     }
 }
+
+interface ProjImpl {
+    buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4): void;
+    getXViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
+    getYViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
+}
+
+const perspectiveImpl: ProjImpl = {
+    buildMat(zNear, zFar, yFov, { x, y }, mat) {
+        perspective4x4({
+            zNear,
+            zFar,
+            yFov,
+            aspect: x / y,
+        }, mat);
+    },
+
+    getXViewSize(yFov, viewportSize, viewDist) {
+        return (viewportSize.x / viewportSize.y) * perspectiveImpl.getYViewSize(yFov, viewportSize, viewDist);
+    },
+
+    getYViewSize(yFov, _viewportSize, viewDist) {
+        return fovDist2Size(yFov, viewDist);
+    },
+};
+
+const orthographicImpl: ProjImpl = {
+    buildMat(zNear, zFar, _yFov, viewportSize, mat) {
+        const { x, y } = mul2(viewportSize, 0.5);
+        orthographic4x4({
+            zNear,
+            zFar,
+            left: -x,
+            right: +x,
+            top: +y,
+            bottom: -y,
+        }, mat);
+    },
+
+    getXViewSize(_yFov, viewportSize, _viewDist) {
+        return viewportSize.x;
+    },
+
+    getYViewSize(_yFov, _viewportSize, _viewDist) {
+        return _viewportSize.y;
+    },
+};
