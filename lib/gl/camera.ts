@@ -1,5 +1,5 @@
 import { Logger } from '../utils/logger';
-import { fovDist2Size, fovSize2Dist } from '../geometry/scalar';
+import { fovDist2Size } from '../geometry/scalar';
 import { Vec2, vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
 import { Vec3, ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
 import {
@@ -106,6 +106,10 @@ export class Camera {
 
     getYFOV(): number {
         return this._yFOV;
+    }
+
+    getXFOV(): number {
+        return 2 * Math.atan((this._viewportSize.x / this._viewportSize.y) * Math.tan(this._yFOV / 2));
     }
 
     setYFOV(value: number): void {
@@ -242,15 +246,15 @@ export class Camera {
         return this._invtransformMat;
     }
 
-    getViewDistance(): number {
+    getViewDist(): number {
         return dist3(this._eyePos, this._centerPos);
     }
 
-    fovDist2Size(dist: number): number {
-        return fovDist2Size(this._yFOV, dist);
+    getYViewSize(): number {
+        return fovDist2Size(this.getYFOV(), this.getViewDist());
     }
 
-    fovSize2Dist(size: number): number {
-        return fovSize2Dist(this._yFOV, size);
+    getXViewSize(): number {
+        return (this._viewportSize.x / this._viewportSize.y) * this.getYViewSize();
     }
 }

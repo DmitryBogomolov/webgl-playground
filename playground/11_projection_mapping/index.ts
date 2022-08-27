@@ -165,7 +165,8 @@ runtime.sizeChanged().on(() => {
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
-    const coeff = 3 * offsetCoeff();
+    const coeff = 3 * (2 / camera.getXViewSize());
+    // const coeff = 3 * offsetCoeff();
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
         fillTexture.setUnit(4);
