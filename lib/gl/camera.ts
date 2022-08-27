@@ -48,7 +48,7 @@ export class Camera {
         this._invtransformDirty = true;
     }
 
-    projType(): CAMERA_PROJECTION {
+    getProjType(): CAMERA_PROJECTION {
         return this._projType;
     }
 
@@ -62,7 +62,7 @@ export class Camera {
         }
     }
 
-    zNear(): number {
+    getZNear(): number {
         return this._zNear;
     }
 
@@ -76,7 +76,7 @@ export class Camera {
         }
     }
 
-    zFar(): number {
+    getZFar(): number {
         return this._zFar;
     }
 
@@ -90,7 +90,7 @@ export class Camera {
         }
     }
 
-    viewportSize(): Vec2 {
+    getViewportSize(): Vec2 {
         return this._viewportSize;
     }
 
@@ -104,7 +104,7 @@ export class Camera {
         }
     }
 
-    yFOV(): number {
+    getYFOV(): number {
         return this._yFOV;
     }
 
@@ -118,7 +118,7 @@ export class Camera {
         }
     }
 
-    upDir(): Vec3 {
+    getUpDir(): Vec3 {
         return this._upDir;
     }
 
@@ -133,7 +133,7 @@ export class Camera {
         }
     }
 
-    centerPos(): Vec3 {
+    getCenterPos(): Vec3 {
         return this._centerPos;
     }
 
@@ -147,7 +147,7 @@ export class Camera {
         }
     }
 
-    eyePos(): Vec3 {
+    getEyePos(): Vec3 {
         return this._eyePos;
     }
 
@@ -194,7 +194,7 @@ export class Camera {
         }
     }
 
-    projMat(): Mat4 {
+    getProjMat(): Mat4 {
         if (this._projDirty) {
             this._projDirty = false;
             this._buildProjMat();
@@ -210,7 +210,7 @@ export class Camera {
         }, this._viewMat);
     }
 
-    viewMat(): Mat4 {
+    getViewMat(): Mat4 {
         if (this._viewDirty) {
             this._viewDirty = false;
             this._buildViewMat();
@@ -219,10 +219,10 @@ export class Camera {
     }
 
     private _buildTransformMat(): void {
-        mul4x4(this.projMat(), this.viewMat(), this._transformMat);
+        mul4x4(this.getProjMat(), this.getViewMat(), this._transformMat);
     }
 
-    transformMat(): Mat4 {
+    getTransformMat(): Mat4 {
         if (this._transformDirty) {
             this._transformDirty = false;
             this._buildTransformMat();
@@ -231,10 +231,10 @@ export class Camera {
     }
 
     private _buildInvtransformMat(): void {
-        inverse4x4(this.transformMat(), this._invtransformMat);
+        inverse4x4(this.getTransformMat(), this._invtransformMat);
     }
 
-    invtransformMat(): Mat4 {
+    getInvtransformMat(): Mat4 {
         if (this._invtransformDirty) {
             this._invtransformDirty = false;
             this._buildInvtransformMat();
@@ -242,7 +242,7 @@ export class Camera {
         return this._invtransformMat;
     }
 
-    viewDistance(): number {
+    getViewDistance(): number {
         return dist3(this._eyePos, this._centerPos);
     }
 

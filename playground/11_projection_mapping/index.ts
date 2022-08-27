@@ -173,13 +173,13 @@ runtime.frameRendered().on(() => {
         program.setUniform('u_offset', coeff * offset);
         // program.setUniform('u_proj', proj());
         // program.setUniform('u_view', view());
-        program.setUniform('u_proj', camera.projMat());
-        program.setUniform('u_view', camera.viewMat());
+        program.setUniform('u_proj', camera.getProjMat());
+        program.setUniform('u_view', camera.getViewMat());
         program.setUniform('u_model', model());
         program.setUniform('u_texture', 4);
         program.setUniform('u_planar_texture', 5);
         // program.setUniform('u_planar_mat', projectionMat());
-        program.setUniform('u_planar_mat', projectionCamera.transformMat());
+        program.setUniform('u_planar_mat', projectionCamera.getTransformMat());
         primitive.render();
 
         if (isWireframeShown()) {
@@ -187,10 +187,10 @@ runtime.frameRendered().on(() => {
             program.setUniform('u_offset', coeff * offset);
             // program.setUniform('u_proj', proj());
             // program.setUniform('u_view', view());
-            program.setUniform('u_proj', camera.projMat());
-            program.setUniform('u_view', camera.viewMat());
+            program.setUniform('u_proj', camera.getProjMat());
+            program.setUniform('u_view', camera.getViewMat());
             // program.setUniform('u_model', wireframeMat());
-            program.setUniform('u_model', projectionCamera.invtransformMat());
+            program.setUniform('u_model', projectionCamera.getInvtransformMat());
             program.setUniform('u_color', wireframeColor);
             wireframe.render();
         }
