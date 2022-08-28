@@ -1,9 +1,9 @@
 import { Camera } from './camera';
-import { perspective4x4, lookAt4x4, transpose4x4 } from '../geometry/mat4';
+import { perspective4x4, orthographic4x4, lookAt4x4, transpose4x4 } from '../geometry/mat4';
 
 describe('camera', () => {
     describe('Camera', () => {
-        it('initial projection', () => {
+        it('initial perspective projection', () => {
             const camera = new Camera();
 
             expect(camera.getProjType()).toEqual('perspective');
@@ -17,7 +17,28 @@ describe('camera', () => {
                     yFov: Math.PI / 3,
                     zNear: 0.01,
                     zFar: 100,
-                })) as ReadonlyArray<number>
+                })),
+            );
+        });
+
+        it('initial orthographic projection', () => {
+            const camera = new Camera();
+            camera.setProjType('orthographic');
+
+            expect(camera.getProjType()).toEqual('orthographic');
+            expect(camera.getZNear()).toEqual(0.01);
+            expect(camera.getZFar()).toEqual(100);
+            expect(camera.getYFov()).toEqual(Math.PI / 3);
+            expect(camera.getViewportSize()).toBeVec2({ x: 2, y: 2 });
+            expect(camera.getProjMat()).toBeMat4(
+                transpose4x4(orthographic4x4({
+                    zNear: 0.01,
+                    zFar: 100,
+                    left: -1,
+                    right: +1,
+                    bottom: -1,
+                    top: +1,
+                })),
             );
         });
 
@@ -32,7 +53,7 @@ describe('camera', () => {
                     center: { x: 0, y: 0, z: 0 },
                     up: { x: 0, y: 1, z: 0 },
                     eye: { x: 0, y: 0, z: 1 },
-                })) as ReadonlyArray<number>
+                })),
             );
         });
     });
