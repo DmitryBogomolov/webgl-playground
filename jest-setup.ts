@@ -2,6 +2,9 @@ import { logSilenced } from './lib/utils/logger';
 import { Vec2 } from './lib/geometry/vec2';
 import { Vec3 } from './lib/geometry/vec3';
 import { Vec4 } from './lib/geometry/vec4';
+import { Mat2 } from './lib/geometry/mat2';
+import { Mat3 } from './lib/geometry/mat3';
+import { Mat4 } from './lib/geometry/mat4';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -12,9 +15,9 @@ declare global {
             toBeVec3(expected: Vec3): CustomMatcherResult;
             toBeVec4(expected: Vec4): CustomMatcherResult;
 
-            toBeMat2(expected: ReadonlyArray<number>): CustomMatcherResult;
-            toBeMat3(expected: ReadonlyArray<number>): CustomMatcherResult;
-            toBeMat4(expected: ReadonlyArray<number>): CustomMatcherResult;
+            toBeMat2(expected: Mat2): CustomMatcherResult;
+            toBeMat3(expected: Mat3): CustomMatcherResult;
+            toBeMat4(expected: Mat4): CustomMatcherResult;
         }
     }
 }
@@ -50,15 +53,13 @@ function checkVec<T>(actual: T, expected: T, keys: string[]): jest.CustomMatcher
     };
 }
 
-function checkMat(
-    actual: ReadonlyArray<number>, expected: ReadonlyArray<number>, rank: number,
-): jest.CustomMatcherResult {
+function checkMat<T>(actual: T, expected: T, rank: number): jest.CustomMatcherResult {
     const list: [number, number][] = [];
     for (let i = 0; i < rank; ++i) {
         for (let j = 0; j < rank; ++j) {
-            const act = actual[j * rank + i];
-            const exp = expected[i * rank + j];
-            if (!equal(act, exp)) {
+            // @ts-ignore Matrix element.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            if (!equal(actual[j * rank + i], expected[i * rank + j])) {
                 list.push([i, j]);
             }
         }
@@ -74,6 +75,7 @@ function checkMat(
         message: () => {
             const lines: string[] = [];
             for (const [i, j] of list) {
+                // @ts-ignore Matrix element.
                 lines.push(`${i},${j}: ${expected[i * rank + j]} != ${actual[j * rank + i]}`);
             }
             return lines.join('\n');
@@ -94,15 +96,15 @@ expect.extend({
         return checkVec(actual, expected, ['x', 'y', 'z', 'w']);
     },
 
-    toBeMat2(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+    toBeMat2(actual: Mat2, expected: Mat2) {
         return checkMat(actual, expected, 2);
     },
 
-    toBeMat3(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+    toBeMat3(actual: Mat3, expected: Mat3) {
         return checkMat(actual, expected, 3);
     },
 
-    toBeMat4(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+    toBeMat4(actual: Mat4, expected: Mat4) {
         return checkMat(actual, expected, 4);
     },
 });
