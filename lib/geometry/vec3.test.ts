@@ -1,51 +1,10 @@
 import {
-    Vec3,
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
     eq3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
     dot3, mul3, add3, sub3, cross3, rotate3,
 } from './vec3';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeVec3(expected: Vec3): CustomMatcherResult;
-        }
-    }
-}
-
 describe('vec3', () => {
-    const EPS = 1E-4;
-
-    expect.extend({
-        toBeVec3(actual: Vec3, expected: Vec3) {
-            const keys = ['x', 'y', 'z'];
-            const checks = keys.map((key) => {
-                return Math.abs(actual[key as keyof Vec3] - expected[key as keyof Vec3]) < EPS;
-            });
-            if (checks.every(Boolean)) {
-                return {
-                    pass: true,
-                    message: () => 'OK',
-                };
-            }
-            return {
-                pass: false,
-                message: () => {
-                    const lines: string[] = [];
-                    checks.forEach((check, i) => {
-                        if (!check) {
-                            const key = keys[i] as keyof Vec3;
-                            lines.push(`${key}: ${expected[key]} != ${actual[key]}`);
-                        }
-                    });
-                    return lines.join('\n');
-                },
-            };
-        },
-    });
-
     it('constants', () => {
         expect(eq3(ZERO3, { x: 0, y: 0, z: 0 })).toEqual(true);
         expect(eq3(UNIT3, { x: 1, y: 1, z: 1 })).toEqual(true);

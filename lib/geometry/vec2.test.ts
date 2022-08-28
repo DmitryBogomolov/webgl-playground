@@ -1,51 +1,10 @@
 import {
-    Vec2,
     ZERO2, UNIT2, XUNIT2, YUNIT2,
     eq2, neg2, inv2, len2, sqrlen2, norm2,
     dot2, mul2, add2, sub2, dir2, dist2, sqrdist2,
 } from './vec2';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeVec2(expected: Vec2): CustomMatcherResult;
-        }
-    }
-}
-
 describe('vec2', () => {
-    const EPS = 1E-4;
-
-    expect.extend({
-        toBeVec2(actual: Vec2, expected: Vec2) {
-            const keys = ['x', 'y'];
-            const checks = keys.map((key) => {
-                return Math.abs(actual[key as keyof Vec2] - expected[key as keyof Vec2]) < EPS;
-            });
-            if (checks.every(Boolean)) {
-                return {
-                    pass: true,
-                    message: () => 'OK',
-                };
-            }
-            return {
-                pass: false,
-                message: () => {
-                    const lines: string[] = [];
-                    checks.forEach((check, i) => {
-                        if (!check) {
-                            const key = keys[i] as keyof Vec2;
-                            lines.push(`${key}: ${expected[key]} != ${actual[key]}`);
-                        }
-                    });
-                    return lines.join('\n');
-                },
-            };
-        },
-    });
-
     it('constants', () => {
         expect(eq2(ZERO2, { x: 0, y: 0 })).toEqual(true);
         expect(eq2(UNIT2, { x: 1, y: 1 })).toEqual(true);

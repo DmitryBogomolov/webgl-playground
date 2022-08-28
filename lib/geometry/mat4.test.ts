@@ -7,54 +7,10 @@ import {
     orthographic4x4, perspective4x4, lookAt4x4, targetTo4x4,
 } from './mat4';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeMat4(expected: ReadonlyArray<number>): CustomMatcherResult;
-        }
-    }
-}
-
 describe('mat4', () => {
-    const RANK = 4;
-    const EPS = 1E-4;
-
     function make(raw: ReadonlyArray<number>): Mat4 {
         return update4x4(raw);
     }
-
-    expect.extend({
-        toBeMat4(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
-            const list: [number, number][] = [];
-            for (let i = 0; i < RANK; ++i) {
-                for (let j = 0; j < RANK; ++j) {
-                    const act = actual[j * RANK + i];
-                    const exp = expected[i * RANK + j];
-                    if (Math.abs(act - exp) >= EPS) {
-                        list.push([i, j]);
-                    }
-                }
-            }
-            if (list.length === 0) {
-                return {
-                    pass: true,
-                    message: () => 'OK',
-                };
-            }
-            return {
-                pass: false,
-                message: () => {
-                    const lines: string[] = [];
-                    for (const [i, j] of list) {
-                        lines.push(`${i},${j}: ${expected[i * RANK + j]} != ${actual[j * RANK + i]}`);
-                    }
-                    return lines.join('\n');
-                },
-            };
-        },
-    });
 
     it('eq4x4', () => {
         expect(

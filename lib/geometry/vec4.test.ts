@@ -1,51 +1,10 @@
 import {
-    Vec4,
     ZERO4, UNIT4, XUNIT4, YUNIT4, ZUNIT4, WUNIT4,
     eq4, neg4, inv4, len4, sqrlen4, norm4,
     dot4, mul4, add4, sub4,
 } from './vec4';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeVec4(expected: Vec4): CustomMatcherResult;
-        }
-    }
-}
-
 describe('vec4', () => {
-    const EPS = 1E-4;
-
-    expect.extend({
-        toBeVec4(actual: Vec4, expected: Vec4) {
-            const keys = ['x', 'y', 'z', 'w'];
-            const checks = keys.map((key) => {
-                return Math.abs(actual[key as keyof Vec4] - expected[key as keyof Vec4]) < EPS;
-            });
-            if (checks.every(Boolean)) {
-                return {
-                    pass: true,
-                    message: () => 'OK',
-                };
-            }
-            return {
-                pass: false,
-                message: () => {
-                    const lines: string[] = [];
-                    checks.forEach((check, i) => {
-                        if (!check) {
-                            const key = keys[i] as keyof Vec4;
-                            lines.push(`${key}: ${expected[key]} != ${actual[key]}`);
-                        }
-                    });
-                    return lines.join('\n');
-                },
-            };
-        },
-    });
-
     it('constants', () => {
         expect(eq4(ZERO4, { x: 0, y: 0, z: 0, w: 0 })).toEqual(true);
         expect(eq4(UNIT4, { x: 1, y: 1, z: 1, w: 1 })).toEqual(true);

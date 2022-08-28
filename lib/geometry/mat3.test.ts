@@ -7,16 +7,6 @@ import {
     projection3x3,
 } from './mat3';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeMat3(expected: ReadonlyArray<number>): CustomMatcherResult;
-        }
-    }
-}
-
 describe('mat3', () => {
     const RANK = 3;
     const EPS = 1E-4;
