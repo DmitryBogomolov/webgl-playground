@@ -2,6 +2,7 @@ import {
     Runtime,
     Camera,
     color,
+    Vec2, vec2,
     vec3, ZERO3, YUNIT3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, orthographic4x4, apply4x4,
     mul4x4, identity4x4, yrotation4x4, translation4x4, inverse4x4,
@@ -88,8 +89,7 @@ const view = observable(
     { noEqualityCheck: true },
 );
 
-const _projectionView = mat4();
-const projectionView = computed(([projectionDist, projectionLon, projectionLat]) => {
+const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
     const lon = deg2rad(projectionLon);
     const lat = deg2rad(projectionLat);
     const dir = vec3(
@@ -97,41 +97,67 @@ const projectionView = computed(([projectionDist, projectionLon, projectionLat])
         Math.sin(lat),
         Math.cos(lat) * Math.cos(lon),
     );
+    return mul3(dir, projectionDist);
+}, [projectionDist, projectionLon, projectionLat]);
+
+const _projectionView = mat4();
+const projectionView = computed(([eyePosition]) => {
     lookAt4x4({
-        eye: mul3(dir, projectionDist),
+        eye: eyePosition,
         center: ZERO3,
         up: YUNIT3,
     }, _projectionView);
-    projectionCamera.setEyePos(mul3(dir, projectionDist));
+    // projectionCamera.setEyePos(eyePosition);
     return _projectionView;
-}, [projectionDist, projectionLon, projectionLat]);
+}, [eyePosition]);
+
+eyePosition.on((eyePosition) => {
+    projectionCamera.setEyePos(eyePosition);
+});
+
+const projectionSize = computed(
+    ([projectionWidth, projectionHeight]) => vec2(projectionWidth, projectionHeight),
+    [projectionWidth, projectionHeight]
+);
+
+projectionSize.on((projectionSize) => {
+    projectionCamera.setViewportSize(projectionSize);
+});
+projectionFOV.on((projectionFOV) => {
+    projectionCamera.setYFov(deg2rad(projectionFOV));
+});
+isPerpsectiveProjection.on((isPerpsectiveProjection) => {
+    projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+});
 
 const _projectionProj = mat4();
-const projectionProj = computed(([projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection]) => {
+const projectionProj = computed(([projectionSize, projectionFOV, isPerpsectiveProjection]) => {
     if (isPerpsectiveProjection) {
         perspective4x4({
             yFov: deg2rad(projectionFOV),
-            aspect: projectionWidth / projectionHeight,
+            aspect: projectionSize.x / projectionSize.y,
             zNear: 0.01,
             zFar: 100,
         }, _projectionProj);
     } else {
         orthographic4x4({
-            left: -projectionWidth / 2,
-            right: +projectionWidth / 2,
-            bottom: -projectionHeight / 2,
-            top: +projectionHeight / 2,
+            left: -projectionSize.x / 2,
+            right: +projectionSize.x / 2,
+            bottom: -projectionSize.y / 2,
+            top: +projectionSize.y / 2,
             zNear: 0.01,
             zFar: 100,
         }, _projectionProj);
     }
-    projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
-    projectionCamera.setYFov(deg2rad(projectionFOV));
-    projectionCamera.setViewportSize({ x: projectionWidth, y: projectionHeight });
+    // projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+    // projectionCamera.setYFov(deg2rad(projectionFOV));
+    // projectionCamera.setViewportSize(projectionSize);
     return _projectionProj;
 }, [
-    projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
-] as [Observable<number>, Observable<number>, Observable<number>, Observable<boolean>]);
+    projectionSize, projectionFOV, isPerpsectiveProjection,
+] as [Observable<Vec2>, Observable<number>, Observable<boolean>]);
+
+
 
 const _projectionMat = mat4();
 const projectionMat = computed(([projectionView, projectionProj]) => {
@@ -150,7 +176,7 @@ runtime.sizeChanged().on(() => {
     const { x, y } = runtime.canvasSize();
     const xViewSize = x / y * Y_VIEW_SIZE;
     offsetCoeff(2 / xViewSize);
-    camera.setViewportSize({ x, y });
+    // camera.setViewportSize({ x, y });
     perspective4x4({
         yFov: YFOV,
         aspect: x / y,
@@ -160,8 +186,19 @@ runtime.sizeChanged().on(() => {
     proj(_proj);
 });
 
-[offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
-    .forEach((item) => item.on(() => runtime.requestFrameRender()));
+runtime.sizeChanged().on(() => {
+    camera.setViewportSize(runtime.canvasSize());
+});
+
+// [offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
+//     .forEach((item) => item.on(() => runtime.requestFrameRender()));
+
+[model, camera.changed(), projectionCamera.changed()].forEach(
+    (changed) => changed.on(() => runtime.requestFrameRender())
+);
+// model.on(() => runtime.requestFrameRender());
+// camera.changed().on(() => runtime.requestFrameRender());
+// projectionCamera.changed().on(() => runtime.requestFrameRender());
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');

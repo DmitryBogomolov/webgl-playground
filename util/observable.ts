@@ -1,5 +1,5 @@
 import {
-    EventEmitter, EventProxy
+    EventEmitter, EventProxy,
 } from 'lib';
 
 export interface ChangeHandler<T> {
