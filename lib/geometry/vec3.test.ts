@@ -10,7 +10,7 @@ declare global {
     namespace jest {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R> {
-            toBeVec(expected: Vec3): CustomMatcherResult;
+            toBeVec3(expected: Vec3): CustomMatcherResult;
         }
     }
 }
@@ -19,7 +19,7 @@ describe('vec3', () => {
     const EPS = 1E-4;
 
     expect.extend({
-        toBeVec(actual: Vec3, expected: Vec3) {
+        toBeVec3(actual: Vec3, expected: Vec3) {
             const keys = ['x', 'y', 'z'];
             const checks = keys.map((key) => {
                 return Math.abs(actual[key as keyof Vec3] - expected[key as keyof Vec3]) < EPS;
@@ -64,23 +64,23 @@ describe('vec3', () => {
     });
 
     it('neg3', () => {
-        expect(neg3({ x: 1, y: 2, z: 3 })).toBeVec({ x: -1, y: -2, z: -3 });
+        expect(neg3({ x: 1, y: 2, z: 3 })).toBeVec3({ x: -1, y: -2, z: -3 });
     });
 
     it('inv3', () => {
-        expect(inv3({ x: 1, y: 2, z: 3 })).toBeVec({ x: 1, y: 0.5, z: 0.3333 });
+        expect(inv3({ x: 1, y: 2, z: 3 })).toBeVec3({ x: 1, y: 0.5, z: 0.3333 });
     });
 
     it('mul3', () => {
-        expect(mul3({ x: 1, y: 2, z: 3 }, 4)).toBeVec({ x: 4, y: 8, z: 12 });
+        expect(mul3({ x: 1, y: 2, z: 3 }, 4)).toBeVec3({ x: 4, y: 8, z: 12 });
     });
 
     it('add3', () => {
-        expect(add3({ x: 1, y: 2, z: 3 }, { x: 2, y: 4, z: 6 })).toBeVec({ x: 3, y: 6, z: 9 });
+        expect(add3({ x: 1, y: 2, z: 3 }, { x: 2, y: 4, z: 6 })).toBeVec3({ x: 3, y: 6, z: 9 });
     });
 
     it('sub3', () => {
-        expect(sub3({ x: 1, y: 2, z: 3 }, { x: 2, y: 4, z: 6 })).toBeVec({ x: -1, y: -2, z: -3 });
+        expect(sub3({ x: 1, y: 2, z: 3 }, { x: 2, y: 4, z: 6 })).toBeVec3({ x: -1, y: -2, z: -3 });
     });
 
     it('len3', () => {
@@ -92,7 +92,7 @@ describe('vec3', () => {
     });
 
     it('dir3', () => {
-        expect(dir3({ x: 1, y: 2, z: 1 }, { x: 4, y: 1, z: 3 })).toBeVec({ x: 0.8018, y: -0.2673, z: 0.5345 });
+        expect(dir3({ x: 1, y: 2, z: 1 }, { x: 4, y: 1, z: 3 })).toBeVec3({ x: 0.8018, y: -0.2673, z: 0.5345 });
     });
 
     it('dist3', () => {
@@ -104,17 +104,17 @@ describe('vec3', () => {
     });
 
     it('norm3', () => {
-        expect(norm3({ x: 3, y: 4, z: 5 })).toBeVec({ x: 0.4243, y: 0.5657, z: 0.7071 });
+        expect(norm3({ x: 3, y: 4, z: 5 })).toBeVec3({ x: 0.4243, y: 0.5657, z: 0.7071 });
     });
 
     it('cross3', () => {
-        expect(cross3({ x: 1, y: 2, z: 3 }, { x: 2, y: -1, z: -2 })).toBeVec({ x: -1, y: 8, z: -5 });
+        expect(cross3({ x: 1, y: 2, z: 3 }, { x: 2, y: -1, z: -2 })).toBeVec3({ x: -1, y: 8, z: -5 });
     });
 
     it('rotate3', () => {
         expect(rotate3({ x: 0, y: 3, z: 0 }, { x: 2, y: 0, z: 0 }, Math.PI / 4))
-            .toBeVec({ x: 0, y: 2.1213, z: 2.1213 });
+            .toBeVec3({ x: 0, y: 2.1213, z: 2.1213 });
         expect(rotate3({ x: 2.1213, y: 0, z: 2.1213 }, { x: 0, y: 0.1, z: 0 }, -Math.PI / 4))
-            .toBeVec({ x: 0, y: 0, z: 3 });
+            .toBeVec3({ x: 0, y: 0, z: 3 });
     });
 });

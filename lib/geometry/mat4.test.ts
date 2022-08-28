@@ -12,7 +12,7 @@ declare global {
     namespace jest {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R> {
-            toBeMat(expected: ReadonlyArray<number>): CustomMatcherResult;
+            toBeMat4(expected: ReadonlyArray<number>): CustomMatcherResult;
         }
     }
 }
@@ -26,7 +26,7 @@ describe('mat4', () => {
     }
 
     expect.extend({
-        toBeMat(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+        toBeMat4(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
             const list: [number, number][] = [];
             for (let i = 0; i < RANK; ++i) {
                 for (let j = 0; j < RANK; ++j) {
@@ -101,7 +101,7 @@ describe('mat4', () => {
 
         expect(
             zero4x4(mat),
-        ).toBeMat([
+        ).toBeMat4([
             0, 0, 0, 0,
             0, 0, 0, 0,
             0, 0, 0, 0,
@@ -119,7 +119,7 @@ describe('mat4', () => {
 
         expect(
             identity4x4(mat),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -136,7 +136,7 @@ describe('mat4', () => {
         ];
         expect(
             clone4x4(make(raw)),
-        ).toBeMat(raw);
+        ).toBeMat4(raw);
     });
 
     it('transpose4x4', () => {
@@ -147,7 +147,7 @@ describe('mat4', () => {
                 3, 1, 2, -4,
                 0, 1, 4, 2,
             ])),
-        ).toBeMat([
+        ).toBeMat4([
             1, -2, 3, 0,
             0, 2, 1, 1,
             2, 0, 2, 4,
@@ -171,7 +171,7 @@ describe('mat4', () => {
                     4, 2, -2, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat4([
             5, 0, -2, -3,
             6, -2, 2, -1,
             4, 0, 3, 5,
@@ -195,7 +195,7 @@ describe('mat4', () => {
                     4, 2, -2, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat4([
             -3, 0, 0, -1,
             0, 2, 4, -1,
             4, 2, 1, 3,
@@ -219,7 +219,7 @@ describe('mat4', () => {
                     4, 2, -2, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat4([
             -4, -3, 2, 2,
             8, -5, 2, 2,
             35, 4, -11, -10,
@@ -291,7 +291,7 @@ describe('mat4', () => {
     it('inverse4x4', () => {
         expect(
             inverse4x4(zero4x4()),
-        ).toBeMat([
+        ).toBeMat4([
             0, 0, 0, 0,
             0, 0, 0, 0,
             0, 0, 0, 0,
@@ -299,7 +299,7 @@ describe('mat4', () => {
         ]);
         expect(
             inverse4x4(identity4x4()),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -312,7 +312,7 @@ describe('mat4', () => {
                 0, 0, 10, 0,
                 0, 0, 0, 0.25,
             ])),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 0.5, 0, 0,
             0, 0, 0.1, 0,
@@ -325,7 +325,7 @@ describe('mat4', () => {
                 0, 0, 1, 4,
                 0, 0, 0, 1,
             ])),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, -2,
             0, 1, 0, -3,
             0, 0, 1, -4,
@@ -336,7 +336,7 @@ describe('mat4', () => {
     it('inversetranspose4x4', () => {
         expect(
             inversetranspose4x4(zero4x4()),
-        ).toBeMat([
+        ).toBeMat4([
             0, 0, 0, 0,
             0, 0, 0, 0,
             0, 0, 0, 0,
@@ -344,7 +344,7 @@ describe('mat4', () => {
         ]);
         expect(
             inversetranspose4x4(identity4x4()),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -357,7 +357,7 @@ describe('mat4', () => {
                 0, 0, 10, 0,
                 0, 0, 0, 0.25,
             ])),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 0.5, 0, 0,
             0, 0, 0.1, 0,
@@ -370,7 +370,7 @@ describe('mat4', () => {
                 0, 0, 1, 0,
                 2, 3, 4, 1,
             ])),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, -2,
             0, 1, 0, -3,
             0, 0, 1, -4,
@@ -381,7 +381,7 @@ describe('mat4', () => {
     it('translation4x4', () => {
         expect(
             translation4x4({ x: 2, y: 3, z: 4 }),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 2,
             0, 1, 0, 3,
             0, 0, 1, 4,
@@ -392,7 +392,7 @@ describe('mat4', () => {
     it('scaling4x4', () => {
         expect(
             scaling4x4({ x: 2, y: 3, z: 4 }),
-        ).toBeMat([
+        ).toBeMat4([
             2, 0, 0, 0,
             0, 3, 0, 0,
             0, 0, 4, 0,
@@ -403,7 +403,7 @@ describe('mat4', () => {
     it('rotation4x4', () => {
         expect(
             rotation4x4({ x: 1, y: 1, z: 1 }, Math.PI / 6),
-        ).toBeMat([
+        ).toBeMat4([
             0.9107, -0.244, 0.3333, 0,
             0.3333, 0.9107, -0.244, 0,
             -0.244, 0.3333, 0.9107, 0,
@@ -414,7 +414,7 @@ describe('mat4', () => {
     it('xrotation4x4', () => {
         expect(
             xrotation4x4(Math.PI / 6),
-        ).toBeMat(
+        ).toBeMat4(
             transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)) as number[],
         );
     });
@@ -422,7 +422,7 @@ describe('mat4', () => {
     it('xrotation4x4', () => {
         expect(
             xrotation4x4(Math.PI / 6),
-        ).toBeMat(
+        ).toBeMat4(
             transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)) as number[],
         );
     });
@@ -430,7 +430,7 @@ describe('mat4', () => {
     it('yrotation4x4', () => {
         expect(
             yrotation4x4(Math.PI / 6),
-        ).toBeMat(
+        ).toBeMat4(
             transpose4x4(rotation4x4({ x: 0, y: 1, z: 0 }, Math.PI / 6)) as number[],
         );
     });
@@ -438,7 +438,7 @@ describe('mat4', () => {
     it('zrotation4x4', () => {
         expect(
             zrotation4x4(Math.PI / 6),
-        ).toBeMat(
+        ).toBeMat4(
             transpose4x4(rotation4x4({ x: 0, y: 0, z: 1 }, Math.PI / 6)) as number[],
         );
     });
@@ -448,7 +448,7 @@ describe('mat4', () => {
             orthographic4x4({
                 left: 100, right: 500, bottom: 50, top: 250, zNear: 1, zFar: 100,
             }),
-        ).toBeMat([
+        ).toBeMat4([
             0.005, 0, 0, -1.5,
             0, 0.01, 0, -1.5,
             0, 0, -0.0202, -1.0202,
@@ -464,7 +464,7 @@ describe('mat4', () => {
                 zNear: 0.1,
                 zFar: 100,
             }),
-        ).toBeMat([
+        ).toBeMat4([
             1.2071, 0, 0, 0,
             0, 2.4142, 0, 0,
             0, 0, -1.002, -0.2002,
@@ -479,7 +479,7 @@ describe('mat4', () => {
                 center: { x: 0, y: 0, z: 0 },
                 up: { x: 0, y: 2, z: 0 },
             }),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, -5,
@@ -494,7 +494,7 @@ describe('mat4', () => {
                 target: { x: 0, y: 0, z: 0 },
                 up: { x: 0, y: 2, z: 0 },
             }),
-        ).toBeMat([
+        ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 5,

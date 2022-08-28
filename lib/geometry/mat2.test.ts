@@ -10,7 +10,7 @@ declare global {
     namespace jest {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R> {
-            toBeMat(expected: ReadonlyArray<number>): CustomMatcherResult;
+            toBeMat2(expected: ReadonlyArray<number>): CustomMatcherResult;
         }
     }
 }
@@ -24,7 +24,7 @@ describe('mat2', () => {
     }
 
     expect.extend({
-        toBeMat(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+        toBeMat2(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
             const list: [number, number][] = [];
             for (let i = 0; i < RANK; ++i) {
                 for (let j = 0; j < RANK; ++j) {
@@ -89,7 +89,7 @@ describe('mat2', () => {
 
         expect(
             zero2x2(mat),
-        ).toBeMat([
+        ).toBeMat2([
             0, 0,
             0, 0,
         ]);
@@ -103,7 +103,7 @@ describe('mat2', () => {
 
         expect(
             identity2x2(mat),
-        ).toBeMat([
+        ).toBeMat2([
             1, 0,
             0, 1,
         ]);
@@ -116,7 +116,7 @@ describe('mat2', () => {
         ];
         expect(
             clone2x2(make(raw)),
-        ).toBeMat(raw);
+        ).toBeMat2(raw);
     });
 
     it('transpose2x2', () => {
@@ -125,7 +125,7 @@ describe('mat2', () => {
                 1, 0,
                 -2, 2,
             ])),
-        ).toBeMat([
+        ).toBeMat2([
             1, -2,
             0, 2,
         ]);
@@ -143,7 +143,7 @@ describe('mat2', () => {
                     3, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat2([
             5, 0,
             6, -2,
         ]);
@@ -161,7 +161,7 @@ describe('mat2', () => {
                     3, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat2([
             -3, 0,
             0, 2,
         ]);
@@ -179,7 +179,7 @@ describe('mat2', () => {
                     3, -2,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat2([
             10, -4,
             12, 0,
         ]);
@@ -227,13 +227,13 @@ describe('mat2', () => {
     it('inverse2x2', () => {
         expect(
             inverse2x2(zero2x2()),
-        ).toBeMat([
+        ).toBeMat2([
             0, 0,
             0, 0,
         ]);
         expect(
             inverse2x2(identity2x2()),
-        ).toBeMat([
+        ).toBeMat2([
             1, 0,
             0, 1,
         ]);
@@ -242,7 +242,7 @@ describe('mat2', () => {
                 1, 0,
                 0, 2,
             ])),
-        ).toBeMat([
+        ).toBeMat2([
             1, 0,
             0, 0.5,
         ]);
@@ -251,7 +251,7 @@ describe('mat2', () => {
                 1, 2,
                 3, 4,
             ])),
-        ).toBeMat([
+        ).toBeMat2([
             -2, 1,
             1.5, -0.5,
         ]);

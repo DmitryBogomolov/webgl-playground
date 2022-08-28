@@ -10,7 +10,7 @@ declare global {
     namespace jest {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R> {
-            toBeVec(expected: Vec4): CustomMatcherResult;
+            toBeVec4(expected: Vec4): CustomMatcherResult;
         }
     }
 }
@@ -19,7 +19,7 @@ describe('vec4', () => {
     const EPS = 1E-4;
 
     expect.extend({
-        toBeVec(actual: Vec4, expected: Vec4) {
+        toBeVec4(actual: Vec4, expected: Vec4) {
             const keys = ['x', 'y', 'z', 'w'];
             const checks = keys.map((key) => {
                 return Math.abs(actual[key as keyof Vec4] - expected[key as keyof Vec4]) < EPS;
@@ -65,23 +65,23 @@ describe('vec4', () => {
     });
 
     it('neg4', () => {
-        expect(neg4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec({ x: -1, y: -2, z: -3, w: -4 });
+        expect(neg4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec4({ x: -1, y: -2, z: -3, w: -4 });
     });
 
     it('inv4', () => {
-        expect(inv4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec({ x: 1, y: 0.5, z: 0.3333, w: 0.25 });
+        expect(inv4({ x: 1, y: 2, z: 3, w: 4 })).toBeVec4({ x: 1, y: 0.5, z: 0.3333, w: 0.25 });
     });
 
     it('mul4', () => {
-        expect(mul4({ x: 1, y: 2, z: 3, w: 4 }, 4)).toBeVec({ x: 4, y: 8, z: 12, w: 16 });
+        expect(mul4({ x: 1, y: 2, z: 3, w: 4 }, 4)).toBeVec4({ x: 4, y: 8, z: 12, w: 16 });
     });
 
     it('add4', () => {
-        expect(add4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 4, z: 6, w: 8 })).toBeVec({ x: 3, y: 6, z: 9, w: 12 });
+        expect(add4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 4, z: 6, w: 8 })).toBeVec4({ x: 3, y: 6, z: 9, w: 12 });
     });
 
     it('sub4', () => {
-        expect(sub4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 4, z: 6, w: 8 })).toBeVec({ x: -1, y: -2, z: -3, w: -4 });
+        expect(sub4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 4, z: 6, w: 8 })).toBeVec4({ x: -1, y: -2, z: -3, w: -4 });
     });
 
     it('len4', () => {
@@ -93,6 +93,6 @@ describe('vec4', () => {
     });
 
     it('norm4', () => {
-        expect(norm4({ x: 3, y: 4, z: 5, w: 6 })).toBeVec({ x: 0.3235, y: 0.4313, z: 0.5392, w: 0.647 });
+        expect(norm4({ x: 3, y: 4, z: 5, w: 6 })).toBeVec4({ x: 0.3235, y: 0.4313, z: 0.5392, w: 0.647 });
     });
 });
