@@ -20,7 +20,6 @@ export class Camera {
     private _viewDirty: boolean = true;
     private _transformDirty: boolean = true;
     private _invtransformDirty: boolean = true;
-    private _projType: CAMERA_PROJECTION = 'perspective';
     private _projImpl: ProjImpl = perspectiveImpl;
     private _zNear: number = 0.01;
     private _zFar: number = 100;
@@ -50,23 +49,16 @@ export class Camera {
     }
 
     getProjType(): CAMERA_PROJECTION {
-        return this._projType;
+        return this._projImpl.type;
     }
 
     setProjType(value: CAMERA_PROJECTION): void {
-        if (!(value === 'perspective' || value === 'orthographic')) {
+        const impl = PROJ_TYPE_TO_IMPL_MAP[value];
+        if (!impl) {
             throw this._logger.error('bad "projType" value: {0}', value);
         }
-        if (this._projType !== value) {
-            switch (value) {
-            case 'perspective':
-                this._projImpl = perspectiveImpl;
-                break;
-            case 'orthographic':
-                this._projImpl = orthographicImpl;
-                break;
-            }
-            this._projType = value;
+        if (this._projImpl !== impl) {
+            this._projImpl = impl;
             this._markProjDirty();
         }
     }
@@ -240,12 +232,15 @@ export class Camera {
 }
 
 interface ProjImpl {
+    type: CAMERA_PROJECTION;
     buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4): void;
     getXViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
     getYViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
 }
 
 const perspectiveImpl: ProjImpl = {
+    type: 'perspective',
+
     buildMat(zNear, zFar, yFov, { x, y }, mat) {
         perspective4x4({
             zNear,
@@ -265,6 +260,8 @@ const perspectiveImpl: ProjImpl = {
 };
 
 const orthographicImpl: ProjImpl = {
+    type: 'orthographic',
+
     buildMat(zNear, zFar, _yFov, viewportSize, mat) {
         const { x, y } = mul2(viewportSize, 0.5);
         orthographic4x4({
@@ -284,4 +281,9 @@ const orthographicImpl: ProjImpl = {
     getYViewSize(_yFov, _viewportSize, _viewDist) {
         return _viewportSize.y;
     },
+};
+
+const PROJ_TYPE_TO_IMPL_MAP: Readonly<Record<CAMERA_PROJECTION, ProjImpl>> = {
+    'perspective': perspectiveImpl,
+    'orthographic': orthographicImpl,
 };
