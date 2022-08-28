@@ -1,4 +1,5 @@
 import { Logger } from '../utils/logger';
+import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { fovDist2Size } from '../geometry/scalar';
 import { Vec2, vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
 import { Vec3, ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
@@ -12,6 +13,7 @@ export type CAMERA_PROJECTION = ('perspective' | 'orthographic');
 
 export class Camera {
     private readonly _logger = new Logger('Camera');
+    private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
     private readonly _transformMat: Mat4 = mat4();
@@ -29,13 +31,19 @@ export class Camera {
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
 
+    changed(): EventProxy {
+        return this._changed.proxy();
+    }
+
     private _markProjDirty(): void {
         this._projDirty = true;
+        this._changed.emit();
         this._markTransformDirty();
     }
 
     private _markViewDirty(): void {
         this._viewDirty = true;
+        this._changed.emit();
         this._markTransformDirty();
     }
 
