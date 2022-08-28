@@ -1,7 +1,7 @@
-import { logSilenced } from './logger';
-import { Vec2 } from '../geometry/vec2';
-import { Vec3 } from '../geometry/vec3';
-import { Vec4 } from '../geometry/vec4';
+import { logSilenced } from './lib/utils/logger';
+import { Vec2 } from './lib/geometry/vec2';
+import { Vec3 } from './lib/geometry/vec3';
+import { Vec4 } from './lib/geometry/vec4';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
