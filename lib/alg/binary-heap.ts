@@ -68,12 +68,28 @@ export class BinaryHeap<T> {
     pop(): T {
         const element = this._elements[0];
         swap(this._elements, 0, this._elements.length - 1);
-        this._elements.splice(this._elements.length - 1, 1);
+        this._elements.pop();
         sink(this._elements, 0, this._cmpFunc);
         return element;
     }
 
     peek(): T {
         return this._elements[0];
+    }
+
+    clear(): void {
+        this._elements.length = 0;
+    }
+
+    remove(element: T): boolean {
+        const idx = this._elements.indexOf(element);
+        if (idx < 0) {
+            return false;
+        }
+        swap(this._elements, idx, this._elements.length - 1);
+        this._elements.pop();
+        swim(this._elements, idx, this._cmpFunc);
+        sink(this._elements, idx, this._cmpFunc);
+        return true;
     }
 }

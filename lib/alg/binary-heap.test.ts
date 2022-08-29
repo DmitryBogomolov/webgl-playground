@@ -127,5 +127,39 @@ describe('binary-heap', () => {
 
             expect([heap.pop(), heap.pop(), heap.pop(), heap.pop()]).toEqual([5, 4, 3, 2]);
         });
+
+        it('clear', () => {
+            const heap = new BinaryHeap<number>((a, b) => a > b);
+
+            heap.push(3);
+            heap.push(2);
+            heap.push(5);
+            heap.push(4);
+
+            heap.clear();
+
+            expect(heap.size()).toEqual(0);
+        });
+
+        it('remove element', () => {
+            const heap = new BinaryHeap<number>((a, b) => a > b);
+
+            heap.push(3);
+            heap.push(2);
+            heap.push(5);
+            heap.push(4);
+
+            expect(heap.remove(4)).toEqual(true);
+            expect(heap.remove(4)).toEqual(false);
+            expect(heap.peek()).toEqual(5);
+
+            expect(heap.remove(2)).toEqual(true);
+            expect(heap.remove(2)).toEqual(false);
+            expect(heap.peek()).toEqual(5);
+
+            expect(heap.remove(5)).toEqual(true);
+            expect(heap.remove(5)).toEqual(false);
+            expect(heap.peek()).toEqual(3);
+        });
     });
 });
