@@ -31,6 +31,9 @@ export class Camera {
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
 
+    /**
+     * Notifies about every camera change.
+     */
     changed(): EventProxy {
         return this._changed.proxy();
     }
@@ -206,6 +209,9 @@ export class Camera {
         mul4x4(this.getProjMat(), this.getViewMat(), this._transformMat);
     }
 
+    /**
+     * Returns PROJ * VIEW matrix.
+     */
     getTransformMat(): Mat4 {
         if (this._transformDirty) {
             this._transformDirty = false;
@@ -218,6 +224,9 @@ export class Camera {
         inverse4x4(this.getTransformMat(), this._invtransformMat);
     }
 
+    /**
+     * Returns inverted PROJ * VIEW matrix.
+     */
     getInvtransformMat(): Mat4 {
         if (this._invtransformDirty) {
             this._invtransformDirty = false;
@@ -226,14 +235,23 @@ export class Camera {
         return this._invtransformMat;
     }
 
+    /**
+     * Returns distance from "eye" to "center".
+     */
     getViewDist(): number {
         return dist3(this._eyePos, this._centerPos);
     }
 
+    /**
+     * Returns viewport horizontal size in units.
+     */
     getXViewSize(): number {
         return this._projImpl.getXViewSize(this._yFov, this._viewportSize, this.getViewDist());
     }
 
+    /**
+     * Returns viewport vertical size in units.
+     */
     getYViewSize(): number {
         return this._projImpl.getYViewSize(this._yFov, this._viewportSize, this.getViewDist());
     }

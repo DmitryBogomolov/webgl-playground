@@ -109,6 +109,7 @@ runtime.sizeChanged().on(() => {
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
+    // Map ndc to unit range and get offset in ndc space.
     const coeff = 3 * (2 / camera.getXViewSize());
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
