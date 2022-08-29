@@ -124,5 +124,48 @@ describe('camera', () => {
                 transpose4x4(inverse4x4(transform)),
             );
         });
+
+        it('provide view data', () => {
+            const camera = new Camera();
+
+            expect(camera.getXFov()).toEqual(Math.PI / 3);
+            expect(camera.getYFov()).toEqual(Math.PI / 3);
+            expect(camera.getViewDist()).toEqual(1);
+            expect(camera.getXViewSize()).toBeCloseTo(1.1547);
+            expect(camera.getYViewSize()).toBeCloseTo(1.1547);
+
+            camera.setYFov(Math.PI / 4);
+            camera.setViewportSize({ x: 800, y: 600 });
+            camera.setEyePos({ x: 0, y: 3, z: 4 });
+
+            expect(camera.getXFov()).toBeCloseTo(Math.PI * 0.3212);
+            expect(camera.getYFov()).toEqual(Math.PI * 0.25);
+            expect(camera.getViewDist()).toBeCloseTo(5);
+            expect(camera.getXViewSize()).toBeCloseTo(5.5229);
+            expect(camera.getYViewSize()).toBeCloseTo(4.1421);
+        });
+
+        it('emit changed event', () => {
+            const camera = new Camera();
+            let count = 0;
+            camera.changed().on(() => {
+                ++count;
+            });
+
+            camera.setCenterPos({ x: 1, y: 0, z: 0 });
+            expect(count).toEqual(1);
+
+            camera.setCenterPos({ x: 1, y: 0, z: 0 });
+            expect(count).toEqual(1);
+
+            camera.setCenterPos({ x: 1, y: 0, z: 1 });
+            expect(count).toEqual(2);
+
+            camera.setCenterPos({ x: 1, y: 0, z: 1 });
+            expect(count).toEqual(2);
+
+            camera.setViewportSize({ x: 200, y: 100 });
+            expect(count).toEqual(3);
+        });
     });
 });
