@@ -1,17 +1,15 @@
 import {
-    EventEmitter,
+    EventEmitter, EventProxy,
 } from 'lib';
 
 export interface ChangeHandler<T> {
     (value: T): void;
 }
 
-export interface Observable<T> {
+export interface Observable<T> extends EventProxy<[T]> {
     (): T;
     (value: T): Observable<T>;
     dispose(): void;
-    on(handler: ChangeHandler<T>): void;
-    off(handler: ChangeHandler<T>): void;
 }
 
 const DEFAULT_NOTIFY_DELAY = 0;
@@ -75,18 +73,20 @@ export function computed<K extends ReadonlyArray<Observable<any>>, T>(
     patchWithMethods(target as Observable<T>, emitter, dispose);
     const valuesCache = [] as unknown as ObservableListTypes<K>;
     const handlers = [] as ((value: unknown) => void)[];
+    let initialized = false;
     observables.forEach((item, i) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        valuesCache[i] = item();
         handlers[i] = (value) => {
             valuesCache[i] = value;
-            currentValue = handler(valuesCache);
-            cancelNotify(notifyId);
-            notifyId = scheduleNotify(notify, notifyDelay);
+            if (initialized) {
+                currentValue = handler(valuesCache);
+                cancelNotify(notifyId);
+                notifyId = scheduleNotify(notify, notifyDelay);
+            }
         };
         item.on(handlers[i]);
     });
     let currentValue = handler(valuesCache);
+    initialized = true;
 
     return target as Observable<T>;
 
@@ -115,9 +115,12 @@ function patchWithMethods<T>(target: Observable<T>, emitter: EventEmitter<[T]>, 
     target.dispose = dispose;
     target.on = function (handler) {
         emitter.on(handler);
+        handler(target());
+        return this;
     };
     target.off = function (handler) {
         emitter.off(handler);
+        return this;
     };
 }
 

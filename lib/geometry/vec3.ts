@@ -64,6 +64,18 @@ export function norm3(v: Vec3): Vec3 {
     return mul3(v, 1 / len3(v));
 }
 
+export function dist3(a: Vec3, b: Vec3): number {
+    return len3(sub3(a, b));
+}
+
+export function dir3(a: Vec3, b: Vec3): Vec3 {
+    return norm3(sub3(b, a));
+}
+
+export function sqrdist3(a: Vec3, b: Vec3): number {
+    return sqrlen3(sub3(a, b));
+}
+
 export function add3(a: Vec3, b: Vec3): Vec3 {
     return vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }

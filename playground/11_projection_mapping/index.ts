@@ -1,12 +1,14 @@
 import {
     Runtime,
+    Primitive,
+    Camera,
     color,
-    vec3, ZERO3, YUNIT3, mul3, norm3,
-    mat4, perspective4x4, lookAt4x4, orthographic4x4, apply4x4,
-    mul4x4, identity4x4, yrotation4x4, translation4x4, inverse4x4,
-    deg2rad, fovDist2Size, Primitive,
+    vec2,
+    vec3, mul3,
+    mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
+    deg2rad,
 } from 'lib';
-import { Observable, observable, computed } from 'util/observable';
+import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeFillTexture, makeMappingTexture } from './texture';
@@ -41,12 +43,10 @@ const mappingTexture = makeMappingTexture(runtime, () => {
 });
 
 const wireframeColor = color(0.1, 0.1, 0.1);
-const VIEW_DIR = norm3(vec3(0, 2, 5));
-const VIEW_DIST = 5;
-const YFOV = Math.PI / 3;
-const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
+const camera = new Camera();
+camera.setEyePos(vec3(0, 2, 5));
+const projectionCamera = new Camera();
 
-const offsetCoeff = observable(0);
 const rotation = observable(0);
 const position = observable(0);
 const projectionDist = observable(2);
@@ -70,21 +70,7 @@ const model = computed(
     [rotation, position],
 );
 
-const proj = observable(
-    mat4(),
-    { noEqualityCheck: true },
-);
-const view = observable(
-    lookAt4x4({
-        eye: mul3(VIEW_DIR, VIEW_DIST),
-        center: ZERO3,
-        up: YUNIT3,
-    }),
-    { noEqualityCheck: true },
-);
-
-const _projectionView = mat4();
-const projectionView = computed(([projectionDist, projectionLon, projectionLat]) => {
+const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
     const lon = deg2rad(projectionLon);
     const lat = deg2rad(projectionLat);
     const dir = vec3(
@@ -92,89 +78,58 @@ const projectionView = computed(([projectionDist, projectionLon, projectionLat])
         Math.sin(lat),
         Math.cos(lat) * Math.cos(lon),
     );
-    lookAt4x4({
-        eye: mul3(dir, projectionDist),
-        center: ZERO3,
-        up: YUNIT3,
-    }, _projectionView);
-    return _projectionView;
+    return mul3(dir, projectionDist);
 }, [projectionDist, projectionLon, projectionLat]);
-
-const _projectionProj = mat4();
-const projectionProj = computed(([projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection]) => {
-    if (isPerpsectiveProjection) {
-        perspective4x4({
-            yFov: deg2rad(projectionFOV),
-            aspect: projectionWidth / projectionHeight,
-            zNear: 0.01,
-            zFar: 100,
-        }, _projectionProj);
-    } else {
-        orthographic4x4({
-            left: -projectionWidth / 2,
-            right: +projectionWidth / 2,
-            bottom: -projectionHeight / 2,
-            top: +projectionHeight / 2,
-            zNear: 0.01,
-            zFar: 100,
-        }, _projectionProj);
-    }
-    return _projectionProj;
-}, [
-    projectionWidth, projectionHeight, projectionFOV, isPerpsectiveProjection,
-] as [Observable<number>, Observable<number>, Observable<number>, Observable<boolean>]);
-
-const _projectionMat = mat4();
-const projectionMat = computed(([projectionView, projectionProj]) => {
-    mul4x4(projectionProj, projectionView, _projectionMat);
-    return _projectionMat;
-}, [projectionView, projectionProj]);
-
-const _wireframeMat = mat4();
-const wireframeMat = computed(([planarMat]) => {
-    inverse4x4(planarMat, _wireframeMat);
-    return _wireframeMat;
-}, [projectionMat]);
-
-const _proj = mat4();
-runtime.sizeChanged().on(() => {
-    const { x, y } = runtime.canvasSize();
-    const xViewSize = x / y * Y_VIEW_SIZE;
-    offsetCoeff(2 / xViewSize);
-    perspective4x4({
-        yFov: YFOV,
-        aspect: x / y,
-        zNear: 0.01,
-        zFar: 100,
-    }, _proj);
-    proj(_proj);
+eyePosition.on((eyePosition) => {
+    projectionCamera.setEyePos(eyePosition);
 });
 
-[offsetCoeff, model, view, proj, projectionMat, wireframeMat, isWireframeShown]
-    .forEach((item) => item.on(() => runtime.requestFrameRender()));
+const projectionSize = computed(
+    ([projectionWidth, projectionHeight]) => vec2(projectionWidth, projectionHeight),
+    [projectionWidth, projectionHeight],
+);
+projectionSize.on((projectionSize) => {
+    projectionCamera.setViewportSize(projectionSize);
+});
+
+projectionFOV.on((projectionFOV) => {
+    projectionCamera.setYFov(deg2rad(projectionFOV));
+});
+isPerpsectiveProjection.on((isPerpsectiveProjection) => {
+    projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+});
+
+runtime.sizeChanged().on(() => {
+    camera.setViewportSize(runtime.canvasSize());
+});
+
+[model, camera.changed(), projectionCamera.changed()].forEach(
+    (changed) => changed.on(() => runtime.requestFrameRender()),
+);
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer('color|depth');
-    const coeff = 3 * offsetCoeff();
+    // Map ndc to unit range and get offset in ndc space.
+    const coeff = 3 * (2 / camera.getXViewSize());
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
         fillTexture.setUnit(4);
         mappingTexture.setUnit(5);
         program.setUniform('u_offset', coeff * offset);
-        program.setUniform('u_proj', proj());
-        program.setUniform('u_view', view());
+        program.setUniform('u_proj', camera.getProjMat());
+        program.setUniform('u_view', camera.getViewMat());
         program.setUniform('u_model', model());
         program.setUniform('u_texture', 4);
         program.setUniform('u_planar_texture', 5);
-        program.setUniform('u_planar_mat', projectionMat());
+        program.setUniform('u_planar_mat', projectionCamera.getTransformMat());
         primitive.render();
 
         if (isWireframeShown()) {
             const program = wireframe.program();
             program.setUniform('u_offset', coeff * offset);
-            program.setUniform('u_proj', proj());
-            program.setUniform('u_view', view());
-            program.setUniform('u_model', wireframeMat());
+            program.setUniform('u_proj', camera.getProjMat());
+            program.setUniform('u_view', camera.getViewMat());
+            program.setUniform('u_model', projectionCamera.getInvtransformMat());
             program.setUniform('u_color', wireframeColor);
             wireframe.render();
         }

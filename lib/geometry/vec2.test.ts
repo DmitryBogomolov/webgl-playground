@@ -1,51 +1,10 @@
 import {
-    Vec2,
     ZERO2, UNIT2, XUNIT2, YUNIT2,
     eq2, neg2, inv2, len2, sqrlen2, norm2,
-    dot2, mul2, add2, sub2,
+    dot2, mul2, add2, sub2, dir2, dist2, sqrdist2,
 } from './vec2';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeVec(expected: Vec2): CustomMatcherResult;
-        }
-    }
-}
-
 describe('vec2', () => {
-    const EPS = 1E-4;
-
-    expect.extend({
-        toBeVec(actual: Vec2, expected: Vec2) {
-            const keys = ['x', 'y'];
-            const checks = keys.map((key) => {
-                return Math.abs(actual[key as keyof Vec2] - expected[key as keyof Vec2]) < EPS;
-            });
-            if (checks.every(Boolean)) {
-                return {
-                    pass: true,
-                    message: () => 'OK',
-                };
-            }
-            return {
-                pass: false,
-                message: () => {
-                    const lines: string[] = [];
-                    checks.forEach((check, i) => {
-                        if (!check) {
-                            const key = keys[i] as keyof Vec2;
-                            lines.push(`${key}: ${expected[key]} != ${actual[key]}`);
-                        }
-                    });
-                    return lines.join('\n');
-                },
-            };
-        },
-    });
-
     it('constants', () => {
         expect(eq2(ZERO2, { x: 0, y: 0 })).toEqual(true);
         expect(eq2(UNIT2, { x: 1, y: 1 })).toEqual(true);
@@ -63,23 +22,23 @@ describe('vec2', () => {
     });
 
     it('neg2', () => {
-        expect(neg2({ x: 1, y: 2 })).toBeVec({ x: -1, y: -2 });
+        expect(neg2({ x: 1, y: 2 })).toBeVec2({ x: -1, y: -2 });
     });
 
     it('inv2', () => {
-        expect(inv2({ x: 1, y: 2 })).toBeVec({ x: 1, y: 0.5 });
+        expect(inv2({ x: 1, y: 2 })).toBeVec2({ x: 1, y: 0.5 });
     });
 
     it('mul2', () => {
-        expect(mul2({ x: 1, y: 2 }, 4)).toBeVec({ x: 4, y: 8 });
+        expect(mul2({ x: 1, y: 2 }, 4)).toBeVec2({ x: 4, y: 8 });
     });
 
     it('add2', () => {
-        expect(add2({ x: 1, y: 2 }, { x: 2, y: 4 })).toBeVec({ x: 3, y: 6 });
+        expect(add2({ x: 1, y: 2 }, { x: 2, y: 4 })).toBeVec2({ x: 3, y: 6 });
     });
 
     it('sub2', () => {
-        expect(sub2({ x: 1, y: 2 }, { x: 2, y: 4 })).toBeVec({ x: -1, y: -2 });
+        expect(sub2({ x: 1, y: 2 }, { x: 2, y: 4 })).toBeVec2({ x: -1, y: -2 });
     });
 
     it('len2', () => {
@@ -91,6 +50,18 @@ describe('vec2', () => {
     });
 
     it('norm2', () => {
-        expect(norm2({ x: 3, y: 4 })).toBeVec({ x: 0.6, y: 0.8 });
+        expect(norm2({ x: 3, y: 4 })).toBeVec2({ x: 0.6, y: 0.8 });
+    });
+
+    it('dir2', () => {
+        expect(dir2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeVec2({ x: 0.9487, y: -0.3162 });
+    });
+
+    it('dist2', () => {
+        expect(dist2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeCloseTo(3.1623);
+    });
+
+    it('sqrdist2', () => {
+        expect(sqrdist2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeCloseTo(10);
     });
 });

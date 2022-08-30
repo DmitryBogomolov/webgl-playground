@@ -7,16 +7,6 @@ import {
     projection3x3,
 } from './mat3';
 
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace jest {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R> {
-            toBeMat(expected: ReadonlyArray<number>): CustomMatcherResult;
-        }
-    }
-}
-
 describe('mat3', () => {
     const RANK = 3;
     const EPS = 1E-4;
@@ -26,7 +16,7 @@ describe('mat3', () => {
     }
 
     expect.extend({
-        toBeMat(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+        toBeMat3(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
             const list: [number, number][] = [];
             for (let i = 0; i < RANK; ++i) {
                 for (let j = 0; j < RANK; ++j) {
@@ -96,7 +86,7 @@ describe('mat3', () => {
 
         expect(
             zero3x3(mat),
-        ).toBeMat([
+        ).toBeMat3([
             0, 0, 0,
             0, 0, 0,
             0, 0, 0,
@@ -112,7 +102,7 @@ describe('mat3', () => {
 
         expect(
             identity3x3(mat),
-        ).toBeMat([
+        ).toBeMat3([
             1, 0, 0,
             0, 1, 0,
             0, 0, 1,
@@ -127,7 +117,7 @@ describe('mat3', () => {
         ];
         expect(
             clone3x3(make(raw)),
-        ).toBeMat(raw);
+        ).toBeMat3(raw);
     });
 
     it('transpose3x3', () => {
@@ -137,7 +127,7 @@ describe('mat3', () => {
                 -2, 2, 0,
                 3, 1, 2,
             ])),
-        ).toBeMat([
+        ).toBeMat3([
             1, -2, 3,
             0, 2, 1,
             2, 0, 2,
@@ -158,7 +148,7 @@ describe('mat3', () => {
                     0, -1, 1,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat3([
             5, 0, -2,
             6, -2, 2,
             4, 0, 3,
@@ -179,7 +169,7 @@ describe('mat3', () => {
                     0, -1, 1,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat3([
             -3, 0, 0,
             0, 2, 4,
             4, 2, 1,
@@ -200,7 +190,7 @@ describe('mat3', () => {
                     0, -1, 1,
                 ]),
             ),
-        ).toBeMat([
+        ).toBeMat3([
             4, 1, -2,
             12, -3, 0,
             19, -4, -3,
@@ -266,14 +256,14 @@ describe('mat3', () => {
     it('inverse3x3', () => {
         expect(
             inverse3x3(zero3x3()),
-        ).toBeMat([
+        ).toBeMat3([
             0, 0, 0,
             0, 0, 0,
             0, 0, 0,
         ]);
         expect(
             inverse3x3(identity3x3()),
-        ).toBeMat([
+        ).toBeMat3([
             1, 0, 0,
             0, 1, 0,
             0, 0, 1,
@@ -284,7 +274,7 @@ describe('mat3', () => {
                 0, 2, 0,
                 0, 0, 10,
             ])),
-        ).toBeMat([
+        ).toBeMat3([
             1, 0, 0,
             0, 0.5, 0,
             0, 0, 0.1,
@@ -295,7 +285,7 @@ describe('mat3', () => {
                 0, 1, 3,
                 0, 0, 1,
             ])),
-        ).toBeMat([
+        ).toBeMat3([
             1, 0, -2,
             0, 1, -3,
             0, 0, 1,
@@ -305,7 +295,7 @@ describe('mat3', () => {
     it('translation3x3', () => {
         expect(
             translation3x3({ x: 2, y: 3 }),
-        ).toBeMat([
+        ).toBeMat3([
             1, 0, 2,
             0, 1, 3,
             0, 0, 1,
@@ -315,7 +305,7 @@ describe('mat3', () => {
     it('scaling3x3', () => {
         expect(
             scaling3x3({ x: 2, y: 3 }),
-        ).toBeMat([
+        ).toBeMat3([
             2, 0, 0,
             0, 3, 0,
             0, 0, 1,
@@ -325,7 +315,7 @@ describe('mat3', () => {
     it('rotation3x3', () => {
         expect(
             rotation3x3(Math.PI / 6),
-        ).toBeMat([
+        ).toBeMat3([
             0.866, -0.5, 0,
             0.5, 0.866, 0,
             0, 0, 1,
@@ -337,7 +327,7 @@ describe('mat3', () => {
             projection3x3({
                 left: 100, right: 500, bottom: 50, top: 250,
             }),
-        ).toBeMat([
+        ).toBeMat3([
             0.005, 0, -1.5,
             0, 0.01, -1.5,
             0, 0, 1,
