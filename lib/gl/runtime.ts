@@ -9,6 +9,7 @@ import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
+const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
 const GL_TEXTURE0 = WebGLRenderingContext.prototype.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGLRenderingContext.prototype.UNPACK_FLIP_Y_WEBGL;
@@ -32,6 +33,7 @@ interface State {
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
+    frameBuffer: WebGLFramebuffer | null;
 }
 
 export type BUFFER_MASK = (
@@ -161,6 +163,7 @@ export class Runtime {
             textureUnit: 0,
             boundTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
+            frameBuffer: null,
         };
         this.adjustViewport();
         if (this._options.trackWindowResize) {
@@ -472,6 +475,15 @@ export class Runtime {
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
         this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
         this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
+    }
+
+    bindFrameBuffer(frameBuffer: WebGLFramebuffer | null, id: string): void {
+        if (this._state.frameBuffer === frameBuffer) {
+            return;
+        }
+        this._logger.log('bind_frame_buffer({0})', frameBuffer ? id : null);
+        this.gl.bindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+        this._state.frameBuffer = frameBuffer;
     }
 }
 
