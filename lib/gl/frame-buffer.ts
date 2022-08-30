@@ -24,6 +24,10 @@ export class FrameBuffer {
         this._runtime.gl.deleteFramebuffer(this._frameBuffer);
     }
 
+    frameBuffer(): WebGLFramebuffer {
+        return this._frameBuffer;
+    }
+
     private _createFrameBuffer(): WebGLFramebuffer {
         const frameBuffer = this._runtime.gl.createFramebuffer();
         if (!frameBuffer) {

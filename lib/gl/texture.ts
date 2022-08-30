@@ -75,7 +75,7 @@ export interface ImageDataOptions {
 
 export interface TextureData {
     readonly size: readonly [number, number];
-    readonly data: ArrayBufferView;
+    readonly data: ArrayBufferView | null;
 }
 
 function isTextureData(source: TextureData | TexImageSource): source is TextureData {
@@ -139,7 +139,9 @@ export class Texture {
         if (isTextureData(source)) {
             const { size, data } = source;
             const [width, height] = size;
-            this._logger.log('set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data.byteLength);
+            this._logger.log(
+                'set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data ? data.byteLength : 'null'
+            );
             gl.texImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             this._size = vec2(width, height);
         } else {

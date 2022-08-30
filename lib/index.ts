@@ -22,5 +22,6 @@ export * from './gl/runtime';
 export * from './gl/program';
 export * from './gl/texture';
 export * from './gl/primitive';
+export * from './gl/frame-buffer';
 export * from './gl/camera';
 export * from './worker/worker';
