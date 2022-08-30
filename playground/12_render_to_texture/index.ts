@@ -1,9 +1,9 @@
 import {
     Runtime,
     Camera,
-    vec3, norm3,
-    identity4x4,
-    color,
+    vec3, YUNIT3, norm3, rotate3,
+    Mat4, translation4x4,
+    Color, color,
 } from 'lib';
 import { makeCube } from './primitive';
 
@@ -20,25 +20,57 @@ runtime.setClearColor(color(0.7, 0.7, 0.7));
 runtime.setDepthTest(true);
 
 const cube = makeCube(runtime);
-const model = identity4x4();
-const clr = color(0.8, 0.2, 0.1);
-
+interface ObjectInfo {
+    readonly clr: Color;
+    readonly model: Mat4;
+}
+const objects: ReadonlyArray<ObjectInfo> = [
+    {
+        clr: color(0.8, 0.2, 0.1),
+        model: translation4x4(vec3(+1.4, 0, 0))
+    },
+    {
+        clr: color(0.3, 0.5, 0.9),
+        model: translation4x4(vec3(0, 0, +1.2)),
+    },
+    {
+        clr: color(0.8, 0.1, 0.4),
+        model: translation4x4(vec3(-1.5, 0, 0)),
+    },
+    {
+        clr: color(0.3, 0.9, 0.2),
+        model: translation4x4(vec3(0, 0, -1.6)),
+    },
+];
 const lightDir = norm3(vec3(1, 3, 2));
 
+let cameraPos = vec3(0, 2, 5);
+const ROTATION_SPEED = (2 * Math.PI) * 0.1;
+
 const camera = new Camera();
-camera.setEyePos(vec3(0, 2, 5));
+camera.setEyePos(cameraPos);
 
 runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
 });
 
-runtime.frameRendered().on(() => {
+function renderScene(): void {
+    const program = cube.program();
+    program.setUniform('u_view_proj', camera.getTransformMat());
+    program.setUniform('u_light_dir', lightDir);
+    for (const { clr, model } of objects) {
+        program.setUniform('u_color', clr);
+        program.setUniform('u_model', model);
+        cube.render();
+    }
+}
+
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer('color|depth');
 
-    cube.program().setUniform('u_view_proj', camera.getTransformMat());
-    cube.program().setUniform('u_model', model);
-    cube.program().setUniform('u_light_dir', lightDir);
-    cube.program().setUniform('u_color', clr);
+    cameraPos = rotate3(cameraPos, YUNIT3, ROTATION_SPEED * delta / 1000);
+    camera.setEyePos(cameraPos);
 
-    cube.render();
+    renderScene();
+    runtime.requestFrameRender();
 });
