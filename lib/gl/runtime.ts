@@ -33,7 +33,7 @@ interface State {
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
-    frameBuffer: WebGLFramebuffer | null;
+    framebuffer: WebGLFramebuffer | null;
 }
 
 export type BUFFER_MASK = (
@@ -163,7 +163,7 @@ export class Runtime {
             textureUnit: 0,
             boundTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
-            frameBuffer: null,
+            framebuffer: null,
         };
         this.adjustViewport();
         if (this._options.trackWindowResize) {
@@ -477,13 +477,13 @@ export class Runtime {
         this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
     }
 
-    bindFrameBuffer(frameBuffer: WebGLFramebuffer | null, id: string): void {
-        if (this._state.frameBuffer === frameBuffer) {
+    bindFramebuffer(framebuffer: WebGLFramebuffer | null, id: string): void {
+        if (this._state.framebuffer === framebuffer) {
             return;
         }
-        this._logger.log('bind_frame_buffer({0})', frameBuffer ? id : null);
-        this.gl.bindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-        this._state.frameBuffer = frameBuffer;
+        this._logger.log('bind_framebuffer({0})', framebuffer ? id : null);
+        this.gl.bindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        this._state.framebuffer = framebuffer;
     }
 }
 

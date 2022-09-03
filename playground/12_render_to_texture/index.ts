@@ -1,7 +1,7 @@
 import {
     Runtime,
     Texture,
-    FrameBuffer,
+    Framebuffer,
     Camera,
     vec3, YUNIT3, norm3, rotate3,
     Mat4, translation4x4, rotation4x4,
@@ -66,15 +66,15 @@ texture.setParameters({
 texture.setImageData({ size: [256, 256], data: null }, { format: 'rgba' });
 sceneCamera.setViewportSize(texture.size());
 
-const frameBuffer = new FrameBuffer(runtime);
-frameBuffer.setupAttachments(texture);
+const framebuffer = new Framebuffer(runtime);
+framebuffer.setupAttachments(texture);
 
 runtime.sizeChanged().on(() => {
     planeCamera.setViewportSize(runtime.canvasSize());
 });
 
 function renderScene(): void {
-    runtime.bindFrameBuffer(frameBuffer.frameBuffer(), 'TEST');
+    runtime.bindFramebuffer(framebuffer.framebuffer(), 'TEST');
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.gl.viewport(0, 0, texture.size().x, texture.size().y);
 
@@ -91,7 +91,7 @@ function renderScene(): void {
 }
 
 function renderPlane(): void {
-    runtime.bindFrameBuffer(null, 'TEST');
+    runtime.bindFramebuffer(null, 'TEST');
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.gl.viewport(0, 0, runtime.canvasSize().x, runtime.canvasSize().y);
 
@@ -110,7 +110,6 @@ runtime.frameRendered().on((delta) => {
     sceneCamera.setEyePos(cameraPos);
 
     renderScene();
-
     renderPlane();
 
     runtime.requestFrameRender();

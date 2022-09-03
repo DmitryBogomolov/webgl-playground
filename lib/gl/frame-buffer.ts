@@ -7,41 +7,41 @@ const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
 const GL_COLOR_ATTACHMENT0 = WebGLRenderingContext.prototype.COLOR_ATTACHMENT0;
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
 
-export class FrameBuffer {
+export class Framebuffer {
     private readonly _id = generateId('FrameBuffer');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
-    private readonly _frameBuffer: WebGLFramebuffer;
+    private readonly _framebuffer: WebGLFramebuffer;
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
         this._runtime = runtime;
-        this._frameBuffer = this._createFrameBuffer();
+        this._framebuffer = this._createFramebuffer();
     }
 
     dispose(): void {
         this._logger.log('dispose');
-        this._runtime.gl.deleteFramebuffer(this._frameBuffer);
+        this._runtime.gl.deleteFramebuffer(this._framebuffer);
     }
 
-    frameBuffer(): WebGLFramebuffer {
-        return this._frameBuffer;
+    framebuffer(): WebGLFramebuffer {
+        return this._framebuffer;
     }
 
-    private _createFrameBuffer(): WebGLFramebuffer {
-        const frameBuffer = this._runtime.gl.createFramebuffer();
-        if (!frameBuffer) {
+    private _createFramebuffer(): WebGLFramebuffer {
+        const framebuffer = this._runtime.gl.createFramebuffer();
+        if (!framebuffer) {
             throw this._logger.error('failed to create frame buffer');
         }
-        return frameBuffer;
+        return framebuffer;
     }
 
     setupAttachments(texture: Texture): void {
         this._logger.log('setup_attachments');
-        this._runtime.bindFrameBuffer(this._frameBuffer, this._id);
+        this._runtime.bindFramebuffer(this._framebuffer, this._id);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.texture(), 0,
         );
-        this._runtime.bindFrameBuffer(null, this._id);
+        this._runtime.bindFramebuffer(null, this._id);
     }
 }
