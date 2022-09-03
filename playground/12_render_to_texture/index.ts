@@ -74,10 +74,9 @@ runtime.sizeChanged().on(() => {
 });
 
 function renderScene(): void {
-    runtime.bindFramebuffer(framebuffer.framebuffer(), 'TEST');
-    runtime.setClearColor(color(0.7, 0.7, 0.7));
-    runtime.gl.viewport(0, 0, texture.size().x, texture.size().y);
+    runtime.setFramebuffer(framebuffer);
 
+    runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.clearBuffer('color|depth');
 
     const program = cube.program();
@@ -91,10 +90,9 @@ function renderScene(): void {
 }
 
 function renderPlane(): void {
-    runtime.bindFramebuffer(null, 'TEST');
-    runtime.setClearColor(color(0.4, 0.4, 0.4));
-    runtime.gl.viewport(0, 0, runtime.canvasSize().x, runtime.canvasSize().y);
+    runtime.setFramebuffer(null);
 
+    runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.clearBuffer('color|depth');
 
     texture.setUnit(2);

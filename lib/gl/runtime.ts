@@ -6,6 +6,8 @@ import { GLValuesMap } from './gl-values-map';
 import { RenderLoop } from './render-loop';
 import { Color, color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
+// TODO: Circular dependency.
+import { Framebuffer } from './framebuffer';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
@@ -34,6 +36,7 @@ interface State {
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
+    targetFramebuffer: Framebuffer | null;
 }
 
 export type BUFFER_MASK = (
@@ -164,6 +167,7 @@ export class Runtime {
             boundTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
             framebuffer: null,
+            targetFramebuffer: null,
         };
         this.adjustViewport();
         if (this._options.trackWindowResize) {
@@ -253,7 +257,9 @@ export class Runtime {
         this._canvas.width = canvasSize.x;
         this._canvas.height = canvasSize.y;
         this._sizeChanged.emit();
-        this.gl.viewport(0, 0, canvasSize.x, canvasSize.y);
+        if (this._state.targetFramebuffer === null) {
+            this.gl.viewport(0, 0, canvasSize.x, canvasSize.y);
+        }
         return true;
     }
 
@@ -484,6 +490,21 @@ export class Runtime {
         this._logger.log('bind_framebuffer({0})', framebuffer ? id : null);
         this.gl.bindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         this._state.framebuffer = framebuffer;
+    }
+
+    getFramebuffer(): Framebuffer | null {
+        return this._state.targetFramebuffer;
+    }
+
+    setFramebuffer(framebuffer: Framebuffer | null): void {
+        if (this._state.targetFramebuffer === framebuffer) {
+            return;
+        }
+        this._logger.log('set_framebuffer({0})', framebuffer ? 'TODO' : null);
+        this.bindFramebuffer(framebuffer ? framebuffer.framebuffer() : null, 'TODO');
+        const size = framebuffer ? framebuffer.size() : this._canvasSize;
+        this.gl.viewport(0, 0, size.x, size.y);
+        this._state.targetFramebuffer = framebuffer;
     }
 }
 

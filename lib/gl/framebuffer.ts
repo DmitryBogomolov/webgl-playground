@@ -1,3 +1,4 @@
+import { Vec2, ZERO2 } from '../geometry/vec2';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Runtime } from './runtime';
@@ -12,6 +13,7 @@ export class Framebuffer {
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
     private readonly _framebuffer: WebGLFramebuffer;
+    private _texture: Texture | null = null;
 
     constructor(runtime: Runtime) {
         this._logger.log('init');
@@ -28,6 +30,10 @@ export class Framebuffer {
         return this._framebuffer;
     }
 
+    size(): Vec2 {
+        return this._texture ? this._texture.size() : ZERO2;
+    }
+
     private _createFramebuffer(): WebGLFramebuffer {
         const framebuffer = this._runtime.gl.createFramebuffer();
         if (!framebuffer) {
@@ -42,6 +48,7 @@ export class Framebuffer {
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.texture(), 0,
         );
+        this._texture = texture;
         this._runtime.bindFramebuffer(null, this._id);
     }
 }
