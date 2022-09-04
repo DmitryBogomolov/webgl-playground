@@ -1,5 +1,5 @@
+import { Mat3 } from './types/mat3';
 import {
-    Mat3,
     eq3x3, zero3x3, identity3x3, clone3x3, update3x3, transpose3x3,
     add3x3, sub3x3, mul3x3, mul3v2, mul3v3,
     det3x3, inverse3x3,

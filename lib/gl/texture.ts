@@ -1,8 +1,9 @@
+import { Vec2 } from '../geometry/types/vec2';
 import { Runtime } from './runtime';
 import { GLValuesMap } from './gl-values-map';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
-import { Vec2, vec2, ZERO2 } from '../geometry/vec2';
+import { vec2, ZERO2 } from '../geometry/vec2';
 
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
 const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;

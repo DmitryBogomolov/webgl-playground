@@ -1,4 +1,5 @@
-import { Vec2, ZERO2 } from '../geometry/vec2';
+import { Vec2 } from '../geometry/types/vec2';
+import { ZERO2 } from '../geometry/vec2';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Runtime } from './runtime';

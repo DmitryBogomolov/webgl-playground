@@ -1,4 +1,4 @@
-import { Vec2 } from 'lib/geometry/vec2';
+import { Vec2 } from '../geometry/types/vec2';
 import { GetEventCoordsFunc, makeEventCoordsGetter } from './pointer-event';
 
 export interface TrackerEvent {

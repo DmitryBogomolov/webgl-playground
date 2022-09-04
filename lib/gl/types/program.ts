@@ -1,9 +1,9 @@
-import { Vec2 } from '../../geometry/vec2';
-import { Vec3 } from '../../geometry/vec3';
-import { Vec4 } from '../../geometry/vec4';
-import { Mat2 } from '../../geometry/mat2';
-import { Mat3 } from '../../geometry/mat3';
-import { Mat4 } from '../../geometry/mat4';
+import { Vec2 } from '../../geometry/types/vec2';
+import { Vec3 } from '../../geometry/types/vec3';
+import { Vec4 } from '../../geometry/types/vec4';
+import { Mat2 } from '../../geometry/types/mat2';
+import { Mat3 } from '../../geometry/types/mat3';
+import { Mat4 } from '../../geometry/types/mat4';
 import { Color } from '../types/color';
 
 export type UniformValue = (

@@ -1,4 +1,5 @@
 import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION } from './types/runtime';
+import { Vec2 } from '../geometry/types/vec2';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { EventEmitter, EventProxy } from '../utils/event-emitter';
@@ -7,7 +8,7 @@ import { GLValuesMap } from './gl-values-map';
 import { RenderLoop } from './render-loop';
 import { Color } from './types/color';
 import { color, colorEq, isColor } from './color';
-import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
+import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 // TODO: Circular dependency.
 import { Framebuffer } from './framebuffer';
 

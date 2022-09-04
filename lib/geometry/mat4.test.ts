@@ -1,5 +1,5 @@
+import { Mat4 } from './types/mat4';
 import {
-    Mat4,
     eq4x4, zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
     add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
     det4x4, inverse4x4, inversetranspose4x4,
