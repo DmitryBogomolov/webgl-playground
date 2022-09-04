@@ -99,11 +99,11 @@ const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
 };
 
 export interface RuntimeOptions {
-    alpha?: boolean;
-    antialias?: boolean;
-    premultipliedAlpha?: boolean;
-    trackWindowResize?: boolean;
-    extensions?: EXTENSION[];
+    readonly alpha?: boolean;
+    readonly antialias?: boolean;
+    readonly premultipliedAlpha?: boolean;
+    readonly trackWindowResize?: boolean;
+    readonly extensions?: ReadonlyArray<EXTENSION>;
 }
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
