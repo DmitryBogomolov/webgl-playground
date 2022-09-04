@@ -20,6 +20,7 @@ export * from './gl/vertex-schema';
 export * from './gl/vertex-writer';
 export * from './gl/types/runtime';
 export * from './gl/runtime';
+export * from './gl/types/program';
 export * from './gl/program';
 export * from './gl/texture';
 export * from './gl/primitive';
