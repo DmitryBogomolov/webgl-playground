@@ -4,6 +4,7 @@ import {
 } from './types/texture';
 import { Vec2 } from '../geometry/types/vec2';
 import { GLValuesMap } from './types/gl-values-map';
+import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { Runtime } from './runtime';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
@@ -61,7 +62,7 @@ function isTextureData(source: TextureData | TexImageSource): source is TextureD
     return 'size' in source && 'data' in source;
 }
 
-export class Texture {
+export class Texture implements GLHandleWrapper<WebGLTexture> {
     private readonly _id = generateId('Texture');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
@@ -83,6 +84,14 @@ export class Texture {
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl.deleteTexture(this._texture);
+    }
+
+    id(): string {
+        return this._id;
+    }
+
+    glHandle(): WebGLTexture {
+        return this._texture;
     }
 
     size(): Vec2 {
@@ -114,7 +123,7 @@ export class Texture {
             }
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
-        this._runtime.bindTexture(this._texture, this._id);
+        this._runtime.bindTexture(this);
         if (isTextureData(source)) {
             const { size, data } = source;
             const [width, height] = size;
@@ -143,7 +152,7 @@ export class Texture {
                 }
                 if (this._state[key as keyof State] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
-                    this._runtime.bindTexture(this._texture, this._id);
+                    this._runtime.bindTexture(this);
                     gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
                     this._state[key as keyof State] = val as never;
                 }
@@ -153,6 +162,6 @@ export class Texture {
 
     setUnit(unit: number): void {
         this._logger.log('set_unit({0})', unit);
-        this._runtime.activeTexture(unit, this._texture, this._id);
+        this._runtime.activeTexture(unit, this);
     }
 }

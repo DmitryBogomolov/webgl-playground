@@ -1,5 +1,6 @@
 import { UniformValue } from './types/program';
 import { VertexSchema } from './types/vertex-schema';
+import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Runtime } from './runtime';
@@ -185,7 +186,7 @@ export interface ProgramOptions {
     readonly schema: VertexSchema;
 }
 
-export class Program {
+export class Program implements GLHandleWrapper<WebGLProgram> {
     private readonly _id = generateId('Program');
     private readonly _logger = new Logger(this._id);
     private readonly _runtime: Runtime;
@@ -217,6 +218,14 @@ export class Program {
     dispose(): void {
         this._logger.log('dispose');
         this._dispose();
+    }
+
+    id(): string {
+        return this._id;
+    }
+
+    glHandle(): WebGLProgram {
+        return this._program;
     }
 
     private _dispose(): void {
@@ -339,7 +348,7 @@ export class Program {
     }
 
     use(): void {
-        this._runtime.useProgram(this._program, this._id);
+        this._runtime.useProgram(this);
     }
 
     setUniform(name: string, value: UniformValue): void {

@@ -1,7 +1,7 @@
 import { PRIMITIVE_MODE, INDEX_TYPE, IndexData } from './types/primitive';
 import { VertexSchema } from './types/vertex-schema';
 import { GLValuesMap } from './types/gl-values-map';
-import { Runtime } from './runtime';
+import { Runtime, wrap } from './runtime';
 import { Program } from './program';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
@@ -71,6 +71,10 @@ export class Primitive {
         this._runtime.vaoExt.deleteVertexArrayOES(this._vao);
     }
 
+    id(): string {
+        return this._id;
+    }
+
     private _createVao(): WebGLVertexArrayObjectOES {
         const vao = this._runtime.vaoExt.createVertexArrayOES();
         if (!vao) {
@@ -91,7 +95,7 @@ export class Primitive {
         this._logger.log('allocate_vertex_buffer({0})', size);
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
-        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+        this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
     }
 
@@ -99,21 +103,21 @@ export class Primitive {
         this._logger.log('allocate_index_buffer({0})', size);
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
-        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
         const gl = this._runtime.gl;
-        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+        this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
         const gl = this._runtime.gl;
-        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
@@ -125,17 +129,17 @@ export class Primitive {
         this._schema = schema;
         const gl = this._runtime.gl;
         try {
-            this._runtime.bindVertexArrayObject(this._vao, this._id);
-            this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+            this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
+            this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
             for (const attr of schema.attributes) {
                 gl.vertexAttribPointer(
                     attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
                 );
                 gl.enableVertexAttribArray(attr.location);
             }
-            this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+            this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         } finally {
-            this._runtime.bindVertexArrayObject(null, this._id);
+            this._runtime.bindVertexArrayObject(null);
         }
     }
 
@@ -194,8 +198,8 @@ export class Primitive {
             return;
         }
         this._program.use();
-        this._runtime.bindVertexArrayObject(this._vao, this._id);
+        this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
-        this._runtime.bindVertexArrayObject(null, this._id);
+        this._runtime.bindVertexArrayObject(null);
     }
 }
