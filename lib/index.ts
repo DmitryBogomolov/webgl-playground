@@ -43,4 +43,5 @@ export * from './gl/types/framebuffer-target';
 export * from './gl/framebuffer';
 export * from './gl/types/camera';
 export * from './gl/camera';
+export * from './worker/types/worker';
 export * from './worker/worker';
