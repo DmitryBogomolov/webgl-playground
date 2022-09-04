@@ -1,3 +1,4 @@
+import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION } from './types/runtime';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { EventEmitter, EventProxy } from '../utils/event-emitter';
@@ -42,11 +43,6 @@ interface State {
     renderbuffer: WebGLRenderbuffer | null;
 }
 
-export type BUFFER_MASK = (
-    | 'color' | 'depth' | 'stencil'
-    | 'color|depth' | 'color|stencil' | 'depth|stencil'
-    | 'color|depth|stencil'
-);
 const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     'color': WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
     'depth': WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
@@ -70,9 +66,6 @@ const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     ),
 };
 
-export type DEPTH_FUNC = (
-    'never' | 'less' | 'lequal' | 'greater' | 'gequal' | 'equal' | 'notequal' | 'always'
-);
 const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'never': WebGLRenderingContext.prototype.NEVER,
     'less': WebGLRenderingContext.prototype.LESS,
@@ -84,16 +77,12 @@ const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'always': WebGLRenderingContext.prototype.ALWAYS,
 };
 
-export type CULL_FACE = (
-    'back' | 'front' | 'front_and_back'
-);
 const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'back': WebGLRenderingContext.prototype.BACK,
     'front': WebGLRenderingContext.prototype.FRONT,
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
 };
 
-export type EXTENSION = ('element_index_uint');
 const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'element_index_uint': 'OES_element_index_uint',
 };
