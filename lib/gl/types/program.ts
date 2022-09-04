@@ -4,7 +4,7 @@ import { Vec4 } from '../../geometry/vec4';
 import { Mat2 } from '../../geometry/mat2';
 import { Mat3 } from '../../geometry/mat3';
 import { Mat4 } from '../../geometry/mat4';
-import { Color } from '../color';
+import { Color } from '../types/color';
 
 export type UniformValue = (
     | boolean

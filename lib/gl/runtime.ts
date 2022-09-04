@@ -5,7 +5,8 @@ import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
 import { GLValuesMap } from './gl-values-map';
 import { RenderLoop } from './render-loop';
-import { Color, color, colorEq, isColor } from './color';
+import { Color } from './types/color';
+import { color, colorEq, isColor } from './color';
 import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 // TODO: Circular dependency.
 import { Framebuffer } from './framebuffer';

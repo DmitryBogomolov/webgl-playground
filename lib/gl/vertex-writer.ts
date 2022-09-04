@@ -4,7 +4,8 @@ import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vert
 import { isVec2, Vec2 } from '../geometry/vec2';
 import { isVec3, Vec3 } from '../geometry/vec3';
 import { isVec4, Vec4 } from '../geometry/vec4';
-import { Color, isColor } from './color';
+import { Color } from './types/color';
+import { isColor } from './color';
 
 type Normalizer = (value: number) => number;
 

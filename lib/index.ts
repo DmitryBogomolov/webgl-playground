@@ -14,6 +14,7 @@ export * from './geometry/mat4';
 export * from './geometry/figures';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree';
+export * from './gl/types/color';
 export * from './gl/color';
 export * from './gl/render-loop';
 export * from './gl/vertex-schema';
