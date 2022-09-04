@@ -5,6 +5,7 @@ import { Mat2 } from '../../geometry/types/mat2';
 import { Mat3 } from '../../geometry/types/mat3';
 import { Mat4 } from '../../geometry/types/mat4';
 import { Color } from '../types/color';
+import { VertexSchema } from './vertex-schema';
 
 export type UniformValue = (
     | boolean
@@ -18,3 +19,9 @@ export type UniformValue = (
     | Mat2 | Mat3 | Mat4
     | Color
 );
+
+export interface ProgramOptions {
+    readonly vertexShader: string;
+    readonly fragmentShader: string;
+    readonly schema: VertexSchema;
+}

@@ -1,4 +1,4 @@
-import { UniformValue } from './types/program';
+import { UniformValue, ProgramOptions } from './types/program';
 import { VertexSchema } from './types/vertex-schema';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { generateId } from '../utils/id-generator';
@@ -178,12 +178,6 @@ interface AttributesMap {
 
 interface UniformsMap {
     readonly [key: string]: ShaderUniform;
-}
-
-export interface ProgramOptions {
-    readonly vertexShader: string;
-    readonly fragmentShader: string;
-    readonly schema: VertexSchema;
 }
 
 export class Program implements GLHandleWrapper<WebGLProgram> {
