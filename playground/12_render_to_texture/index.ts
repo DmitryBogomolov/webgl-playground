@@ -15,7 +15,7 @@ import { makeCube, makePlane } from './primitive';
 /**
  * Render to texture.
  *
- * TODO...
+ * Show rendering to texture with additional depth renderbuffer.
  */
 export type DESCRIPTION = never;
 
