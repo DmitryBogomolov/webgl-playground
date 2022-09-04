@@ -19,6 +19,7 @@ const GL_DEPTH_TEST = WebGLRenderingContext.prototype.DEPTH_TEST;
 const GL_CULL_FACE = WebGLRenderingContext.prototype.CULL_FACE;
 
 interface State {
+    viewportSize: Vec2;
     clearColor: Color;
     clearDepth: number;
     clearStencil: number;
@@ -147,9 +148,11 @@ export class Runtime {
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
+
         // Initial state is formed according to specification.
         // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
         this._state = {
+            viewportSize: ZERO2,
             clearColor: color(0, 0, 0, 0),
             clearDepth: 1,
             clearStencil: 0,
@@ -217,6 +220,15 @@ export class Runtime {
         }
     }
 
+    private _updateViewport(size: Vec2): void {
+        if (eq2(this._state.viewportSize, size)) {
+            return;
+        }
+        this._logger.log('update_viewport({0}, {1})', size.x, size.y);
+        this.gl.viewport(0, 0, size.x, size.y);
+        this._state.viewportSize = size;
+    }
+
     canvas(): HTMLCanvasElement {
         return this._canvas;
     }
@@ -258,7 +270,7 @@ export class Runtime {
         this._canvas.height = canvasSize.y;
         this._sizeChanged.emit();
         if (this._state.targetFramebuffer === null) {
-            this.gl.viewport(0, 0, canvasSize.x, canvasSize.y);
+            this._updateViewport(this._canvasSize);
         }
         return true;
     }
@@ -502,8 +514,7 @@ export class Runtime {
         }
         this._logger.log('set_framebuffer({0})', framebuffer ? 'TODO' : null);
         this.bindFramebuffer(framebuffer ? framebuffer.framebuffer() : null, 'TODO');
-        const size = framebuffer ? framebuffer.size() : this._canvasSize;
-        this.gl.viewport(0, 0, size.x, size.y);
+        this._updateViewport(framebuffer ? framebuffer.size() : this._canvasSize);
         this._state.targetFramebuffer = framebuffer;
     }
 }
