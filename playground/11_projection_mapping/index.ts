@@ -113,8 +113,8 @@ runtime.frameRendered().on(() => {
     const coeff = 3 * (2 / camera.getXViewSize());
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
-        fillTexture.setUnit(4);
-        mappingTexture.setUnit(5);
+        runtime.setTextureUnit(4, fillTexture);
+        runtime.setTextureUnit(5, mappingTexture);
         program.setUniform('u_offset', coeff * offset);
         program.setUniform('u_proj', camera.getProjMat());
         program.setUniform('u_view', camera.getViewMat());

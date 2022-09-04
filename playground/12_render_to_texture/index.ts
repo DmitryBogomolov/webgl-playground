@@ -113,7 +113,7 @@ function renderTarget(): void {
     runtime.setClearColor(targetClearColor);
     runtime.clearBuffer('color|depth');
 
-    texture.setUnit(2);
+    runtime.setTextureUnit(2, texture);
     const program = plane.program();
     program.setUniform('u_view_proj', targetCamera.getTransformMat());
     program.setUniform('u_model', targetModel());

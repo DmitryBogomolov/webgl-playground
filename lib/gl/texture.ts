@@ -158,9 +158,4 @@ export class Texture implements GLHandleWrapper<WebGLTexture> {
             }
         }
     }
-
-    setUnit(unit: number): void {
-        this._logger.log('set_unit({0})', unit);
-        this._runtime.activeTexture(unit, this);
-    }
 }

@@ -469,13 +469,13 @@ export class Runtime {
         this._state.boundTextures[this._state.textureUnit] = handle;
     }
 
-    activeTexture(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
+    setTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
         if ((this._state.boundTextures[unit] || null) === handle) {
             return;
         }
         if (this._state.textureUnit !== unit) {
-            this._logger.log('active_texture({0})', unit);
+            this._logger.log('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this.gl.activeTexture(GL_TEXTURE0 + unit);
             this._state.textureUnit = unit;
         }
