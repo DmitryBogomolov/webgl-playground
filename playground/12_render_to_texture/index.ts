@@ -5,7 +5,7 @@ import {
     Camera,
     vec3, YUNIT3, norm3, rotate3,
     Mat4, translation4x4, rotation4x4,
-    Color, color, vec2,
+    Color, color,
 } from 'lib';
 import { makeCube, makePlane } from './primitive';
 
@@ -30,7 +30,7 @@ interface ObjectInfo {
 const objects: ReadonlyArray<ObjectInfo> = [
     {
         clr: color(0.8, 0.2, 0.1),
-        model: translation4x4(vec3(+1.4, 0, 0))
+        model: translation4x4(vec3(+1.4, 0, 0)),
     },
     {
         clr: color(0.3, 0.5, 0.9),

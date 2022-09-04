@@ -21,7 +21,7 @@ export function makeCube(runtime: Runtime): Primitive {
         { name: 'a_normal', type: 'float3' },
     ]);
 
-    const { vertices, indices } = generateCube(UNIT3, vertex => vertex);
+    const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
@@ -55,7 +55,7 @@ export function makePlane(runtime: Runtime): Primitive {
         { name: 'a_texcoord', type: 'float2' },
     ]);
 
-    const { vertices, indices } = generatePlaneZ(vec2(2, 2), vertex => vertex);
+    const { vertices, indices } = generatePlaneZ(vec2(2, 2), (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {

@@ -140,7 +140,7 @@ export class Texture {
             const { size, data } = source;
             const [width, height] = size;
             this._logger.log(
-                'set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data ? data.byteLength : 'null'
+                'set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data ? data.byteLength : 'null',
             );
             gl.texImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             this._size = vec2(width, height);

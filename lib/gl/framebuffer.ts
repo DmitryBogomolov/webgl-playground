@@ -97,6 +97,7 @@ export class Framebuffer {
     }
 
     setupAttachment(type: FRAMEBUFFER_ATTACHMENT, texture: Texture): void {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         this._logger.log('setup_attachment({0}, {1})', type, (texture as any)._id);
         this._texture = null;
         if (this._renderbuffer) {
@@ -106,20 +107,20 @@ export class Framebuffer {
         try {
             this._runtime.bindFramebuffer(this._framebuffer, this._id);
             switch (type) {
-                case 'color':
-                    this._attachTexture(texture);
-                    break;
-                case 'color|depth':
-                    this._attachTexture(texture);
-                    this._attachDepthBuffer(texture.size());
-                    break;
-                case 'color|depth|stencil':
-                    this._attachTexture(texture);
-                    this._attachDepthStencilBuffer(texture.size());
-                    break;
-                default:
-                    this._logger.error('bad attachment type: {0}', type);
-                    break;
+            case 'color':
+                this._attachTexture(texture);
+                break;
+            case 'color|depth':
+                this._attachTexture(texture);
+                this._attachDepthBuffer(texture.size());
+                break;
+            case 'color|depth|stencil':
+                this._attachTexture(texture);
+                this._attachDepthStencilBuffer(texture.size());
+                break;
+            default:
+                this._logger.error('bad attachment type: {0}', type);
+                break;
             }
         } finally {
             this._runtime.bindFramebuffer(null, this._id);
