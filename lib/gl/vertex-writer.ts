@@ -1,8 +1,5 @@
-import { Vec2 } from '../geometry/types/vec2';
-import { Vec3 } from '../geometry/types/vec3';
-import { Vec4 } from '../geometry/types/vec4';
-import { Color } from './types/color';
 import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './types/vertex-schema';
+import { AttrValue } from './types/vertex-writer';
 import { Logger } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
@@ -27,11 +24,6 @@ interface AttributesMap {
     readonly [key: string]: Attribute;
 }
 
-type v1 = readonly [number];
-type v2 = readonly [number, number];
-type v3 = readonly [number, number, number];
-type v4 = readonly [number, number, number, number];
-export type AttrValue = number | v1 | v2 | v3 | v4 | Vec2 | Vec3 | Vec4 | Color;
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
 

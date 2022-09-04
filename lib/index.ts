@@ -25,6 +25,7 @@ export * from './gl/color';
 export * from './gl/render-loop';
 export * from './gl/types/vertex-schema';
 export * from './gl/vertex-schema';
+export * from './gl/types/vertex-writer';
 export * from './gl/vertex-writer';
 export * from './gl/types/runtime';
 export * from './gl/runtime';
