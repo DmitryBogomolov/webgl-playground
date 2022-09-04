@@ -1,5 +1,5 @@
 import { UniformValue } from './types/program';
-import { VertexSchema } from './vertex-schema';
+import { VertexSchema } from './types/vertex-schema';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { Runtime } from './runtime';

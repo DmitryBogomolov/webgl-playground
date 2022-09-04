@@ -23,6 +23,7 @@ export * from './alg/kd-tree';
 export * from './gl/types/color';
 export * from './gl/color';
 export * from './gl/render-loop';
+export * from './gl/types/vertex-schema';
 export * from './gl/vertex-schema';
 export * from './gl/vertex-writer';
 export * from './gl/types/runtime';
