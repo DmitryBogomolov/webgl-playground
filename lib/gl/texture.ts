@@ -1,3 +1,7 @@
+import {
+    TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
+    TextureParameters, TextureData, ImageDataOptions,
+} from './types/texture';
 import { Vec2 } from '../geometry/types/vec2';
 import { Runtime } from './runtime';
 import { GLValuesMap } from './gl-values-map';
@@ -7,15 +11,6 @@ import { vec2, ZERO2 } from '../geometry/vec2';
 
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
 const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;
-
-export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
-export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
-export type TEXTURE_MIN_FILTER = (
-    | 'nearest' | 'linear'
-    | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
-);
-
-export type TEXTURE_FORMAT = ('rgba' | 'rgb' | 'luminance' | 'alpha' | 'luminance_alpha');
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGLRenderingContext.prototype.REPEAT,
@@ -45,39 +40,22 @@ const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
 };
 const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
 
-const GL_PARAMETER_NAMES: GLValuesMap<keyof RawState> = {
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+type State = Required<Writeable<TextureParameters>>;
+
+const GL_PARAMETER_NAMES: GLValuesMap<keyof State> = {
     'wrap_s': WebGLRenderingContext.prototype.TEXTURE_WRAP_S,
     'wrap_t': WebGLRenderingContext.prototype.TEXTURE_WRAP_T,
     'mag_filter': WebGLRenderingContext.prototype.TEXTURE_MAG_FILTER,
     'min_filter': WebGLRenderingContext.prototype.TEXTURE_MIN_FILTER,
 };
 
-const GL_MAPS: Readonly<Record<keyof RawState, GLValuesMap<string>>> = {
+const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {
     'wrap_s': WRAP_MAP,
     'wrap_t': WRAP_MAP,
     'mag_filter': MAG_FILTER_MAP,
     'min_filter': MIN_FILTER_MAP,
 };
-
-interface RawState {
-    wrap_s?: TEXTURE_WRAP;
-    wrap_t?: TEXTURE_WRAP;
-    mag_filter?: TEXTURE_MAG_FILTER;
-    min_filter?: TEXTURE_MIN_FILTER;
-}
-type State = Required<RawState>;
-export type TextureParameters = Readonly<RawState>;
-
-export interface ImageDataOptions {
-    readonly unpackFlipY?: boolean;
-    readonly generateMipmap?: boolean;
-    readonly format?: TEXTURE_FORMAT;
-}
-
-export interface TextureData {
-    readonly size: readonly [number, number];
-    readonly data: ArrayBufferView | null;
-}
 
 function isTextureData(source: TextureData | TexImageSource): source is TextureData {
     return 'size' in source && 'data' in source;
@@ -159,7 +137,7 @@ export class Texture {
         const gl = this._runtime.gl;
         for (const [key, val] of Object.entries(params)) {
             if (val !== undefined) {
-                const value = GL_MAPS[key as keyof State][val];
+                const value = GL_MAPS[key as keyof State][val as keyof typeof GL_MAPS];
                 if (!value) {
                     throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
                 }

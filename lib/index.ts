@@ -31,6 +31,7 @@ export * from './gl/types/runtime';
 export * from './gl/runtime';
 export * from './gl/types/program';
 export * from './gl/program';
+export * from './gl/types/texture';
 export * from './gl/texture';
 export * from './gl/primitive';
 export * from './gl/framebuffer';
