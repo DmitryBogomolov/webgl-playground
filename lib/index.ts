@@ -2,6 +2,7 @@ export * from './utils/logger';
 export * from './utils/indexes-generator';
 export * from './utils/pointer-event';
 export * from './utils/memoizer';
+export * from './utils/types/tracker';
 export * from './utils/tracker';
 export * from './utils/types/event-emitter';
 export * from './utils/event-emitter';
