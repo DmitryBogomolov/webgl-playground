@@ -1,6 +1,6 @@
 import { EventEmitter, EventProxy } from '../utils/event-emitter';
 
-export type RenderFrameCallback = (delta: number, timestamp: number) => void;
+// export type RenderFrameCallback = (delta: number, timestamp: number) => void;
 
 export class RenderLoop {
     private readonly _frameRendered = new EventEmitter<[number, number]>(() => {
