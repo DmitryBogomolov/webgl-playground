@@ -1,12 +1,6 @@
 import { AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema } from './types/vertex-schema';
 import { Logger } from '../utils/logger';
 
-const {
-    BYTE, UNSIGNED_BYTE,
-    SHORT, UNSIGNED_SHORT,
-    FLOAT,
-} = WebGLRenderingContext.prototype;
-
 const BYTE_SIZES: AttributeTypeMap<number> = {
     byte: 1,
     ubyte: 1,
@@ -16,11 +10,11 @@ const BYTE_SIZES: AttributeTypeMap<number> = {
 };
 
 const GL_TYPES: AttributeTypeMap<number> = {
-    byte: BYTE,
-    ubyte: UNSIGNED_BYTE,
-    short: SHORT,
-    ushort: UNSIGNED_SHORT,
-    float: FLOAT,
+    byte: WebGLRenderingContext.prototype.BYTE,
+    ubyte: WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    short: WebGLRenderingContext.prototype.SHORT,
+    ushort: WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+    float: WebGLRenderingContext.prototype.FLOAT,
 };
 
 function parseType({ name, type }: AttributeOptions): AttributeType {
