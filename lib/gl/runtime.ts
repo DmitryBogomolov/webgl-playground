@@ -1,4 +1,4 @@
-import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION } from './types/runtime';
+import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION, RuntimeOptions } from './types/runtime';
 import { Vec2 } from '../geometry/types/vec2';
 import { Color } from './types/color';
 import { GLValuesMap } from './types/gl-values-map';
@@ -90,13 +90,6 @@ const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'element_index_uint': 'OES_element_index_uint',
 };
 
-export interface RuntimeOptions {
-    readonly alpha?: boolean;
-    readonly antialias?: boolean;
-    readonly premultipliedAlpha?: boolean;
-    readonly trackWindowResize?: boolean;
-    readonly extensions?: ReadonlyArray<EXTENSION>;
-}
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
     antialias: false,

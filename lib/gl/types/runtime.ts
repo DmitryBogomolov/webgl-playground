@@ -13,3 +13,11 @@ export type CULL_FACE = (
 );
 
 export type EXTENSION = ('element_index_uint');
+
+export interface RuntimeOptions {
+    readonly alpha?: boolean;
+    readonly antialias?: boolean;
+    readonly premultipliedAlpha?: boolean;
+    readonly trackWindowResize?: boolean;
+    readonly extensions?: ReadonlyArray<EXTENSION>;
+}
