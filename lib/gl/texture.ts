@@ -3,8 +3,8 @@ import {
     TextureParameters, TextureData, ImageDataOptions,
 } from './types/texture';
 import { Vec2 } from '../geometry/types/vec2';
+import { GLValuesMap } from './types/gl-values-map';
 import { Runtime } from './runtime';
-import { GLValuesMap } from './gl-values-map';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { vec2, ZERO2 } from '../geometry/vec2';

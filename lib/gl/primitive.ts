@@ -1,6 +1,6 @@
 import { VertexSchema } from './types/vertex-schema';
+import { GLValuesMap } from './types/gl-values-map';
 import { Runtime } from './runtime';
-import { GLValuesMap } from './gl-values-map';
 import { Program } from './program';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';

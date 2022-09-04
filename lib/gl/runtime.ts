@@ -1,10 +1,10 @@
 import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION } from './types/runtime';
 import { Vec2 } from '../geometry/types/vec2';
+import { GLValuesMap } from './types/gl-values-map';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
-import { GLValuesMap } from './gl-values-map';
 import { RenderLoop } from './render-loop';
 import { Color } from './types/color';
 import { color, colorEq, isColor } from './color';
