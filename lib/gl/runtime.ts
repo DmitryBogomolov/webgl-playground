@@ -1,17 +1,16 @@
 import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION } from './types/runtime';
 import { Vec2 } from '../geometry/types/vec2';
+import { Color } from './types/color';
 import { GLValuesMap } from './types/gl-values-map';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import { FramebufferTarget } from './types/framebuffer-target';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { generateId } from '../utils/id-generator';
 import { EventEmitter, EventProxy } from '../utils/event-emitter';
 import { Logger } from '../utils/logger';
 import { RenderLoop } from './render-loop';
-import { Color } from './types/color';
 import { color, colorEq, isColor } from './color';
 import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
-// TODO: Circular dependency.
-import { Framebuffer } from './framebuffer';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
@@ -42,7 +41,7 @@ interface State {
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
-    targetFramebuffer: Framebuffer | null;
+    targetFramebuffer: FramebufferTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
 }
 
@@ -508,11 +507,11 @@ export class Runtime {
         this._state.framebuffer = handle;
     }
 
-    getFramebuffer(): Framebuffer | null {
+    getFramebuffer(): FramebufferTarget | null {
         return this._state.targetFramebuffer;
     }
 
-    setFramebuffer(framebuffer: Framebuffer | null): void {
+    setFramebuffer(framebuffer: FramebufferTarget | null): void {
         if (this._state.targetFramebuffer === framebuffer) {
             return;
         }
