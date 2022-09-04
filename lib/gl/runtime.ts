@@ -12,6 +12,7 @@ import { Framebuffer } from './framebuffer';
 const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
 const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
+const GL_RENDERBUFFER = WebGLRenderingContext.prototype.RENDERBUFFER;
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
 const GL_TEXTURE0 = WebGLRenderingContext.prototype.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGLRenderingContext.prototype.UNPACK_FLIP_Y_WEBGL;
@@ -38,6 +39,7 @@ interface State {
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
     targetFramebuffer: Framebuffer | null;
+    renderbuffer: WebGLRenderbuffer | null;
 }
 
 export type BUFFER_MASK = (
@@ -171,6 +173,7 @@ export class Runtime {
             pixelStoreUnpackFlipYWebgl: false,
             framebuffer: null,
             targetFramebuffer: null,
+            renderbuffer: null,
         };
         this.adjustViewport();
         if (this._options.trackWindowResize) {
@@ -516,6 +519,15 @@ export class Runtime {
         this.bindFramebuffer(framebuffer ? framebuffer.framebuffer() : null, 'TODO');
         this._updateViewport(framebuffer ? framebuffer.size() : this._canvasSize);
         this._state.targetFramebuffer = framebuffer;
+    }
+
+    bindRenderbuffer(renderbuffer: WebGLRenderbuffer | null, id: string): void {
+        if (this._state.renderbuffer === renderbuffer) {
+            return;
+        }
+        this._logger.log('bind_renderbuffer({0})', renderbuffer ? id : null);
+        this.gl.bindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+        this._state.renderbuffer = renderbuffer;
     }
 }
 

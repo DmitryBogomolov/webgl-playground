@@ -67,7 +67,7 @@ texture.setImageData({ size: [256, 256], data: null }, { format: 'rgba' });
 sceneCamera.setViewportSize(texture.size());
 
 const framebuffer = new Framebuffer(runtime);
-framebuffer.setupAttachments(texture);
+framebuffer.setupAttachment('color|depth', texture);
 
 runtime.sizeChanged().on(() => {
     planeCamera.setViewportSize(runtime.canvasSize());

@@ -136,16 +136,19 @@ export class Primitive {
         }
         this._schema = schema;
         const gl = this._runtime.gl;
-        this._runtime.bindVertexArrayObject(this._vao, this._id);
-        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
-        for (const attr of schema.attributes) {
-            gl.vertexAttribPointer(
-                attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
-            );
-            gl.enableVertexAttribArray(attr.location);
+        try {
+            this._runtime.bindVertexArrayObject(this._vao, this._id);
+            this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+            for (const attr of schema.attributes) {
+                gl.vertexAttribPointer(
+                    attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
+                );
+                gl.enableVertexAttribArray(attr.location);
+            }
+            this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        } finally {
+            this._runtime.bindVertexArrayObject(null, this._id);
         }
-        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
-        this._runtime.bindVertexArrayObject(null, this._id);
     }
 
     setIndexData({ indexCount, indexOffset, indexType, primitiveMode }: IndexData): void {
