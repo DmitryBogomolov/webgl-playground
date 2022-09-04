@@ -1,3 +1,4 @@
+import { FRAMEBUFFER_ATTACHMENT } from './types/framebuffer';
 import { Vec2 } from '../geometry/types/vec2';
 import { ZERO2 } from '../geometry/vec2';
 import { generateId } from '../utils/id-generator';
@@ -13,8 +14,6 @@ const GL_DEPTH_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_ATTACHMENT;
 const GL_DEPTH_STENCIL_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_STENCIL_ATTACHMENT;
 const GL_DEPTH_COMPONENT16 = WebGLRenderingContext.prototype.DEPTH_COMPONENT16;
 const GL_DEPTH_STENCIL = WebGLRenderingContext.prototype.DEPTH_STENCIL;
-
-export type FRAMEBUFFER_ATTACHMENT = ('color' | 'color|depth' | 'color|depth|stencil');
 
 export class Framebuffer {
     private readonly _id = generateId('FrameBuffer');
