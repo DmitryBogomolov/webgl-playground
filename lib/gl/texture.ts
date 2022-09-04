@@ -126,12 +126,11 @@ export class Texture implements GLHandleWrapper<WebGLTexture> {
         this._runtime.bindTexture(this);
         if (isTextureData(source)) {
             const { size, data } = source;
-            const [width, height] = size;
             this._logger.log(
-                'set_image_data(size: {0}x{1}, data: {2})', size[0], size[1], data ? data.byteLength : 'null',
+                'set_image_data(size: {0}x{1}, data: {2})', size.x, size.y, data ? data.byteLength : 'null',
             );
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            this._size = vec2(width, height);
+            gl.texImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, data);
+            this._size = size;
         } else {
             this._logger.log('set_image_data(source: {0})', source);
             gl.texImage2D(GL_TEXTURE_2D, 0, format, format, GL_UNSIGNED_BYTE, source);

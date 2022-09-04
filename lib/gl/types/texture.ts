@@ -1,3 +1,5 @@
+import { Vec2 } from '../../geometry/types/vec2';
+
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
 export type TEXTURE_MIN_FILTER = (
@@ -21,6 +23,6 @@ export interface ImageDataOptions {
 }
 
 export interface TextureData {
-    readonly size: readonly [number, number];
+    readonly size: Vec2;
     readonly data: ArrayBufferView | null;
 }

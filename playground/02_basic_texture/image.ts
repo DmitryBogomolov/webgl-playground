@@ -19,7 +19,7 @@ export function makeTextureData(): TextureData {
         data[i++] = a * 0xFF;
     }
     return {
-        size: [TEXTURE_SIZE, TEXTURE_SIZE],
+        size: { x: TEXTURE_SIZE, y: TEXTURE_SIZE },
         data,
     };
 }

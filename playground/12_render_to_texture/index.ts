@@ -81,7 +81,7 @@ texture.setParameters({
     mag_filter: 'linear',
     min_filter: 'linear',
 });
-texture.setImageData({ size: [256, 256], data: null }, { format: 'rgba' });
+texture.setImageData({ size: { x: 256, y: 256 }, data: null }, { format: 'rgba' });
 textureCamera.setViewportSize(texture.size());
 
 const framebuffer = new Framebuffer(runtime);
