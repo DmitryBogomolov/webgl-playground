@@ -36,5 +36,6 @@ export * from './gl/texture';
 export * from './gl/types/primitive';
 export * from './gl/primitive';
 export * from './gl/framebuffer';
+export * from './gl/types/camera';
 export * from './gl/camera';
 export * from './worker/worker';

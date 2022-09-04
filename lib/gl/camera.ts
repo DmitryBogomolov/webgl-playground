@@ -1,3 +1,4 @@
+import { CAMERA_PROJECTION } from './types/camera';
 import { Vec2 } from '../geometry/types/vec2';
 import { Vec3 } from '../geometry/types/vec3';
 import { Mat4 } from '../geometry/types/mat4';
@@ -11,8 +12,6 @@ import {
     perspective4x4, orthographic4x4, lookAt4x4,
     mul4x4, inverse4x4,
 } from '../geometry/mat4';
-
-export type CAMERA_PROJECTION = ('perspective' | 'orthographic');
 
 export class Camera {
     private readonly _logger = new Logger('Camera');
