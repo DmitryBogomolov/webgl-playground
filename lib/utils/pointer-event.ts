@@ -1,11 +1,5 @@
-import { Vec2 } from '../geometry/types/vec2';
+import { GetEventCoordsFunc } from './types/pointer-event';
 import { vec2 } from '../geometry/vec2';
-
-interface Event {
-    readonly clientX: number;
-    readonly clientY: number;
-}
-export type GetEventCoordsFunc = (e: Event) => Vec2;
 
 export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsFunc {
     return (e) => {

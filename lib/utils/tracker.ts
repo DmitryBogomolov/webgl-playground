@@ -1,5 +1,6 @@
 import { TrackerHandler, TrackerParams } from './types/tracker';
-import { GetEventCoordsFunc, makeEventCoordsGetter } from './pointer-event';
+import { GetEventCoordsFunc } from './types/pointer-event';
+import { makeEventCoordsGetter } from './pointer-event';
 
 export class Tracker {
     private readonly _element: HTMLElement;
