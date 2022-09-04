@@ -20,6 +20,9 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setDepthTest(true);
 
+const textureClearColor = color(0.7, 0.7, 0.7);
+const targetClearColor = color(0.4, 0.4, 0.4);
+
 const cube = makeCube(runtime);
 const plane = makePlane(runtime);
 
@@ -47,14 +50,14 @@ const objects: ReadonlyArray<ObjectInfo> = [
 ];
 const lightDir = norm3(vec3(1, 3, 2));
 
-let cameraPos = vec3(0, 2, 5);
-const ROTATION_SPEED = (2 * Math.PI) * 0.1;
-const sceneCamera = new Camera();
-sceneCamera.setEyePos(cameraPos);
+let textureCameraPos = vec3(0, 2, 5);
+const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
+const textureCamera = new Camera();
+textureCamera.setEyePos(textureCameraPos);
 
-const planeCamera = new Camera();
-planeCamera.setEyePos(vec3(0, 0, 2));
-const planeModel = rotation4x4(YUNIT3, Math.PI / 6);
+const targetCamera = new Camera();
+targetCamera.setEyePos(vec3(0, 0, 2));
+const targetModel = rotation4x4(YUNIT3, Math.PI / 6);
 
 const texture = new Texture(runtime);
 texture.setParameters({
@@ -64,23 +67,23 @@ texture.setParameters({
     min_filter: 'linear',
 });
 texture.setImageData({ size: [256, 256], data: null }, { format: 'rgba' });
-sceneCamera.setViewportSize(texture.size());
+textureCamera.setViewportSize(texture.size());
 
 const framebuffer = new Framebuffer(runtime);
 framebuffer.setupAttachment('color|depth', texture);
 
 runtime.sizeChanged().on(() => {
-    planeCamera.setViewportSize(runtime.canvasSize());
+    targetCamera.setViewportSize(runtime.canvasSize());
 });
 
-function renderScene(): void {
+function renderTexture(): void {
     runtime.setFramebuffer(framebuffer);
 
-    runtime.setClearColor(color(0.7, 0.7, 0.7));
+    runtime.setClearColor(textureClearColor);
     runtime.clearBuffer('color|depth');
 
     const program = cube.program();
-    program.setUniform('u_view_proj', sceneCamera.getTransformMat());
+    program.setUniform('u_view_proj', textureCamera.getTransformMat());
     program.setUniform('u_light_dir', lightDir);
     for (const { clr, model } of objects) {
         program.setUniform('u_color', clr);
@@ -89,26 +92,26 @@ function renderScene(): void {
     }
 }
 
-function renderPlane(): void {
+function renderTarget(): void {
     runtime.setFramebuffer(null);
 
-    runtime.setClearColor(color(0.4, 0.4, 0.4));
+    runtime.setClearColor(targetClearColor);
     runtime.clearBuffer('color|depth');
 
     texture.setUnit(2);
     const program = plane.program();
-    program.setUniform('u_view_proj', planeCamera.getTransformMat());
-    program.setUniform('u_model', planeModel);
+    program.setUniform('u_view_proj', targetCamera.getTransformMat());
+    program.setUniform('u_model', targetModel);
     program.setUniform('u_texture', 2);
     plane.render();
 }
 
 runtime.frameRendered().on((delta) => {
-    cameraPos = rotate3(cameraPos, YUNIT3, ROTATION_SPEED * delta / 1000);
-    sceneCamera.setEyePos(cameraPos);
+    textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
+    textureCamera.setEyePos(textureCameraPos);
 
-    renderScene();
-    renderPlane();
+    renderTexture();
+    renderTarget();
 
     runtime.requestFrameRender();
 });
