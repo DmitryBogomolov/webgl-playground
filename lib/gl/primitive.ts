@@ -1,3 +1,4 @@
+import { PRIMITIVE_MODE, INDEX_TYPE, IndexData } from './types/primitive';
 import { VertexSchema } from './types/vertex-schema';
 import { GLValuesMap } from './types/gl-values-map';
 import { Runtime } from './runtime';
@@ -21,9 +22,6 @@ const EMPTY_PROGRAM = {
     schema() { return EMPTY_SCHEMA; },
 } as unknown as Program;
 
-export type PRIMITIVE_MODE = (
-    'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'
-);
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGLRenderingContext.prototype.POINTS,
     'line_strip': WebGLRenderingContext.prototype.LINE_STRIP,
@@ -35,22 +33,12 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-export type INDEX_TYPE = (
-    'u8' | 'u16' | 'u32'
-);
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'u8': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
     'u16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
     'u32': WebGLRenderingContext.prototype.UNSIGNED_INT,
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
-
-export interface IndexData {
-    readonly indexCount: number;
-    readonly indexOffset?: number;
-    readonly indexType?: INDEX_TYPE;
-    readonly primitiveMode?: PRIMITIVE_MODE;
-}
 
 export class Primitive {
     private readonly _id = generateId('Primitive');
