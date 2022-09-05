@@ -53,8 +53,8 @@ export class Primitive extends BaseWrapper {
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
-    constructor(runtime: PrimitiveRuntime) {
-        super();
+    constructor(runtime: PrimitiveRuntime, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();

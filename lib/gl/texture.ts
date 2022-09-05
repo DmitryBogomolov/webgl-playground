@@ -71,8 +71,8 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         min_filter: 'nearest_mipmap_linear',
     };
 
-    constructor(runtime: TextureRuntime) {
-        super();
+    constructor(runtime: TextureRuntime, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();

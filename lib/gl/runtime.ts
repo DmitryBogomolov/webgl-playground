@@ -124,8 +124,8 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this.adjustViewport();
     };
 
-    constructor(element: HTMLElement, options?: RuntimeOptions) {
-        super();
+    constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
+        super(tag);
         this._options = { ...DEFAULT_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);

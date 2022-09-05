@@ -1,12 +1,13 @@
-import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
+
+let nextId = 1;
 
 export abstract class BaseWrapper {
     protected readonly _id: string;
     protected readonly _logger: Logger;
 
-    constructor() {
-        this._id = generateId(this.constructor.name);
+    constructor(tag?: string) {
+        this._id = `${this.constructor.name}#${tag ? tag : nextId++}`;
         this._logger = new Logger(this._id);
     }
 

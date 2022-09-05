@@ -21,8 +21,8 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     private _texture: Texture | null = null;
     private _renderbuffer: WebGLRenderbuffer | null = null;
 
-    constructor(runtime: FramebufferRuntime) {
-        super();
+    constructor(runtime: FramebufferRuntime, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._framebuffer = this._createFramebuffer();
