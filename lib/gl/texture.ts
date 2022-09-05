@@ -1,11 +1,10 @@
 import {
     TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
-    TextureParameters, TextureData, ImageDataOptions,
+    TextureParameters, TextureData, ImageDataOptions, TextureRuntime,
 } from './types/texture';
 import { Vec2 } from '../geometry/types/vec2';
 import { GLValuesMap } from './types/gl-values-map';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
-import { Runtime } from './runtime';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
 import { vec2, ZERO2 } from '../geometry/vec2';
@@ -65,7 +64,7 @@ function isTextureData(source: TextureData | TexImageSource): source is TextureD
 export class Texture implements GLHandleWrapper<WebGLTexture> {
     private readonly _id = generateId('Texture');
     private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime;
+    private readonly _runtime: TextureRuntime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
     private _state: State = {
@@ -75,7 +74,7 @@ export class Texture implements GLHandleWrapper<WebGLTexture> {
         min_filter: 'nearest_mipmap_linear',
     };
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: TextureRuntime) {
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();

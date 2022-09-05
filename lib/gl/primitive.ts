@@ -1,7 +1,7 @@
-import { PRIMITIVE_MODE, INDEX_TYPE, IndexData } from './types/primitive';
+import { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
 import { VertexSchema } from './types/vertex-schema';
 import { GLValuesMap } from './types/gl-values-map';
-import { Runtime, wrap } from './runtime';
+import { wrap } from './gl-handle-wrapper';
 import { Program } from './program';
 import { generateId } from '../utils/id-generator';
 import { Logger } from '../utils/logger';
@@ -43,7 +43,7 @@ const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
 export class Primitive {
     private readonly _id = generateId('Primitive');
     private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime;
+    private readonly _runtime: PrimitiveRuntime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
@@ -56,7 +56,7 @@ export class Primitive {
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: PrimitiveRuntime) {
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();

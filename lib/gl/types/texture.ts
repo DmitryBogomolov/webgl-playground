@@ -1,4 +1,6 @@
 import { Vec2 } from '../../geometry/types/vec2';
+import { GLWrapper } from './gl-wrapper';
+import { GLHandleWrapper } from './gl-handle-wrapper';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
@@ -25,4 +27,9 @@ export interface ImageDataOptions {
 export interface TextureData {
     readonly size: Vec2;
     readonly data: ArrayBufferView | null;
+}
+
+export interface TextureRuntime extends GLWrapper {
+    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void;
+    bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void;
 }

@@ -2,6 +2,7 @@ import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION, RuntimeOptions } from '.
 import { Vec2 } from '../geometry/types/vec2';
 import { Color } from './types/color';
 import { GLValuesMap } from './types/gl-values-map';
+import { GLWrapper } from './types/gl-wrapper';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { FramebufferTarget } from './types/framebuffer-target';
 import { EventProxy } from '../utils/types/event-emitter';
@@ -98,7 +99,7 @@ const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     extensions: [],
 };
 
-export class Runtime {
+export class Runtime implements GLWrapper {
     private readonly _id = generateId('Runtime');
     private readonly _logger = new Logger(this._id);
     private readonly _options: Required<RuntimeOptions>;
@@ -548,26 +549,4 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
-}
-
-class GLHandleWrapperImpl<T> implements GLHandleWrapper<T> {
-    private readonly _id: string;
-    private readonly _handle: T;
-
-    constructor(id: string, handle: T) {
-        this._id = id;
-        this._handle = handle;
-    }
-
-    id(): string {
-        return this._id;
-    }
-
-    glHandle(): T {
-        return this._handle;
-    }
-}
-
-export function wrap<T>(id: string, handle: T): GLHandleWrapper<T> {
-    return new GLHandleWrapperImpl(id, handle);
 }
