@@ -1,9 +1,9 @@
-import { Runtime } from './runtime';
-import { GLValuesMap } from './gl-values-map';
+import { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
+import { VertexSchema } from './types/vertex-schema';
+import { GLValuesMap } from './types/gl-values-map';
+import { BaseWrapper } from './base-wrapper';
+import { wrap } from './gl-handle-wrapper';
 import { Program } from './program';
-import { VertexSchema } from './vertex-schema';
-import { generateId } from '../utils/id-generator';
-import { Logger } from '../utils/logger';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
@@ -21,9 +21,6 @@ const EMPTY_PROGRAM = {
     schema() { return EMPTY_SCHEMA; },
 } as unknown as Program;
 
-export type PRIMITIVE_MODE = (
-    'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'
-);
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGLRenderingContext.prototype.POINTS,
     'line_strip': WebGLRenderingContext.prototype.LINE_STRIP,
@@ -35,9 +32,6 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-export type INDEX_TYPE = (
-    'u8' | 'u16' | 'u32'
-);
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'u8': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
     'u16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
@@ -45,17 +39,8 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
 
-export interface IndexData {
-    readonly indexCount: number;
-    readonly indexOffset?: number;
-    readonly indexType?: INDEX_TYPE;
-    readonly primitiveMode?: PRIMITIVE_MODE;
-}
-
-export class Primitive {
-    private readonly _id = generateId('Primitive');
-    private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime;
+export class Primitive extends BaseWrapper {
+    private readonly _runtime: PrimitiveRuntime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
     private readonly _indexBuffer: WebGLBuffer;
@@ -68,7 +53,8 @@ export class Primitive {
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: PrimitiveRuntime, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();
@@ -103,7 +89,7 @@ export class Primitive {
         this._logger.log('allocate_vertex_buffer({0})', size);
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
-        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+        this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
     }
 
@@ -111,21 +97,21 @@ export class Primitive {
         this._logger.log('allocate_index_buffer({0})', size);
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
-        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
         const gl = this._runtime.gl;
-        this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+        this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
         const gl = this._runtime.gl;
-        this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+        this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
@@ -137,17 +123,17 @@ export class Primitive {
         this._schema = schema;
         const gl = this._runtime.gl;
         try {
-            this._runtime.bindVertexArrayObject(this._vao, this._id);
-            this._runtime.bindArrayBuffer(this._vertexBuffer, this._id);
+            this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
+            this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
             for (const attr of schema.attributes) {
                 gl.vertexAttribPointer(
                     attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
                 );
                 gl.enableVertexAttribArray(attr.location);
             }
-            this._runtime.bindElementArrayBuffer(this._indexBuffer, this._id);
+            this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         } finally {
-            this._runtime.bindVertexArrayObject(null, this._id);
+            this._runtime.bindVertexArrayObject(null);
         }
     }
 
@@ -206,8 +192,8 @@ export class Primitive {
             return;
         }
         this._program.use();
-        this._runtime.bindVertexArrayObject(this._vao, this._id);
+        this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
-        this._runtime.bindVertexArrayObject(null, this._id);
+        this._runtime.bindVertexArrayObject(null);
     }
 }

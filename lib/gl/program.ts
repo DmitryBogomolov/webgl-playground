@@ -1,33 +1,22 @@
-import { VertexSchema } from './vertex-schema';
-import { generateId } from '../utils/id-generator';
+import { UniformValue, ProgramOptions, ProgramRuntime } from './types/program';
+import { VertexSchema } from './types/vertex-schema';
+import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import { BaseWrapper } from './base-wrapper';
 import { Logger } from '../utils/logger';
-import { Runtime } from './runtime';
-import { Vec2, isVec2 } from '../geometry/vec2';
-import { Vec3, isVec3 } from '../geometry/vec3';
-import { Vec4, isVec4 } from '../geometry/vec4';
-import { Mat2, isMat2 } from '../geometry/mat2';
-import { Mat3, isMat3 } from '../geometry/mat3';
-import { Mat4, isMat4 } from '../geometry/mat4';
-import { Color, isColor } from './color';
+import { isVec2 } from '../geometry/vec2';
+import { isVec3 } from '../geometry/vec3';
+import { isVec4 } from '../geometry/vec4';
+import { isMat2 } from '../geometry/mat2';
+import { isMat3 } from '../geometry/mat3';
+import { isMat4 } from '../geometry/mat4';
+import { isColor } from './color';
 import { formatStr } from '../utils/string-formatter';
 
-const {
-    VERTEX_SHADER, FRAGMENT_SHADER,
-    LINK_STATUS,
-    ACTIVE_ATTRIBUTES, ACTIVE_UNIFORMS,
-    FLOAT, FLOAT_VEC2, FLOAT_VEC3, FLOAT_VEC4,
-    INT, INT_VEC2, INT_VEC3, INT_VEC4,
-    BOOL, BOOL_VEC2, BOOL_VEC3, BOOL_VEC4,
-    FLOAT_MAT2, FLOAT_MAT3, FLOAT_MAT4,
-    SAMPLER_2D,
-} = WebGLRenderingContext.prototype;
-
-type v1 = readonly [number];
-type v2 = readonly [number, number];
-type v3 = readonly [number, number, number];
-type v4 = readonly [number, number, number, number];
-type arr = readonly number[];
-export type UniformValue = boolean | number | v1 | v2 | v3 | v4 | arr | Vec2 | Vec3 | Vec4 | Mat2 | Mat3 | Mat4 | Color;
+const GL_VERTEX_SHADER = WebGLRenderingContext.prototype.VERTEX_SHADER;
+const GL_FRAGMENT_SHADER = WebGLRenderingContext.prototype.FRAGMENT_SHADER;
+const GL_LINK_STATUS = WebGLRenderingContext.prototype.LINK_STATUS;
+const GL_ACTIVE_ATTRIBUTES = WebGLRenderingContext.prototype.ACTIVE_ATTRIBUTES;
+const GL_ACTIVE_UNIFORMS = WebGLRenderingContext.prototype.ACTIVE_UNIFORMS;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -56,27 +45,23 @@ interface UniformSettersMap {
     readonly [key: number]: UniformSetter;
 }
 
-export interface UniformValues {
-    readonly [name: string]: UniformValue;
-}
-
 const shaderTypes: ShaderTypesMap = {
-    [FLOAT]: { type: 'float', size: 1 },
-    [FLOAT_VEC2]: { type: 'float', size: 2 },
-    [FLOAT_VEC3]: { type: 'float', size: 3 },
-    [FLOAT_VEC4]: { type: 'float', size: 4 },
-    [INT]: { type: 'int', size: 1 },
-    [INT_VEC2]: { type: 'int', size: 2 },
-    [INT_VEC3]: { type: 'int', size: 3 },
-    [INT_VEC4]: { type: 'int', size: 4 },
-    [BOOL]: { type: 'bool', size: 1 },
-    [BOOL_VEC2]: { type: 'bool', size: 2 },
-    [BOOL_VEC3]: { type: 'bool', size: 3 },
-    [BOOL_VEC4]: { type: 'bool', size: 4 },
-    [FLOAT_MAT2]: { type: 'float', size: 4 },
-    [FLOAT_MAT3]: { type: 'float', size: 9 },
-    [FLOAT_MAT4]: { type: 'float', size: 16 },
-    [SAMPLER_2D]: { type: 'sampler', size: 1 },
+    [WebGLRenderingContext.prototype.FLOAT]: { type: 'float', size: 1 },
+    [WebGLRenderingContext.prototype.FLOAT_VEC2]: { type: 'float', size: 2 },
+    [WebGLRenderingContext.prototype.FLOAT_VEC3]: { type: 'float', size: 3 },
+    [WebGLRenderingContext.prototype.FLOAT_VEC4]: { type: 'float', size: 4 },
+    [WebGLRenderingContext.prototype.INT]: { type: 'int', size: 1 },
+    [WebGLRenderingContext.prototype.INT_VEC2]: { type: 'int', size: 2 },
+    [WebGLRenderingContext.prototype.INT_VEC3]: { type: 'int', size: 3 },
+    [WebGLRenderingContext.prototype.INT_VEC4]: { type: 'int', size: 4 },
+    [WebGLRenderingContext.prototype.BOOL]: { type: 'bool', size: 1 },
+    [WebGLRenderingContext.prototype.BOOL_VEC2]: { type: 'bool', size: 2 },
+    [WebGLRenderingContext.prototype.BOOL_VEC3]: { type: 'bool', size: 3 },
+    [WebGLRenderingContext.prototype.BOOL_VEC4]: { type: 'bool', size: 4 },
+    [WebGLRenderingContext.prototype.FLOAT_MAT2]: { type: 'float', size: 4 },
+    [WebGLRenderingContext.prototype.FLOAT_MAT3]: { type: 'float', size: 9 },
+    [WebGLRenderingContext.prototype.FLOAT_MAT4]: { type: 'float', size: 16 },
+    [WebGLRenderingContext.prototype.SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
 function isNumArray(arg: unknown, length: number): arg is number[] {
@@ -84,7 +69,7 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
 }
 
 const uniformSetters: UniformSettersMap = {
-    [BOOL]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.BOOL]: (logger, gl, { location }, value) => {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
@@ -92,7 +77,7 @@ const uniformSetters: UniformSettersMap = {
         }
 
     },
-    [FLOAT]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
         } else if (isNumArray(value, 1)) {
@@ -101,7 +86,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "float" uniform: {0}', value);
         }
     },
-    [FLOAT_VEC2]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_VEC2]: (logger, gl, { location }, value) => {
         if (isVec2(value)) {
             gl.uniform2f(location, value.x, value.y);
         } else if (isNumArray(value, 2)) {
@@ -110,7 +95,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
-    [FLOAT_VEC3]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_VEC3]: (logger, gl, { location }, value) => {
         if (isVec3(value)) {
             gl.uniform3f(location, value.x, value.y, value.z);
         } else if (isNumArray(value, 3)) {
@@ -121,7 +106,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
-    [FLOAT_VEC4]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_VEC4]: (logger, gl, { location }, value) => {
         if (isVec4(value)) {
             gl.uniform4f(location, value.x, value.y, value.z, value.w);
         } else if (isNumArray(value, 4)) {
@@ -132,14 +117,14 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec4" uniform: {0}', value);
         }
     },
-    [SAMPLER_2D]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.SAMPLER_2D]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
             throw logger.error('bad value for "sampler2D" uniform: {0}', value);
         }
     },
-    [FLOAT_MAT2]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_MAT2]: (logger, gl, { location }, value) => {
         if (isMat2(value)) {
             gl.uniformMatrix2fv(location, false, value as number[]);
         } else if (isNumArray(value, 4)) {
@@ -148,7 +133,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "mat2" uniform: {0}', value);
         }
     },
-    [FLOAT_MAT3]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_MAT3]: (logger, gl, { location }, value) => {
         if (isMat3(value)) {
             gl.uniformMatrix3fv(location, false, value as number[]);
         } else if (isNumArray(value, 9)) {
@@ -157,7 +142,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "mat3" uniform: {0}', value);
         }
     },
-    [FLOAT_MAT4]: (logger, gl, { location }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT_MAT4]: (logger, gl, { location }, value) => {
         if (isMat4(value)) {
             gl.uniformMatrix4fv(location, false, value as number[]);
         } else if (isNumArray(value, 16)) {
@@ -169,7 +154,7 @@ const uniformSetters: UniformSettersMap = {
 };
 
 const uniformArraySetters: UniformSettersMap = {
-    [BOOL]: (logger, gl, { location, info }, value) => {
+    [WebGLRenderingContext.prototype.BOOL]: (logger, gl, { location, info }, value) => {
         if (isNumArray(value, info.size)) {
             gl.uniform1iv(location, value);
         } else {
@@ -177,7 +162,7 @@ const uniformArraySetters: UniformSettersMap = {
         }
 
     },
-    [FLOAT]: (logger, gl, { location, info }, value) => {
+    [WebGLRenderingContext.prototype.FLOAT]: (logger, gl, { location, info }, value) => {
         if (isNumArray(value, info.size)) {
             gl.uniform1fv(location, value);
         } else {
@@ -194,16 +179,8 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
-export interface ProgramOptions {
-    readonly vertexShader: string;
-    readonly fragmentShader: string;
-    readonly schema: VertexSchema;
-}
-
-export class Program {
-    private readonly _id = generateId('Program');
-    private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime;
+export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram> {
+    private readonly _runtime: ProgramRuntime;
     private readonly _vertexShader: WebGLShader;
     private readonly _fragmentShader: WebGLShader;
     private readonly _schema: VertexSchema;
@@ -211,14 +188,15 @@ export class Program {
     private readonly _uniforms: UniformsMap = {};
     private readonly _program: WebGLProgram;
 
-    constructor(runtime: Runtime, options: ProgramOptions) {
+    constructor(runtime: ProgramRuntime, options: ProgramOptions, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._schema = options.schema;
         try {
             this._program = this._createProgram();
-            this._vertexShader = this._createShader(VERTEX_SHADER, options.vertexShader);
-            this._fragmentShader = this._createShader(FRAGMENT_SHADER, options.fragmentShader);
+            this._vertexShader = this._createShader(GL_VERTEX_SHADER, options.vertexShader);
+            this._fragmentShader = this._createShader(GL_FRAGMENT_SHADER, options.fragmentShader);
             this._bindAttributes();
             this._linkProgram();
             /* this._attributes = */this._collectAttributes();
@@ -232,6 +210,10 @@ export class Program {
     dispose(): void {
         this._logger.log('dispose');
         this._dispose();
+    }
+
+    glHandle(): WebGLProgram {
+        return this._program;
     }
 
     private _dispose(): void {
@@ -278,7 +260,7 @@ export class Program {
     private _linkProgram(): void {
         const gl = this._runtime.gl;
         gl.linkProgram(this._program);
-        if (!gl.getProgramParameter(this._program, LINK_STATUS)) {
+        if (!gl.getProgramParameter(this._program, GL_LINK_STATUS)) {
             const linkInfo = gl.getProgramInfoLog(this._program)!;
             const vertexInfo = gl.getShaderInfoLog(this._vertexShader);
             const fragmentInfo = gl.getShaderInfoLog(this._fragmentShader);
@@ -296,7 +278,7 @@ export class Program {
     private _collectAttributes(): AttributesMap {
         const gl = this._runtime.gl;
         const program = this._program;
-        const count = gl.getProgramParameter(program, ACTIVE_ATTRIBUTES) as number;
+        const count = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES) as number;
         const attributes: Record<string, ShaderAttribute> = {};
         for (let i = 0; i < count; ++i) {
             const info = gl.getActiveAttrib(program, i)!;
@@ -332,7 +314,7 @@ export class Program {
     private _collectUniforms(): UniformsMap {
         const gl = this._runtime.gl;
         const program = this._program;
-        const count = gl.getProgramParameter(program, ACTIVE_UNIFORMS) as number;
+        const count = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS) as number;
         const uniforms: Record<string, ShaderUniform> = {};
         for (let i = 0; i < count; ++i) {
             const info = gl.getActiveUniform(program, i)!;
@@ -354,7 +336,7 @@ export class Program {
     }
 
     use(): void {
-        this._runtime.useProgram(this._program, this._id);
+        this._runtime.useProgram(this);
     }
 
     setUniform(name: string, value: UniformValue): void {

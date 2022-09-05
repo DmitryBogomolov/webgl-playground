@@ -199,7 +199,7 @@ function drawRect(size: Vec2, offset: Vec2, filter: 'nearest' | 'linear', texcoo
         min_filter: filter,
         mag_filter: filter,
     });
-    texture.setUnit(2);
+    runtime.setTextureUnit(2, texture);
     const program = primitive.program();
     program.setUniform('u_size', size);
     program.setUniform('u_offset', offset);

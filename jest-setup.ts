@@ -1,10 +1,10 @@
 import { logSilenced } from './lib/utils/logger';
-import { Vec2 } from './lib/geometry/vec2';
-import { Vec3 } from './lib/geometry/vec3';
-import { Vec4 } from './lib/geometry/vec4';
-import { Mat2 } from './lib/geometry/mat2';
-import { Mat3 } from './lib/geometry/mat3';
-import { Mat4 } from './lib/geometry/mat4';
+import { Vec2 } from './lib/geometry/types/vec2';
+import { Vec3 } from './lib/geometry/types/vec3';
+import { Vec4 } from './lib/geometry/types/vec4';
+import { Mat2 } from './lib/geometry/types/mat2';
+import { Mat3 } from './lib/geometry/types/mat3';
+import { Mat4 } from './lib/geometry/types/mat4';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace

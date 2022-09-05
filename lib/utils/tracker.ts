@@ -1,20 +1,6 @@
-import { Vec2 } from 'lib/geometry/vec2';
-import { GetEventCoordsFunc, makeEventCoordsGetter } from './pointer-event';
-
-export interface TrackerEvent {
-    readonly nativeEvent: PointerEvent | MouseEvent;
-    readonly coords: Vec2;
-}
-
-export type TrackerHandler = (e: TrackerEvent) => void;
-
-export interface TrackerParams {
-    readonly onStart?: TrackerHandler;
-    readonly onMove?: TrackerHandler;
-    readonly onEnd?: TrackerHandler;
-    readonly onClick?: TrackerHandler;
-    readonly onDblClick?: TrackerHandler;
-}
+import { TrackerHandler, TrackerParams } from './types/tracker';
+import { GetEventCoordsFunc } from './types/pointer-event';
+import { makeEventCoordsGetter } from './pointer-event';
 
 export class Tracker {
     private readonly _element: HTMLElement;

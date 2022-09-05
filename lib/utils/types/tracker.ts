@@ -1,0 +1,18 @@
+import { Vec2 } from '../../geometry/types/vec2';
+
+export interface TrackerEvent {
+    readonly nativeEvent: PointerEvent | MouseEvent;
+    readonly coords: Vec2;
+}
+
+export interface TrackerHandler {
+    (e: TrackerEvent): void;
+}
+
+export interface TrackerParams {
+    readonly onStart?: TrackerHandler;
+    readonly onMove?: TrackerHandler;
+    readonly onEnd?: TrackerHandler;
+    readonly onClick?: TrackerHandler;
+    readonly onDblClick?: TrackerHandler;
+}

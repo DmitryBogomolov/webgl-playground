@@ -1,9 +1,4 @@
-export interface Color {
-    readonly r: number;
-    readonly g: number;
-    readonly b: number;
-    readonly a: number;
-}
+import { Color } from './types/color';
 
 export class ColorImpl implements Color {
     readonly r: number;

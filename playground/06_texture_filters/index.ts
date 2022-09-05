@@ -82,7 +82,7 @@ currentKernel.on(() => runtime.requestFrameRender());
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer();
-    texture.setUnit(3);
+    runtime.setTextureUnit(3, texture);
     const program = primitive.program();
     program.setUniform('u_canvas_size', runtime.canvasSize());
     program.setUniform('u_texture_size', texture.size());

@@ -21,7 +21,7 @@ export function makeFillTexture(runtime: Runtime): Texture {
         min_filter: 'nearest',
     });
     texture.setImageData(
-        { size: [8, 8], data },
+        { size: { x: 8, y: 8 }, data },
         { generateMipmap: true, format: 'luminance' },
     );
     return texture;

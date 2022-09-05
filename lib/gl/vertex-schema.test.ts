@@ -1,4 +1,5 @@
-import { Attribute, AttributeTypeOption, parseVertexSchema } from './vertex-schema';
+import { Attribute, AttributeTypeOption } from './types/vertex-schema';
+import { parseVertexSchema } from './vertex-schema';
 
 describe('vertex schema', () => {
     describe('VertexSchema', () => {

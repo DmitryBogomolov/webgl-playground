@@ -1,11 +1,4 @@
-export interface EventHandler<T extends readonly unknown[] = []> {
-    (...args: T): void;
-}
-
-export interface EventProxy<T extends readonly unknown[] = []> {
-    on(handler: EventHandler<T>): this;
-    off(handler: EventHandler<T>): this;
-}
+import { EventHandler, EventProxy } from './types/event-emitter';
 
 export class EventEmitter<T extends readonly unknown[] = []> implements EventProxy<T> {
     private readonly _handlers: EventHandler<T>[] = [];

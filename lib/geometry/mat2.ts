@@ -1,8 +1,6 @@
-import { Vec2, vec2 } from './vec2';
-
-export interface Mat2 {
-    readonly [i: number]: number;
-}
+import { Mat2 } from './types/mat2';
+import { Vec2 } from './types/vec2';
+import { vec2 } from './vec2';
 
 const MAT_RANK = 2;
 const MAT_SIZE = MAT_RANK ** 2;

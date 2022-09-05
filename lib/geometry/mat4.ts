@@ -1,9 +1,8 @@
-import { Vec3, vec3, norm3, sub3, cross3, dot3 } from './vec3';
-import { Vec4, vec4 } from './vec4';
-
-export interface Mat4 {
-    readonly [i: number]: number;
-}
+import { Mat4 } from './types/mat4';
+import { Vec3 } from './types/vec3';
+import { Vec4 } from './types/vec4';
+import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
+import { vec4 } from './vec4';
 
 const MAT_RANK = 4;
 const MAT_SIZE = MAT_RANK ** 2;

@@ -1,15 +1,18 @@
+import { CAMERA_PROJECTION } from './types/camera';
+import { Vec2 } from '../geometry/types/vec2';
+import { Vec3 } from '../geometry/types/vec3';
+import { Mat4 } from '../geometry/types/mat4';
 import { Logger } from '../utils/logger';
-import { EventEmitter, EventProxy } from '../utils/event-emitter';
+import { EventProxy } from '../utils/types/event-emitter';
+import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../geometry/scalar';
-import { Vec2, vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
-import { Vec3, ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
+import { vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
+import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
 import {
-    Mat4, mat4,
+    mat4,
     perspective4x4, orthographic4x4, lookAt4x4,
     mul4x4, inverse4x4,
 } from '../geometry/mat4';
-
-export type CAMERA_PROJECTION = ('perspective' | 'orthographic');
 
 export class Camera {
     private readonly _logger = new Logger('Camera');

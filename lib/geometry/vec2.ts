@@ -1,7 +1,4 @@
-export interface Vec2 {
-    readonly x: number;
-    readonly y: number;
-}
+import { Vec2 } from './types/vec2';
 
 export class Vec2Impl implements Vec2 {
     readonly x: number;

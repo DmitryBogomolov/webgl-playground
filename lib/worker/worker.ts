@@ -1,13 +1,9 @@
-export type WorkerMessagePayload = unknown;
+import { WorkerMessagePayload, WorkerMessageHandlers } from './types/worker';
 
 interface WorkerEventData {
     readonly type: string;
     readonly payload: WorkerMessagePayload;
 }
-
-export type WorkerMessageHandler = (message: WorkerMessagePayload) => void;
-
-export type WorkerMessageHandlers = Record<string, WorkerMessageHandler>;
 
 export class WorkerMessenger {
     private readonly _worker: Worker;

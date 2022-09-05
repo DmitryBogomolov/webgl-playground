@@ -81,7 +81,7 @@ texture.setParameters({
     mag_filter: 'linear',
     min_filter: 'linear',
 });
-texture.setImageData({ size: [256, 256], data: null }, { format: 'rgba' });
+texture.setImageData({ size: { x: 256, y: 256 }, data: null }, { format: 'rgba' });
 textureCamera.setViewportSize(texture.size());
 
 const framebuffer = new Framebuffer(runtime);
@@ -113,7 +113,7 @@ function renderTarget(): void {
     runtime.setClearColor(targetClearColor);
     runtime.clearBuffer('color|depth');
 
-    texture.setUnit(2);
+    runtime.setTextureUnit(2, texture);
     const program = plane.program();
     program.setUniform('u_view_proj', targetCamera.getTransformMat());
     program.setUniform('u_model', targetModel());

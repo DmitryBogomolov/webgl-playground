@@ -1,7 +1,9 @@
-import { Vec2, ZERO2 } from '../geometry/vec2';
-import { generateId } from '../utils/id-generator';
-import { Logger } from '../utils/logger';
-import { Runtime } from './runtime';
+import { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
+import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import { BaseWrapper } from './base-wrapper';
+import { Vec2 } from '../geometry/types/vec2';
+import { ZERO2 } from '../geometry/vec2';
+import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture';
 
 const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
@@ -13,17 +15,14 @@ const GL_DEPTH_STENCIL_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_STENCI
 const GL_DEPTH_COMPONENT16 = WebGLRenderingContext.prototype.DEPTH_COMPONENT16;
 const GL_DEPTH_STENCIL = WebGLRenderingContext.prototype.DEPTH_STENCIL;
 
-export type FRAMEBUFFER_ATTACHMENT = ('color' | 'color|depth' | 'color|depth|stencil');
-
-export class Framebuffer {
-    private readonly _id = generateId('FrameBuffer');
-    private readonly _logger = new Logger(this._id);
-    private readonly _runtime: Runtime;
+export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
+    private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private _texture: Texture | null = null;
     private _renderbuffer: WebGLRenderbuffer | null = null;
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: FramebufferRuntime, tag?: string) {
+        super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._framebuffer = this._createFramebuffer();
@@ -37,7 +36,7 @@ export class Framebuffer {
         this._runtime.gl.deleteFramebuffer(this._framebuffer);
     }
 
-    framebuffer(): WebGLFramebuffer {
+    glHandle(): WebGLFramebuffer {
         return this._framebuffer;
     }
 
@@ -71,13 +70,13 @@ export class Framebuffer {
     private _attachDepthBuffer({ x, y }: Vec2): void {
         const renderbuffer = this._createRenderbuffer();
         try {
-            this._runtime.bindRenderbuffer(renderbuffer, this._id);
+            this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
             this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, x, y);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
-            this._runtime.bindRenderbuffer(null, this._id);
+            this._runtime.bindRenderbuffer(null);
         }
         this._renderbuffer = renderbuffer;
     }
@@ -85,27 +84,26 @@ export class Framebuffer {
     private _attachDepthStencilBuffer({ x, y }: Vec2): void {
         const renderbuffer = this._createRenderbuffer();
         try {
-            this._runtime.bindRenderbuffer(renderbuffer, this._id);
+            this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
             this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, x, y);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
-            this._runtime.bindRenderbuffer(null, this._id);
+            this._runtime.bindRenderbuffer(null);
         }
         this._renderbuffer = renderbuffer;
     }
 
     setupAttachment(type: FRAMEBUFFER_ATTACHMENT, texture: Texture): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        this._logger.log('setup_attachment({0}, {1})', type, (texture as any)._id);
+        this._logger.log('setup_attachment({0}, {1})', type, texture.id());
         this._texture = null;
         if (this._renderbuffer) {
             this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
         }
         this._renderbuffer = null;
         try {
-            this._runtime.bindFramebuffer(this._framebuffer, this._id);
+            this._runtime.bindFramebuffer(this);
             switch (type) {
             case 'color':
                 this._attachTexture(texture);
@@ -123,7 +121,7 @@ export class Framebuffer {
                 break;
             }
         } finally {
-            this._runtime.bindFramebuffer(null, this._id);
+            this._runtime.bindFramebuffer(null);
         }
     }
 }

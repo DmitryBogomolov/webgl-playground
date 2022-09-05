@@ -1,8 +1,4 @@
-export interface Vec3 {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-}
+import { Vec3 } from './types/vec3';
 
 export class Vec3Impl implements Vec3 {
     readonly x: number;

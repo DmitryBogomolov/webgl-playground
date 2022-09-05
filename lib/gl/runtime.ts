@@ -1,13 +1,17 @@
+import { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION, RuntimeOptions } from './types/runtime';
+import { Vec2 } from '../geometry/types/vec2';
+import { Color } from './types/color';
+import { GLValuesMap } from './types/gl-values-map';
+import { GLWrapper } from './types/gl-wrapper';
+import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import { FramebufferTarget } from './types/framebuffer-target';
+import { EventProxy } from '../utils/types/event-emitter';
+import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
-import { generateId } from '../utils/id-generator';
-import { EventEmitter, EventProxy } from '../utils/event-emitter';
-import { Logger } from '../utils/logger';
-import { GLValuesMap } from './gl-values-map';
+import { EventEmitter } from '../utils/event-emitter';
 import { RenderLoop } from './render-loop';
-import { Color, color, colorEq, isColor } from './color';
-import { Vec2, ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
-// TODO: Circular dependency.
-import { Framebuffer } from './framebuffer';
+import { color, colorEq, isColor } from './color';
+import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
@@ -38,15 +42,10 @@ interface State {
     boundTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
-    targetFramebuffer: Framebuffer | null;
+    targetFramebuffer: FramebufferTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
 }
 
-export type BUFFER_MASK = (
-    | 'color' | 'depth' | 'stencil'
-    | 'color|depth' | 'color|stencil' | 'depth|stencil'
-    | 'color|depth|stencil'
-);
 const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     'color': WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
     'depth': WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
@@ -70,9 +69,6 @@ const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     ),
 };
 
-export type DEPTH_FUNC = (
-    'never' | 'less' | 'lequal' | 'greater' | 'gequal' | 'equal' | 'notequal' | 'always'
-);
 const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'never': WebGLRenderingContext.prototype.NEVER,
     'less': WebGLRenderingContext.prototype.LESS,
@@ -84,27 +80,16 @@ const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'always': WebGLRenderingContext.prototype.ALWAYS,
 };
 
-export type CULL_FACE = (
-    'back' | 'front' | 'front_and_back'
-);
 const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'back': WebGLRenderingContext.prototype.BACK,
     'front': WebGLRenderingContext.prototype.FRONT,
     'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
 };
 
-export type EXTENSION = ('element_index_uint');
 const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'element_index_uint': 'OES_element_index_uint',
 };
 
-export interface RuntimeOptions {
-    alpha?: boolean;
-    antialias?: boolean;
-    premultipliedAlpha?: boolean;
-    trackWindowResize?: boolean;
-    extensions?: EXTENSION[];
-}
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
     antialias: false,
@@ -113,9 +98,7 @@ const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     extensions: [],
 };
 
-export class Runtime {
-    private readonly _id = generateId('Runtime');
-    private readonly _logger = new Logger(this._id);
+export class Runtime extends BaseWrapper implements GLWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -141,7 +124,8 @@ export class Runtime {
         this.adjustViewport();
     };
 
-    constructor(element: HTMLElement, options?: RuntimeOptions) {
+    constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
+        super(tag);
         this._options = { ...DEFAULT_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
@@ -430,63 +414,67 @@ export class Runtime {
         return this._sizeChanged;
     }
 
-    useProgram(program: WebGLProgram | null, id: string): void {
-        if (this._state.currentProgram === program) {
+    useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
+        const handle = unwrapGLHandle(program);
+        if (this._state.currentProgram === handle) {
             return;
         }
-        this._logger.log('use_program({0})', program ? id : null);
-        this.gl.useProgram(program);
-        this._state.currentProgram = program;
+        this._logger.log('use_program({0})', program ? program.id() : null);
+        this.gl.useProgram(handle);
+        this._state.currentProgram = handle;
     }
 
-    bindVertexArrayObject(vertexArrayObject: WebGLVertexArrayObjectOES | null, id: string): void {
-        if (this._state.vertexArrayObject === vertexArrayObject) {
+    bindVertexArrayObject(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
+        const handle = unwrapGLHandle(vertexArrayObject);
+        if (this._state.vertexArrayObject === handle) {
             return;
         }
-        this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? id : null);
-        this.vaoExt.bindVertexArrayOES(vertexArrayObject);
-        this._state.vertexArrayObject = vertexArrayObject;
+        this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? vertexArrayObject.id() : null);
+        this.vaoExt.bindVertexArrayOES(handle);
+        this._state.vertexArrayObject = handle;
     }
 
-    bindArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
+    bindArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
+        const handle = unwrapGLHandle(buffer);
         if (this._state.arrayBuffer === buffer) {
             return;
         }
-        this._logger.log('bind_array_buffer({0})', buffer ? id : null);
-        this.gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
-        this._state.arrayBuffer = buffer;
+        this._logger.log('bind_array_buffer({0})', buffer ? buffer.id() : null);
+        this.gl.bindBuffer(GL_ARRAY_BUFFER, handle);
+        this._state.arrayBuffer = handle;
     }
 
-    bindElementArrayBuffer(buffer: WebGLBuffer | null, id: string): void {
-        if (this._state.elementArrayBuffers[this._state.vertexArrayObject as number] === buffer) {
+    bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
+        const handle = unwrapGLHandle(buffer);
+        if (this._state.elementArrayBuffers[this._state.vertexArrayObject as number] === handle) {
             return;
         }
-        this._logger.log('bind_element_array_buffer({0})', buffer ? id : null);
-        this.gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
-        this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = buffer;
+        this._logger.log('bind_element_array_buffer({0})', buffer ? buffer.id() : null);
+        this.gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
+        this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = handle;
     }
 
-    bindTexture(texture: WebGLTexture | null, id: string): void {
-        if ((this._state.boundTextures[this._state.textureUnit] || null) === texture) {
+    bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
+        const handle = unwrapGLHandle(texture);
+        if ((this._state.boundTextures[this._state.textureUnit] || null) === handle) {
             return;
         }
-        this._logger.log('bind_texture({0})', texture ? id : null);
-        this.gl.bindTexture(GL_TEXTURE_2D, texture);
-        this._state.boundTextures[this._state.textureUnit] = texture;
+        this._logger.log('bind_texture({0})', texture ? texture.id() : null);
+        this.gl.bindTexture(GL_TEXTURE_2D, handle);
+        this._state.boundTextures[this._state.textureUnit] = handle;
     }
 
-    activeTexture(unit: number, texture: WebGLTexture | null, id: string): void {
-        if ((this._state.boundTextures[unit] || null) === texture) {
+    setTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
+        const handle = unwrapGLHandle(texture);
+        if ((this._state.boundTextures[unit] || null) === handle) {
             return;
         }
         if (this._state.textureUnit !== unit) {
-            this._logger.log('active_texture({0})', unit);
+            this._logger.log('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this.gl.activeTexture(GL_TEXTURE0 + unit);
             this._state.textureUnit = unit;
         }
-        this._logger.log('bind_texture({0})', texture ? id : null);
-        this.gl.bindTexture(GL_TEXTURE_2D, texture);
-        this._state.boundTextures[unit] = texture;
+        this.bindTexture(texture);
     }
 
     pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
@@ -498,36 +486,38 @@ export class Runtime {
         this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
     }
 
-    bindFramebuffer(framebuffer: WebGLFramebuffer | null, id: string): void {
-        if (this._state.framebuffer === framebuffer) {
+    bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
+        const handle = unwrapGLHandle(framebuffer);
+        if (this._state.framebuffer === handle) {
             return;
         }
-        this._logger.log('bind_framebuffer({0})', framebuffer ? id : null);
-        this.gl.bindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        this._state.framebuffer = framebuffer;
+        this._logger.log('bind_framebuffer({0})', framebuffer ? framebuffer.id() : null);
+        this.gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
+        this._state.framebuffer = handle;
     }
 
-    getFramebuffer(): Framebuffer | null {
+    getFramebuffer(): FramebufferTarget | null {
         return this._state.targetFramebuffer;
     }
 
-    setFramebuffer(framebuffer: Framebuffer | null): void {
+    setFramebuffer(framebuffer: FramebufferTarget | null): void {
         if (this._state.targetFramebuffer === framebuffer) {
             return;
         }
-        this._logger.log('set_framebuffer({0})', framebuffer ? 'TODO' : null);
-        this.bindFramebuffer(framebuffer ? framebuffer.framebuffer() : null, 'TODO');
+        this._logger.log('set_framebuffer({0})', framebuffer ? framebuffer.id() : null);
+        this.bindFramebuffer(framebuffer);
         this._updateViewport(framebuffer ? framebuffer.size() : this._canvasSize);
         this._state.targetFramebuffer = framebuffer;
     }
 
-    bindRenderbuffer(renderbuffer: WebGLRenderbuffer | null, id: string): void {
-        if (this._state.renderbuffer === renderbuffer) {
+    bindRenderbuffer(renderbuffer: GLHandleWrapper<WebGLRenderbuffer> | null): void {
+        const handle = unwrapGLHandle(renderbuffer);
+        if (this._state.renderbuffer === handle) {
             return;
         }
-        this._logger.log('bind_renderbuffer({0})', renderbuffer ? id : null);
-        this.gl.bindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-        this._state.renderbuffer = renderbuffer;
+        this._logger.log('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
+        this.gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
+        this._state.renderbuffer = handle;
     }
 }
 
@@ -549,4 +539,8 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
 
 function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
     return CANVAS_TAG in canvas;
+}
+
+function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
+    return wrapper ? wrapper.glHandle() : null;
 }
