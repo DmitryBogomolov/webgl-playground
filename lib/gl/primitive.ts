@@ -1,10 +1,9 @@
 import { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
 import { VertexSchema } from './types/vertex-schema';
 import { GLValuesMap } from './types/gl-values-map';
+import { BaseWrapper } from './base-wrapper';
 import { wrap } from './gl-handle-wrapper';
 import { Program } from './program';
-import { generateId } from '../utils/id-generator';
-import { Logger } from '../utils/logger';
 
 const GL_ARRAY_BUFFER = WebGLRenderingContext.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
@@ -40,9 +39,7 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
 
-export class Primitive {
-    private readonly _id = generateId('Primitive');
-    private readonly _logger = new Logger(this._id);
+export class Primitive extends BaseWrapper {
     private readonly _runtime: PrimitiveRuntime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
@@ -57,6 +54,7 @@ export class Primitive {
     private _program: Program = EMPTY_PROGRAM;
 
     constructor(runtime: PrimitiveRuntime) {
+        super();
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();
@@ -69,10 +67,6 @@ export class Primitive {
         this._runtime.gl.deleteBuffer(this._vertexBuffer);
         this._runtime.gl.deleteBuffer(this._indexBuffer);
         this._runtime.vaoExt.deleteVertexArrayOES(this._vao);
-    }
-
-    id(): string {
-        return this._id;
     }
 
     private _createVao(): WebGLVertexArrayObjectOES {

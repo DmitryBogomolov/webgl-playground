@@ -6,10 +6,9 @@ import { GLWrapper } from './types/gl-wrapper';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { FramebufferTarget } from './types/framebuffer-target';
 import { EventProxy } from '../utils/types/event-emitter';
+import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
-import { generateId } from '../utils/id-generator';
 import { EventEmitter } from '../utils/event-emitter';
-import { Logger } from '../utils/logger';
 import { RenderLoop } from './render-loop';
 import { color, colorEq, isColor } from './color';
 import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
@@ -99,9 +98,7 @@ const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     extensions: [],
 };
 
-export class Runtime implements GLWrapper {
-    private readonly _id = generateId('Runtime');
-    private readonly _logger = new Logger(this._id);
+export class Runtime extends BaseWrapper implements GLWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -128,6 +125,7 @@ export class Runtime implements GLWrapper {
     };
 
     constructor(element: HTMLElement, options?: RuntimeOptions) {
+        super();
         this._options = { ...DEFAULT_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
@@ -178,10 +176,6 @@ export class Runtime implements GLWrapper {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
-    }
-
-    id(): string {
-        return this._id;
     }
 
     private _getContext(): WebGLRenderingContext {

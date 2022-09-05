@@ -1,7 +1,7 @@
 import { UniformValue, ProgramOptions, ProgramRuntime } from './types/program';
 import { VertexSchema } from './types/vertex-schema';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
-import { generateId } from '../utils/id-generator';
+import { BaseWrapper } from './base-wrapper';
 import { Logger } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
@@ -179,9 +179,7 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
-export class Program implements GLHandleWrapper<WebGLProgram> {
-    private readonly _id = generateId('Program');
-    private readonly _logger = new Logger(this._id);
+export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
     private readonly _vertexShader: WebGLShader;
     private readonly _fragmentShader: WebGLShader;
@@ -191,6 +189,7 @@ export class Program implements GLHandleWrapper<WebGLProgram> {
     private readonly _program: WebGLProgram;
 
     constructor(runtime: ProgramRuntime, options: ProgramOptions) {
+        super();
         this._logger.log('init');
         this._runtime = runtime;
         this._schema = options.schema;
@@ -211,10 +210,6 @@ export class Program implements GLHandleWrapper<WebGLProgram> {
     dispose(): void {
         this._logger.log('dispose');
         this._dispose();
-    }
-
-    id(): string {
-        return this._id;
     }
 
     glHandle(): WebGLProgram {

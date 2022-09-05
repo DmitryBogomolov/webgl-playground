@@ -1,9 +1,8 @@
 import { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import { BaseWrapper } from './base-wrapper';
 import { Vec2 } from '../geometry/types/vec2';
 import { ZERO2 } from '../geometry/vec2';
-import { generateId } from '../utils/id-generator';
-import { Logger } from '../utils/logger';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture';
 
@@ -16,15 +15,14 @@ const GL_DEPTH_STENCIL_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_STENCI
 const GL_DEPTH_COMPONENT16 = WebGLRenderingContext.prototype.DEPTH_COMPONENT16;
 const GL_DEPTH_STENCIL = WebGLRenderingContext.prototype.DEPTH_STENCIL;
 
-export class Framebuffer implements GLHandleWrapper<WebGLFramebuffer> {
-    private readonly _id = generateId('FrameBuffer');
-    private readonly _logger = new Logger(this._id);
+export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private _texture: Texture | null = null;
     private _renderbuffer: WebGLRenderbuffer | null = null;
 
     constructor(runtime: FramebufferRuntime) {
+        super();
         this._logger.log('init');
         this._runtime = runtime;
         this._framebuffer = this._createFramebuffer();
@@ -36,10 +34,6 @@ export class Framebuffer implements GLHandleWrapper<WebGLFramebuffer> {
             this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
         }
         this._runtime.gl.deleteFramebuffer(this._framebuffer);
-    }
-
-    id(): string {
-        return this._id;
     }
 
     glHandle(): WebGLFramebuffer {

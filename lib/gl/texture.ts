@@ -5,8 +5,7 @@ import {
 import { Vec2 } from '../geometry/types/vec2';
 import { GLValuesMap } from './types/gl-values-map';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
-import { generateId } from '../utils/id-generator';
-import { Logger } from '../utils/logger';
+import { BaseWrapper } from './base-wrapper';
 import { vec2, ZERO2 } from '../geometry/vec2';
 
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
@@ -61,9 +60,7 @@ function isTextureData(source: TextureData | TexImageSource): source is TextureD
     return 'size' in source && 'data' in source;
 }
 
-export class Texture implements GLHandleWrapper<WebGLTexture> {
-    private readonly _id = generateId('Texture');
-    private readonly _logger = new Logger(this._id);
+export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture> {
     private readonly _runtime: TextureRuntime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
@@ -75,6 +72,7 @@ export class Texture implements GLHandleWrapper<WebGLTexture> {
     };
 
     constructor(runtime: TextureRuntime) {
+        super();
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();
@@ -83,10 +81,6 @@ export class Texture implements GLHandleWrapper<WebGLTexture> {
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl.deleteTexture(this._texture);
-    }
-
-    id(): string {
-        return this._id;
     }
 
     glHandle(): WebGLTexture {
