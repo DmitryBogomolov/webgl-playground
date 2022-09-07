@@ -91,10 +91,6 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         return this._size;
     }
 
-    texture(): WebGLTexture {
-        return this._texture;
-    }
-
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl.createTexture();
         if (!texture) {

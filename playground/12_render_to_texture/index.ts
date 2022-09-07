@@ -1,6 +1,5 @@
 import {
     Runtime,
-    Texture,
     Framebuffer,
     Camera,
     vec3, YUNIT3, norm3, rotate3,
@@ -74,18 +73,9 @@ const targetModel = computed(([xRotation, yRotation]) => {
     return mat;
 }, [xRotation, yRotation]);
 
-const texture = new Texture(runtime);
-texture.setParameters({
-    wrap_s: 'clamp_to_edge',
-    wrap_t: 'clamp_to_edge',
-    mag_filter: 'linear',
-    min_filter: 'linear',
-});
-texture.setImageData({ size: { x: 256, y: 256 }, data: null }, { format: 'rgba' });
-textureCamera.setViewportSize(texture.size());
-
 const framebuffer = new Framebuffer(runtime);
-framebuffer.setupAttachment('color|depth', texture);
+framebuffer.setup('color|depth', { x: 256, y: 256 });
+textureCamera.setViewportSize(framebuffer.size());
 
 runtime.sizeChanged().on(() => {
     targetCamera.setViewportSize(runtime.canvasSize());
@@ -113,7 +103,7 @@ function renderTarget(): void {
     runtime.setClearColor(targetClearColor);
     runtime.clearBuffer('color|depth');
 
-    runtime.setTextureUnit(2, texture);
+    runtime.setTextureUnit(2, framebuffer.texture());
     const program = plane.program();
     program.setUniform('u_view_proj', targetCamera.getTransformMat());
     program.setUniform('u_model', targetModel());

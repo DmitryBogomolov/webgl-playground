@@ -1,4 +1,5 @@
 import { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
+import { TextureRuntime } from './types/texture';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { BaseWrapper } from './base-wrapper';
 import { Vec2 } from '../geometry/types/vec2';
@@ -18,6 +19,7 @@ const GL_DEPTH_STENCIL = WebGLRenderingContext.prototype.DEPTH_STENCIL;
 export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
+    private _size: Vec2 = ZERO2;
     private _texture: Texture | null = null;
     private _renderbuffer: WebGLRenderbuffer | null = null;
 
@@ -41,7 +43,11 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     }
 
     size(): Vec2 {
-        return this._texture ? this._texture.size() : ZERO2;
+        return this._size;
+    }
+
+    texture(): Texture | null {
+        return this._texture;
     }
 
     private _createFramebuffer(): WebGLFramebuffer {
@@ -60,18 +66,26 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         return renderbuffer;
     }
 
-    private _attachTexture(texture: Texture): void {
+    private _attachTexture(): void {
+        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        texture.setImageData({ size: this._size, data: null }, { format: 'rgba' });
+        texture.setParameters({
+            wrap_s: 'clamp_to_edge',
+            wrap_t: 'clamp_to_edge',
+            mag_filter: 'linear',
+            min_filter: 'linear',
+        });
         this._runtime.gl.framebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.texture(), 0,
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
         this._texture = texture;
     }
 
-    private _attachDepthBuffer({ x, y }: Vec2): void {
+    private _attachDepthBuffer(): void {
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, x, y);
+            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, this._size.x, this._size.y);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
@@ -81,11 +95,11 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         this._renderbuffer = renderbuffer;
     }
 
-    private _attachDepthStencilBuffer({ x, y }: Vec2): void {
+    private _attachDepthStencilBuffer(): void {
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, x, y);
+            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, this._size.x, this._size.y);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
@@ -95,29 +109,33 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         this._renderbuffer = renderbuffer;
     }
 
-    setupAttachment(type: FRAMEBUFFER_ATTACHMENT, texture: Texture): void {
-        this._logger.log('setup_attachment({0}, {1})', type, texture.id());
-        this._texture = null;
+    setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2): void {
+        this._logger.log('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
+        if (this._texture) {
+            this._texture.dispose();
+        }
         if (this._renderbuffer) {
             this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
         }
+        this._texture = null;
         this._renderbuffer = null;
+        this._size = size;
         try {
             this._runtime.bindFramebuffer(this);
-            switch (type) {
+            switch (attachment) {
             case 'color':
-                this._attachTexture(texture);
+                this._attachTexture();
                 break;
             case 'color|depth':
-                this._attachTexture(texture);
-                this._attachDepthBuffer(texture.size());
+                this._attachTexture();
+                this._attachDepthBuffer();
                 break;
             case 'color|depth|stencil':
-                this._attachTexture(texture);
-                this._attachDepthStencilBuffer(texture.size());
+                this._attachTexture();
+                this._attachDepthStencilBuffer();
                 break;
             default:
-                this._logger.error('bad attachment type: {0}', type);
+                this._logger.error('bad attachment type: {0}', attachment);
                 break;
             }
         } finally {
