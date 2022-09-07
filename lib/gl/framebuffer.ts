@@ -21,6 +21,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     private readonly _framebuffer: WebGLFramebuffer;
     private _size: Vec2 = ZERO2;
     private _texture: Texture | null = null;
+    private _depthTexture: Texture | null = null;
     private _renderbuffer: WebGLRenderbuffer | null = null;
 
     constructor(runtime: FramebufferRuntime, tag?: string) {
@@ -32,10 +33,23 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
 
     dispose(): void {
         this._logger.log('dispose');
+        this._dispose();
+        this._runtime.gl.deleteFramebuffer(this._framebuffer);
+    }
+
+    private _dispose(): void {
+        if (this._texture) {
+            this._texture.dispose();
+            this._texture = null;
+        }
+        if (this._depthTexture) {
+            this._depthTexture.dispose();
+            this._depthTexture = null;
+        }
         if (this._renderbuffer) {
             this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
+            this._renderbuffer = null;
         }
-        this._runtime.gl.deleteFramebuffer(this._framebuffer);
     }
 
     glHandle(): WebGLFramebuffer {
@@ -81,6 +95,21 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         this._texture = texture;
     }
 
+    private _attachDepthTexture(): void {
+        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
+        texture.setParameters({
+            wrap_s: 'clamp_to_edge',
+            wrap_t: 'clamp_to_edge',
+            mag_filter: 'nearest',
+            min_filter: 'nearest',
+        });
+        this._runtime.gl.framebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
+        );
+        this._depthTexture = texture;
+    }
+
     private _attachDepthBuffer(): void {
         const renderbuffer = this._createRenderbuffer();
         try {
@@ -109,16 +138,9 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         this._renderbuffer = renderbuffer;
     }
 
-    setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2): void {
+    setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2, useDepthTexture?: boolean): void {
         this._logger.log('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
-        if (this._texture) {
-            this._texture.dispose();
-        }
-        if (this._renderbuffer) {
-            this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
-        }
-        this._texture = null;
-        this._renderbuffer = null;
+        this._dispose();
         this._size = size;
         try {
             this._runtime.bindFramebuffer(this);
@@ -128,7 +150,11 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
                 break;
             case 'color|depth':
                 this._attachTexture();
-                this._attachDepthBuffer();
+                if (useDepthTexture) {
+                    this._attachDepthTexture();
+                } else {
+                    this._attachDepthBuffer();
+                }
                 break;
             case 'color|depth|stencil':
                 this._attachTexture();
