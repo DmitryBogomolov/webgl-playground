@@ -88,6 +88,7 @@ const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
 
 const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'element_index_uint': 'OES_element_index_uint',
+    'depth_texture': 'WEBGL_depth_texture',
 };
 
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {

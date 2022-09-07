@@ -12,7 +12,7 @@ export type CULL_FACE = (
     'back' | 'front' | 'front_and_back'
 );
 
-export type EXTENSION = ('element_index_uint');
+export type EXTENSION = ('element_index_uint' | 'depth_texture');
 
 export interface RuntimeOptions {
     readonly alpha?: boolean;
