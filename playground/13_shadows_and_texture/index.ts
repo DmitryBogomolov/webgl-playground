@@ -1,7 +1,10 @@
 import {
     Runtime,
+    Primitive,
     Camera,
-    vec3, norm3,
+    vec3,
+    Mat4, translation4x4,
+    Color, colors,
 } from 'lib';
 import { createControls } from 'util/controls';
 import { makeColorProgram, makeCube, makeSphere } from './primitive';
@@ -19,36 +22,52 @@ runtime.setDepthTest(true);
 
 const camera = new Camera();
 camera.setEyePos(vec3(0, 3, 5));
-const lightDir = norm3(vec3(1, 1, 1));
 
-const cube = makeCube(runtime);
-const sphere = makeSphere(runtime);
+interface ObjectInfo {
+    readonly primitive: Primitive;
+    readonly model: Mat4;
+    readonly color: Color;
+}
+
+const objects: ReadonlyArray<ObjectInfo> = [
+    {
+        primitive: makeCube(runtime, 2),
+        model: translation4x4(vec3(+2, 0, 0)),
+        color: colors.CYAN,
+    },
+    {
+        primitive: makeSphere(runtime, 1.5),
+        model: translation4x4(vec3(-1, 0, 0)),
+        color: colors.MAGENTA,
+    },
+];
+
 const program = makeColorProgram(runtime);
 
 runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
 });
 
-function renderShadows(): void {
-    runtime.clearBuffer('color|depth');
-    cube.render();
-    sphere.render();
-}
+// function renderShadows(): void {
+//     runtime.clearBuffer('color|depth');
+//     cube.render();
+//     sphere.render();
+// }
 
 function renderScene(): void {
     runtime.clearBuffer('color|depth');
-    program.setUniform('u_view_prog', camera.getTransformMat());
-    program.setUniform('u_light_dir', lightDir);
+    program.setUniform('u_view_proj', camera.getTransformMat());
 
-    cube.setProgram(program);
-    sphere.setProgram(program);
-
-    cube.render();
-    sphere.render();
+    for (const obj of objects) {
+        program.setUniform('u_model', obj.model);
+        program.setUniform('u_color', obj.color);
+        obj.primitive.setProgram(program);
+        obj.primitive.render();
+    }
 }
 
 runtime.frameRendered().on(() => {
-    renderShadows();
+    // renderShadows();
     renderScene();
 });
 

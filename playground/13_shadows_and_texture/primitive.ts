@@ -5,7 +5,7 @@ import {
     parseVertexSchema,
     VertexWriter,
     VertexIndexData, VertexData, generateCube, generateSphere,
-    vec3,
+    UNIT3, mul3,
 } from 'lib';
 import colorVertShader from './shaders/color.vert';
 import colorFragShader from './shaders/color.frag';
@@ -29,6 +29,7 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setVertexSchema(schema);
     return primitive;
 }
 
@@ -40,10 +41,10 @@ export function makeColorProgram(runtime: Runtime): Program {
     });
 }
 
-export function makeSphere(runtime: Runtime): Primitive {
-    return make(runtime, generateSphere(vec3(3, 3, 3), (vertex) => vertex));
+export function makeSphere(runtime: Runtime, size: number): Primitive {
+    return make(runtime, generateSphere(mul3(UNIT3, size), (vertex) => vertex));
 }
 
-export function makeCube(runtime: Runtime): Primitive {
-    return make(runtime, generateCube(vec3(1, 1, 1), (vertex) => vertex));
+export function makeCube(runtime: Runtime, size: number): Primitive {
+    return make(runtime, generateCube(mul3(UNIT3, size), (vertex) => vertex));
 }
