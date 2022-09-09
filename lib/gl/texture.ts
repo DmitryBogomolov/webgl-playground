@@ -37,6 +37,7 @@ const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'luminance_alpha': WebGLRenderingContext.prototype.LUMINANCE_ALPHA,
     'depth_component16': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
     'depth_component32': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
+    'depth_stencil': WebGLRenderingContext.prototype.DEPTH_STENCIL,
 };
 const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
 
@@ -48,6 +49,7 @@ const TYPE_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'luminance_alpha': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
     'depth_component16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
     'depth_component32': WebGLRenderingContext.prototype.UNSIGNED_INT,
+    'depth_stencil': WebGLRenderingContext.prototype.UNSIGNED_INT,
 };
 const DEFAULT_TEXTURE_TYPE = TYPE_MAP['rgba'];
 

@@ -64,6 +64,10 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         return this._texture;
     }
 
+    depthTexture(): Texture | null {
+        return this._depthTexture;
+    }
+
     private _createFramebuffer(): WebGLFramebuffer {
         const framebuffer = this._runtime.gl.createFramebuffer();
         if (!framebuffer) {
@@ -124,6 +128,21 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         this._renderbuffer = renderbuffer;
     }
 
+    private _attachDepthStencilTexture(): void {
+        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        texture.setImageData({ size: this._size, data: null }, { format: 'depth_stencil' });
+        texture.setParameters({
+            wrap_s: 'clamp_to_edge',
+            wrap_t: 'clamp_to_edge',
+            mag_filter: 'nearest',
+            min_filter: 'nearest',
+        });
+        this._runtime.gl.framebufferTexture2D(
+            GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
+        );
+        this._depthTexture = texture;
+    }
+
     private _attachDepthStencilBuffer(): void {
         const renderbuffer = this._createRenderbuffer();
         try {
@@ -158,7 +177,11 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
                 break;
             case 'color|depth|stencil':
                 this._attachTexture();
-                this._attachDepthStencilBuffer();
+                if (useDepthTexture) {
+                    this._attachDepthStencilTexture();
+                } else {
+                    this._attachDepthStencilBuffer();
+                }
                 break;
             default:
                 this._logger.error('bad attachment type: {0}', attachment);
