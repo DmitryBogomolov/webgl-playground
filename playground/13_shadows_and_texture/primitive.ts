@@ -9,6 +9,8 @@ import {
 } from 'lib';
 import colorVertShader from './shaders/color.vert';
 import colorFragShader from './shaders/color.frag';
+import shadowVertShader from './shaders/shadow.vert';
+import shadowFragShader from './shaders/shadow.frag';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float3' },
@@ -37,6 +39,14 @@ export function makeColorProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertexShader: colorVertShader,
         fragmentShader: colorFragShader,
+        schema,
+    });
+}
+
+export function makeShadowProgram(runtime: Runtime): Program {
+    return new Program(runtime, {
+        vertexShader: shadowVertShader,
+        fragmentShader: shadowFragShader,
         schema,
     });
 }
