@@ -3,7 +3,7 @@ import {
     Texture,
 } from 'lib';
 
-export function makeFillTexture(runtime: Runtime): Texture {
+export function makeColorTexture(runtime: Runtime): Texture {
     const texture = new Texture(runtime);
     const data = new Uint8Array(64);
     const c1 = 0xFF;

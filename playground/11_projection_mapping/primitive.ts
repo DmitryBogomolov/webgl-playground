@@ -7,10 +7,10 @@ import {
     vec3,
     generateSphere, generateCube, generatePlaneZ, VertexIndexData, VertexData,
 } from 'lib';
-import vertexShader from './shaders/mapping.vert';
-import fragmentShader from './shaders/mapping.frag';
-import wireframeVertexShader from './shaders/wireframe.vert';
-import wireframeFragmentShader from './shaders/wireframe.frag';
+import vertShader from './shaders/mapping.vert';
+import fragShader from './shaders/mapping.frag';
+import wireframeVertShader from './shaders/wireframe.vert';
+import wireframeFragShader from './shaders/wireframe.frag';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float3' },
@@ -19,8 +19,8 @@ const schema = parseVertexSchema([
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader,
-        fragmentShader,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
 }
@@ -112,8 +112,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indices.length, primitiveMode: 'lines' });
 
     const program = new Program(runtime, {
-        vertexShader: wireframeVertexShader,
-        fragmentShader: wireframeFragmentShader,
+        vertexShader: wireframeVertShader,
+        fragmentShader: wireframeFragShader,
         schema,
     });
     primitive.setProgram(program);

@@ -11,7 +11,7 @@ import {
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
-import { makeFillTexture, makeMappingTexture } from './texture';
+import { makeColorTexture, makeMappingTexture } from './texture';
 
 /**
  * Projection mapping.
@@ -37,7 +37,7 @@ const primitives: ReadonlyArray<PrimitiveData> = [
     { primitive: makePlane(runtime, program), offset: +1.5 },
 ];
 const wireframe = makeWireframe(runtime);
-const fillTexture = makeFillTexture(runtime);
+const colorTexture = makeColorTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
     runtime.requestFrameRender();
 });
@@ -113,7 +113,7 @@ runtime.frameRendered().on(() => {
     const coeff = 3 * (2 / camera.getXViewSize());
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
-        runtime.setTextureUnit(4, fillTexture);
+        runtime.setTextureUnit(4, colorTexture);
         runtime.setTextureUnit(5, mappingTexture);
         program.setUniform('u_offset', coeff * offset);
         program.setUniform('u_proj', camera.getProjMat());
