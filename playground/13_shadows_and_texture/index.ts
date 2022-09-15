@@ -37,12 +37,13 @@ const framebuffer = new Framebuffer(runtime);
 framebuffer.setup('color|depth', { x: 512, y: 512 }, true);
 depthCamera.setViewportSize(framebuffer.size());
 
-function makeObject(primitive: Primitive, offset: Vec3, clr: Color): {
+interface ObjectInfo {
     readonly primitive: Primitive;
     readonly model: Mat4;
     readonly modelInvtrs: Mat4;
     readonly color: Color;
-} {
+}
+function makeObject(primitive: Primitive, offset: Vec3, clr: Color): ObjectInfo {
     const model = translation4x4(offset);
     const modelInvtrs = inversetranspose4x4(model);
     return {
@@ -72,17 +73,24 @@ runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
 });
 
+function renderObjects(
+    list: ReadonlyArray<ObjectInfo>, program: Program, setUniforms: (obj: ObjectInfo) => void,
+): void {
+    for (const item of list) {
+        setUniforms(item);
+        item.primitive.setProgram(program);
+        item.primitive.render();
+    }
+}
+
 function renderDepthData(program: Program, camera: Camera): void {
     runtime.setFramebuffer(framebuffer);
     runtime.setClearColor(depthDataBackgroundColor);
     runtime.clearBuffer('color|depth');
     program.setUniform('u_view_proj', camera.getTransformMat());
-
-    for (const obj of objects) {
+    renderObjects(objects, program, (obj) => {
         program.setUniform('u_model', obj.model);
-        obj.primitive.setProgram(program);
-        obj.primitive.render();
-    }
+    });
 }
 
 function renderScene(program: Program, camera: Camera, depthCamera: Camera): void {
@@ -96,14 +104,11 @@ function renderScene(program: Program, camera: Camera, depthCamera: Camera): voi
     program.setUniform('u_light_pos', depthCamera.getEyePos());
     program.setUniform('u_depth_view_proj', depthCamera.getTransformMat());
     program.setUniform('u_depth_texture', 4);
-
-    for (const obj of objects) {
+    renderObjects(objects, program, (obj) => {
         program.setUniform('u_model', obj.model);
         program.setUniform('u_model_invtrs', obj.modelInvtrs);
         program.setUniform('u_color', obj.color);
-        obj.primitive.setProgram(program);
-        obj.primitive.render();
-    }
+    });
 }
 
 runtime.frameRendered().on(() => {
