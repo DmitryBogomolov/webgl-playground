@@ -8,10 +8,10 @@ import {
     UNIT3,
     generateCube, generatePlaneZ,
 } from 'lib';
-import objectVertShaderSource from './shaders/object.vert';
-import objectFragShaderSource from './shaders/object.frag';
-import texturePlaneVertShaderSource from './shaders/texture-plane.vert';
-import texturePlaneFragShaderSource from './shaders/texture-plane.frag';
+import objectVertShader from './shaders/object.vert';
+import objectFragShader from './shaders/object.frag';
+import texturePlaneVertShader from './shaders/texture-plane.vert';
+import texturePlaneFragShader from './shaders/texture-plane.frag';
 
 export function makeObject(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -38,8 +38,8 @@ export function makeObject(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: objectVertShaderSource,
-        fragmentShader: objectFragShaderSource,
+        vertexShader: objectVertShader,
+        fragmentShader: objectFragShader,
         schema,
     });
     primitive.setProgram(program);
@@ -72,8 +72,8 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: texturePlaneVertShaderSource,
-        fragmentShader: texturePlaneFragShaderSource,
+        vertexShader: texturePlaneVertShader,
+        fragmentShader: texturePlaneFragShader,
         schema,
     });
     primitive.setProgram(program);
