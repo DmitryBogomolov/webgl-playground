@@ -8,48 +8,50 @@ import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { BaseWrapper } from './base-wrapper';
 import { vec2, ZERO2 } from '../geometry/vec2';
 
-const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
+const WebGL = WebGLRenderingContext.prototype;
+
+const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
-    'repeat': WebGLRenderingContext.prototype.REPEAT,
-    'clamp_to_edge': WebGLRenderingContext.prototype.CLAMP_TO_EDGE,
+    'repeat': WebGL.REPEAT,
+    'clamp_to_edge': WebGL.CLAMP_TO_EDGE,
 };
 
 const MAG_FILTER_MAP: GLValuesMap<TEXTURE_MAG_FILTER> = {
-    'nearest': WebGLRenderingContext.prototype.NEAREST,
-    'linear': WebGLRenderingContext.prototype.LINEAR,
+    'nearest': WebGL.NEAREST,
+    'linear': WebGL.LINEAR,
 };
 
 const MIN_FILTER_MAP: GLValuesMap<TEXTURE_MIN_FILTER> = {
-    'nearest': WebGLRenderingContext.prototype.NEAREST,
-    'linear': WebGLRenderingContext.prototype.LINEAR,
-    'nearest_mipmap_nearest': WebGLRenderingContext.prototype.NEAREST_MIPMAP_NEAREST,
-    'linear_mipmap_nearest': WebGLRenderingContext.prototype.LINEAR_MIPMAP_NEAREST,
-    'nearest_mipmap_linear': WebGLRenderingContext.prototype.NEAREST_MIPMAP_LINEAR,
-    'linear_mipmap_linear': WebGLRenderingContext.prototype.LINEAR_MIPMAP_LINEAR,
+    'nearest': WebGL.NEAREST,
+    'linear': WebGL.LINEAR,
+    'nearest_mipmap_nearest': WebGL.NEAREST_MIPMAP_NEAREST,
+    'linear_mipmap_nearest': WebGL.LINEAR_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': WebGL.NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_linear': WebGL.LINEAR_MIPMAP_LINEAR,
 };
 
 const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
-    'rgba': WebGLRenderingContext.prototype.RGBA,
-    'rgb': WebGLRenderingContext.prototype.RGB,
-    'luminance': WebGLRenderingContext.prototype.LUMINANCE,
-    'alpha': WebGLRenderingContext.prototype.ALPHA,
-    'luminance_alpha': WebGLRenderingContext.prototype.LUMINANCE_ALPHA,
-    'depth_component16': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
-    'depth_component32': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
-    'depth_stencil': WebGLRenderingContext.prototype.DEPTH_STENCIL,
+    'rgba': WebGL.RGBA,
+    'rgb': WebGL.RGB,
+    'luminance': WebGL.LUMINANCE,
+    'alpha': WebGL.ALPHA,
+    'luminance_alpha': WebGL.LUMINANCE_ALPHA,
+    'depth_component16': WebGL.DEPTH_COMPONENT,
+    'depth_component32': WebGL.DEPTH_COMPONENT,
+    'depth_stencil': WebGL.DEPTH_STENCIL,
 };
 const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
 
 const TYPE_MAP: GLValuesMap<TEXTURE_FORMAT> = {
-    'rgba': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'rgb': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'luminance': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'alpha': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'luminance_alpha': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'depth_component16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
-    'depth_component32': WebGLRenderingContext.prototype.UNSIGNED_INT,
-    'depth_stencil': WebGLRenderingContext.prototype.UNSIGNED_INT,
+    'rgba': WebGL.UNSIGNED_BYTE,
+    'rgb': WebGL.UNSIGNED_BYTE,
+    'luminance': WebGL.UNSIGNED_BYTE,
+    'alpha': WebGL.UNSIGNED_BYTE,
+    'luminance_alpha': WebGL.UNSIGNED_BYTE,
+    'depth_component16': WebGL.UNSIGNED_SHORT,
+    'depth_component32': WebGL.UNSIGNED_INT,
+    'depth_stencil': WebGL.UNSIGNED_INT,
 };
 const DEFAULT_TEXTURE_TYPE = TYPE_MAP['rgba'];
 
@@ -57,10 +59,10 @@ type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 type State = Required<Writeable<TextureParameters>>;
 
 const GL_PARAMETER_NAMES: GLValuesMap<keyof State> = {
-    'wrap_s': WebGLRenderingContext.prototype.TEXTURE_WRAP_S,
-    'wrap_t': WebGLRenderingContext.prototype.TEXTURE_WRAP_T,
-    'mag_filter': WebGLRenderingContext.prototype.TEXTURE_MAG_FILTER,
-    'min_filter': WebGLRenderingContext.prototype.TEXTURE_MIN_FILTER,
+    'wrap_s': WebGL.TEXTURE_WRAP_S,
+    'wrap_t': WebGL.TEXTURE_WRAP_T,
+    'mag_filter': WebGL.TEXTURE_MAG_FILTER,
+    'min_filter': WebGL.TEXTURE_MIN_FILTER,
 };
 
 const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {

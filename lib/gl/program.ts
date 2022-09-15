@@ -12,11 +12,13 @@ import { isMat4 } from '../geometry/mat4';
 import { isColor } from './color';
 import { formatStr } from '../utils/string-formatter';
 
-const GL_VERTEX_SHADER = WebGLRenderingContext.prototype.VERTEX_SHADER;
-const GL_FRAGMENT_SHADER = WebGLRenderingContext.prototype.FRAGMENT_SHADER;
-const GL_LINK_STATUS = WebGLRenderingContext.prototype.LINK_STATUS;
-const GL_ACTIVE_ATTRIBUTES = WebGLRenderingContext.prototype.ACTIVE_ATTRIBUTES;
-const GL_ACTIVE_UNIFORMS = WebGLRenderingContext.prototype.ACTIVE_UNIFORMS;
+const WebGL = WebGLRenderingContext.prototype;
+
+const GL_VERTEX_SHADER = WebGL.VERTEX_SHADER;
+const GL_FRAGMENT_SHADER = WebGL.FRAGMENT_SHADER;
+const GL_LINK_STATUS = WebGL.LINK_STATUS;
+const GL_ACTIVE_ATTRIBUTES = WebGL.ACTIVE_ATTRIBUTES;
+const GL_ACTIVE_UNIFORMS = WebGL.ACTIVE_UNIFORMS;
 
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
@@ -46,22 +48,22 @@ interface UniformSettersMap {
 }
 
 const shaderTypes: ShaderTypesMap = {
-    [WebGLRenderingContext.prototype.FLOAT]: { type: 'float', size: 1 },
-    [WebGLRenderingContext.prototype.FLOAT_VEC2]: { type: 'float', size: 2 },
-    [WebGLRenderingContext.prototype.FLOAT_VEC3]: { type: 'float', size: 3 },
-    [WebGLRenderingContext.prototype.FLOAT_VEC4]: { type: 'float', size: 4 },
-    [WebGLRenderingContext.prototype.INT]: { type: 'int', size: 1 },
-    [WebGLRenderingContext.prototype.INT_VEC2]: { type: 'int', size: 2 },
-    [WebGLRenderingContext.prototype.INT_VEC3]: { type: 'int', size: 3 },
-    [WebGLRenderingContext.prototype.INT_VEC4]: { type: 'int', size: 4 },
-    [WebGLRenderingContext.prototype.BOOL]: { type: 'bool', size: 1 },
-    [WebGLRenderingContext.prototype.BOOL_VEC2]: { type: 'bool', size: 2 },
-    [WebGLRenderingContext.prototype.BOOL_VEC3]: { type: 'bool', size: 3 },
-    [WebGLRenderingContext.prototype.BOOL_VEC4]: { type: 'bool', size: 4 },
-    [WebGLRenderingContext.prototype.FLOAT_MAT2]: { type: 'float', size: 4 },
-    [WebGLRenderingContext.prototype.FLOAT_MAT3]: { type: 'float', size: 9 },
-    [WebGLRenderingContext.prototype.FLOAT_MAT4]: { type: 'float', size: 16 },
-    [WebGLRenderingContext.prototype.SAMPLER_2D]: { type: 'sampler', size: 1 },
+    [WebGL.FLOAT]: { type: 'float', size: 1 },
+    [WebGL.FLOAT_VEC2]: { type: 'float', size: 2 },
+    [WebGL.FLOAT_VEC3]: { type: 'float', size: 3 },
+    [WebGL.FLOAT_VEC4]: { type: 'float', size: 4 },
+    [WebGL.INT]: { type: 'int', size: 1 },
+    [WebGL.INT_VEC2]: { type: 'int', size: 2 },
+    [WebGL.INT_VEC3]: { type: 'int', size: 3 },
+    [WebGL.INT_VEC4]: { type: 'int', size: 4 },
+    [WebGL.BOOL]: { type: 'bool', size: 1 },
+    [WebGL.BOOL_VEC2]: { type: 'bool', size: 2 },
+    [WebGL.BOOL_VEC3]: { type: 'bool', size: 3 },
+    [WebGL.BOOL_VEC4]: { type: 'bool', size: 4 },
+    [WebGL.FLOAT_MAT2]: { type: 'float', size: 4 },
+    [WebGL.FLOAT_MAT3]: { type: 'float', size: 9 },
+    [WebGL.FLOAT_MAT4]: { type: 'float', size: 16 },
+    [WebGL.SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
 function isNumArray(arg: unknown, length: number): arg is number[] {
@@ -69,7 +71,7 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
 }
 
 const uniformSetters: UniformSettersMap = {
-    [WebGLRenderingContext.prototype.BOOL]: (logger, gl, { location }, value) => {
+    [WebGL.BOOL]: (logger, gl, { location }, value) => {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
@@ -77,7 +79,7 @@ const uniformSetters: UniformSettersMap = {
         }
 
     },
-    [WebGLRenderingContext.prototype.FLOAT]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
         } else if (isNumArray(value, 1)) {
@@ -86,7 +88,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "float" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_VEC2]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_VEC2]: (logger, gl, { location }, value) => {
         if (isVec2(value)) {
             gl.uniform2f(location, value.x, value.y);
         } else if (isNumArray(value, 2)) {
@@ -95,7 +97,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec2" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_VEC3]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_VEC3]: (logger, gl, { location }, value) => {
         if (isVec3(value)) {
             gl.uniform3f(location, value.x, value.y, value.z);
         } else if (isNumArray(value, 3)) {
@@ -106,7 +108,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec3" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_VEC4]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_VEC4]: (logger, gl, { location }, value) => {
         if (isVec4(value)) {
             gl.uniform4f(location, value.x, value.y, value.z, value.w);
         } else if (isNumArray(value, 4)) {
@@ -117,14 +119,14 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "vec4" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.SAMPLER_2D]: (logger, gl, { location }, value) => {
+    [WebGL.SAMPLER_2D]: (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
             throw logger.error('bad value for "sampler2D" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_MAT2]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_MAT2]: (logger, gl, { location }, value) => {
         if (isMat2(value)) {
             gl.uniformMatrix2fv(location, false, value as number[]);
         } else if (isNumArray(value, 4)) {
@@ -133,7 +135,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "mat2" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_MAT3]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_MAT3]: (logger, gl, { location }, value) => {
         if (isMat3(value)) {
             gl.uniformMatrix3fv(location, false, value as number[]);
         } else if (isNumArray(value, 9)) {
@@ -142,7 +144,7 @@ const uniformSetters: UniformSettersMap = {
             throw logger.error('bad value for "mat3" uniform: {0}', value);
         }
     },
-    [WebGLRenderingContext.prototype.FLOAT_MAT4]: (logger, gl, { location }, value) => {
+    [WebGL.FLOAT_MAT4]: (logger, gl, { location }, value) => {
         if (isMat4(value)) {
             gl.uniformMatrix4fv(location, false, value as number[]);
         } else if (isNumArray(value, 16)) {
@@ -154,7 +156,7 @@ const uniformSetters: UniformSettersMap = {
 };
 
 const uniformArraySetters: UniformSettersMap = {
-    [WebGLRenderingContext.prototype.BOOL]: (logger, gl, { location, info }, value) => {
+    [WebGL.BOOL]: (logger, gl, { location, info }, value) => {
         if (isNumArray(value, info.size)) {
             gl.uniform1iv(location, value);
         } else {
@@ -162,7 +164,7 @@ const uniformArraySetters: UniformSettersMap = {
         }
 
     },
-    [WebGLRenderingContext.prototype.FLOAT]: (logger, gl, { location, info }, value) => {
+    [WebGL.FLOAT]: (logger, gl, { location, info }, value) => {
         if (isNumArray(value, info.size)) {
             gl.uniform1fv(location, value);
         } else {
