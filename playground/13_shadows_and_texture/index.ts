@@ -15,7 +15,17 @@ import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } fr
 /**
  * Shadows and texture.
  *
- * TODO...
+ * Shows how to implement shadows using rendering to texture.
+ * In first pass scene is rendered from the point of view of the "light source".
+ * Depth buffer is then used as texture for the second pass.
+ * In second pass scene is rendered with default point of view.
+ * For each pixel its current depth is compared to its depth in texture from the first pass (projection mapping).
+ * If current depth is greater than texture depth than it means that this pixel is overlapped by some other pixel
+ * from the "light source" perspective. Hence it is considered shadowed.
+ *
+ * Projection mapping technique is used to sample pixel depth from depth texture.
+ * Z range for projection mapping must be treated with caution
+ * because good depth precision is required for depth texture.
  */
 export type DESCRIPTION = never;
 
