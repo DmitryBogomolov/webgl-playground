@@ -8,8 +8,8 @@ import {
     colors, Color,
     Vec2, vec2,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 /**
  * Just four triangles of different colors.
@@ -36,8 +36,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

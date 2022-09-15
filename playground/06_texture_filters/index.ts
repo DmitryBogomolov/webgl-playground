@@ -7,8 +7,8 @@ import {
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import vertexShaderSource from './shaders/vert.glsl';
-import fragmentShaderSource from './shaders/frag.glsl';
+import vertShader from './shaders/vert.glsl';
+import fragShader from './shaders/frag.glsl';
 import { convolutionKernels } from './convolution_kernels';
 
 /**
@@ -25,8 +25,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         { name: 'a_position', type: 'float2' },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

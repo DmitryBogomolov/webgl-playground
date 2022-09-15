@@ -10,8 +10,8 @@ import {
     Vec2, vec2,
 } from 'lib';
 import { TYPE_SCALE, TYPE_COLOR } from './message-types';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 import Worker from 'worker-loader!./worker';
 
 /**
@@ -32,8 +32,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         { name: 'a_position', type: 'float2' },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

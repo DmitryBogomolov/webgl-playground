@@ -4,8 +4,8 @@ import {
     Program,
     parseVertexSchema,
 } from 'lib';
-import vertexShader from './shaders/texture.vert';
-import fragmentShader from './shaders/texture.frag';
+import vertShader from './shaders/texture.vert';
+import fragShader from './shaders/texture.frag';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float2' },
@@ -32,8 +32,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indices.length });
 
     const program = new Program(runtime, {
-        vertexShader,
-        fragmentShader,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
     primitive.setProgram(program);

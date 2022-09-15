@@ -8,8 +8,8 @@ import {
     Color, color,
     generateCube,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -19,8 +19,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
         { name: 'a_color', type: 'ubyte3', normalized: true },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertexShader: vertShader,
+        fragmentShader: fragShader,
         schema,
     });
 
