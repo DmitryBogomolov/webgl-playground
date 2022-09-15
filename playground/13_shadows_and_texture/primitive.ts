@@ -7,10 +7,10 @@ import {
     VertexIndexData, VertexData, generateCube, generateSphere,
     UNIT3, mul3,
 } from 'lib';
-import colorVertShader from './shaders/color.vert';
-import colorFragShader from './shaders/color.frag';
-import shadowVertShader from './shaders/shadow.vert';
-import shadowFragShader from './shaders/shadow.frag';
+import sceneVertShader from './shaders/scene.vert';
+import sceneFragShader from './shaders/scene.frag';
+import depthVertShader from './shaders/depth.vert';
+import depthFragShader from './shaders/depth.frag';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float3' },
@@ -37,16 +37,16 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: colorVertShader,
-        fragmentShader: colorFragShader,
+        vertexShader: sceneVertShader,
+        fragmentShader: sceneFragShader,
         schema,
     });
 }
 
 export function makeDepthProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: shadowVertShader,
-        fragmentShader: shadowFragShader,
+        vertexShader: depthVertShader,
+        fragmentShader: depthFragShader,
         schema,
     });
 }
