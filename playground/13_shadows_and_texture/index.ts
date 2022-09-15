@@ -91,14 +91,19 @@ function makeObject(primitive: Primitive, offset: Vec3, clr: Color): ObjectInfo 
 }
 const objects = [
     makeObject(
-        makeCube(runtime, 2),
-        vec3(+2, 0, 0),
+        makeCube(runtime, 1.8),
+        vec3(+2, 0, 1),
         colors.CYAN,
     ),
     makeObject(
         makeSphere(runtime, 1.5),
-        vec3(-1, 0, 0),
+        vec3(-1, 0, 1),
         colors.MAGENTA,
+    ),
+    makeObject(
+        makeSphere(runtime, 1.2),
+        vec3(0, 0, -2),
+        colors.BLUE,
     ),
 ] as const;
 
