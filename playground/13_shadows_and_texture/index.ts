@@ -90,6 +90,8 @@ function renderScene(): void {
     runtime.setFramebuffer(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
+    // Color buffer (instead of depth buffer) could be used here.
+    // But depth texture is used to demonstrate depth texture usage.
     runtime.setTextureUnit(4, framebuffer.depthTexture());
     const prog = program;
     prog.setUniform('u_view_proj', camera.getTransformMat());
