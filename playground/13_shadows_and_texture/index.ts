@@ -3,8 +3,8 @@ import {
     Primitive,
     Framebuffer,
     Camera,
-    vec3,
-    Mat4, mat4, translation4x4, inversetranspose4x4,
+    Vec3, vec3,
+    Mat4, translation4x4, inversetranspose4x4,
     Color, colors, color,
 } from 'lib';
 import { createControls } from 'util/controls';
@@ -37,29 +37,33 @@ const framebuffer = new Framebuffer(runtime);
 framebuffer.setup('color|depth', { x: 512, y: 512 }, true);
 shadowCamera.setViewportSize(framebuffer.size());
 
-interface ObjectInfo {
+function makeObject(primitive: Primitive, offset: Vec3, clr: Color): {
     readonly primitive: Primitive;
     readonly model: Mat4;
     readonly modelInvtrs: Mat4;
     readonly color: Color;
+} {
+    const model = translation4x4(offset);
+    const modelInvtrs = inversetranspose4x4(model);
+    return {
+        primitive,
+        model,
+        modelInvtrs,
+        color: clr,
+    };
 }
-const objects: ReadonlyArray<ObjectInfo> = [
-    {
-        primitive: makeCube(runtime, 2),
-        model: translation4x4(vec3(+2, 0, 0)),
-        modelInvtrs: mat4(),
-        color: colors.CYAN,
-    },
-    {
-        primitive: makeSphere(runtime, 1.5),
-        model: translation4x4(vec3(-1, 0, 0)),
-        modelInvtrs: mat4(),
-        color: colors.MAGENTA,
-    },
-];
-objects.forEach((obj) => {
-    inversetranspose4x4(obj.model, obj.modelInvtrs);
-});
+const objects = [
+    makeObject(
+        makeCube(runtime, 2),
+        vec3(+2, 0, 0),
+        colors.CYAN,
+    ),
+    makeObject(
+        makeSphere(runtime, 1.5),
+        vec3(-1, 0, 0),
+        colors.MAGENTA,
+    ),
+] as const;
 
 const program = makeColorProgram(runtime);
 const shadowProgram = makeShadowProgram(runtime);
