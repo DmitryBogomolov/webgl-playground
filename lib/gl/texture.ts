@@ -9,7 +9,6 @@ import { BaseWrapper } from './base-wrapper';
 import { vec2, ZERO2 } from '../geometry/vec2';
 
 const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
-const GL_UNSIGNED_BYTE = WebGLRenderingContext.prototype.UNSIGNED_BYTE;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGLRenderingContext.prototype.REPEAT,
@@ -36,8 +35,23 @@ const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'luminance': WebGLRenderingContext.prototype.LUMINANCE,
     'alpha': WebGLRenderingContext.prototype.ALPHA,
     'luminance_alpha': WebGLRenderingContext.prototype.LUMINANCE_ALPHA,
+    'depth_component16': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
+    'depth_component32': WebGLRenderingContext.prototype.DEPTH_COMPONENT,
+    'depth_stencil': WebGLRenderingContext.prototype.DEPTH_STENCIL,
 };
 const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
+
+const TYPE_MAP: GLValuesMap<TEXTURE_FORMAT> = {
+    'rgba': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'rgb': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'luminance': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'alpha': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'luminance_alpha': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
+    'depth_component16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+    'depth_component32': WebGLRenderingContext.prototype.UNSIGNED_INT,
+    'depth_stencil': WebGLRenderingContext.prototype.UNSIGNED_INT,
+};
+const DEFAULT_TEXTURE_TYPE = TYPE_MAP['rgba'];
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 type State = Required<Writeable<TextureParameters>>;
@@ -91,10 +105,6 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         return this._size;
     }
 
-    texture(): WebGLTexture {
-        return this._texture;
-    }
-
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl.createTexture();
         if (!texture) {
@@ -108,11 +118,13 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         let unpackFlipY = false;
         let generateMipmap = false;
         let format = DEFAULT_TEXTURE_FORMAT;
+        let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
             unpackFlipY = !!options.unpackFlipY;
             generateMipmap = !!options.generateMipmap;
             if (options.format) {
                 format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
+                type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
             }
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
@@ -122,11 +134,11 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
             this._logger.log(
                 'set_image_data(size: {0}x{1}, data: {2})', size.x, size.y, data ? data.byteLength : 'null',
             );
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, data);
+            gl.texImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, type, data);
             this._size = size;
         } else {
             this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, format, GL_UNSIGNED_BYTE, source);
+            gl.texImage2D(GL_TEXTURE_2D, 0, format, format, type, source);
             this._size = vec2(source.width, source.height);
         }
         if (generateMipmap) {

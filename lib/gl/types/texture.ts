@@ -9,7 +9,10 @@ export type TEXTURE_MIN_FILTER = (
     | 'nearest_mipmap_nearest' | 'linear_mipmap_nearest' | 'nearest_mipmap_linear' | 'linear_mipmap_linear'
 );
 
-export type TEXTURE_FORMAT = ('rgba' | 'rgb' | 'luminance' | 'alpha' | 'luminance_alpha');
+export type TEXTURE_FORMAT = (
+    | 'rgba' | 'rgb' | 'luminance' | 'alpha' | 'luminance_alpha'
+    | 'depth_component16' | 'depth_component32' | 'depth_stencil'
+);
 
 export interface TextureParameters {
     readonly wrap_s?: TEXTURE_WRAP;

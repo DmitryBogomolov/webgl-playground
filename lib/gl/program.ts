@@ -292,7 +292,9 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         for (const attr of this._schema.attributes) {
             const shaderAttr = attributes[attr.name];
             if (!shaderAttr) {
-                throw this._logger.error('attribute "{0}" is unknown', attr.name);
+                // TODO: How should this be properly processed?
+                this._logger.warn('attribute "{0}" is unknown', attr.name);
+                continue;
             }
             if (attr.location !== shaderAttr.location) {
                 throw this._logger.error(
