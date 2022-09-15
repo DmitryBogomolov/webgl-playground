@@ -10,7 +10,7 @@ import {
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makeProgram, makeDepthProgram, makeCube, makeSphere } from './primitive';
+import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } from './primitive';
 
 /**
  * Shadows and texture.
@@ -109,6 +109,7 @@ const objects = [
 
 const program = makeProgram(runtime);
 const depthProgram = makeDepthProgram(runtime);
+const wireframe = makeWireframe(runtime);
 
 runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
@@ -134,6 +135,12 @@ function renderDepthData(program: Program, camera: Camera): void {
     });
 }
 
+function renderWireframe(): void {
+    wireframe.program().setUniform('u_view_proj', camera.getTransformMat());
+    wireframe.program().setUniform('u_model', depthCamera.getInvtransformMat());
+    wireframe.render();
+}
+
 function renderScene(program: Program, camera: Camera, depthCamera: Camera): void {
     runtime.setFramebuffer(null);
     runtime.setClearColor(backgroundColor);
@@ -150,6 +157,7 @@ function renderScene(program: Program, camera: Camera, depthCamera: Camera): voi
         program.setUniform('u_model_invtrs', obj.modelInvtrs);
         program.setUniform('u_color', obj.color);
     });
+    renderWireframe();
 }
 
 runtime.frameRendered().on(() => {
