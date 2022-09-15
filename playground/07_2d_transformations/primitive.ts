@@ -21,8 +21,8 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         { name: 'a_color', type: 'ubyte3', normalized: true },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
+        vertShader,
+        fragShader,
         schema,
     });
 

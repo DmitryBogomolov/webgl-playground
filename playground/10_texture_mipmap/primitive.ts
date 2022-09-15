@@ -32,8 +32,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indices.length });
 
     const program = new Program(runtime, {
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
+        vertShader,
+        fragShader,
         schema,
     });
     primitive.setProgram(program);

@@ -183,8 +183,8 @@ interface UniformsMap {
 
 export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
-    private readonly _vertexShader: WebGLShader;
-    private readonly _fragmentShader: WebGLShader;
+    private readonly _vertShader: WebGLShader;
+    private readonly _fragShader: WebGLShader;
     private readonly _schema: VertexSchema;
     // private readonly _attributes: AttributesMap = {};
     private readonly _uniforms: UniformsMap = {};
@@ -197,8 +197,8 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         this._schema = options.schema;
         try {
             this._program = this._createProgram();
-            this._vertexShader = this._createShader(GL_VERTEX_SHADER, options.vertexShader);
-            this._fragmentShader = this._createShader(GL_FRAGMENT_SHADER, options.fragmentShader);
+            this._vertShader = this._createShader(GL_VERTEX_SHADER, options.vertShader);
+            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, options.fragShader);
             this._bindAttributes();
             this._linkProgram();
             /* this._attributes = */this._collectAttributes();
@@ -219,8 +219,8 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _dispose(): void {
-        this._deleteShader(this._vertexShader);
-        this._deleteShader(this._fragmentShader);
+        this._deleteShader(this._vertShader);
+        this._deleteShader(this._fragShader);
         this._runtime.gl.deleteProgram(this._program);
     }
 
@@ -264,8 +264,8 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         gl.linkProgram(this._program);
         if (!gl.getProgramParameter(this._program, GL_LINK_STATUS)) {
             const linkInfo = gl.getProgramInfoLog(this._program)!;
-            const vertexInfo = gl.getShaderInfoLog(this._vertexShader);
-            const fragmentInfo = gl.getShaderInfoLog(this._fragmentShader);
+            const vertexInfo = gl.getShaderInfoLog(this._vertShader);
+            const fragmentInfo = gl.getShaderInfoLog(this._fragShader);
             let message = formatStr(linkInfo);
             if (vertexInfo) {
                 message += '\n' + vertexInfo;

@@ -38,8 +38,8 @@ export function makeObject(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: objectVertShader,
-        fragmentShader: objectFragShader,
+        vertShader: objectVertShader,
+        fragShader: objectFragShader,
         schema,
     });
     primitive.setProgram(program);
@@ -72,8 +72,8 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: texturePlaneVertShader,
-        fragmentShader: texturePlaneFragShader,
+        vertShader: texturePlaneVertShader,
+        fragShader: texturePlaneFragShader,
         schema,
     });
     primitive.setProgram(program);

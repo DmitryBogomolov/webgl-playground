@@ -32,8 +32,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         { name: 'a_position', type: 'float2' },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
+        vertShader,
+        fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

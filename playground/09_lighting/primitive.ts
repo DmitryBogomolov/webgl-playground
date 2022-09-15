@@ -21,24 +21,24 @@ const schema = parseVertexSchema([
 
 export function makeDirectionalProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: directionalVertShader,
-        fragmentShader: directionalFragShader,
+        vertShader: directionalVertShader,
+        fragShader: directionalFragShader,
         schema,
     });
 }
 
 export function makePointProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: pointVertShader,
-        fragmentShader: pointFragShader,
+        vertShader: pointVertShader,
+        fragShader: pointFragShader,
         schema,
     });
 }
 
 export function makeSpotProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: spotVertShader,
-        fragmentShader: spotFragShader,
+        vertShader: spotVertShader,
+        fragShader: spotFragShader,
         schema,
     });
 }

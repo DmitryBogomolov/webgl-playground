@@ -54,8 +54,8 @@ function makeSoAPrimitive(runtime: Runtime): Primitive {
 
 function makePrimitive(runtime: Runtime, schema: VertexSchema, arrayBufferSize: number): Primitive {
     const program = new Program(runtime, {
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
+        vertShader,
+        fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

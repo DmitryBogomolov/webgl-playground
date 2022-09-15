@@ -15,8 +15,8 @@ const schema = parseVertexSchema([
 
 const roundParams: LineParams = {
     schema,
-    vertexShader: vertShader,
-    fragmentShader: fragShader,
+    vertShader,
+    fragShader,
     getVertexCount(segmentCount) {
         // 4 vertices per segment.
         return 4 * segmentCount;

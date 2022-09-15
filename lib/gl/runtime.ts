@@ -52,23 +52,10 @@ const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     'color': WebGL.COLOR_BUFFER_BIT,
     'depth': WebGL.DEPTH_BUFFER_BIT,
     'stencil': WebGL.STENCIL_BUFFER_BIT,
-    'color|depth': (
-        WebGL.COLOR_BUFFER_BIT
-        | WebGL.DEPTH_BUFFER_BIT
-    ),
-    'color|stencil': (
-        WebGL.COLOR_BUFFER_BIT
-        | WebGL.STENCIL_BUFFER_BIT
-    ),
-    'depth|stencil': (
-        WebGL.DEPTH_BUFFER_BIT
-        | WebGL.STENCIL_BUFFER_BIT
-    ),
-    'color|depth|stencil': (
-        WebGL.COLOR_BUFFER_BIT
-        | WebGL.DEPTH_BUFFER_BIT
-        | WebGL.STENCIL_BUFFER_BIT
-    ),
+    'color|depth': (WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT),
+    'color|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
+    'depth|stencil': (WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
+    'color|depth|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
 };
 
 const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {

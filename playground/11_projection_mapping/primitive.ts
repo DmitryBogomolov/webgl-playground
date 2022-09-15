@@ -19,8 +19,8 @@ const schema = parseVertexSchema([
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
+        vertShader,
+        fragShader,
         schema,
     });
 }
@@ -112,8 +112,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indices.length, primitiveMode: 'lines' });
 
     const program = new Program(runtime, {
-        vertexShader: wireframeVertShader,
-        fragmentShader: wireframeFragShader,
+        vertShader: wireframeVertShader,
+        fragShader: wireframeFragShader,
         schema,
     });
     primitive.setProgram(program);
