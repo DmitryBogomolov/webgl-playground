@@ -35,7 +35,7 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
     return primitive;
 }
 
-export function makeColorProgram(runtime: Runtime): Program {
+export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertexShader: colorVertShader,
         fragmentShader: colorFragShader,
@@ -43,7 +43,7 @@ export function makeColorProgram(runtime: Runtime): Program {
     });
 }
 
-export function makeShadowProgram(runtime: Runtime): Program {
+export function makeDepthProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertexShader: shadowVertShader,
         fragmentShader: shadowFragShader,

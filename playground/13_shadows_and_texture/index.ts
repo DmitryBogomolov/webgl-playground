@@ -5,10 +5,10 @@ import {
     Camera,
     Vec3, vec3,
     Mat4, translation4x4, inversetranspose4x4,
-    Color, colors, color,
+    Color, colors, color, Program,
 } from 'lib';
 import { createControls } from 'util/controls';
-import { makeColorProgram, makeShadowProgram, makeCube, makeSphere } from './primitive';
+import { makeProgram, makeDepthProgram, makeCube, makeSphere } from './primitive';
 
 /**
  * Shadows and texture.
@@ -22,20 +22,20 @@ const runtime = new Runtime(container, { extensions: ['depth_texture'] });
 runtime.setDepthTest(true);
 
 const backgroundColor = color(0.7, 0.7, 0.7);
-const shadowBackgroundColor = color(1, 1, 1);
+const depthDataBackgroundColor = color(1, 1, 1);
 
-const shadowCamera = new Camera();
+const depthCamera = new Camera();
 const camera = new Camera();
-shadowCamera.setEyePos(vec3(-5, 0, 2));
+depthCamera.setEyePos(vec3(-5, 0, 2));
 // Z range should be quite small. Z precision goes down with distance from camera
 // and total Z range further affects it. So Z range should be as small as possible.
-shadowCamera.setZNear(2);
-shadowCamera.setZFar(10);
+depthCamera.setZNear(2);
+depthCamera.setZFar(10);
 camera.setEyePos(vec3(-2, 3, 5));
 
 const framebuffer = new Framebuffer(runtime);
 framebuffer.setup('color|depth', { x: 512, y: 512 }, true);
-shadowCamera.setViewportSize(framebuffer.size());
+depthCamera.setViewportSize(framebuffer.size());
 
 function makeObject(primitive: Primitive, offset: Vec3, clr: Color): {
     readonly primitive: Primitive;
@@ -65,52 +65,50 @@ const objects = [
     ),
 ] as const;
 
-const program = makeColorProgram(runtime);
-const shadowProgram = makeShadowProgram(runtime);
+const program = makeProgram(runtime);
+const depthProgram = makeDepthProgram(runtime);
 
 runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
 });
 
-function renderShadows(): void {
+function renderDepthData(program: Program, camera: Camera): void {
     runtime.setFramebuffer(framebuffer);
-    runtime.setClearColor(shadowBackgroundColor);
+    runtime.setClearColor(depthDataBackgroundColor);
     runtime.clearBuffer('color|depth');
-    const prog = shadowProgram;
-    prog.setUniform('u_view_proj', shadowCamera.getTransformMat());
+    program.setUniform('u_view_proj', camera.getTransformMat());
 
     for (const obj of objects) {
-        prog.setUniform('u_model', obj.model);
-        obj.primitive.setProgram(prog);
+        program.setUniform('u_model', obj.model);
+        obj.primitive.setProgram(program);
         obj.primitive.render();
     }
 }
 
-function renderScene(): void {
+function renderScene(program: Program, camera: Camera, depthCamera: Camera): void {
     runtime.setFramebuffer(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
     // Color buffer (instead of depth buffer) could be used here.
     // But depth texture is used to demonstrate depth texture usage.
     runtime.setTextureUnit(4, framebuffer.depthTexture());
-    const prog = program;
-    prog.setUniform('u_view_proj', camera.getTransformMat());
-    prog.setUniform('u_light_pos', shadowCamera.getEyePos());
-    prog.setUniform('u_depth_view_proj', shadowCamera.getTransformMat());
-    prog.setUniform('u_depth_texture', 4);
+    program.setUniform('u_view_proj', camera.getTransformMat());
+    program.setUniform('u_light_pos', depthCamera.getEyePos());
+    program.setUniform('u_depth_view_proj', depthCamera.getTransformMat());
+    program.setUniform('u_depth_texture', 4);
 
     for (const obj of objects) {
-        prog.setUniform('u_model', obj.model);
-        prog.setUniform('u_model_invtrs', obj.modelInvtrs);
-        prog.setUniform('u_color', obj.color);
-        obj.primitive.setProgram(prog);
+        program.setUniform('u_model', obj.model);
+        program.setUniform('u_model_invtrs', obj.modelInvtrs);
+        program.setUniform('u_color', obj.color);
+        obj.primitive.setProgram(program);
         obj.primitive.render();
     }
 }
 
 runtime.frameRendered().on(() => {
-    renderShadows();
-    renderScene();
+    renderDepthData(depthProgram, depthCamera);
+    renderScene(program, camera, depthCamera);
 });
 
 createControls(container, [
