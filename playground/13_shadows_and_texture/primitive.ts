@@ -52,7 +52,7 @@ export function makeShadowProgram(runtime: Runtime): Program {
 }
 
 export function makeSphere(runtime: Runtime, size: number): Primitive {
-    return make(runtime, generateSphere(mul3(UNIT3, size), (vertex) => vertex));
+    return make(runtime, generateSphere(mul3(UNIT3, size), (vertex) => vertex, 16));
 }
 
 export function makeCube(runtime: Runtime, size: number): Primitive {

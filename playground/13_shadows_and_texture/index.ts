@@ -26,8 +26,12 @@ const shadowBackgroundColor = color(1, 1, 1);
 
 const shadowCamera = new Camera();
 const camera = new Camera();
-shadowCamera.setEyePos(vec3(-6, 0, 0));
-camera.setEyePos(vec3(0, 3, 5));
+shadowCamera.setEyePos(vec3(-5, 0, 2));
+// Z range should be quite small. Z precision goes down with distance from camera
+// and total Z range further affects it. So Z range should be as small as possible.
+shadowCamera.setZNear(2);
+shadowCamera.setZFar(10);
+camera.setEyePos(vec3(-2, 3, 5));
 
 const framebuffer = new Framebuffer(runtime);
 framebuffer.setup('color|depth', { x: 512, y: 512 }, true);
@@ -39,7 +43,6 @@ interface ObjectInfo {
     readonly modelInvtrs: Mat4;
     readonly color: Color;
 }
-
 const objects: ReadonlyArray<ObjectInfo> = [
     {
         primitive: makeCube(runtime, 2),
@@ -83,8 +86,12 @@ function renderScene(): void {
     runtime.setFramebuffer(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
+    runtime.setTextureUnit(4, framebuffer.depthTexture());
     const prog = program;
     prog.setUniform('u_view_proj', camera.getTransformMat());
+    prog.setUniform('u_light_pos', shadowCamera.getEyePos());
+    prog.setUniform('u_depth_view_proj', shadowCamera.getTransformMat());
+    prog.setUniform('u_depth_texture', 4);
 
     for (const obj of objects) {
         prog.setUniform('u_model', obj.model);
