@@ -7,14 +7,28 @@ import { ZERO2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture';
 
-const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
-const GL_RENDERBUFFER = WebGLRenderingContext.prototype.RENDERBUFFER;
-const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
-const GL_COLOR_ATTACHMENT0 = WebGLRenderingContext.prototype.COLOR_ATTACHMENT0;
-const GL_DEPTH_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_ATTACHMENT;
-const GL_DEPTH_STENCIL_ATTACHMENT = WebGLRenderingContext.prototype.DEPTH_STENCIL_ATTACHMENT;
-const GL_DEPTH_COMPONENT16 = WebGLRenderingContext.prototype.DEPTH_COMPONENT16;
-const GL_DEPTH_STENCIL = WebGLRenderingContext.prototype.DEPTH_STENCIL;
+const {
+    FRAMEBUFFER: GL_FRAMEBUFFER,
+    RENDERBUFFER: GL_RENDERBUFFER,
+    TEXTURE_2D: GL_TEXTURE_2D,
+    COLOR_ATTACHMENT0: GL_COLOR_ATTACHMENT0,
+    DEPTH_ATTACHMENT: GL_DEPTH_ATTACHMENT,
+    DEPTH_STENCIL_ATTACHMENT: GL_DEPTH_STENCIL_ATTACHMENT,
+    DEPTH_COMPONENT16: GL_DEPTH_COMPONENT16,
+    DEPTH_STENCIL: GL_DEPTH_STENCIL,
+    FRAMEBUFFER_COMPLETE: GL_FRAMEBUFFER_COMPLETE,
+    FRAMEBUFFER_INCOMPLETE_ATTACHMENT: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT,
+    FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT,
+    FRAMEBUFFER_INCOMPLETE_DIMENSIONS: GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS,
+    FRAMEBUFFER_UNSUPPORTED: GL_FRAMEBUFFER_UNSUPPORTED,
+} = WebGLRenderingContext.prototype;
+
+const ERRORS_MAP: Readonly<Record<number, string>> = {
+    [GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT]: 'incomplete attachment',
+    [GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT]: 'missing attachment',
+    [GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: 'dimensions',
+    [GL_FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
+};
 
 export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
     private readonly _runtime: FramebufferRuntime;
@@ -186,6 +200,10 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
             default:
                 this._logger.error('bad attachment type: {0}', attachment);
                 break;
+            }
+            const status = this._runtime.gl.checkFramebufferStatus(GL_FRAMEBUFFER);
+            if (status !== GL_FRAMEBUFFER_COMPLETE) {
+                throw this._logger.error('failed to setup attachment: {0}', ERRORS_MAP[status]);
             }
         } finally {
             this._runtime.bindFramebuffer(null);
