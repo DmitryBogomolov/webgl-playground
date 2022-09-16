@@ -23,7 +23,7 @@ const arr = new Uint32Array(8 * 8);
 for (let i = 0; i < 8; ++i) {
     for (let j = 0; j < 8; ++j) {
         let c;
-        if (i + j % 2) {
+        if ((i + j) % 2) {
             c = colors.CYAN;
         } else {
             c = colors.MAGENTA;
