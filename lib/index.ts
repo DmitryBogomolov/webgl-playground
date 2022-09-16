@@ -45,3 +45,5 @@ export * from './gl/types/camera';
 export * from './gl/camera';
 export * from './worker/types/worker';
 export * from './worker/worker';
+export * from './wrappers/types/image-renderer';
+export * from './wrappers/image-renderer';
