@@ -23,8 +23,8 @@ export type UniformValue = (
 );
 
 export interface ProgramOptions {
-    readonly vertexShader: string;
-    readonly fragmentShader: string;
+    readonly vertShader: string;
+    readonly fragShader: string;
     readonly schema: VertexSchema;
 }
 

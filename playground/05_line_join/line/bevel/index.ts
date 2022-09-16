@@ -4,8 +4,8 @@ import {
     Vec2, Vec3, Vec4, vec3, vec4,
 } from 'lib';
 import { Line, LineParams, writeSegmentIndexes } from '../line';
-import vertexShaderSource from './shaders/vert.glsl';
-import fragmentShaderSource from './shaders/frag.glsl';
+import vertShader from './shaders/vert.glsl';
+import fragShader from './shaders/frag.glsl';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float3' },
@@ -15,8 +15,8 @@ const schema = parseVertexSchema([
 
 const bevelParams: LineParams = {
     schema,
-    vertexShader: vertexShaderSource,
-    fragmentShader: fragmentShaderSource,
+    vertShader,
+    fragShader,
     getVertexCount(segmentCount) {
         // 4 vertices per segment.
         return 4 * segmentCount;

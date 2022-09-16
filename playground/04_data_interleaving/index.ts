@@ -6,8 +6,8 @@ import {
     Color, color,
     Vec2, vec2,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 /**
  * Vertex data interleaving.
@@ -54,8 +54,8 @@ function makeSoAPrimitive(runtime: Runtime): Primitive {
 
 function makePrimitive(runtime: Runtime, schema: VertexSchema, arrayBufferSize: number): Primitive {
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertShader,
+        fragShader,
         schema,
     });
     const primitive = new Primitive(runtime);

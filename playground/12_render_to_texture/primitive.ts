@@ -8,12 +8,12 @@ import {
     UNIT3,
     generateCube, generatePlaneZ,
 } from 'lib';
-import cubeVertexShaderSource from './shaders/cube.vert';
-import cubeFragmentShaderSource from './shaders/cube.frag';
-import planeVertexShaderSource from './shaders/plane.vert';
-import planeFragmentShaderSource from './shaders/plane.frag';
+import objectVertShader from './shaders/object.vert';
+import objectFragShader from './shaders/object.frag';
+import texturePlaneVertShader from './shaders/texture-plane.vert';
+import texturePlaneFragShader from './shaders/texture-plane.frag';
 
-export function makeCube(runtime: Runtime): Primitive {
+export function makeObject(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const schema = parseVertexSchema([
@@ -38,8 +38,8 @@ export function makeCube(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: cubeVertexShaderSource,
-        fragmentShader: cubeFragmentShaderSource,
+        vertShader: objectVertShader,
+        fragShader: objectFragShader,
         schema,
     });
     primitive.setProgram(program);
@@ -47,7 +47,7 @@ export function makeCube(runtime: Runtime): Primitive {
     return primitive;
 }
 
-export function makePlane(runtime: Runtime): Primitive {
+export function makeTexturePlane(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const schema = parseVertexSchema([
@@ -72,8 +72,8 @@ export function makePlane(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: planeVertexShaderSource,
-        fragmentShader: planeFragmentShaderSource,
+        vertShader: texturePlaneVertShader,
+        fragShader: texturePlaneFragShader,
         schema,
     });
     primitive.setProgram(program);

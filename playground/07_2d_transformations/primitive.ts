@@ -8,8 +8,8 @@ import {
     Vec2,
     vec2,
 } from 'lib';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 export interface PrimitiveFactory {
     (clr: Color): Primitive;
@@ -21,8 +21,8 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         { name: 'a_color', type: 'ubyte3', normalized: true },
     ]);
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertShader,
+        fragShader,
         schema,
     });
 

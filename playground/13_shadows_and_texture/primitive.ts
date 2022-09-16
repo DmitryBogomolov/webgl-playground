@@ -39,16 +39,16 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: sceneVertShader,
-        fragmentShader: sceneFragShader,
+        vertShader: sceneVertShader,
+        fragShader: sceneFragShader,
         schema,
     });
 }
 
 export function makeDepthProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: depthVertShader,
-        fragmentShader: depthFragShader,
+        vertShader: depthVertShader,
+        fragShader: depthFragShader,
         schema,
     });
 }
@@ -91,8 +91,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indices.length, primitiveMode: 'lines' });
 
     const program = new Program(runtime, {
-        vertexShader: wireframeVertShader,
-        fragmentShader: wireframeFragShader,
+        vertShader: wireframeVertShader,
+        fragShader: wireframeFragShader,
         schema,
     });
     primitive.setProgram(program);

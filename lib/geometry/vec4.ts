@@ -44,6 +44,18 @@ export function mul4(v: Vec4, k: number): Vec4 {
     return vec4(v.x * k, v.y * k, v.z * k, v.w * k);
 }
 
+export function div4(v: Vec4, k: number): Vec4 {
+    return vec4(v.x / k, v.y / k, v.z / k, v.w / k);
+}
+
+export function mul4c(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+}
+
+export function div4c(a: Vec4, b: Vec4): Vec4 {
+    return vec4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
+}
+
 export function len4(v: Vec4): number {
     return Math.hypot(v.x, v.y, v.z, v.w);
 }

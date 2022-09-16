@@ -3,8 +3,8 @@ import { Vertex } from '../vertex';
 
 export interface LineParams {
     readonly schema: VertexSchema;
-    readonly vertexShader: string;
-    readonly fragmentShader: string;
+    readonly vertShader: string;
+    readonly fragShader: string;
     getVertexCount(segmentCount: number): number;
     getIndexCount(segmentCount: number): number;
     writeSegmentVertices(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, segmentIdx: number): void;
@@ -27,8 +27,8 @@ export class Line {
         this._params = params;
         this._primitive = new Primitive(runtime);
         const program = new Program(runtime, {
-            vertexShader: params.vertexShader,
-            fragmentShader: params.fragmentShader,
+            vertShader: params.vertShader,
+            fragShader: params.fragShader,
             schema: params.schema,
         });
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);

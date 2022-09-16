@@ -9,8 +9,8 @@ import {
 } from 'lib';
 import { observable } from 'util/observable';
 import { makeTextureData } from './image';
-import vertexShaderSource from './shaders/shader.vert';
-import fragmentShaderSource from './shaders/shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 /**
  * Four rectangles.
@@ -59,8 +59,8 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertexShader: vertexShaderSource,
-        fragmentShader: fragmentShaderSource,
+        vertShader,
+        fragShader,
         schema,
     });
     primitive.setProgram(program);

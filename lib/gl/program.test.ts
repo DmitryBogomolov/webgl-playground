@@ -52,8 +52,8 @@ describe('program', () => {
 
         it('create program', () => {
             new Program(runtime, {
-                vertexShader: 'vertex-shader-source',
-                fragmentShader: 'fragment-shader-source',
+                vertShader: 'vert-shader-source',
+                fragShader: 'frag-shader-source',
                 schema: {
                     totalSize: 0,
                     attributes: [],
@@ -67,8 +67,8 @@ describe('program', () => {
                 [WebGLRenderingContext.prototype.FRAGMENT_SHADER],
             ]);
             expect(shaderSource.mock.calls).toEqual([
-                [vShader, 'vertex-shader-source'],
-                [fShader, 'fragment-shader-source'],
+                [vShader, 'vert-shader-source'],
+                [fShader, 'frag-shader-source'],
             ]);
             expect(compileShader.mock.calls).toEqual([
                 [vShader],

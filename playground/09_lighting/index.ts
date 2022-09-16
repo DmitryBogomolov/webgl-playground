@@ -15,7 +15,7 @@ import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgra
 /**
  * Lighting.
  *
- * Different basic lighting techniques.
+ * Different basic lighting techniques. Shows directional, point and spot lighting.
  */
 export type DESCRIPTION = never;
 

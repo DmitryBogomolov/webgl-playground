@@ -13,15 +13,17 @@ import { RenderLoop } from './render-loop';
 import { color, colorEq, isColor } from './color';
 import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
 
-const GL_ARRAY_BUFFER = WebGLRenderingContext.prototype.ARRAY_BUFFER;
-const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
-const GL_FRAMEBUFFER = WebGLRenderingContext.prototype.FRAMEBUFFER;
-const GL_RENDERBUFFER = WebGLRenderingContext.prototype.RENDERBUFFER;
-const GL_TEXTURE_2D = WebGLRenderingContext.prototype.TEXTURE_2D;
-const GL_TEXTURE0 = WebGLRenderingContext.prototype.TEXTURE0;
-const GL_UNPACK_FLIP_Y_WEBGL = WebGLRenderingContext.prototype.UNPACK_FLIP_Y_WEBGL;
-const GL_DEPTH_TEST = WebGLRenderingContext.prototype.DEPTH_TEST;
-const GL_CULL_FACE = WebGLRenderingContext.prototype.CULL_FACE;
+const WebGL = WebGLRenderingContext.prototype;
+
+const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
+const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
+const GL_FRAMEBUFFER = WebGL.FRAMEBUFFER;
+const GL_RENDERBUFFER = WebGL.RENDERBUFFER;
+const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
+const GL_TEXTURE0 = WebGL.TEXTURE0;
+const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
+const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
+const GL_CULL_FACE = WebGL.CULL_FACE;
 
 interface State {
     viewportSize: Vec2;
@@ -47,43 +49,30 @@ interface State {
 }
 
 const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
-    'color': WebGLRenderingContext.prototype.COLOR_BUFFER_BIT,
-    'depth': WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT,
-    'stencil': WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT,
-    'color|depth': (
-        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
-        | WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
-    ),
-    'color|stencil': (
-        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
-        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
-    ),
-    'depth|stencil': (
-        WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
-        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
-    ),
-    'color|depth|stencil': (
-        WebGLRenderingContext.prototype.COLOR_BUFFER_BIT
-        | WebGLRenderingContext.prototype.DEPTH_BUFFER_BIT
-        | WebGLRenderingContext.prototype.STENCIL_BUFFER_BIT
-    ),
+    'color': WebGL.COLOR_BUFFER_BIT,
+    'depth': WebGL.DEPTH_BUFFER_BIT,
+    'stencil': WebGL.STENCIL_BUFFER_BIT,
+    'color|depth': (WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT),
+    'color|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
+    'depth|stencil': (WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
+    'color|depth|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
 };
 
 const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
-    'never': WebGLRenderingContext.prototype.NEVER,
-    'less': WebGLRenderingContext.prototype.LESS,
-    'lequal': WebGLRenderingContext.prototype.LEQUAL,
-    'greater': WebGLRenderingContext.prototype.GREATER,
-    'gequal': WebGLRenderingContext.prototype.GEQUAL,
-    'equal': WebGLRenderingContext.prototype.EQUAL,
-    'notequal': WebGLRenderingContext.prototype.NOTEQUAL,
-    'always': WebGLRenderingContext.prototype.ALWAYS,
+    'never': WebGL.NEVER,
+    'less': WebGL.LESS,
+    'lequal': WebGL.LEQUAL,
+    'greater': WebGL.GREATER,
+    'gequal': WebGL.GEQUAL,
+    'equal': WebGL.EQUAL,
+    'notequal': WebGL.NOTEQUAL,
+    'always': WebGL.ALWAYS,
 };
 
 const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
-    'back': WebGLRenderingContext.prototype.BACK,
-    'front': WebGLRenderingContext.prototype.FRONT,
-    'front_and_back': WebGLRenderingContext.prototype.FRONT_AND_BACK,
+    'back': WebGL.BACK,
+    'front': WebGL.FRONT,
+    'front_and_back': WebGL.FRONT_AND_BACK,
 };
 
 const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {

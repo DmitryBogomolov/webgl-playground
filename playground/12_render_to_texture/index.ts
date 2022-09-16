@@ -9,12 +9,14 @@ import {
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makeCube, makePlane } from './primitive';
+import { makeObject, makeTexturePlane } from './primitive';
 
 /**
  * Render to texture.
  *
- * Show rendering to texture with additional depth renderbuffer.
+ * Shows rendering to texture with additional depth renderbuffer.
+ * In first pass scene (with animation) is rendered to texture.
+ * In second pass texture is rendered over a plane.
  */
 export type DESCRIPTION = never;
 
@@ -22,11 +24,12 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setDepthTest(true);
 
-const textureClearColor = color(0.7, 0.7, 0.7);
-const targetClearColor = color(0.4, 0.4, 0.4);
+const textureBackgroundColor = color(0.7, 0.7, 0.7);
+const backgroundColor = color(0.4, 0.4, 0.4);
+const lightDir = norm3(vec3(1, 3, 2));
 
-const cube = makeCube(runtime);
-const plane = makePlane(runtime);
+const object = makeObject(runtime);
+const texturePlane = makeTexturePlane(runtime);
 
 interface ObjectInfo {
     readonly clr: Color;
@@ -50,7 +53,6 @@ const objects: ReadonlyArray<ObjectInfo> = [
         model: translation4x4(vec3(0, 0, -1.6)),
     },
 ];
-const lightDir = norm3(vec3(1, 3, 2));
 
 const animationFlag = observable(true);
 const xRotation = observable(0);
@@ -61,8 +63,8 @@ const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
 const textureCamera = new Camera();
 textureCamera.setEyePos(textureCameraPos);
 
-const targetCamera = new Camera();
-targetCamera.setEyePos(vec3(0, 0, 2));
+const camera = new Camera();
+camera.setEyePos(vec3(0, 0, 2));
 
 const _targetModel = mat4();
 const targetModel = computed(([xRotation, yRotation]) => {
@@ -78,37 +80,37 @@ framebuffer.setup('color|depth', { x: 256, y: 256 });
 textureCamera.setViewportSize(framebuffer.size());
 
 runtime.sizeChanged().on(() => {
-    targetCamera.setViewportSize(runtime.canvasSize());
+    camera.setViewportSize(runtime.canvasSize());
 });
 
-function renderTexture(): void {
+function renderToTexture(): void {
     runtime.setFramebuffer(framebuffer);
 
-    runtime.setClearColor(textureClearColor);
+    runtime.setClearColor(textureBackgroundColor);
     runtime.clearBuffer('color|depth');
 
-    const program = cube.program();
+    const program = object.program();
     program.setUniform('u_view_proj', textureCamera.getTransformMat());
     program.setUniform('u_light_dir', lightDir);
     for (const { clr, model } of objects) {
         program.setUniform('u_color', clr);
         program.setUniform('u_model', model);
-        cube.render();
+        object.render();
     }
 }
 
-function renderTarget(): void {
+function renderScene(): void {
     runtime.setFramebuffer(null);
 
-    runtime.setClearColor(targetClearColor);
+    runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
 
     runtime.setTextureUnit(2, framebuffer.texture());
-    const program = plane.program();
-    program.setUniform('u_view_proj', targetCamera.getTransformMat());
+    const program = texturePlane.program();
+    program.setUniform('u_view_proj', camera.getTransformMat());
     program.setUniform('u_model', targetModel());
     program.setUniform('u_texture', 2);
-    plane.render();
+    texturePlane.render();
 }
 
 [animationFlag, targetModel]
@@ -120,8 +122,8 @@ runtime.frameRendered().on((delta) => {
         textureCamera.setEyePos(textureCameraPos);
     }
 
-    renderTexture();
-    renderTarget();
+    renderToTexture();
+    renderScene();
 
     if (animationFlag()) {
         runtime.requestFrameRender();

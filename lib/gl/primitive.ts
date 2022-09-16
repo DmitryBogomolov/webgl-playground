@@ -5,9 +5,11 @@ import { BaseWrapper } from './base-wrapper';
 import { wrap } from './gl-handle-wrapper';
 import { Program } from './program';
 
-const GL_ARRAY_BUFFER = WebGLRenderingContext.ARRAY_BUFFER;
-const GL_ELEMENT_ARRAY_BUFFER = WebGLRenderingContext.prototype.ELEMENT_ARRAY_BUFFER;
-const GL_STATIC_DRAW = WebGLRenderingContext.prototype.STATIC_DRAW;
+const WebGL = WebGLRenderingContext.prototype;
+
+const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
+const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
+const GL_STATIC_DRAW = WebGL.STATIC_DRAW;
 
 const EMPTY_SCHEMA: VertexSchema = {
     attributes: [],
@@ -22,20 +24,20 @@ const EMPTY_PROGRAM = {
 } as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
-    'points': WebGLRenderingContext.prototype.POINTS,
-    'line_strip': WebGLRenderingContext.prototype.LINE_STRIP,
-    'line_loop': WebGLRenderingContext.prototype.LINE_LOOP,
-    'lines': WebGLRenderingContext.prototype.LINES,
-    'triangle_strip': WebGLRenderingContext.prototype.TRIANGLE_STRIP,
-    'triangle_fan': WebGLRenderingContext.prototype.TRIANGLE_FAN,
-    'triangles': WebGLRenderingContext.prototype.TRIANGLES,
+    'points': WebGL.POINTS,
+    'line_strip': WebGL.LINE_STRIP,
+    'line_loop': WebGL.LINE_LOOP,
+    'lines': WebGL.LINES,
+    'triangle_strip': WebGL.TRIANGLE_STRIP,
+    'triangle_fan': WebGL.TRIANGLE_FAN,
+    'triangles': WebGL.TRIANGLES,
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
-    'u8': WebGLRenderingContext.prototype.UNSIGNED_BYTE,
-    'u16': WebGLRenderingContext.prototype.UNSIGNED_SHORT,
-    'u32': WebGLRenderingContext.prototype.UNSIGNED_INT,
+    'u8': WebGL.UNSIGNED_BYTE,
+    'u16': WebGL.UNSIGNED_SHORT,
+    'u32': WebGL.UNSIGNED_INT,
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
 

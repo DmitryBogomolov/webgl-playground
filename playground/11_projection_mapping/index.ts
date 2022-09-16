@@ -11,12 +11,17 @@ import {
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
-import { makeFillTexture, makeMappingTexture } from './texture';
+import { makeColorTexture, makeMappingTexture } from './texture';
 
 /**
  * Projection mapping.
  *
  * Shows projection mapping and projection wifeframe.
+ * Additional point of view is used to implement mapping.
+ * All parts of the scene objects that visible from the mapping point of view are colored with mapping texture.
+ * By default objects are colored with a simple generated two-color texture.
+ * Wireframe of lines shows mapping frustum. It is an [-1,+1] cube that is world trasnformed
+ * with inversed mapping view-projection matrix.
  */
 export type DESCRIPTION = never;
 
@@ -37,7 +42,7 @@ const primitives: ReadonlyArray<PrimitiveData> = [
     { primitive: makePlane(runtime, program), offset: +1.5 },
 ];
 const wireframe = makeWireframe(runtime);
-const fillTexture = makeFillTexture(runtime);
+const colorTexture = makeColorTexture(runtime);
 const mappingTexture = makeMappingTexture(runtime, () => {
     runtime.requestFrameRender();
 });
@@ -45,7 +50,7 @@ const mappingTexture = makeMappingTexture(runtime, () => {
 const wireframeColor = color(0.1, 0.1, 0.1);
 const camera = new Camera();
 camera.setEyePos(vec3(0, 2, 5));
-const projectionCamera = new Camera();
+const mappingCamera = new Camera();
 
 const rotation = observable(0);
 const position = observable(0);
@@ -81,7 +86,7 @@ const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) =>
     return mul3(dir, projectionDist);
 }, [projectionDist, projectionLon, projectionLat]);
 eyePosition.on((eyePosition) => {
-    projectionCamera.setEyePos(eyePosition);
+    mappingCamera.setEyePos(eyePosition);
 });
 
 const projectionSize = computed(
@@ -89,21 +94,21 @@ const projectionSize = computed(
     [projectionWidth, projectionHeight],
 );
 projectionSize.on((projectionSize) => {
-    projectionCamera.setViewportSize(projectionSize);
+    mappingCamera.setViewportSize(projectionSize);
 });
 
 projectionFOV.on((projectionFOV) => {
-    projectionCamera.setYFov(deg2rad(projectionFOV));
+    mappingCamera.setYFov(deg2rad(projectionFOV));
 });
 isPerpsectiveProjection.on((isPerpsectiveProjection) => {
-    projectionCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+    mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
 });
 
 runtime.sizeChanged().on(() => {
     camera.setViewportSize(runtime.canvasSize());
 });
 
-[model, camera.changed(), projectionCamera.changed()].forEach(
+[model, camera.changed(), mappingCamera.changed()].forEach(
     (changed) => changed.on(() => runtime.requestFrameRender()),
 );
 
@@ -113,15 +118,15 @@ runtime.frameRendered().on(() => {
     const coeff = 3 * (2 / camera.getXViewSize());
     for (const { primitive, offset } of primitives) {
         const program = primitive.program();
-        runtime.setTextureUnit(4, fillTexture);
+        runtime.setTextureUnit(4, colorTexture);
         runtime.setTextureUnit(5, mappingTexture);
         program.setUniform('u_offset', coeff * offset);
         program.setUniform('u_proj', camera.getProjMat());
         program.setUniform('u_view', camera.getViewMat());
         program.setUniform('u_model', model());
         program.setUniform('u_texture', 4);
-        program.setUniform('u_planar_texture', 5);
-        program.setUniform('u_planar_mat', projectionCamera.getTransformMat());
+        program.setUniform('u_mapping_texture', 5);
+        program.setUniform('u_mapping_mat', mappingCamera.getTransformMat());
         primitive.render();
 
         if (isWireframeShown()) {
@@ -129,7 +134,7 @@ runtime.frameRendered().on(() => {
             program.setUniform('u_offset', coeff * offset);
             program.setUniform('u_proj', camera.getProjMat());
             program.setUniform('u_view', camera.getViewMat());
-            program.setUniform('u_model', projectionCamera.getInvtransformMat());
+            program.setUniform('u_model', mappingCamera.getInvtransformMat());
             program.setUniform('u_color', wireframeColor);
             wireframe.render();
         }

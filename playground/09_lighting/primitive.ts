@@ -7,12 +7,12 @@ import {
     Vec3,
     generateSphere,
 } from 'lib';
-import directionalVertexShaderSource from './shaders/directional.vert';
-import directionalFragmentShaderSource from './shaders/directional.frag';
-import pointVertexShaderSource from './shaders/point.vert';
-import pointFragmentShaderSource from './shaders/point.frag';
-import spotVertexShaderSource from './shaders/spot.vert';
-import spotFragmentShaderSource from './shaders/spot.frag';
+import directionalVertShader from './shaders/directional.vert';
+import directionalFragShader from './shaders/directional.frag';
+import pointVertShader from './shaders/point.vert';
+import pointFragShader from './shaders/point.frag';
+import spotVertShader from './shaders/spot.vert';
+import spotFragShader from './shaders/spot.frag';
 
 const schema = parseVertexSchema([
     { name: 'a_position', type: 'float3' },
@@ -21,24 +21,24 @@ const schema = parseVertexSchema([
 
 export function makeDirectionalProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: directionalVertexShaderSource,
-        fragmentShader: directionalFragmentShaderSource,
+        vertShader: directionalVertShader,
+        fragShader: directionalFragShader,
         schema,
     });
 }
 
 export function makePointProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: pointVertexShaderSource,
-        fragmentShader: pointFragmentShaderSource,
+        vertShader: pointVertShader,
+        fragShader: pointFragShader,
         schema,
     });
 }
 
 export function makeSpotProgram(runtime: Runtime): Program {
     return new Program(runtime, {
-        vertexShader: spotVertexShaderSource,
-        fragmentShader: spotFragmentShaderSource,
+        vertShader: spotVertShader,
+        fragShader: spotFragShader,
         schema,
     });
 }
