@@ -1,7 +1,7 @@
 import {
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
     eq3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
-    dot3, mul3, add3, sub3, cross3, rotate3,
+    dot3, mul3, div3, mul3c, div3c, add3, sub3, cross3, rotate3,
 } from './vec3';
 
 describe('vec3', () => {
@@ -32,6 +32,18 @@ describe('vec3', () => {
 
     it('mul3', () => {
         expect(mul3({ x: 1, y: 2, z: 3 }, 4)).toBeVec3({ x: 4, y: 8, z: 12 });
+    });
+
+    it('div3', () => {
+        expect(div3({ x: 1, y: 2, z: 3 }, 4)).toBeVec3({ x: 0.25, y: 0.5, z: 0.75 });
+    });
+
+    it('mul3c', () => {
+        expect(mul3c({ x: 1, y: 2, z: 3 }, { x: 2, y: 3, z: 4 })).toBeVec3({ x: 2, y: 6, z: 12 });
+    });
+
+    it('div3c', () => {
+        expect(div3c({ x: 1, y: 2, z: 3 }, { x: 2, y: 3, z: 4 })).toBeVec3({ x: 0.5, y: 0.6667, z: 0.75 });
     });
 
     it('add3', () => {

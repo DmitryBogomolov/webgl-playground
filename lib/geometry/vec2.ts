@@ -43,6 +43,18 @@ export function mul2(v: Vec2, k: number): Vec2 {
     return vec2(v.x * k, v.y * k);
 }
 
+export function div2(v: Vec2, k: number): Vec2 {
+    return vec2(v.x / k, v.y / k);
+}
+
+export function mul2c(a: Vec2, b: Vec2): Vec2 {
+    return vec2(a.x * b.x, a.y * b.y);
+}
+
+export function div2c(a: Vec2, b: Vec2): Vec2 {
+    return vec2(a.x / b.x, a.y / b.y);
+}
+
 export function len2(v: Vec2): number {
     return Math.hypot(v.x, v.y);
 }

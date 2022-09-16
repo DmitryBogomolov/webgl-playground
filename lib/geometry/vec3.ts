@@ -40,6 +40,18 @@ export function mul3(v: Vec3, k: number): Vec3 {
     return vec3(v.x * k, v.y * k, v.z * k);
 }
 
+export function div3(v: Vec3, k: number): Vec3 {
+    return vec3(v.x / k, v.y / k, v.z / k);
+}
+
+export function mul3c(a: Vec3, b: Vec3): Vec3 {
+    return vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+}
+
+export function div3c(a: Vec3, b: Vec3): Vec3 {
+    return vec3(a.x / b.x, a.y / b.y, a.z / b.z);
+}
+
 export function len3(v: Vec3): number {
     return Math.hypot(v.x, v.y, v.z);
 }
