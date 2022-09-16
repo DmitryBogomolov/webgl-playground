@@ -13,7 +13,7 @@ attribute vec2 a_position;
 varying vec2 v_texcoord;
 
 void main() {
-    gl_Position = vec4(a_position, 0.0, 1.0);
+    gl_Position = vec4(a_position * 0.5, 0.0, 1.0);
     v_texcoord = (a_position + vec2(1.0)) / 2.0;
 }
 `;
@@ -25,7 +25,8 @@ varying vec2 v_texcoord;
 uniform sampler2D u_texture;
 
 void main() {
-    gl_FragColor = texture2D(u_texture, v_texcoord);
+    // gl_FragColor = texture2D(u_texture, v_texcoord);
+    gl_FragColor = texture2D(u_texture, vec2(0.5, 1.5));
 }
 `;
 
@@ -93,19 +94,19 @@ export class ImageRenderer {
             wrap_s: 'clamp_to_edge',
             wrap_t: 'clamp_to_edge',
         });
-        texture.setImageData({ data: null, size: { x: 1, y: 1 }});
+        //texture.setImageData({ data: null, size: { x: 1, y: 1 }});
         return texture;
     }
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
         if (isRawData(data)) {
-            this._texture.setImageData(data);
+            this._texture.setImageData(data, { unpackFlipY: true });
         } else if (isUrlData(data)) {
             return loadImage(data.url).then((img) => {
-                this._texture.setImageData(img);
+                this._texture.setImageData(img, { unpackFlipY: true });
             });
         } else {
-            this._texture.setImageData(data);
+            this._texture.setImageData(data, { unpackFlipY: true });
         }
     }
 
@@ -120,15 +121,11 @@ export class ImageRenderer {
     }
 }
 
-async function loadImage(url: string): Promise<HTMLImageElement> {
-    const image = new Image();
-    image.src = url;
+function loadImage(url: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
-        image.addEventListener('load', () => {
-            resolve(image);
-        });
-        image.addEventListener('error', (err) => {
-            reject(err);
-        });
+        const image = new Image();
+        image.src = url;
+        image.addEventListener('load', () => resolve(image));
+        image.addEventListener('error', reject);
     });
 }
