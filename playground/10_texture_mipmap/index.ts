@@ -1,13 +1,13 @@
 import {
     Runtime,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
-    Vec2, vec2, mul2,
+    vec2, mul2,
     vec3,
     mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { observable } from 'util/observable';
+import { Observable, observable } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
@@ -15,7 +15,8 @@ import { makeTexture } from './texture';
 /**
  * Texture mipmap.
  *
- * Texture magnification and minification filters.
+ * Shows difference magnification and minification filters.
+ * Filters can be selected through controls.
  */
 export type DESCRIPTION = never;
 
@@ -49,7 +50,7 @@ runtime.sizeChanged().on(() => {
     });
 });
 
-const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
+const RENDER_SCHEMA = [
     { offset: vec2(0, 0), size: 1 },
     { offset: vec2(-1.5, +0.4), size: 0.2 },
     { offset: vec2(-1.5, -0.3), size: 0.4 },
@@ -58,7 +59,7 @@ const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
     { offset: vec2(-1, -0.8), size: 0.3 },
     { offset: vec2(+1, -0.8), size: 0.1 },
     { offset: vec2(+1, +0.8), size: 0.15 },
-];
+] as const;
 
 const animationFlag = observable(true);
 let animationAngle = 0;
@@ -71,13 +72,13 @@ const xRotation = observable(0);
 const yRotation = observable(0);
 const mat = mat4();
 
-const MAG_FILTER_OPTIONS = ['nearest', 'linear'];
-const MIN_FILTER_OPTIONS = [
+const MAG_FILTER_OPTIONS: ReadonlyArray<TEXTURE_MAG_FILTER> = ['nearest', 'linear'];
+const MIN_FILTER_OPTIONS: ReadonlyArray<TEXTURE_MIN_FILTER> = [
     'nearest', 'linear',
     'nearest_mipmap_nearest', 'linear_mipmap_nearest', 'nearest_mipmap_linear', 'linear_mipmap_linear',
 ];
-const magFilter = observable(MAG_FILTER_OPTIONS[0]);
-const minFilter = observable(MIN_FILTER_OPTIONS[0]);
+const magFilter = observable(MAG_FILTER_OPTIONS[0]) as Observable<string>;
+const minFilter = observable(MIN_FILTER_OPTIONS[0]) as Observable<string>;
 
 magFilter.on((value) => {
     texture.setParameters({
