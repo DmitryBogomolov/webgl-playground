@@ -108,9 +108,8 @@ export class ImageRenderer {
         if (isRawData(data)) {
             this._texture.setImageData(data, { unpackFlipY: true });
         } else if (isUrlData(data)) {
-            return loadImage(data.url).then((img) => {
-                this._texture.setImageData(img, { unpackFlipY: true });
-            });
+            const img = await loadImage(data.url);
+            this._texture.setImageData(img, { unpackFlipY: true });
         } else {
             this._texture.setImageData(data);
         }
