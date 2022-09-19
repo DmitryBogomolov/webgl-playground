@@ -3,9 +3,10 @@ import type {
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { TextureData } from '../gl/types/texture';
-import { ZERO2, eq2 } from '../geometry/vec2';
+import { eq2, ZERO2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import { apply4x4, identity4x4, orthographic4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
+import { BaseWrapper } from '../gl/base-wrapper';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
@@ -38,15 +39,16 @@ function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageD
     return 'url' in data;
 }
 
-export class ImageRenderer {
+export class ImageRenderer extends BaseWrapper {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
     private _textureUnit: number = 0;
     private _position: Vec2 = ZERO2;
-    private _size: Vec2 = ZERO2;
+    private _size: Vec2 | null = null;
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: Runtime, tag?: string) {
+        super(tag);
         this._runtime = runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture();
@@ -119,20 +121,41 @@ export class ImageRenderer {
             imageData = data;
         }
         this._texture.setImageData(imageData, { unpackFlipY });
-        if (eq2(this._size, ZERO2)) {
-            this._size = this._texture.size();
-        }
     }
 
-    useTextureUnit(unit: number): void {
+    getTextureUnit(): number {
+        return this._textureUnit;
+    }
+
+    setTextureUnit(unit: number): void {
+        if (this._textureUnit === unit) {
+            return;
+        }
+        this._logger.log('set_texture_unit({0})', unit);
         this._textureUnit = unit;
     }
 
+    getPosition(): Vec2 {
+        return this._position;
+    }
+
     setPosition(position: Vec2): void {
+        if (eq2(this._position, position)) {
+            return;
+        }
+        this._logger.log('set_position(x: {0}, y: {1})', position.x, position.y);
         this._position = position;
     }
 
-    setSize(size: Vec2): void {
+    getSize(): Vec2 | null {
+        return this._size;
+    }
+
+    setSize(size: Vec2 | null): void {
+        if ((this._size === null && size === null) || eq2(this._size!, size!)) {
+            return;
+        }
+        this._logger.log(size ? 'set_size(x: {0}, y: {1})' : 'set_size(null)', size && size.x, size && size.y);
         this._size = size;
     }
 
@@ -140,10 +163,12 @@ export class ImageRenderer {
         this._runtime.setTextureUnit(this._textureUnit, this._texture);
 
         const { x: xViewport, y: yViewport } = this._runtime.viewportSize();
+        const { x: xOffset, y: yOffset } = this._position;
+        const { x: xSize, y: ySize } = this._size || this._texture.size();
 
         const mat = identity4x4();
-        apply4x4(mat, scaling4x4, vec3(this._size.x / 2, this._size.y / 2, 1));
-        apply4x4(mat, translation4x4, vec3(this._position.x, this._position.y, 0));
+        apply4x4(mat, scaling4x4, vec3(xSize / 2, ySize / 2, 1));
+        apply4x4(mat, translation4x4, vec3(xOffset, yOffset, 0));
         apply4x4(mat, orthographic4x4, {
             left: -xViewport / 2,
             right: +xViewport / 2,

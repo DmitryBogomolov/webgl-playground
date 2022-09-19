@@ -17,7 +17,7 @@ runtime.setDepthTest(true);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 
 const image = new ImageRenderer(runtime);
-image.useTextureUnit(4);
+image.setTextureUnit(4);
 
 const arr = new Uint32Array(8 * 8);
 for (let i = 0; i < 8; ++i) {
@@ -35,12 +35,12 @@ void image.setImageData({
     data: new Uint8Array(arr.buffer),
     size: { x: 8, y: 8 },
 });
-image.setPosition({ x: -256, y: -256 });
-image.setSize({ x: 256, y: 256 });
+image.setPosition({ x: -256, y: -10 });
+// image.setSize({ x: 256, y: 256 });
 
-// image.setImageData({ url: '/static/mip-low-res-enlarged.png' }).then(() => {
-//     runtime.requestFrameRender();
-// });
+void image.setImageData({ url: '/static/mip-low-res-enlarged.png' }).then(() => {
+    runtime.requestFrameRender();
+});
 
 runtime.frameRendered().on(() => {
     runtime.clearBuffer('color');
