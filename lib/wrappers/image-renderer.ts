@@ -5,7 +5,7 @@ import type { Vec2 } from '../geometry/types/vec2';
 import type { TextureData } from '../gl/types/texture';
 import { eq2, ZERO2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
-import { apply4x4, identity4x4, orthographic4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
+import { apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4 } from '../geometry/mat4';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
@@ -46,6 +46,7 @@ export class ImageRenderer extends BaseWrapper {
     private _textureUnit: number = 0;
     private _position: Vec2 = ZERO2;
     private _size: Vec2 | null = null;
+    private _rotation: number = 0;
 
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
@@ -159,6 +160,18 @@ export class ImageRenderer extends BaseWrapper {
         this._size = size;
     }
 
+    getRotation(): number {
+        return this._rotation;
+    }
+
+    setRotation(rotation: number): void {
+        if (this._rotation === rotation) {
+            return;
+        }
+        this._logger.log('set_rotation({0})', rotation);
+        this._rotation = rotation;
+    }
+
     render(): void {
         this._runtime.setTextureUnit(this._textureUnit, this._texture);
 
@@ -168,6 +181,7 @@ export class ImageRenderer extends BaseWrapper {
 
         const mat = identity4x4();
         apply4x4(mat, scaling4x4, vec3(xSize / 2, ySize / 2, 1));
+        apply4x4(mat, zrotation4x4, this._rotation);
         apply4x4(mat, translation4x4, vec3(xOffset, yOffset, 0));
         apply4x4(mat, orthographic4x4, {
             left: -xViewport / 2,
