@@ -31,10 +31,12 @@ for (let i = 0; i < 8; ++i) {
         arr[i * 8 + j] = color2uint(c);
     }
 }
-image.setImageData({
+void image.setImageData({
     data: new Uint8Array(arr.buffer),
     size: { x: 8, y: 8 },
 });
+image.setPosition({ x: -256, y: -256 });
+image.setSize({ x: 256, y: 256 });
 
 // image.setImageData({ url: '/static/mip-low-res-enlarged.png' }).then(() => {
 //     runtime.requestFrameRender();

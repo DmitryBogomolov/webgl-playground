@@ -2,7 +2,10 @@ import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
-import { identity4x4 } from '../geometry/mat4';
+import type { TextureData } from '../gl/types/texture';
+import { ZERO2, eq2 } from '../geometry/vec2';
+import { vec3 } from '../geometry/vec3';
+import { apply4x4, identity4x4, orthographic4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
@@ -39,13 +42,14 @@ export class ImageRenderer {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
-    private _textureUnit: number;
+    private _textureUnit: number = 0;
+    private _position: Vec2 = ZERO2;
+    private _size: Vec2 = ZERO2;
 
     constructor(runtime: Runtime) {
         this._runtime = runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture();
-        this._textureUnit = 0;
     }
 
     dispose(): void {
@@ -93,22 +97,30 @@ export class ImageRenderer {
             wrap_s: 'clamp_to_edge',
             wrap_t: 'clamp_to_edge',
         });
-        texture.setImageData({ data: null, size: { x: 1, y: 1 }});
+        texture.setImageData({ data: null, size: { x: 1, y: 1 } });
         return texture;
     }
 
-    size(): Vec2 {
+    imageSize(): Vec2 {
         return this._texture.size();
     }
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
+        let imageData: TextureData | TexImageSource;
+        let unpackFlipY = false;
         if (isRawData(data)) {
-            this._texture.setImageData(data, { unpackFlipY: true });
+            imageData = data;
+            unpackFlipY = true;
         } else if (isUrlData(data)) {
             const img = await loadImage(data.url);
-            this._texture.setImageData(img, { unpackFlipY: true });
+            imageData = img;
+            unpackFlipY = true;
         } else {
-            this._texture.setImageData(data);
+            imageData = data;
+        }
+        this._texture.setImageData(imageData, { unpackFlipY });
+        if (eq2(this._size, ZERO2)) {
+            this._size = this._texture.size();
         }
     }
 
@@ -116,9 +128,33 @@ export class ImageRenderer {
         this._textureUnit = unit;
     }
 
+    setPosition(position: Vec2): void {
+        this._position = position;
+    }
+
+    setSize(size: Vec2): void {
+        this._size = size;
+    }
+
     render(): void {
         this._runtime.setTextureUnit(this._textureUnit, this._texture);
-        this._primitive.program().setUniform('u_mat', identity4x4());
+
+        const { x: xViewport, y: yViewport } = this._runtime.viewportSize();
+
+        const mat = identity4x4();
+        apply4x4(mat, scaling4x4, vec3(this._size.x / 2, this._size.y / 2, 1));
+        apply4x4(mat, translation4x4, vec3(this._position.x, this._position.y, 0));
+        apply4x4(mat, orthographic4x4, {
+            left: -xViewport / 2,
+            right: +xViewport / 2,
+            top: +yViewport / 2,
+            bottom: -yViewport / 2,
+            zNear: 0,
+            zFar: 1,
+        });
+
+
+        this._primitive.program().setUniform('u_mat', mat);
         this._primitive.program().setUniform('u_texture', this._textureUnit);
         this._primitive.render();
     }
