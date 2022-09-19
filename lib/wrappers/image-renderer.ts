@@ -50,8 +50,8 @@ export class ImageRenderer extends BaseWrapper {
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
         this._runtime = runtime;
-        this._primitive = this._createPrimitive();
-        this._texture = this._createTexture();
+        this._primitive = this._createPrimitive(tag);
+        this._texture = this._createTexture(tag);
     }
 
     dispose(): void {
@@ -60,8 +60,8 @@ export class ImageRenderer extends BaseWrapper {
         this._texture.dispose();
     }
 
-    private _createPrimitive(): Primitive {
-        const primitive = new Primitive(this._runtime);
+    private _createPrimitive(tag?: string): Primitive {
+        const primitive = new Primitive(this._runtime, tag);
         const vertices = new Float32Array([
             -1, -1,
             +1, -1,
@@ -86,13 +86,13 @@ export class ImageRenderer extends BaseWrapper {
             vertShader: VERT_SHADER,
             fragShader: FRAG_SHADER,
             schema,
-        });
+        }, tag);
         primitive.setProgram(program);
         return primitive;
     }
 
-    private _createTexture(): Texture {
-        const texture = new Texture(this._runtime);
+    private _createTexture(tag?: string): Texture {
+        const texture = new Texture(this._runtime, tag);
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',

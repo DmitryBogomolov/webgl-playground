@@ -16,7 +16,7 @@ const runtime = new Runtime(container);
 runtime.setDepthTest(true);
 runtime.setClearColor(color(0.7, 0.7, 0.7));
 
-const image = new ImageRenderer(runtime);
+const image = new ImageRenderer(runtime, 'TEST');
 image.setTextureUnit(4);
 
 const arr = new Uint32Array(8 * 8);
