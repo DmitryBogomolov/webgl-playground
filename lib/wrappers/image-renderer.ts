@@ -2,6 +2,7 @@ import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
+import { identity4x4 } from '../geometry/mat4';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
@@ -10,21 +11,17 @@ import { parseVertexSchema } from '../gl/vertex-schema';
 
 const VERT_SHADER = `// #
 attribute vec2 a_position;
-
+uniform mat4 u_mat;
 varying vec2 v_texcoord;
-
 void main() {
-    gl_Position = vec4(a_position, 0.0, 1.0);
+    gl_Position = u_mat * vec4(a_position, 0.0, 1.0);
     v_texcoord = (a_position + vec2(1.0)) / 2.0;
 }
 `;
 const FRAG_SHADER = `// #
 precision mediump float;
-
 varying vec2 v_texcoord;
-
 uniform sampler2D u_texture;
-
 void main() {
     gl_FragColor = texture2D(u_texture, v_texcoord);
 }
@@ -121,6 +118,7 @@ export class ImageRenderer {
 
     render(): void {
         this._runtime.setTextureUnit(this._textureUnit, this._texture);
+        this._primitive.program().setUniform('u_mat', identity4x4());
         this._primitive.program().setUniform('u_texture', this._textureUnit);
         this._primitive.render();
     }
