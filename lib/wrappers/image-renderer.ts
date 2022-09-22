@@ -153,7 +153,7 @@ export class ImageRenderer extends BaseWrapper {
     }
 
     setSize(size: Vec2 | null): void {
-        if ((this._size === null && size === null) || eq2(this._size!, size!)) {
+        if ((this._size && size && eq2(this._size, size)) || (this._size === size)) {
             return;
         }
         this._logger.log(size ? 'set_size(x: {0}, y: {1})' : 'set_size(null)', size && size.x, size && size.y);
