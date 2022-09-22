@@ -36,10 +36,10 @@ void image.setImageData({
     size: { x: 8, y: 8 },
 });
 image.setPosition({ x: -256, y: -10 });
-image.setRotation(Math.PI / 4);
+// image.setRotation(Math.PI / 4);
 // image.setSize({ x: 256, y: 256 });
 
-void image.setImageData({ url: '/static/mip-low-res-enlarged.png' }).then(() => {
+void image.setImageData({ url: '/static/f-letter.png' }).then(() => {
     runtime.requestFrameRender();
 });
 
