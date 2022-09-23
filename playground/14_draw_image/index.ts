@@ -35,7 +35,14 @@ void image.setImageData({
     data: new Uint8Array(arr.buffer),
     size: { x: 8, y: 8 },
 });
-image.setPosition({ x: -256, y: -10 });
+// image.setPosition({ x: -256, y: -10 });
+image.setLocation({
+    x1: -256,
+    // x2: +256,
+    y1: -256,
+    // rotation: Math.PI / 6,
+    // y2: +10,
+});
 // image.setRotation(Math.PI / 4);
 // image.setSize({ x: 256, y: 256 });
 
