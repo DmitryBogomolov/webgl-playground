@@ -46,9 +46,9 @@ image.setRegion({
     rotation: Math.PI * 0.1,
 });
 image.setLocation({
-    x1: -256,
+    x1: 400,
     // x2: -256,
-    y1: -256,
+    y2: 10,
     // rotation: Math.PI / 6,
     // y2: +10,
 });

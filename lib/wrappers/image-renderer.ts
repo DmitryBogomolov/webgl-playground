@@ -185,11 +185,8 @@ export class ImageRenderer extends BaseWrapper {
         const yActual = getActualSize(yTexture, region.y1, region.y2);
 
         {
-            const x1 = location.x1 !== undefined ? location.x1 : location.x2! - xActual;
-            const x2 = location.x2 !== undefined ? location.x2 : location.x1! + xActual;
-            const y1 = location.y1 !== undefined ? location.y1 : location.y2! - yActual;
-            const y2 = location.y2 !== undefined ? location.y2 : location.y1! + yActual;
-
+            const [x1, x2] = getRange(xViewport, xActual, location.x1, location.x2);
+            const [y1, y2] = getRange(yViewport, yActual, location.y1, location.y2);
             const xc = (x1 + x2) / 2;
             const yc = (y1 + y2) / 2;
             const kx = (x2 - x1) / 2;
@@ -341,7 +338,17 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     });
 }
 
-function getActualSize(textureSize: number, offset1: number | undefined, offset2: number | undefined): number {
+function getRange(
+    viewportSize: number, textureSize: number, offset1: number | undefined, offset2: number | undefined
+): [number, number] {
+    const p1 = offset1 !== undefined ? -viewportSize / 2 + offset1 : undefined;
+    const p2 = offset2 !== undefined ? +viewportSize / 2 - offset2 : undefined;
+    return [p1 === undefined ? p2! - textureSize : p1, p2 === undefined ? p1! + textureSize : p2];
+}
+
+function getActualSize(
+    textureSize: number, offset1: number | undefined, offset2: number | undefined
+): number {
     const size = textureSize - Math.min(offset1 || 0, textureSize) - Math.min(offset2 || 0, textureSize);
     return Math.abs(size);
 }
