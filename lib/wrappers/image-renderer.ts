@@ -4,9 +4,10 @@ import type {
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
 import type { TextureData } from '../gl/types/texture';
-import { ZERO2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
-import { mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4, lookAt4x4 } from '../geometry/mat4';
+import {
+    mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
+} from '../geometry/mat4';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
@@ -50,9 +51,10 @@ export class ImageRenderer extends BaseWrapper {
     private _region: ImageRendererLocation = {};
     private _location: ImageRendererLocation = {};
     private readonly _mat: Mat4 = mat4();
-    private _position: Vec2 = ZERO2;
-    private _size: Vec2 | null = null;
-    private _rotation: number = 0;
+    private readonly _texmat: Mat4 = mat4();
+    // private _position: Vec2 = ZERO2;
+    // private _size: Vec2 | null = null;
+    // private _rotation: number = 0;
 
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
@@ -157,7 +159,7 @@ export class ImageRenderer extends BaseWrapper {
         if (!region) {
             throw this._logger.error('set_region: null');
         }
-        this._region = {...region};
+        this._region = { ...region };
     }
 
     setLocation(location: ImageRendererLocation): void {
@@ -170,40 +172,91 @@ export class ImageRenderer extends BaseWrapper {
         ) {
             throw this._logger.error('set_location: not enough data');
         }
-        this._location = {...location};
+        this._location = { ...location };
     }
 
     private _updateMatrix(): void {
         const { x: xViewport, y: yViewport } = this._runtime.viewportSize();
-        let { x: xTexture, y: yTexture } = this._texture.size();
-        // const region = this._region;
+        const { x: xTexture, y: yTexture } = this._texture.size();
+        const region = this._region;
         const location = this._location;
 
-        let x1 = location.x1 !== undefined ? location.x1 : location.x2! - xTexture;
-        let x2 = location.x2 !== undefined ? location.x2 : location.x1! + xTexture;
-        let y1 = location.y1 !== undefined ? location.y1 : location.y2! - yTexture;
-        let y2 = location.y2 !== undefined ? location.y2 : location.y1! + yTexture;
+        const xActual = getActualSize(xTexture, region.x1, region.x2);
+        const yActual = getActualSize(yTexture, region.y1, region.y2);
 
-        const xc = (x1 + x2) / 2;
-        const yc = (y1 + y2) / 2;
-        const kx = (x2 - x1) / 2;
-        const ky = (y2 - y1) / 2;
+        {
+            const x1 = location.x1 !== undefined ? location.x1 : location.x2! - xActual;
+            const x2 = location.x2 !== undefined ? location.x2 : location.x1! + xActual;
+            const y1 = location.y1 !== undefined ? location.y1 : location.y2! - yActual;
+            const y2 = location.y2 !== undefined ? location.y2 : location.y1! + yActual;
 
-        const mat = this._mat;
-        identity4x4(mat);
-        apply4x4(mat, scaling4x4, vec3(kx, ky, 1));
-        if (location.rotation !== undefined) {
-            apply4x4(mat, zrotation4x4, location.rotation);
+            const xc = (x1 + x2) / 2;
+            const yc = (y1 + y2) / 2;
+            const kx = (x2 - x1) / 2;
+            const ky = (y2 - y1) / 2;
+
+            const mat = this._mat;
+            identity4x4(mat);
+            apply4x4(mat, scaling4x4, vec3(kx, ky, 1));
+            if (location.rotation !== undefined) {
+                apply4x4(mat, zrotation4x4, location.rotation);
+            }
+            apply4x4(mat, translation4x4, vec3(xc, yc, 0));
+            apply4x4(mat, orthographic4x4, {
+                left: -xViewport / 2,
+                right: +xViewport / 2,
+                top: +yViewport / 2,
+                bottom: -yViewport / 2,
+                zNear: 0,
+                zFar: 1,
+            });
         }
-        apply4x4(mat, translation4x4, vec3(xc, yc, 0));
-        apply4x4(mat, orthographic4x4, {
-            left: -xViewport / 2,
-            right: +xViewport / 2,
-            top: +yViewport / 2,
-            bottom: -yViewport / 2,
-            zNear: 0,
-            zFar: 1,
-        });
+        {
+            // const kx = xActual / xTexture;
+            // const ky = yActual / yTexture;
+
+            const x1 = (region.x1 || 0) / xTexture;
+            const x2 = 1 - (region.x2 || 0) / xTexture;
+            const y1 = (region.y1 || 0) / yTexture;
+            const y2 = 1 - (region.y2 || 0) / yTexture;
+
+            const mat = this._texmat;
+            identity4x4(mat);
+            // const xc = 0.5;
+            // const yc = 0.5;
+            // const x1 = 0.16;
+            // const x2 = 0.85;
+            // const y1 = 0.14;
+            // const y2 = 0.82;
+            // apply4x4(mat, translation4x4, vec3(-0.5, -0.5, 0));
+            // apply4x4(mat, zrotation4x4, Math.PI * 0.2);
+            // apply4x4(mat, translation4x4, vec3(+0.5, +0.5, 0));
+            if (Math.abs(x2 - x1) < 1 || Math.abs(y2 - y1) < 1) {
+                apply4x4(mat, scaling4x4, vec3(x2 - x1, y2 - y1, 1));
+                apply4x4(mat, translation4x4, vec3(x1, y1, 0));
+            }
+            if (region.rotation !== undefined) {
+                const xc = (x1 + x2) / 2;
+                const yc = (y1 + y2) / 2;
+                apply4x4(mat, translation4x4, vec3(-xc, -yc, 0));
+                apply4x4(mat, zrotation4x4, region.rotation);
+                apply4x4(mat, translation4x4, vec3(+xc, +yc, 0));
+            }
+
+            //apply4x4(mat, translation4x4, vec3(xc, yc, 0));
+            //apply4x4(mat, scaling4x4, vec3(0.5, 1, 1));
+            //apply4x4(mat, translation4x4, vec3(-xc, -yc, 0));
+            // if (kx < 1 || ky < 1 || region.rotation !== undefined) {
+            //     const xc = ((region.x1 || 0) + xTexture - (region.x2 || 0)) / 2 / xTexture;
+            //     const yc = ((region.y1 || 0) + yTexture - (region.y2 || 0)) / 2 / yTexture;
+            //     apply4x4(mat, translation4x4, vec3(-xc, -yc, 0));
+            //     apply4x4(mat, scaling4x4, vec3(1 / kx, 1 / ky, 1));
+            //     // if (region.rotation !== undefined) {
+            //     //     apply4x4(mat, zrotation4x4, region.rotation);
+            //     // }
+            //     apply4x4(mat, translation4x4, vec3(xc, yc, 0));
+            // }
+        }
     }
 
     // getPosition(): Vec2 {
@@ -273,7 +326,7 @@ export class ImageRenderer extends BaseWrapper {
         // apply4x4(texMat, translation4x4, vec3(+0.5, +0.5, 0));
 
         this._primitive.program().setUniform('u_mat', this._mat);
-        this._primitive.program().setUniform('u_texmat', identity4x4());
+        this._primitive.program().setUniform('u_texmat', this._texmat);
         this._primitive.program().setUniform('u_texture', this._textureUnit);
         this._primitive.render();
     }
@@ -286,4 +339,9 @@ function loadImage(url: string): Promise<HTMLImageElement> {
         image.addEventListener('load', () => resolve(image));
         image.addEventListener('error', reject);
     });
+}
+
+function getActualSize(textureSize: number, offset1: number | undefined, offset2: number | undefined): number {
+    const size = textureSize - Math.min(offset1 || 0, textureSize) - Math.min(offset2 || 0, textureSize);
+    return Math.abs(size);
 }

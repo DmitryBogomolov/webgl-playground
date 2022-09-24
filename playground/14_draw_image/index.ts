@@ -31,14 +31,23 @@ for (let i = 0; i < 8; ++i) {
         arr[i * 8 + j] = color2uint(c);
     }
 }
-void image.setImageData({
-    data: new Uint8Array(arr.buffer),
-    size: { x: 8, y: 8 },
-});
+// void image.setImageData({
+//     data: new Uint8Array(arr.buffer),
+//     size: { x: 8, y: 8 },
+// });
 // image.setPosition({ x: -256, y: -10 });
+image.setRegion({
+    // x1: 256-40,
+    // x2: 256-40,
+    x1: 40,
+    // x2: 40,
+    y1: 35,
+    y2: 45,
+    rotation: Math.PI * 0.1,
+});
 image.setLocation({
     x1: -256,
-    // x2: +256,
+    // x2: -256,
     y1: -256,
     // rotation: Math.PI / 6,
     // y2: +10,
