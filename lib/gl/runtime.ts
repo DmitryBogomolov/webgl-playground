@@ -98,6 +98,10 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         // Immediately notify subscriber so that it may perform initial calculation.
         handler();
     });
+    private readonly _viewportChanged = new EventEmitter((handler) => {
+        // Immediately notify subscriber so that it may perform initial calculation.
+        handler();
+    });
     private readonly _state: State;
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
@@ -204,6 +208,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._logger.log('update_viewport({0}, {1})', size.x, size.y);
         this.gl.viewport(0, 0, size.x, size.y);
         this._state.viewportSize = size;
+        this._viewportChanged.emit();
     }
 
     canvas(): HTMLCanvasElement {
@@ -406,6 +411,10 @@ export class Runtime extends BaseWrapper implements GLWrapper {
 
     sizeChanged(): EventProxy {
         return this._sizeChanged;
+    }
+
+    viewportChanged(): EventProxy {
+        return this._viewportChanged;
     }
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
