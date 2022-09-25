@@ -20,8 +20,10 @@ const image1 = new ImageRenderer(runtime, 'image/cells');
 image1.setTextureUnit(3);
 const image2 = new ImageRenderer(runtime, 'image/f-letter');
 image2.setTextureUnit(4);
-const image3 = new ImageRenderer(runtime, 'image/leaves');
-image3.setTextureUnit(5);
+const image3 = new ImageRenderer(runtime, 'image/f-letter/part');
+image2.setTextureUnit(5);
+const image4 = new ImageRenderer(runtime, 'image/leaves');
+image4.setTextureUnit(6);
 
 {
     const arr = new Uint32Array(8 * 8);
@@ -41,7 +43,10 @@ image3.setTextureUnit(5);
 void image2.setImageData({ url: '/static/f-letter.png' }).then(() => {
     runtime.requestFrameRender();
 });
-void image3.setImageData({ url: '/static/leaves.jpg' }).then(() => {
+void image3.setImageData({ url: '/static/f-letter.png' }).then(() => {
+    runtime.requestFrameRender();
+});
+void image4.setImageData({ url: '/static/leaves.jpg' }).then(() => {
     runtime.requestFrameRender();
 });
 
@@ -67,9 +72,13 @@ image2.setLocation({
     // rotation: Math.PI / 6,
     // y2: +10,
 });
+image3.setLocation({
+    x1: 400,
+    y2: 310,
+});
 // image.setRotation(Math.PI / 4);
 // image.setSize({ x: 256, y: 256 });
-image3.setLocation({
+image4.setLocation({
     y1: 10,
     x1: 10,
 });
@@ -94,6 +103,7 @@ runtime.frameRendered().on((delta) => {
     image1.render();
     image2.render();
     image3.render();
+    image4.render();
 
     // runtime.requestFrameRender();
 });
