@@ -169,6 +169,7 @@ export class ImageRenderer extends BaseWrapper {
         if (!region) {
             throw this._logger.error('set_region: null');
         }
+        this._logger.log('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -187,6 +188,7 @@ export class ImageRenderer extends BaseWrapper {
         ) {
             throw this._logger.error('set_location: not enough data');
         }
+        this._logger.log('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
     }
