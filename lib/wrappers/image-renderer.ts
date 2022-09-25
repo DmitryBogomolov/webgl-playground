@@ -244,21 +244,27 @@ function updateLocationMatrix(
     mat: Mat4, viewportSize: Vec2, textureSize: Vec2,
     location: ImageRendererLocation, region: ImageRendererLocation,
 ): void {
+    // Because of "region" options actual texture size may be less than original texture.
     const xActual = getActualSize(textureSize.x, region.x1, region.x2);
     const yActual = getActualSize(textureSize.y, region.y1, region.y2);
+    // Image boundaries in "[-x / 2, +x / 2] * [-y / 2, +y / 2]" viewport space.
     const [x1, x2] = getRange(viewportSize.x, xActual, location.x1, location.x2);
     const [y1, y2] = getRange(viewportSize.y, yActual, location.y1, location.y2);
+    // Image center in viewport space.
     const xc = (x1 + x2) / 2;
     const yc = (y1 + y2) / 2;
+    // Image size in viewport space.
     const kx = (x2 - x1) / 2;
     const ky = (y2 - y1) / 2;
 
     identity4x4(mat);
+    // Common set of scale / rotate / translate transformations.
     apply4x4(mat, scaling4x4, vec3(kx, ky, 1));
     if (location.rotation !== undefined) {
         apply4x4(mat, zrotation4x4, location.rotation);
     }
     apply4x4(mat, translation4x4, vec3(xc, yc, 0));
+    // Apply viewport space.
     apply4x4(mat, orthographic4x4, {
         left: -viewportSize.x / 2,
         right: +viewportSize.x / 2,
@@ -272,16 +278,20 @@ function updateLocationMatrix(
 function updateRegionMatrix(
     mat: Mat4, textureSize: Vec2, region: ImageRendererLocation,
 ): void {
+    // Texture part boundaries in "[0, 1] * [0, 1]" space.
     const x1 = (region.x1 || 0) / textureSize.x;
     const x2 = 1 - (region.x2 || 0) / textureSize.x;
     const y1 = (region.y1 || 0) / textureSize.y;
     const y2 = 1 - (region.y2 || 0) / textureSize.y;
 
     identity4x4(mat);
+    // Bring "[0, 1] * [0, 1]" to "[x1, x2] * [y1, y2]".
+    // t' = t * (q - p) + p; "q - p" - scale component, "p" - translation component.
     if (Math.abs(x2 - x1) < 1 || Math.abs(y2 - y1) < 1) {
         apply4x4(mat, scaling4x4, vec3(x2 - x1, y2 - y1, 1));
         apply4x4(mat, translation4x4, vec3(x1, y1, 0));
     }
+    // Rotate around center - translate to center, rotate, translate back.
     if (region.rotation !== undefined) {
         const xc = (x1 + x2) / 2;
         const yc = (y1 + y2) / 2;
