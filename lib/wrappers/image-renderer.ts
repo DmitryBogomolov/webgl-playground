@@ -1,5 +1,6 @@
 import type {
-    ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData, ImageRendererLocation,
+    ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
+    ImageRendererRegion, ImageRendererLocation,
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
@@ -48,7 +49,7 @@ export class ImageRenderer extends BaseWrapper {
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
     private _textureUnit: number = 0;
-    private _region: ImageRendererLocation = {};
+    private _region: ImageRendererRegion = {};
     private _location: ImageRendererLocation = {};
     private readonly _mat: Mat4 = mat4();
     private _matDirty: boolean = true;
@@ -161,11 +162,11 @@ export class ImageRenderer extends BaseWrapper {
         this._textureUnit = unit;
     }
 
-    getRegion(): ImageRendererLocation {
+    getRegion(): ImageRendererRegion {
         return this._region;
     }
 
-    setRegion(region: ImageRendererLocation): void {
+    setRegion(region: ImageRendererRegion): void {
         if (!region) {
             throw this._logger.error('set_region: null');
         }
@@ -226,11 +227,13 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 function getRange(
-    viewportSize: number, textureSize: number, offset1: number | undefined, offset2: number | undefined,
+    viewportSize: number, textureSize: number,
+    offset1: number | undefined, offset2: number | undefined, size: number | undefined,
 ): [number, number] {
     const p1 = offset1 !== undefined ? -viewportSize / 2 + offset1 : undefined;
     const p2 = offset2 !== undefined ? +viewportSize / 2 - offset2 : undefined;
-    return [p1 === undefined ? p2! - textureSize : p1, p2 === undefined ? p1! + textureSize : p2];
+    const ps = size !== undefined ? size : textureSize;
+    return [p1 === undefined ? p2! - ps : p1, p2 === undefined ? p1! + ps : p2];
 }
 
 function getActualSize(
@@ -242,14 +245,14 @@ function getActualSize(
 
 function updateLocationMatrix(
     mat: Mat4, viewportSize: Vec2, textureSize: Vec2,
-    location: ImageRendererLocation, region: ImageRendererLocation,
+    location: ImageRendererLocation, region: ImageRendererRegion,
 ): void {
     // Because of "region" options actual texture size may be less than original texture.
     const xActual = getActualSize(textureSize.x, region.x1, region.x2);
     const yActual = getActualSize(textureSize.y, region.y1, region.y2);
     // Image boundaries in "[-x / 2, +x / 2] * [-y / 2, +y / 2]" viewport space.
-    const [x1, x2] = getRange(viewportSize.x, xActual, location.x1, location.x2);
-    const [y1, y2] = getRange(viewportSize.y, yActual, location.y1, location.y2);
+    const [x1, x2] = getRange(viewportSize.x, xActual, location.x1, location.x2, location.width);
+    const [y1, y2] = getRange(viewportSize.y, yActual, location.y1, location.y2, location.height);
     // Image center in viewport space.
     const xc = (x1 + x2) / 2;
     const yc = (y1 + y2) / 2;
@@ -276,7 +279,7 @@ function updateLocationMatrix(
 }
 
 function updateRegionMatrix(
-    mat: Mat4, textureSize: Vec2, region: ImageRendererLocation,
+    mat: Mat4, textureSize: Vec2, region: ImageRendererRegion,
 ): void {
     // Texture part boundaries in "[0, 1] * [0, 1]" space.
     const x1 = (region.x1 || 0) / textureSize.x;

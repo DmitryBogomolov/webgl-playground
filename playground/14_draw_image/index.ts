@@ -46,10 +46,10 @@ void image3.setImageData({ url: '/static/leaves.jpg' }).then(() => {
 });
 
 image1.setLocation({
-    y2: 30,
+    y2: 100,
     x2: 30,
-    x1: 1500,
-    y1: 300,
+    width: 200,
+    height: 200,
 });
 image2.setRegion({
     // x1: 256-40,

@@ -13,7 +13,7 @@ export type ImageRendererImageData = (
     | TexImageSource
 );
 
-export interface ImageRendererLocation {
+export interface ImageRendererRegion {
     /** Offset from the left side of screen / texture */
     readonly x1?: number;
     /** Offset from the right side of screen / texture */
@@ -24,4 +24,11 @@ export interface ImageRendererLocation {
     readonly y2?: number;
     /** Rotation */
     readonly rotation?: number;
+}
+
+export interface ImageRendererLocation extends ImageRendererRegion {
+    /** Width */
+    readonly width?: number;
+    /** Height */
+    readonly height?: number;
 }
