@@ -43,7 +43,7 @@ image.setRegion({
     // x2: 40,
     y1: 35,
     y2: 45,
-    rotation: Math.PI * 0.1,
+    // rotation: Math.PI * 0.1,
 });
 image.setLocation({
     x1: 400,
@@ -59,8 +59,24 @@ void image.setImageData({ url: '/static/f-letter.png' }).then(() => {
     runtime.requestFrameRender();
 });
 
-runtime.frameRendered().on(() => {
+const ROTATION_SPEED = (2 * Math.PI) * 0.1;
+
+let angle = 0;
+
+runtime.frameRendered().on((delta) => {
     runtime.clearBuffer('color');
 
+    angle += ROTATION_SPEED * delta / 1000;
+    // image.setRegion({
+    //     ...image.getRegion(),
+    //     rotation: angle,
+    // });
+    image.setLocation({
+        ...image.getLocation(),
+        rotation: angle,
+    });
+
     image.render();
+
+    runtime.requestFrameRender();
 });

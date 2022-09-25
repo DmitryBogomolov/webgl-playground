@@ -51,20 +51,28 @@ export class ImageRenderer extends BaseWrapper {
     private _region: ImageRendererLocation = {};
     private _location: ImageRendererLocation = {};
     private readonly _mat: Mat4 = mat4();
+    private _matDirty: boolean = true;
     private readonly _texmat: Mat4 = mat4();
+    private _texmatDirty: boolean = true;
 
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
         this._runtime = runtime;
         this._primitive = this._createPrimitive(tag);
         this._texture = this._createTexture(tag);
+        this._runtime.viewportChanged().on(this._handleViewportChanged);
     }
 
     dispose(): void {
+        this._runtime.viewportChanged().off(this._handleViewportChanged);
         this._primitive.dispose();
         this._primitive.program().dispose();
         this._texture.dispose();
     }
+
+    private readonly _handleViewportChanged = (): void => {
+        this._matDirty = true;
+    };
 
     private _createPrimitive(tag?: string): Primitive {
         const primitive = new Primitive(this._runtime, tag);
@@ -135,6 +143,7 @@ export class ImageRenderer extends BaseWrapper {
         }
         this._logger.log('set_image_data({0})', log);
         this._texture.setImageData(imageData, { unpackFlipY });
+        this._matDirty = this._texmatDirty = true;
     }
 
     getTextureUnit(): number {
@@ -152,11 +161,20 @@ export class ImageRenderer extends BaseWrapper {
         this._textureUnit = unit;
     }
 
+    getRegion(): ImageRendererLocation {
+        return this._region;
+    }
+
     setRegion(region: ImageRendererLocation): void {
         if (!region) {
             throw this._logger.error('set_region: null');
         }
         this._region = { ...region };
+        this._matDirty = this._texmatDirty = true;
+    }
+
+    getLocation(): ImageRendererLocation {
+        return this._location;
     }
 
     setLocation(location: ImageRendererLocation): void {
@@ -170,12 +188,19 @@ export class ImageRenderer extends BaseWrapper {
             throw this._logger.error('set_location: not enough data');
         }
         this._location = { ...location };
+        this._matDirty = true;
     }
 
     private _updateMatrix(): void {
-        updateLocationMatrix(
-            this._mat, this._runtime.viewportSize(), this._texture.size(), this._location, this._region);
-        updateRegionMatrix(this._texmat, this._texture.size(), this._region);
+        if (this._matDirty) {
+            updateLocationMatrix(
+                this._mat, this._runtime.viewportSize(), this._texture.size(), this._location, this._region);
+            this._matDirty = false;
+        }
+        if (this._texmatDirty) {
+            updateRegionMatrix(this._texmat, this._texture.size(), this._region);
+            this._texmatDirty = false;
+        }
     }
 
     render(): void {
