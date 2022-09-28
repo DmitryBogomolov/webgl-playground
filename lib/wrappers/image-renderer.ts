@@ -5,6 +5,7 @@ import type {
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
 import type { TextureData } from '../gl/types/texture';
+import { eq2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
@@ -15,6 +16,8 @@ import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { Texture } from '../gl/texture';
 import { parseVertexSchema } from '../gl/vertex-schema';
+import { compareObjects } from '../utils/compare';
+import { memoize } from '../utils/memoizer';
 
 const VERT_SHADER = `
 attribute vec2 a_position;
@@ -74,6 +77,9 @@ export class ImageRenderer extends BaseWrapper {
     private readonly _handleViewportChanged = (): void => {
         this._matDirty = true;
     };
+
+    private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
+    private readonly _updateRegionMatrix = memoize(updateRegionMatrix, compareUpdateRegionMatrixArgs);
 
     private _createPrimitive(tag?: string): Primitive {
         const primitive = new Primitive(this._runtime, tag);
@@ -196,12 +202,12 @@ export class ImageRenderer extends BaseWrapper {
 
     private _updateMatrix(): void {
         if (this._matDirty) {
-            updateLocationMatrix(
+            this._updateLocationMatrix(
                 this._mat, this._runtime.viewportSize(), this._texture.size(), this._location, this._region);
             this._matDirty = false;
         }
         if (this._texmatDirty) {
-            updateRegionMatrix(this._texmat, this._texture.size(), this._region);
+            this._updateRegionMatrix(this._texmat, this._texture.size(), this._region);
             this._texmatDirty = false;
         }
     }
@@ -243,6 +249,14 @@ function getActualSize(
     return Math.abs(size);
 }
 
+function compareUpdateLocationMatrixArgs(
+    lhs: [Mat4, Vec2, Vec2, ImageRendererLocation, ImageRendererRegion],
+    rhs: [Mat4, Vec2, Vec2, ImageRendererLocation, ImageRendererRegion],
+): boolean {
+    return eq2(lhs[1], rhs[1]) && eq2(lhs[2], rhs[2]) &&
+        compareObjects(lhs[3], rhs[3]) && compareObjects(lhs[4], rhs[4]);
+}
+
 function updateLocationMatrix(
     mat: Mat4, viewportSize: Vec2, textureSize: Vec2,
     location: ImageRendererLocation, region: ImageRendererRegion,
@@ -276,6 +290,13 @@ function updateLocationMatrix(
         zNear: 0,
         zFar: 1,
     });
+}
+
+function compareUpdateRegionMatrixArgs(
+    lhs: [Mat4, Vec2, ImageRendererRegion],
+    rhs: [Mat4, Vec2, ImageRendererRegion],
+): boolean {
+    return eq2(lhs[1], rhs[1]) && compareObjects(lhs[2], rhs[2]);
 }
 
 function updateRegionMatrix(
