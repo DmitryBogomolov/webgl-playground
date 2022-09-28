@@ -23,7 +23,7 @@ export function vec3(x: number, y: number, z: number): Vec3 {
 }
 
 export function isVec3(v: unknown): v is Vec3 {
-    return 'x' in (v as Vec3) && 'y' in (v as Vec3) && 'z' in (v as Vec3);
+    return !!v && ('x' in (v as Vec3)) && ('y' in (v as Vec3)) && ('z' in (v as Vec3));
 }
 
 export function eq3(a: Vec3, b: Vec3, eps: number = 1E-7): boolean {

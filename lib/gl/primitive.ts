@@ -118,10 +118,10 @@ export class Primitive extends BaseWrapper {
     }
 
     setVertexSchema(schema: VertexSchema): void {
-        this._logger.log('set_vertex_schema(attributes={0}, size={1})', schema.attributes.length, schema.totalSize);
         if (this._schema === schema) {
             return;
         }
+        this._logger.log('set_vertex_schema(attributes={0}, size={1})', schema.attributes.length, schema.totalSize);
         this._schema = schema;
         const gl = this._runtime.gl;
         try {
@@ -177,10 +177,10 @@ export class Primitive extends BaseWrapper {
     }
 
     setProgram(program: Program): void {
-        this._logger.log('set_program({0})', program['_id']);
         if (this._program === program) {
             return;
         }
+        this._logger.log('set_program({0})', program.id());
         if (program.schema() !== this._schema) {
             throw this._logger.error('program schema does not match');
         }

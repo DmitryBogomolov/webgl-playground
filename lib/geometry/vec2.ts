@@ -20,7 +20,7 @@ export function vec2(x: number, y: number): Vec2 {
 }
 
 export function isVec2(v: unknown): v is Vec2 {
-    return 'x' in (v as Vec2) && 'y' in (v as Vec2);
+    return !!v && ('x' in (v as Vec2)) && ('y' in (v as Vec2));
 }
 
 export function eq2(a: Vec2, b: Vec2, eps: number = 1E-7): boolean {

@@ -26,7 +26,7 @@ export function vec4(x: number, y: number, z: number, w: number): Vec4 {
 }
 
 export function isVec4(v: unknown): v is Vec4 {
-    return 'x' in (v as Vec4) && 'y' in (v as Vec4) && 'z' in (v as Vec4) && 'w' in (v as Vec4);
+    return !!v && ('x' in (v as Vec4)) && ('y' in (v as Vec4)) && ('z' in (v as Vec4)) && ('w' in (v as Vec4));
 }
 
 export function eq4(a: Vec4, b: Vec4, eps: number = 1E-7): boolean {
