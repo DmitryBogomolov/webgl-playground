@@ -72,8 +72,15 @@ module.exports = {
                 ELEMENT_ARRAY_BUFFER: 202,
                 STATIC_DRAW: 211,
 
-                TEXTURE_2D: 203,
-                TEXTURE0: 220,
+                TEXTURE_2D: 230,
+                TEXTURE0: 231,
+
+                TEXTURE_WRAP_S: 232,
+                TEXTURE_WRAP_T: 233,
+                TEXTURE_MAG_FILTER: 234,
+                TEXTURE_MIN_FILTER: 235,
+                CLAMP_TO_EDGE: 236,
+                LINEAR: 237,
             },
         },
         'ts-jest': {
