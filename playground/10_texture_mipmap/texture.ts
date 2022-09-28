@@ -5,10 +5,6 @@ import {
 
 export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);
-    texture.setParameters({
-        wrap_s: 'clamp_to_edge',
-        wrap_t: 'clamp_to_edge',
-    });
 
     const image = new Image();
     image.src = '/static/mip-low-res-enlarged.png';

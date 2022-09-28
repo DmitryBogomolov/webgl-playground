@@ -101,12 +101,6 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     private _attachTexture(): void {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
         texture.setImageData({ size: this._size, data: null }, { format: 'rgba' });
-        texture.setParameters({
-            wrap_s: 'clamp_to_edge',
-            wrap_t: 'clamp_to_edge',
-            mag_filter: 'linear',
-            min_filter: 'linear',
-        });
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -117,8 +111,6 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
         texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
         texture.setParameters({
-            wrap_s: 'clamp_to_edge',
-            wrap_t: 'clamp_to_edge',
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
@@ -146,8 +138,6 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
         texture.setImageData({ size: this._size, data: null }, { format: 'depth_stencil' });
         texture.setParameters({
-            wrap_s: 'clamp_to_edge',
-            wrap_t: 'clamp_to_edge',
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });

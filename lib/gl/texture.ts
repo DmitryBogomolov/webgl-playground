@@ -80,11 +80,13 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
     private readonly _runtime: TextureRuntime;
     private readonly _texture: WebGLTexture;
     private _size: Vec2 = ZERO2;
+    // Original default texture state is slightly different. This one seems to be more common.
+    // Initial texture state is updated right after texture object is created.
     private _state: State = {
-        wrap_s: 'repeat',
-        wrap_t: 'repeat',
+        wrap_s: 'clamp_to_edge',
+        wrap_t: 'clamp_to_edge',
         mag_filter: 'linear',
-        min_filter: 'nearest_mipmap_linear',
+        min_filter: 'linear',
     };
 
     constructor(runtime: TextureRuntime, tag?: string) {
@@ -92,6 +94,7 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();
+        this._initTextureState();
     }
 
     dispose(): void {
@@ -113,6 +116,16 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
             throw this._logger.error('failed to create texture');
         }
         return texture;
+    }
+
+    private _initTextureState(): void {
+        const gl = this._runtime.gl;
+        this._runtime.bindTexture(this);
+        // Default "wrap_s", "wrap_t" values are "repeat". Default "min_filter" value is "nearest_mipmap_linear".
+        // Change them to a more suitable ones.
+        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_t'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
     setImageData(source: TextureData | TexImageSource, options?: ImageDataOptions): void {

@@ -70,10 +70,6 @@ function makePrimitive(runtime: Runtime): Primitive {
 
 function makeTexture(runtime: Runtime): Texture {
     const texture = new Texture(runtime);
-    texture.setParameters({
-        wrap_s: 'clamp_to_edge',
-        wrap_t: 'clamp_to_edge',
-    });
     texture.setImageData(makeTextureData(), { unpackFlipY: true });
     return texture;
 }
