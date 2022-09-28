@@ -62,16 +62,15 @@ export class ImageRenderer extends BaseWrapper {
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
         this._runtime = runtime;
-        this._primitive = this._createPrimitive(tag);
+        this._primitive = this._createPrimitive();
         this._texture = this._createTexture(tag);
         this._runtime.viewportChanged().on(this._handleViewportChanged);
     }
 
     dispose(): void {
         this._runtime.viewportChanged().off(this._handleViewportChanged);
-        this._primitive.dispose();
-        this._primitive.program().dispose();
         this._texture.dispose();
+        releasePrimitive(this._runtime);
     }
 
     private readonly _handleViewportChanged = (): void => {
@@ -81,35 +80,8 @@ export class ImageRenderer extends BaseWrapper {
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
     private readonly _updateRegionMatrix = memoize(updateRegionMatrix, compareUpdateRegionMatrixArgs);
 
-    private _createPrimitive(tag?: string): Primitive {
-        const primitive = new Primitive(this._runtime, tag);
-        const vertices = new Float32Array([
-            -1, -1,
-            +1, -1,
-            +1, +1,
-            -1, +1,
-        ]);
-        const indices = new Uint16Array([
-            0, 1, 2,
-            2, 3, 0,
-        ]);
-        const schema = parseVertexSchema([
-            { name: 'a_position', type: 'float2' },
-        ]);
-        primitive.allocateVertexBuffer(vertices.byteLength);
-        primitive.updateVertexData(vertices);
-        primitive.allocateIndexBuffer(indices.byteLength);
-        primitive.updateIndexData(indices);
-        primitive.setVertexSchema(schema);
-        primitive.setIndexData({ indexCount: indices.length });
-
-        const program = new Program(this._runtime, {
-            vertShader: VERT_SHADER,
-            fragShader: FRAG_SHADER,
-            schema,
-        }, tag);
-        primitive.setProgram(program);
-        return primitive;
+    private _createPrimitive(): Primitive {
+        return lockPrimitive(this._runtime);
     }
 
     private _createTexture(tag?: string): Texture {
@@ -323,4 +295,72 @@ function updateRegionMatrix(
         apply4x4(mat, zrotation4x4, region.rotation);
         apply4x4(mat, translation4x4, vec3(+xc, +yc, 0));
     }
+}
+
+interface SharedPrimitive {
+    readonly primitive: Primitive;
+    refCount: number;
+}
+
+const primitivesCache = new Map<Runtime, SharedPrimitive>();
+
+function lockPrimitive(runtime: Runtime): Primitive {
+    let shared = primitivesCache.get(runtime);
+    if (!shared) {
+        shared = {
+            primitive: createPrimitive(runtime, `ImageRenderer:shared:${runtime.id()}`),
+            refCount: 0,
+        };
+        primitivesCache.set(runtime, shared);
+    }
+    ++shared.refCount;
+    return shared.primitive;
+}
+
+function releasePrimitive(runtime: Runtime): void {
+    const shared = primitivesCache.get(runtime);
+    if (!shared) {
+        throw new Error('shared primitive not found');
+    }
+    --shared.refCount;
+    if (shared.refCount === 0) {
+        destroyPrimitive(shared.primitive);
+        primitivesCache.delete(runtime);
+    }
+}
+
+function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
+    const primitive = new Primitive(runtime, tag);
+    const vertices = new Float32Array([
+        -1, -1,
+        +1, -1,
+        +1, +1,
+        -1, +1,
+    ]);
+    const indices = new Uint16Array([
+        0, 1, 2,
+        2, 3, 0,
+    ]);
+    const schema = parseVertexSchema([
+        { name: 'a_position', type: 'float2' },
+    ]);
+    primitive.allocateVertexBuffer(vertices.byteLength);
+    primitive.updateVertexData(vertices);
+    primitive.allocateIndexBuffer(indices.byteLength);
+    primitive.updateIndexData(indices);
+    primitive.setVertexSchema(schema);
+    primitive.setIndexData({ indexCount: indices.length });
+
+    const program = new Program(runtime, {
+        vertShader: VERT_SHADER,
+        fragShader: FRAG_SHADER,
+        schema,
+    }, tag);
+    primitive.setProgram(program);
+    return primitive;
+}
+
+function destroyPrimitive(primitive: Primitive): void {
+    primitive.program().dispose();
+    primitive.dispose();
 }
