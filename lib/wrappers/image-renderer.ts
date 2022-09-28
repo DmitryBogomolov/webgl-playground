@@ -89,8 +89,6 @@ export class ImageRenderer extends BaseWrapper {
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
-            wrap_s: 'clamp_to_edge',
-            wrap_t: 'clamp_to_edge',
         });
         texture.setImageData({ data: null, size: { x: 1, y: 1 } });
         return texture;

@@ -15,8 +15,6 @@ export function makeColorTexture(runtime: Runtime): Texture {
         }
     }
     texture.setParameters({
-        wrap_s: 'clamp_to_edge',
-        wrap_t: 'clamp_to_edge',
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });
@@ -30,8 +28,6 @@ export function makeColorTexture(runtime: Runtime): Texture {
 export function makeMappingTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);
     texture.setParameters({
-        wrap_s: 'clamp_to_edge',
-        wrap_t: 'clamp_to_edge',
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });

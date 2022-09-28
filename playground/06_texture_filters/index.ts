@@ -55,8 +55,6 @@ function makeTexture(runtime: Runtime): Texture {
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',
-        wrap_s: 'clamp_to_edge',
-        wrap_t: 'clamp_to_edge',
     });
 
     const image = new Image();
