@@ -7,7 +7,8 @@ import {
 /**
  * Draw image util.
  *
- * TODO...
+ * Shows ImageRenderer helper. It renders image on the screen.
+ * Location defines image location in viewport. Region defines part of the image that will be rendered.
  */
 export type DESCRIPTION = never;
 
