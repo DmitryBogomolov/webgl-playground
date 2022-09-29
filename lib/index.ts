@@ -37,6 +37,8 @@ export * from './gl/types/program';
 export * from './gl/program';
 export * from './gl/types/texture';
 export * from './gl/texture';
+export * from './gl/types/texture-cube';
+export * from './gl/texture-cube';
 export * from './gl/types/primitive';
 export * from './gl/primitive';
 export * from './gl/types/framebuffer';
