@@ -21,16 +21,18 @@ export interface TextureParameters {
     readonly min_filter?: TEXTURE_MIN_FILTER;
 }
 
-export interface ImageDataOptions {
+export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly generateMipmap?: boolean;
     readonly format?: TEXTURE_FORMAT;
 }
 
-export interface TextureData {
+export interface TextureRawData {
     readonly size: Vec2;
     readonly data: ArrayBufferView | null;
 }
+
+export type TextureImageData = TextureRawData | TexImageSource;
 
 export interface TextureRuntime extends GLWrapper {
     pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void;

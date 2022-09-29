@@ -1,16 +1,15 @@
 import {
     TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
-    TextureParameters, TextureData, ImageDataOptions, TextureRuntime,
+    TextureParameters, TextureImageData, TextureImageDataOptions, TextureRuntime,
 } from './types/texture';
 import { Vec2 } from '../geometry/types/vec2';
 import { GLValuesMap } from './types/gl-values-map';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { BaseWrapper } from './base-wrapper';
-import { vec2, ZERO2 } from '../geometry/vec2';
+import { ZERO2 } from '../geometry/vec2';
+import { updateTexImage } from './texture-helper';
 
 const WebGL = WebGLRenderingContext.prototype;
-
-const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGL.REPEAT,
@@ -72,14 +71,11 @@ const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {
     'min_filter': MIN_FILTER_MAP,
 };
 
-function isTextureData(source: TextureData | TexImageSource): source is TextureData {
-    return 'size' in source && 'data' in source;
-}
-
 export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture> {
-    private readonly _runtime: TextureRuntime;
+    protected readonly _runtime: TextureRuntime;
     private readonly _texture: WebGLTexture;
-    private _size: Vec2 = ZERO2;
+    private readonly _target!: number;
+    protected _size: Vec2 = ZERO2;
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
     private _state: State = {
@@ -118,25 +114,26 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         return texture;
     }
 
+    protected _bind(): void {
+        this._runtime.bindTexture(this);
+    }
+
     private _initTextureState(): void {
         const gl = this._runtime.gl;
         this._runtime.bindTexture(this);
         // Default "wrap_s", "wrap_t" values are "repeat". Default "min_filter" value is "nearest_mipmap_linear".
         // Change them to a more suitable ones.
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_t'], WRAP_MAP['clamp_to_edge']);
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['wrap_t'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
-    setImageData(source: TextureData | TexImageSource, options?: ImageDataOptions): void {
-        const gl = this._runtime.gl;
+    protected _beginDataUpdate(options?: TextureImageDataOptions): { format: number, type: number } {
         let unpackFlipY = false;
-        let generateMipmap = false;
         let format = DEFAULT_TEXTURE_FORMAT;
         let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
             unpackFlipY = !!options.unpackFlipY;
-            generateMipmap = !!options.generateMipmap;
             if (options.format) {
                 format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
                 type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
@@ -144,21 +141,19 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.bindTexture(this);
-        if (isTextureData(source)) {
-            const { size, data } = source;
-            this._logger.log(
-                'set_image_data(size: {0}x{1}, data: {2})', size.x, size.y, data ? data.byteLength : 'null',
-            );
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, type, data);
-            this._size = size;
-        } else {
-            this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, format, type, source);
-            this._size = vec2(source.width, source.height);
+        return { format, type };
+    }
+
+    protected _endDataUpdate(options?: TextureImageDataOptions): void {
+        if (options && options.generateMipmap) {
+            this._runtime.gl.generateMipmap(this._target);
         }
-        if (generateMipmap) {
-            gl.generateMipmap(GL_TEXTURE_2D);
-        }
+    }
+
+    setImageData(source: TextureImageData, options?: TextureImageDataOptions): void {
+        const { format, type } = this._beginDataUpdate(options);
+        this._size = updateTexImage(source, this._logger, this._runtime.gl, this._target, format, type);
+        this._endDataUpdate(options);
     }
 
     setParameters(params: TextureParameters): void {
@@ -172,10 +167,13 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
                 if (this._state[key as keyof State] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
                     this._runtime.bindTexture(this);
-                    gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
+                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key as keyof State], value);
                     this._state[key as keyof State] = val as never;
                 }
             }
         }
     }
 }
+
+// @ts-ignore Initialize before constructor.
+Texture.prototype._target = WebGL.TEXTURE_2D;

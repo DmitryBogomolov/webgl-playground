@@ -45,7 +45,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         },
     ]);
 
-    const { vertices, indices } = generateCube(UNIT3, vertex => vertex.position);
+    const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex.position);
 
     const vertexData = new Float32Array(vertices.length * 3);
     for (let i = 0; i < vertices.length; ++i) {

@@ -4,7 +4,7 @@ import type {
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
-import type { TextureData } from '../gl/types/texture';
+import type { TextureImageData } from '../gl/types/texture';
 import { eq2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import {
@@ -102,7 +102,7 @@ export class ImageRenderer extends BaseWrapper {
         if (!data) {
             throw this._logger.error('set_image_data: null');
         }
-        let imageData: TextureData | TexImageSource;
+        let imageData: TextureImageData;
         let unpackFlipY = false;
         let log: string;
         if (isRawData(data)) {
