@@ -120,7 +120,7 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
 
     private _initTextureState(): void {
         const gl = this._runtime.gl;
-        this._runtime.bindTexture(this);
+        this._bind();
         // Default "wrap_s", "wrap_t" values are "repeat". Default "min_filter" value is "nearest_mipmap_linear".
         // Change them to a more suitable ones.
         gl.texParameteri(this._target, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
@@ -140,7 +140,7 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
             }
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
-        this._runtime.bindTexture(this);
+        this._bind();
         return { format, type };
     }
 
@@ -166,7 +166,7 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
                 }
                 if (this._state[key as keyof State] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
-                    this._runtime.bindTexture(this);
+                    this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key as keyof State], value);
                     this._state[key as keyof State] = val as never;
                 }
