@@ -6,8 +6,11 @@ import {
     Camera,
     parseVertexSchema,
     generateCube,
-    vec3, UNIT3,
+    vec3, UNIT3, mul3,
+    deg2rad,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 
@@ -22,7 +25,23 @@ const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
 const runtime = new Runtime(container);
 runtime.setDepthTest(true);
 const camera = new Camera();
-camera.setEyePos(vec3(0, 1, 2));
+camera.changed().on(() => runtime.requestFrameRender());
+
+const cameraLon = observable(0);
+const cameraLat = observable(30);
+const cameraPos = computed(([cameraLon, cameraLat]) => {
+    const lon = deg2rad(cameraLon);
+    const lat = deg2rad(cameraLat);
+    const dir = vec3(
+        Math.cos(lat) * Math.sin(lon),
+        Math.sin(lat),
+        Math.cos(lat) * Math.cos(lon),
+    );
+    return mul3(dir, 2);
+}, [cameraLon, cameraLat]);
+cameraPos.on((cameraPos) => {
+    camera.setEyePos(cameraPos);
+});
 
 const primitive = makePrimitive(runtime);
 const texture = makeTexture(runtime);
@@ -38,6 +57,11 @@ runtime.frameRendered().on(() => {
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
     primitive.render();
 });
+
+createControls(container, [
+    { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+    { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
+]);
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
