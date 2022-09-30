@@ -1,4 +1,4 @@
-import { Texture } from './texture';
+import { Texture } from './texture-2d';
 import { Runtime } from './runtime';
 
 describe('texture', () => {

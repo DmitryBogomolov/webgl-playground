@@ -4,7 +4,7 @@ import type {
 } from './types/image-renderer';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
-import type { TextureImageData } from '../gl/types/texture';
+import type { TextureImageData } from '../gl/types/texture-2d';
 import { eq2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import {
@@ -14,7 +14,7 @@ import { BaseWrapper } from '../gl/base-wrapper';
 import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
-import { Texture } from '../gl/texture';
+import { Texture } from '../gl/texture-2d';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { compareObjects } from '../utils/compare';
 import { memoize } from '../utils/memoizer';
