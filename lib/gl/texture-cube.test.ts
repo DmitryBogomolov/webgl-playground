@@ -7,12 +7,12 @@ describe('texture-cube', () => {
         let ctx: WebGLRenderingContext;
         let runtime: Runtime;
         let createTexture: jest.Mock;
-        let bindTexture: jest.Mock;
+        let bindCubeTexture: jest.Mock;
         let activeTexture: jest.Mock;
         let texParameteri: jest.Mock;
 
         const {
-            TEXTURE_2D,
+            TEXTURE_CUBE_MAP,
             TEXTURE_WRAP_S,
             TEXTURE_WRAP_T,
             TEXTURE_MIN_FILTER,
@@ -23,7 +23,7 @@ describe('texture-cube', () => {
         beforeEach(() => {
             texture = { tag: 'test-texture' };
             createTexture = jest.fn().mockReturnValueOnce(texture);
-            bindTexture = jest.fn();
+            bindCubeTexture = jest.fn();
             activeTexture = jest.fn();
             texParameteri = jest.fn();
             ctx = {
@@ -33,7 +33,7 @@ describe('texture-cube', () => {
             } as unknown as WebGLRenderingContext;
             runtime = {
                 gl: ctx,
-                bindTexture,
+                bindCubeTexture,
             } as unknown as Runtime;
         });
 
@@ -42,13 +42,13 @@ describe('texture-cube', () => {
             expect(createTexture.mock.calls).toEqual([
                 [],
             ]);
-            expect(bindTexture.mock.calls).toEqual([
+            expect(bindCubeTexture.mock.calls).toEqual([
                 [texture],
             ]);
             expect(texParameteri.mock.calls).toEqual([
-                [TEXTURE_2D, TEXTURE_WRAP_S, CLAMP_TO_EDGE],
-                [TEXTURE_2D, TEXTURE_WRAP_T, CLAMP_TO_EDGE],
-                [TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR],
+                [TEXTURE_CUBE_MAP, TEXTURE_WRAP_S, CLAMP_TO_EDGE],
+                [TEXTURE_CUBE_MAP, TEXTURE_WRAP_T, CLAMP_TO_EDGE],
+                [TEXTURE_CUBE_MAP, TEXTURE_MIN_FILTER, LINEAR],
             ]);
         });
     });
