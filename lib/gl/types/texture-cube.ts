@@ -1,10 +1,9 @@
-import type { TextureRuntime, TextureImageData } from './texture';
-import type { GLHandleWrapper } from './gl-handle-wrapper';
+import type { TextureRuntimeBase, TextureImageData } from './texture-base';
+import { GLHandleWrapper } from './gl-handle-wrapper';
 
-export * from './texture';
+export * from './texture-base';
 
-export interface TextureCubeRuntime extends TextureRuntime {
-    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void;
+export interface TextureCubeRuntime extends TextureRuntimeBase {
     bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void;
 }
 
