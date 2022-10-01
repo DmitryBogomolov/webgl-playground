@@ -81,6 +81,8 @@ module.exports = {
                 TEXTURE_MIN_FILTER: 235,
                 CLAMP_TO_EDGE: 236,
                 LINEAR: 237,
+
+                TEXTURE_CUBE_MAP: 241,
             },
         },
         'ts-jest': {

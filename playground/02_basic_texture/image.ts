@@ -1,4 +1,4 @@
-import { Color, TextureData, color2uint, colors } from 'lib';
+import { Color, TextureImageData, color2uint, colors } from 'lib';
 
 export const pixels: ReadonlyArray<Color> = [
     colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,
@@ -9,7 +9,7 @@ export const pixels: ReadonlyArray<Color> = [
 
 export const TEXTURE_SIZE: number = 4;
 
-export function makeTextureData(): TextureData {
+export function makeTextureData(): TextureImageData {
     const data = new Uint8ClampedArray(TEXTURE_SIZE * TEXTURE_SIZE * 4);
     const view = new Uint32Array(data.buffer);
     for (let i = 0; i < view.length; ++i) {

@@ -1,7 +1,7 @@
 import {
     TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
-    TextureParameters, TextureData, ImageDataOptions, TextureRuntime,
-} from './types/texture';
+    TextureRuntimeBase, TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
+} from './types/texture-base';
 import { Vec2 } from '../geometry/types/vec2';
 import { GLValuesMap } from './types/gl-values-map';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
@@ -9,8 +9,6 @@ import { BaseWrapper } from './base-wrapper';
 import { vec2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
-
-const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGL.REPEAT,
@@ -72,14 +70,11 @@ const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {
     'min_filter': MIN_FILTER_MAP,
 };
 
-function isTextureData(source: TextureData | TexImageSource): source is TextureData {
-    return 'size' in source && 'data' in source;
-}
-
-export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture> {
-    private readonly _runtime: TextureRuntime;
+export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper<WebGLTexture> {
+    protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
-    private _size: Vec2 = ZERO2;
+    protected readonly _target!: number;
+    protected _size: Vec2 = ZERO2;
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
     private _state: State = {
@@ -89,7 +84,7 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         min_filter: 'linear',
     };
 
-    constructor(runtime: TextureRuntime, tag?: string) {
+    constructor(runtime: TextureRuntimeBase, tag?: string) {
         super(tag);
         this._logger.log('init');
         this._runtime = runtime;
@@ -118,46 +113,48 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
         return texture;
     }
 
+    protected abstract _bind(): void;
+
     private _initTextureState(): void {
         const gl = this._runtime.gl;
-        this._runtime.bindTexture(this);
+        this._bind();
         // Default "wrap_s", "wrap_t" values are "repeat". Default "min_filter" value is "nearest_mipmap_linear".
         // Change them to a more suitable ones.
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['wrap_t'], WRAP_MAP['clamp_to_edge']);
-        gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['wrap_s'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['wrap_t'], WRAP_MAP['clamp_to_edge']);
+        gl.texParameteri(this._target, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
-    setImageData(source: TextureData | TexImageSource, options?: ImageDataOptions): void {
-        const gl = this._runtime.gl;
+    protected _beginDataUpdate(options?: TextureImageDataOptions): { format: number, type: number } {
         let unpackFlipY = false;
-        let generateMipmap = false;
         let format = DEFAULT_TEXTURE_FORMAT;
         let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
             unpackFlipY = !!options.unpackFlipY;
-            generateMipmap = !!options.generateMipmap;
             if (options.format) {
                 format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
                 type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
             }
         }
         this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
-        this._runtime.bindTexture(this);
-        if (isTextureData(source)) {
-            const { size, data } = source;
-            this._logger.log(
-                'set_image_data(size: {0}x{1}, data: {2})', size.x, size.y, data ? data.byteLength : 'null',
-            );
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, type, data);
+        this._bind();
+        return { format, type };
+    }
+
+    protected _updateData(imageData: TextureImageData, target: number, format: number, type: number): void {
+        if (isTextureRawImageData(imageData)) {
+            const { size, data } = imageData;
+            this._runtime.gl.texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
             this._size = size;
         } else {
-            this._logger.log('set_image_data(source: {0})', source);
-            gl.texImage2D(GL_TEXTURE_2D, 0, format, format, type, source);
-            this._size = vec2(source.width, source.height);
+            this._runtime.gl.texImage2D(target, 0, format, format, type, imageData);
+            this._size = vec2(imageData.width, imageData.height);
         }
-        if (generateMipmap) {
-            gl.generateMipmap(GL_TEXTURE_2D);
+    }
+
+    protected _endDataUpdate(options?: TextureImageDataOptions): void {
+        if (options && options.generateMipmap) {
+            this._runtime.gl.generateMipmap(this._target);
         }
     }
 
@@ -171,11 +168,26 @@ export class Texture extends BaseWrapper implements GLHandleWrapper<WebGLTexture
                 }
                 if (this._state[key as keyof State] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
-                    this._runtime.bindTexture(this);
-                    gl.texParameteri(GL_TEXTURE_2D, GL_PARAMETER_NAMES[key as keyof State], value);
+                    this._bind();
+                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key as keyof State], value);
                     this._state[key as keyof State] = val as never;
                 }
             }
         }
+    }
+}
+
+function isTextureRawImageData(imageData: TextureImageData): imageData is TextureRawImageData {
+    return 'size' in imageData && 'data' in imageData;
+}
+
+export function textureImageDataToStr(imageData: TextureImageData): string {
+    if (isTextureRawImageData(imageData)) {
+        const { size, data } = imageData;
+        return `image_data[size: ${size.x}x${size.y}, data: ${data ? data.byteLength : null}]`;
+    } else {
+        const str = imageData.toString();
+        const ret = /\[object (\w+)\]/.exec(str);
+        return `image_data[${ret ? ret[1] : '?'}]`;
     }
 }

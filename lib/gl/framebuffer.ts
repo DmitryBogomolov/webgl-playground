@@ -1,11 +1,11 @@
 import { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
-import { TextureRuntime } from './types/texture';
+import { TextureRuntime } from './types/texture-2d';
 import { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { BaseWrapper } from './base-wrapper';
 import { Vec2 } from '../geometry/types/vec2';
 import { ZERO2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
-import { Texture } from './texture';
+import { Texture } from './texture-2d';
 
 const WebGL = WebGLRenderingContext.prototype;
 

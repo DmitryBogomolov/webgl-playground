@@ -1,6 +1,5 @@
 import { Vec2 } from '../../geometry/types/vec2';
 import { GLWrapper } from './gl-wrapper';
-import { GLHandleWrapper } from './gl-handle-wrapper';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
@@ -21,18 +20,19 @@ export interface TextureParameters {
     readonly min_filter?: TEXTURE_MIN_FILTER;
 }
 
-export interface ImageDataOptions {
+export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly generateMipmap?: boolean;
     readonly format?: TEXTURE_FORMAT;
 }
 
-export interface TextureData {
+export interface TextureRawImageData {
     readonly size: Vec2;
     readonly data: ArrayBufferView | null;
 }
 
-export interface TextureRuntime extends GLWrapper {
+export type TextureImageData = TextureRawImageData | TexImageSource;
+
+export interface TextureRuntimeBase extends GLWrapper {
     pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void;
-    bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void;
 }

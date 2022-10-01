@@ -20,6 +20,7 @@ const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
 const GL_FRAMEBUFFER = WebGL.FRAMEBUFFER;
 const GL_RENDERBUFFER = WebGL.RENDERBUFFER;
 const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
+const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
 const GL_TEXTURE0 = WebGL.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
 const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
@@ -42,6 +43,7 @@ interface State {
     elementArrayBuffers: { [key: number]: WebGLBuffer | null };
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
+    boundCubeTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
     targetFramebuffer: FramebufferTarget | null;
@@ -148,6 +150,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
             },
             textureUnit: 0,
             boundTextures: {},
+            boundCubeTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
             framebuffer: null,
             targetFramebuffer: null,
@@ -467,6 +470,16 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.boundTextures[this._state.textureUnit] = handle;
     }
 
+    bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
+        const handle = unwrapGLHandle(texture);
+        if ((this._state.boundCubeTextures[this._state.textureUnit] || null) === handle) {
+            return;
+        }
+        this._logger.log('bind_cube_texture({0})', texture ? texture.id() : null);
+        this.gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
+        this._state.boundCubeTextures[this._state.textureUnit] = handle;
+    }
+
     setTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
         if ((this._state.boundTextures[unit] || null) === handle) {
@@ -478,6 +491,19 @@ export class Runtime extends BaseWrapper implements GLWrapper {
             this._state.textureUnit = unit;
         }
         this.bindTexture(texture);
+    }
+
+    setCubeTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
+        const handle = unwrapGLHandle(texture);
+        if ((this._state.boundCubeTextures[unit] || null) === handle) {
+            return;
+        }
+        if (this._state.textureUnit !== unit) {
+            this._logger.log('set_cube_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
+            this.gl.activeTexture(GL_TEXTURE0 + unit);
+            this._state.textureUnit = unit;
+        }
+        this.bindCubeTexture(texture);
     }
 
     pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
