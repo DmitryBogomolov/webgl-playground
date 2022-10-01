@@ -1,5 +1,5 @@
-import { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './types/vertex-schema';
-import { AttrValue } from './types/vertex-writer';
+import type { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './types/vertex-schema';
+import type { AttrValue } from './types/vertex-writer';
 import { Logger } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';

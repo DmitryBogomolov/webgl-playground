@@ -1,4 +1,4 @@
-import { Vec3 } from './types/vec3';
+import type { Vec3 } from './types/vec3';
 
 export class Vec3Impl implements Vec3 {
     readonly x: number;

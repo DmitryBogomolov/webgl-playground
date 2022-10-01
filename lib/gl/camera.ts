@@ -1,9 +1,9 @@
-import { CAMERA_PROJECTION } from './types/camera';
-import { Vec2 } from '../geometry/types/vec2';
-import { Vec3 } from '../geometry/types/vec3';
-import { Mat4 } from '../geometry/types/mat4';
+import type { CAMERA_PROJECTION } from './types/camera';
+import type { Vec2 } from '../geometry/types/vec2';
+import type { Vec3 } from '../geometry/types/vec3';
+import type { Mat4 } from '../geometry/types/mat4';
+import type { EventProxy } from '../utils/types/event-emitter';
 import { Logger } from '../utils/logger';
-import { EventProxy } from '../utils/types/event-emitter';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../geometry/scalar';
 import { vec2, isVec2, eq2, mul2 } from '../geometry/vec2';

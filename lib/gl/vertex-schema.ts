@@ -1,4 +1,6 @@
-import { AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema } from './types/vertex-schema';
+import type {
+    AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
+} from './types/vertex-schema';
 import { Logger } from '../utils/logger';
 
 

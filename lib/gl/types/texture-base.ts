@@ -1,5 +1,5 @@
-import { Vec2 } from '../../geometry/types/vec2';
-import { GLWrapper } from './gl-wrapper';
+import type { Vec2 } from '../../geometry/types/vec2';
+import type { GLWrapper } from './gl-wrapper';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');

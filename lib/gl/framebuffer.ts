@@ -1,6 +1,6 @@
-import { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
-import { TextureRuntime } from './types/texture-2d';
-import { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
+import type { TextureRuntime } from './types/texture-2d';
+import type { GLHandleWrapper } from './types/gl-handle-wrapper';
 import { BaseWrapper } from './base-wrapper';
 import { Vec2 } from '../geometry/types/vec2';
 import { ZERO2 } from '../geometry/vec2';

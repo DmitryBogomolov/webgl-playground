@@ -1,5 +1,5 @@
-import { Mat2 } from './types/mat2';
-import { Vec2 } from './types/vec2';
+import type { Mat2 } from './types/mat2';
+import type { Vec2 } from './types/vec2';
 import { vec2 } from './vec2';
 
 const MAT_RANK = 2;

@@ -1,5 +1,5 @@
-import { GLWrapper } from './gl-wrapper';
-import { GLHandleWrapper } from './gl-handle-wrapper';
+import type { GLWrapper } from './gl-wrapper';
+import type { GLHandleWrapper } from './gl-handle-wrapper';
 
 export type PRIMITIVE_MODE = (
     'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'

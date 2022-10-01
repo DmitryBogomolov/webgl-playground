@@ -1,4 +1,4 @@
-import { Color } from './types/color';
+import type { Color } from './types/color';
 
 export class ColorImpl implements Color {
     readonly r: number;
