@@ -15,7 +15,7 @@ export function formatStr(format: string, ...params: unknown[]): string {
             return JSON.stringify(param);
         }
         if (type === 'object') {
-            if (param.toString !== objectToString) {
+            if ((param as object).toString !== objectToString) {
                 return (param as object).toString();
             }
             if (objectToString.call(param) === '[object Object]') {
