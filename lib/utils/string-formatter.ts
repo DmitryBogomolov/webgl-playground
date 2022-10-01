@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const objectToString = Object.prototype.toString;
 
 export function formatStr(format: string, ...params: unknown[]): string {
@@ -14,12 +15,11 @@ export function formatStr(format: string, ...params: unknown[]): string {
             return JSON.stringify(param);
         }
         if (type === 'object') {
-            const obj = param as Object;
-            if (obj.toString !== objectToString) {
-                return obj.toString();
+            if (param.toString !== objectToString) {
+                return (param as object).toString();
             }
-            if (objectToString.call(obj) === '[object Object]') {
-                return JSON.stringify(obj);
+            if (objectToString.call(param) === '[object Object]') {
+                return JSON.stringify(param);
             }
         }
         return String(param);
