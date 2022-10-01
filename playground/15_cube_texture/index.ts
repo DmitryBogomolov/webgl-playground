@@ -17,7 +17,8 @@ import fragShader from './shaders/cube.frag';
 /**
  * Cube texture.
  *
- * TODO...
+ * Shows usage of cube textures. Simple cube is rendered.
+ * Vertex positions (normalized) are used as texture coordinates.
  */
 export type DESCRIPTION = never;
 
