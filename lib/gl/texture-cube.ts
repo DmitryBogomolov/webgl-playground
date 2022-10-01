@@ -1,7 +1,7 @@
 import type {
-    TextureCubeRuntime, TextureCubeImageData, TextureImageDataOptions,
+    TextureCubeRuntime, TextureCubeImageData, TextureImageDataOptions, TextureImageData,
 } from './types/texture-cube';
-import { TextureBase } from './texture-base';
+import { TextureBase, textureImageDataToStr } from './texture-base';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -21,18 +21,24 @@ export class TextureCube extends TextureBase {
         (this._runtime as TextureCubeRuntime).bindCubeTexture(this);
     }
 
-    setImageData(source: TextureCubeImageData, options?: TextureImageDataOptions): void {
-        this._logger.log('set_image_data({0})', source);
+    setImageData(imageData: TextureCubeImageData, options?: TextureImageDataOptions): void {
+        this._logger.log('set_image_data({0})', imageDataToStr(imageData));
         const { format, type } = this._beginDataUpdate(options);
-        this._updateData(source.xNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, format, type);
-        this._updateData(source.xPos, GL_TEXTURE_CUBE_MAP_POSITIVE_X, format, type);
-        this._updateData(source.yNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, format, type);
-        this._updateData(source.yPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, format, type);
-        this._updateData(source.zNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, format, type);
-        this._updateData(source.zPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, format, type);
+        this._updateData(imageData.xNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, format, type);
+        this._updateData(imageData.xPos, GL_TEXTURE_CUBE_MAP_POSITIVE_X, format, type);
+        this._updateData(imageData.yNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, format, type);
+        this._updateData(imageData.yPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, format, type);
+        this._updateData(imageData.zNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, format, type);
+        this._updateData(imageData.zPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, format, type);
         this._endDataUpdate(options);
     }
 }
 
 // @ts-ignore Initialize before constructor.
 TextureCube.prototype._target = WebGL.TEXTURE_CUBE_MAP;
+
+function imageDataToStr(imageData: TextureCubeImageData): string {
+    const parts = Object.entries(imageData)
+        .map(([key, val]) => `${key}: ${textureImageDataToStr(val as TextureImageData)}`);
+    return `image_data[${parts.join(', ')}]`;
+}

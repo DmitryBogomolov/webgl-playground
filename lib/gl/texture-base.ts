@@ -141,14 +141,14 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
         return { format, type };
     }
 
-    protected _updateData(source: TextureImageData, target: number, format: number, type: number): void {
-        if (isTextureRawImageData(source)) {
-            const { size, data } = source;
+    protected _updateData(imageData: TextureImageData, target: number, format: number, type: number): void {
+        if (isTextureRawImageData(imageData)) {
+            const { size, data } = imageData;
             this._runtime.gl.texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
             this._size = size;
         } else {
-            this._runtime.gl.texImage2D(target, 0, format, format, type, source);
-            this._size = vec2(source.width, source.height);
+            this._runtime.gl.texImage2D(target, 0, format, format, type, imageData);
+            this._size = vec2(imageData.width, imageData.height);
         }
     }
 
@@ -177,6 +177,17 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
     }
 }
 
-export function isTextureRawImageData(source: TextureImageData): source is TextureRawImageData {
-    return 'size' in source && 'data' in source;
+function isTextureRawImageData(imageData: TextureImageData): imageData is TextureRawImageData {
+    return 'size' in imageData && 'data' in imageData;
+}
+
+export function textureImageDataToStr(imageData: TextureImageData): string {
+    if (isTextureRawImageData(imageData)) {
+        const { size, data } = imageData;
+        return `image_data[size: ${size.x}x${size.y}, data: ${data ? data.byteLength : null}]`;
+    } else {
+        const str = imageData.toString();
+        const ret = /\[object (\w+)\]/.exec(str);
+        return `image_data[${ret ? ret[1] : '?'}]`;
+    }
 }

@@ -1,7 +1,7 @@
 import {
     TextureImageData, TextureImageDataOptions, TextureRuntime,
 } from './types/texture-2d';
-import { TextureBase } from './texture-base';
+import { TextureBase, textureImageDataToStr } from './texture-base';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -10,10 +10,10 @@ export class Texture extends TextureBase {
         (this._runtime as TextureRuntime).bindTexture(this);
     }
 
-    setImageData(source: TextureImageData, options?: TextureImageDataOptions): void {
-        this._logger.log('set_image_data({0})', source);
+    setImageData(imageData: TextureImageData, options?: TextureImageDataOptions): void {
+        this._logger.log('set_image_data({0})', textureImageDataToStr(imageData));
         const { format, type } = this._beginDataUpdate(options);
-        this._updateData(source, this._target, format, type);
+        this._updateData(imageData, this._target, format, type);
         this._endDataUpdate(options);
     }
 }
