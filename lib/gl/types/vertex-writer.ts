@@ -1,7 +1,7 @@
-import { Vec2 } from '../../geometry/types/vec2';
-import { Vec3 } from '../../geometry/types/vec3';
-import { Vec4 } from '../../geometry/types/vec4';
-import { Color } from './color';
+import type { Vec2 } from '../../geometry/types/vec2';
+import type { Vec3 } from '../../geometry/types/vec3';
+import type { Vec4 } from '../../geometry/types/vec4';
+import type { Color } from './color';
 
 export type AttrValue = (
     | number

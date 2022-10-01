@@ -1,6 +1,6 @@
-import { Mat3 } from './types/mat3';
-import { Vec2 } from './types/vec2';
-import { Vec3 } from './types/vec3';
+import type { Mat3 } from './types/mat3';
+import type { Vec2 } from './types/vec2';
+import type { Vec3 } from './types/vec3';
 import { vec2 } from './vec2';
 import { vec3 } from './vec3';
 

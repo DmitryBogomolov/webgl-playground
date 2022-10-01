@@ -1,13 +1,13 @@
-import { Vec2 } from '../../geometry/types/vec2';
-import { Vec3 } from '../../geometry/types/vec3';
-import { Vec4 } from '../../geometry/types/vec4';
-import { Mat2 } from '../../geometry/types/mat2';
-import { Mat3 } from '../../geometry/types/mat3';
-import { Mat4 } from '../../geometry/types/mat4';
-import { Color } from '../types/color';
-import { VertexSchema } from './vertex-schema';
-import { GLWrapper } from './gl-wrapper';
-import { GLHandleWrapper } from './gl-handle-wrapper';
+import type { Vec2 } from '../../geometry/types/vec2';
+import type { Vec3 } from '../../geometry/types/vec3';
+import type { Vec4 } from '../../geometry/types/vec4';
+import type { Mat2 } from '../../geometry/types/mat2';
+import type { Mat3 } from '../../geometry/types/mat3';
+import type { Mat4 } from '../../geometry/types/mat4';
+import type { Color } from '../types/color';
+import type { VertexSchema } from './vertex-schema';
+import type { GLWrapper } from './gl-wrapper';
+import type { GLHandleWrapper } from './gl-handle-wrapper';
 
 export type UniformValue = (
     | boolean

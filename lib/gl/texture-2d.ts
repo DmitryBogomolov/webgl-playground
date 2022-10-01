@@ -1,4 +1,4 @@
-import {
+import type {
     TextureImageData, TextureImageDataOptions, TextureRuntime,
 } from './types/texture-2d';
 import { TextureBase, textureImageDataToStr } from './texture-base';

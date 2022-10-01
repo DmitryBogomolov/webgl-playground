@@ -1,5 +1,5 @@
 import type { TextureRuntimeBase } from './texture-base';
-import { GLHandleWrapper } from './gl-handle-wrapper';
+import type { GLHandleWrapper } from './gl-handle-wrapper';
 
 export * from './texture-base';
 
