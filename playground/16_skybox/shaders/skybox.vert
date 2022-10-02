@@ -1,10 +1,8 @@
-attribute vec3 a_position;
+attribute vec2 a_position;
 
-uniform mat4 u_view_proj;
-
-varying vec3 v_normal;
+varying vec4 v_position;
 
 void main() {
-    gl_Position = u_view_proj * vec4(a_position, 1.0);
-    v_normal = normalize(a_position);
+    gl_Position = vec4(a_position, 1.0, 1.0);
+    v_position = gl_Position;
 }

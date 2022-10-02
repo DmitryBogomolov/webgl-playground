@@ -1,9 +1,12 @@
 precision mediump float;
 
-varying vec3 v_normal;
+varying vec4 v_position;
 
+uniform mat4 u_view_proj_inv;
 uniform samplerCube u_texture;
 
 void main() {
-    gl_FragColor = textureCube(u_texture, normalize(v_normal));
+    vec4 position = u_view_proj_inv * v_position;
+    vec3 texcoord = normalize(position.xyz / position.w);
+    gl_FragColor = textureCube(u_texture, texcoord);
 }

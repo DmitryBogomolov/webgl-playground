@@ -17,6 +17,8 @@ import fragShader from './shaders/skybox.frag';
  */
 export type DESCRIPTION = never;
 
+main();
+
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
@@ -28,14 +30,16 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, quad, camera);
+        renderFrame(runtime, camera, quad, texture);
     });
 }
 
-function renderFrame(runtime: Runtime, primitive: Primitive, camera: Camera): void {
+function renderFrame(runtime: Runtime, camera: Camera, primitive: Primitive, texture: TextureCube): void {
     runtime.clearBuffer('color|depth');
 
-    primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+    runtime.setCubeTextureUnit(4, texture);
+    primitive.program().setUniform('u_texture', 4);
+    primitive.program().setUniform('u_view_proj_inv', camera.getInvtransformMat());
     primitive.render();
 }
 
@@ -95,10 +99,8 @@ function makeTexture(runtime: Runtime): TextureCube {
         items.forEach(({ key, image }) => {
             imageData[key] = image;
         });
-        texture.setImageData(imageData as unknown as TextureCubeImageData, { unpackFlipY: true });
+        texture.setImageData(imageData as unknown as TextureCubeImageData);
         runtime.requestFrameRender();
     }).catch(console.error);
     return texture;
 }
-
-main();

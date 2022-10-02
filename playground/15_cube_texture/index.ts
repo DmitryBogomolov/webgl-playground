@@ -56,6 +56,7 @@ runtime.frameRendered().on(() => {
 
     runtime.setCubeTextureUnit(2, texture);
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+    primitive.program().setUniform('u_texture', 2);
     primitive.render();
 });
 
