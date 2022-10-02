@@ -4,9 +4,13 @@ import {
     Program,
     TextureCube, TextureCubeImageData,
     Camera,
+    vec3,
     parseVertexSchema,
     loadImage,
+    deg2rad,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import vertShader from './shaders/skybox.vert';
 import fragShader from './shaders/skybox.frag';
 
@@ -26,6 +30,22 @@ function main(): void {
     const quad = makeQuad(runtime);
     const texture = makeTexture(runtime);
     const camera = new Camera();
+
+    const cameraLon = observable(0);
+    const cameraLat = observable(0);
+    const cameraPos = computed(([cameraLon, cameraLat]) => {
+        const lon = deg2rad(cameraLon);
+        const lat = deg2rad(cameraLat);
+        return vec3(
+            Math.cos(lat) * Math.sin(lon),
+            Math.sin(lat),
+            Math.cos(lat) * Math.cos(lon),
+        );
+    }, [cameraLon, cameraLat]);
+    cameraPos.on((cameraPos) => {
+        camera.setEyePos(cameraPos);
+    });
+
     camera.changed().on(() => runtime.requestFrameRender());
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
@@ -33,6 +53,11 @@ function main(): void {
     runtime.frameRendered().on(() => {
         renderFrame(runtime, camera, quad, texture);
     });
+
+    createControls(container, [
+        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lat', value: cameraLat, min: -80, max: +80 },
+    ]);
 }
 
 function renderFrame(runtime: Runtime, camera: Camera, primitive: Primitive, texture: TextureCube): void {
@@ -93,7 +118,7 @@ function makeTexture(runtime: Runtime): TextureCube {
         { key: 'zPos', url: '/static/computer-history-museum/z-pos.jpg' },
     ];
     const loadings = schema.map(({ key, url }) =>
-        loadImage(url).then((image) => ({ key, image }))
+        loadImage(url).then((image) => ({ key, image })),
     );
     Promise.all(loadings).then((items) => {
         const imageData: Record<string, HTMLImageElement> = {};
