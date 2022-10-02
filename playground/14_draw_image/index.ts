@@ -24,13 +24,13 @@ imageLetter.setTextureUnit(4);
 const imageLeaves = new ImageRenderer(runtime, 'image/leaves');
 imageLeaves.setTextureUnit(5);
 
-void imageCells.setImageData(generateTextureData());
-void imageLetter.setImageData({ url: '/static/f-letter.png' }).then(() => {
+imageCells.setImageData(generateTextureData()).catch(console.error);
+imageLetter.setImageData({ url: '/static/f-letter.png' }).then(() => {
     runtime.requestFrameRender();
-});
-void imageLeaves.setImageData({ url: '/static/leaves.jpg' }).then(() => {
+}).catch(console.error);
+imageLeaves.setImageData({ url: '/static/leaves.jpg' }).then(() => {
     runtime.requestFrameRender();
-});
+}).catch(console.error);
 
 let step = 0;
 const SPEED = 0.1;

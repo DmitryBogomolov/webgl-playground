@@ -18,6 +18,7 @@ import { Texture } from '../gl/texture-2d';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { compareObjects } from '../utils/compare';
 import { memoize } from '../utils/memoizer';
+import { loadImage } from '../utils/image-loader';
 
 const VERT_SHADER = `
 attribute vec2 a_position;
@@ -191,15 +192,6 @@ export class ImageRenderer extends BaseWrapper {
         program.setUniform('u_texture', this._textureUnit);
         this._primitive.render();
     }
-}
-
-function loadImage(url: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.src = url;
-        image.addEventListener('load', () => resolve(image));
-        image.addEventListener('error', reject);
-    });
 }
 
 function getRange(
