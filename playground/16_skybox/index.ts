@@ -17,6 +17,7 @@ import fragShader from './shaders/skybox.frag';
  */
 export type DESCRIPTION = never;
 
+// TODO: Investigate inversion.
 main();
 
 function main(): void {
