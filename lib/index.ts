@@ -8,6 +8,7 @@ export * from './utils/types/tracker';
 export * from './utils/tracker';
 export * from './utils/types/event-emitter';
 export * from './utils/event-emitter';
+export * from './utils/image-loader';
 export * from './geometry/scalar';
 export * from './geometry/types/vec2';
 export * from './geometry/vec2';
