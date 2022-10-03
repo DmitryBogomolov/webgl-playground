@@ -22,6 +22,8 @@ export * from './geometry/types/mat3';
 export * from './geometry/mat3';
 export * from './geometry/types/mat4';
 export * from './geometry/mat4';
+export * from './geometry/types/spherical';
+export * from './geometry/spherical';
 export * from './geometry/figures';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree';

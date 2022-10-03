@@ -1,10 +1,11 @@
 import { logSilenced } from './lib/utils/logger';
-import { Vec2 } from './lib/geometry/types/vec2';
-import { Vec3 } from './lib/geometry/types/vec3';
-import { Vec4 } from './lib/geometry/types/vec4';
-import { Mat2 } from './lib/geometry/types/mat2';
-import { Mat3 } from './lib/geometry/types/mat3';
-import { Mat4 } from './lib/geometry/types/mat4';
+import type { Vec2 } from './lib/geometry/types/vec2';
+import type { Vec3 } from './lib/geometry/types/vec3';
+import type { Vec4 } from './lib/geometry/types/vec4';
+import type { Mat2 } from './lib/geometry/types/mat2';
+import type { Mat3 } from './lib/geometry/types/mat3';
+import type { Mat4 } from './lib/geometry/types/mat4';
+import type { Spherical } from './lib/geometry/types/spherical';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -18,6 +19,8 @@ declare global {
             toBeMat2(expected: Mat2): CustomMatcherResult;
             toBeMat3(expected: Mat3): CustomMatcherResult;
             toBeMat4(expected: Mat4): CustomMatcherResult;
+
+            toBeSpherical(expected: Spherical): CustomMatcherResult;
         }
     }
 }
@@ -106,6 +109,26 @@ expect.extend({
 
     toBeMat4(actual: Mat4, expected: Mat4) {
         return checkMat(actual, expected, 4);
+    },
+
+    toBeSpherical(actual: Spherical, expected: Spherical) {
+        const errors: string[] = [];
+        if (!equal(actual.azimuth, expected.azimuth)) {
+            errors.push(`azimuth:   ${expected.azimuth} != ${actual.azimuth}`);
+        }
+        if (!equal(actual.elevation, expected.elevation)) {
+            errors.push(`elevation: ${expected.elevation} != ${actual.elevation}`);
+        }
+        if (errors.length === 0) {
+            return {
+                pass: true,
+                message: () => 'OK',
+            };
+        }
+        return {
+            pass: false,
+            message: () => errors.join('\n'),
+        };
     },
 });
 
