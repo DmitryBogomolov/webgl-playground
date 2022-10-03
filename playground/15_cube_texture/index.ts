@@ -6,8 +6,8 @@ import {
     Camera,
     parseVertexSchema,
     generateCube,
-    vec3, UNIT3, mul3,
-    deg2rad,
+    UNIT3, mul3,
+    deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -31,13 +31,7 @@ camera.changed().on(() => runtime.requestFrameRender());
 const cameraLon = observable(0);
 const cameraLat = observable(30);
 const cameraPos = computed(([cameraLon, cameraLat]) => {
-    const lon = deg2rad(cameraLon);
-    const lat = deg2rad(cameraLat);
-    const dir = vec3(
-        Math.cos(lat) * Math.sin(lon),
-        Math.sin(lat),
-        Math.cos(lat) * Math.cos(lon),
-    );
+    const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
     return mul3(dir, 2);
 }, [cameraLon, cameraLat]);
 cameraPos.on((cameraPos) => {

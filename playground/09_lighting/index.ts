@@ -6,7 +6,7 @@ import {
     mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     color,
-    deg2rad, fovDist2Size,
+    deg2rad, fovDist2Size, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -93,13 +93,7 @@ const modelInvTrs = computed(
 
 const lightDirection = computed(
     ([lightLon, lightLat]) => {
-        const lon = deg2rad(lightLon);
-        const lat = deg2rad(lightLat);
-        const dir = vec3(
-            Math.cos(lat) * Math.sin(lon),
-            Math.sin(lat),
-            Math.cos(lat) * Math.cos(lon),
-        );
+        const dir = spherical2zxy({ azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
         return neg3(dir);
     },
     [lightLon, lightLat],
