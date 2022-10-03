@@ -59,14 +59,16 @@ function main(): void {
         return inversetranspose4x4(modelMat, _normalMat);
     }, [modelMat]);
 
-    [modelMat, normalMat, camera.changed()].forEach(
-        (proxy) => proxy.on(() => runtime.requestFrameRender())
+    const isCubeShown = observable(true);
+
+    [modelMat, normalMat, isCubeShown, camera.changed()].forEach(
+        (proxy) => proxy.on(() => runtime.requestFrameRender()),
     );
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, camera, modelMat, normalMat, quad, cube, texture);
+        renderFrame(runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture);
     });
 
     createControls(container, [
@@ -75,26 +77,29 @@ function main(): void {
         { label: 'camera dist', value: cameraDist, min: 1, max: 5, step: 0.2 },
         { label: 'model lon', value: modelLon, min: -90, max: +90 },
         { label: 'model lat', value: modelLat, min: -90, max: +90 },
+        { label: 'cube', checked: isCubeShown },
     ]);
 }
 
 function renderFrame(
     runtime: Runtime, camera: Camera,
-    modelMat: Observable<Mat4>, normalMat: Observable<Mat4>,
+    modelMat: Observable<Mat4>, normalMat: Observable<Mat4>, isCubeShown: Observable<boolean>,
     quad: Primitive, cube: Primitive, texture: TextureCube,
 ): void {
     runtime.clearBuffer('color|depth');
 
     runtime.setCubeTextureUnit(4, texture);
 
-    // Depth func is reset to default value (because it is changed for quad).
-    runtime.setDepthFunc('less');
-    cube.program().setUniform('u_texture', 4);
-    cube.program().setUniform('u_view_proj', camera.getTransformMat());
-    cube.program().setUniform('u_model', modelMat());
-    cube.program().setUniform('u_model_invtrs', normalMat());
-    cube.program().setUniform('u_camera_position', camera.getEyePos());
-    cube.render();
+    if (isCubeShown()) {
+        // Depth func is reset to default value (because it is changed for quad).
+        runtime.setDepthFunc('less');
+        cube.program().setUniform('u_texture', 4);
+        cube.program().setUniform('u_view_proj', camera.getTransformMat());
+        cube.program().setUniform('u_model', modelMat());
+        cube.program().setUniform('u_model_invtrs', normalMat());
+        cube.program().setUniform('u_camera_position', camera.getEyePos());
+        cube.render();
+    }
 
     // Depth buffer is cleared (by default) with "1" values. Quad depth is also "1". Depth test must be passed.
     // Default depth func is "LESS" and 1 < 1 == false. So depth func is changed.
