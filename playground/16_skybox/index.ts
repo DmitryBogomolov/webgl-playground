@@ -72,7 +72,7 @@ function main(): void {
     });
 
     createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lon', value: cameraLon, min: -360, max: +360 },
         { label: 'camera lat', value: cameraLat, min: -80, max: +80 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 5, step: 0.2 },
         { label: 'model lon', value: modelLon, min: -90, max: +90 },
