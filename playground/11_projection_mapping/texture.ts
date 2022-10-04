@@ -1,6 +1,7 @@
 import {
     Runtime,
     Texture,
+    loadImage,
 } from 'lib';
 
 export function makeColorTexture(runtime: Runtime): Texture {
@@ -31,12 +32,12 @@ export function makeMappingTexture(runtime: Runtime, onReady: () => void): Textu
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });
-    const image = new Image();
-    image.src = '/static/f-letter.png';
-    image.onload = () => {
-        image.onload = null;
-        texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
-        onReady();
-    };
+    loadImage('/static/f-letter.png').then(
+        (image) => {
+            texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
+            onReady();
+        },
+        console.error,
+    );
     return texture;
 }

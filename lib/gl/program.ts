@@ -23,7 +23,7 @@ const GL_ACTIVE_UNIFORMS = WebGL.ACTIVE_UNIFORMS;
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
     readonly location: number;
-    readonly type: ShaderType;
+    readonly type: ShaderAttrType;
     readonly size: number;
 }
 
@@ -37,17 +37,17 @@ type UniformSetter = (
     logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: UniformValue
 ) => void;
 
-type ShaderType = 'float' | 'int' | 'bool' | 'sampler';
+type ShaderAttrType = 'float' | 'int' | 'bool';
 
-interface ShaderTypesMap {
-    readonly [key: number]: { type: ShaderType, size: number };
+interface ShaderAttrTypesMap {
+    readonly [key: number]: { type: ShaderAttrType, size: number };
 }
 
 interface UniformSettersMap {
     readonly [key: number]: UniformSetter;
 }
 
-const shaderTypes: ShaderTypesMap = {
+const shaderAttrTypes: ShaderAttrTypesMap = {
     [WebGL.FLOAT]: { type: 'float', size: 1 },
     [WebGL.FLOAT_VEC2]: { type: 'float', size: 2 },
     [WebGL.FLOAT_VEC3]: { type: 'float', size: 3 },
@@ -63,7 +63,6 @@ const shaderTypes: ShaderTypesMap = {
     [WebGL.FLOAT_MAT2]: { type: 'float', size: 4 },
     [WebGL.FLOAT_MAT3]: { type: 'float', size: 9 },
     [WebGL.FLOAT_MAT4]: { type: 'float', size: 16 },
-    [WebGL.SAMPLER_2D]: { type: 'sampler', size: 1 },
 };
 
 function isNumArray(arg: unknown, length: number): arg is number[] {
@@ -124,6 +123,13 @@ const uniformSetters: UniformSettersMap = {
             gl.uniform1i(location, value);
         } else {
             throw logger.error('bad value for "sampler2D" uniform: {0}', value);
+        }
+    },
+    [WebGL.SAMPLER_CUBE]: (logger, gl, { location }, value) => {
+        if (typeof value === 'number') {
+            gl.uniform1i(location, value);
+        } else {
+            throw logger.error('bad value for "samplerCube" uniform: {0}', value);
         }
     },
     [WebGL.FLOAT_MAT2]: (logger, gl, { location }, value) => {
@@ -288,7 +294,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
             attributes[info.name] = {
                 info,
                 location,
-                ...shaderTypes[info.type],
+                ...shaderAttrTypes[info.type],
             };
         }
         for (const attr of this._schema.attributes) {

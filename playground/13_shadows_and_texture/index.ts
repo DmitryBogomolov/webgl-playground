@@ -6,7 +6,7 @@ import {
     Vec3, vec3, mul3,
     Mat4, translation4x4, inversetranspose4x4,
     Color, colors, color, Program,
-    deg2rad,
+    deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -60,13 +60,8 @@ viewLon.on((viewLon) => {
 });
 
 const lightPos = computed(([lightLon, lightLat, lightDist]) => {
-    const lon = deg2rad(lightLon);
-    const lat = deg2rad(lightLat);
-    return mul3(vec3(
-        Math.cos(lat) * Math.sin(lon),
-        Math.sin(lat),
-        Math.cos(lat) * Math.cos(lon),
-    ), lightDist);
+    const dir = spherical2zxy({ azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
+    return mul3(dir, lightDist);
 }, [lightLon, lightLat, lightDist]);
 
 lightPos.on((lightPos) => {

@@ -6,7 +6,7 @@ import {
     vec2,
     vec3, mul3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
-    deg2rad,
+    deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -76,13 +76,7 @@ const model = computed(
 );
 
 const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
-    const lon = deg2rad(projectionLon);
-    const lat = deg2rad(projectionLat);
-    const dir = vec3(
-        Math.cos(lat) * Math.sin(lon),
-        Math.sin(lat),
-        Math.cos(lat) * Math.cos(lon),
-    );
+    const dir = spherical2zxy({ azimuth: deg2rad(projectionLon), elevation: deg2rad(projectionLat) });
     return mul3(dir, projectionDist);
 }, [projectionDist, projectionLon, projectionLat]);
 eyePosition.on((eyePosition) => {

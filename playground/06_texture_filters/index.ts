@@ -4,6 +4,7 @@ import {
     Program,
     Texture,
     parseVertexSchema,
+    loadImage,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -57,13 +58,13 @@ function makeTexture(runtime: Runtime): Texture {
         mag_filter: 'nearest',
     });
 
-    const image = new Image();
-    image.src = '/static/leaves.jpg';
-    image.onload = () => {
-        image.onload = null;
-        texture.setImageData(image, { unpackFlipY: true });
-        runtime.requestFrameRender();
-    };
+    loadImage('/static/leaves.jpg').then(
+        (image) => {
+            texture.setImageData(image, { unpackFlipY: true });
+            runtime.requestFrameRender();
+        },
+        console.error,
+    );
 
     return texture;
 }
