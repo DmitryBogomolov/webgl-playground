@@ -1,6 +1,8 @@
 import {
     Runtime,
+    Framebuffer,
     Camera,
+    vec2,
     vec3,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -18,6 +20,8 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setDepthTest(true);
+    const framebuffer = new Framebuffer(runtime);
+    framebuffer.setup('color|depth', vec2(1024, 1024));
     const camera = new Camera();
     camera.setEyePos(vec3(0, 3, 10));
     const objects = makeObjects(runtime);
@@ -26,15 +30,27 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, camera, objects);
+        renderFrame(runtime, framebuffer, camera, objects);
     });
 }
 
 function renderFrame(
-    runtime: Runtime, camera: Camera, objects: ReadonlyArray<SceneItem>,
+    runtime: Runtime, framebuffer: Framebuffer, camera: Camera,
+    objects: ReadonlyArray<SceneItem>,
 ): void {
     runtime.clearBuffer('color|depth');
 
+    runtime.setFramebuffer(framebuffer);
+    camera.setViewportSize(framebuffer.size());
+    for (const { primitive, modelMat, normalMat } of objects) {
+        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+        primitive.program().setUniform('u_model', modelMat);
+        primitive.program().setUniform('u_model_invtrs', normalMat);
+        primitive.render();
+    }
+
+    runtime.setFramebuffer(null);
+    camera.setViewportSize(runtime.canvasSize());
     for (const { primitive, modelMat, normalMat } of objects) {
         primitive.program().setUniform('u_view_proj', camera.getTransformMat());
         primitive.program().setUniform('u_model', modelMat);
