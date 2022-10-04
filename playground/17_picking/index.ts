@@ -1,9 +1,11 @@
 import {
     Runtime,
+    Program,
     Framebuffer,
     Camera,
     vec2,
     vec3,
+    vec4,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
@@ -24,18 +26,19 @@ function main(): void {
     framebuffer.setup('color|depth', vec2(1024, 1024));
     const camera = new Camera();
     camera.setEyePos(vec3(0, 3, 10));
-    const objects = makeObjects(runtime);
+    const { objects, program, idProgram } = makeObjects(runtime);
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, framebuffer, camera, objects);
+        renderFrame(runtime, framebuffer, camera, program, idProgram, objects);
     });
 }
 
 function renderFrame(
     runtime: Runtime, framebuffer: Framebuffer, camera: Camera,
+    program: Program, idProgram: Program,
     objects: ReadonlyArray<SceneItem>,
 ): void {
     runtime.clearBuffer('color|depth');
@@ -43,24 +46,30 @@ function renderFrame(
     runtime.setFramebuffer(framebuffer);
     camera.setViewportSize(framebuffer.size());
     for (const { primitive, modelMat, normalMat } of objects) {
-        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
-        primitive.program().setUniform('u_model', modelMat);
-        primitive.program().setUniform('u_model_invtrs', normalMat);
+        primitive.setProgram(idProgram);
+        idProgram.setUniform('u_view_proj', camera.getTransformMat());
+        idProgram.setUniform('u_model', modelMat);
+        idProgram.setUniform('u_id', vec4(1, 0, 0, 1));
         primitive.render();
     }
 
     runtime.setFramebuffer(null);
     camera.setViewportSize(runtime.canvasSize());
     for (const { primitive, modelMat, normalMat } of objects) {
-        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
-        primitive.program().setUniform('u_model', modelMat);
-        primitive.program().setUniform('u_model_invtrs', normalMat);
+        primitive.setProgram(program);
+        program.setUniform('u_view_proj', camera.getTransformMat());
+        program.setUniform('u_model', modelMat);
+        program.setUniform('u_model_invtrs', normalMat);
         primitive.render();
     }
 }
 
-function makeObjects(runtime: Runtime): ReadonlyArray<SceneItem> {
-    const makeObject = makeObjectsFactory(runtime);
+function makeObjects(runtime: Runtime): {
+    objects: ReadonlyArray<SceneItem>,
+    program: Program,
+    idProgram: Program,
+ } {
+    const { make: makeObject, program, idProgram } = makeObjectsFactory(runtime);
     const objects: SceneItem[] = [
         makeObject(
             vec3(1, 0.9, 0.6), vec3(1, 0, 0), 0.3 * Math.PI, vec3(4, 0, 0),
@@ -75,5 +84,5 @@ function makeObjects(runtime: Runtime): ReadonlyArray<SceneItem> {
             vec3(1, 0.9, 0.8), vec3(0, 1, 0), 0.2 * Math.PI, vec3(0, 0, -4),
         ),
     ];
-    return objects;
+    return { objects, program, idProgram };
 }

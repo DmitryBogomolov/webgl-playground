@@ -7,8 +7,10 @@ import {
     Vec3, UNIT3,
     Mat4, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
 } from 'lib';
-import vertShader from './shaders/item.vert';
-import fragShader from './shaders/item.frag';
+import itemVertShader from './shaders/item.vert';
+import itemFragShader from './shaders/item.frag';
+import idVertShader from './shaders/id.vert';
+import idFragShader from './shaders/id.frag';
 
 export interface SceneItem {
     readonly primitive: Primitive;
@@ -17,7 +19,9 @@ export interface SceneItem {
 }
 
 export interface ObjectsFactory {
-    (size: Vec3, axis: Vec3, rotation: number, position: Vec3): SceneItem;
+    make(size: Vec3, axis: Vec3, rotation: number, position: Vec3): SceneItem;
+    readonly program: Program;
+    readonly idProgram: Program;
 }
 
 export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
@@ -44,21 +48,29 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     primitive.setIndexData({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
-        vertShader,
-        fragShader,
+        vertShader: itemVertShader,
+        fragShader: itemFragShader,
         schema,
     });
-    primitive.setProgram(program);
+    const idProgram = new Program(runtime, {
+        vertShader: idVertShader,
+        fragShader: idFragShader,
+        schema,
+    });
 
-    return (size, axis, rotation, position) => {
-        const mat = identity4x4();
-        apply4x4(mat, scaling4x4, size);
-        apply4x4(mat, rotation4x4, axis, rotation);
-        apply4x4(mat, translation4x4, position);
-        return {
-            primitive,
-            modelMat: mat,
-            normalMat: inversetranspose4x4(mat),
-        };
+    return {
+        make: (size, axis, rotation, position) => {
+            const mat = identity4x4();
+            apply4x4(mat, scaling4x4, size);
+            apply4x4(mat, rotation4x4, axis, rotation);
+            apply4x4(mat, translation4x4, position);
+            return {
+                primitive,
+                modelMat: mat,
+                normalMat: inversetranspose4x4(mat),
+            };
+        },
+        program,
+        idProgram,
     };
 }
