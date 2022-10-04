@@ -16,11 +16,15 @@ import { makeTexture } from './texture';
 /**
  * Skybox.
  *
- * TODO...
+ * Skybox is represented with cube texture. Rendrered with a `[-1, +1] x [-1, +1]` quad.
+ * The quad fully covers viewport in NDC space. For each pixel NDC coordinate is transformed back to world space.
+ * It gives direction from eye to pixel. The direction is used as texture coordinate.
+ *
+ * There is also a cube with environment mapping. Behaves like a mirror.
+ * Direction from eye to cube surface is reflected and used as texture coordinate.
  */
 export type DESCRIPTION = never;
 
-// TODO: Investigate inversion.
 main();
 
 function main(): void {
