@@ -1,4 +1,7 @@
-import type { BUFFER_MASK, DEPTH_FUNC, CULL_FACE, EXTENSION, RuntimeOptions } from './types/runtime';
+import type {
+    BUFFER_MASK, DEPTH_FUNC, CULL_FACE, READ_PIXELS_FORMAT, ReadPixelsOptions, EXTENSION,
+    RuntimeOptions,
+} from './types/runtime';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Color } from './types/color';
 import type { GLValuesMap } from './types/gl-values-map';
@@ -76,6 +79,20 @@ const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'front': WebGL.FRONT,
     'front_and_back': WebGL.FRONT_AND_BACK,
 };
+
+const READ_PIXELS_FORMAT_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
+    'alpha': WebGL.ALPHA,
+    'rgb': WebGL.RGB,
+    'rgba': WebGL.RGBA,
+};
+
+const READ_PIXELS_TYPE_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
+    'alpha': WebGL.UNSIGNED_BYTE,
+    'rgb': WebGL.UNSIGNED_BYTE,
+    'rgba': WebGL.UNSIGNED_BYTE,
+};
+
+const DEFAULT_READ_PIXELS_FORMAT: READ_PIXELS_FORMAT = 'rgba';
 
 const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'element_index_uint': 'OES_element_index_uint',
@@ -547,6 +564,21 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._logger.log('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
         this.gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
         this._state.renderbuffer = handle;
+    }
+
+    readPixels(options: ReadPixelsOptions): void {
+        const p1 = options.p1 || vec2(0, 0);
+        const p2 = options.p2 || this._state.viewportSize;
+        const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
+        const x = Math.min(p1.x, p2.x);
+        const y = Math.min(p1.y, p2.y);
+        const width = Math.abs(p1.x - p2.x);
+        const height = Math.abs(p1.y - p2.y);
+        const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
+        const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
+        // TODO: Looks like it has no effect. Just set "false" and leave note.
+        this.pixelStoreUnpackFlipYWebgl(false);
+        this.gl.readPixels(x, y, width, height, glFormat, glType, options.pixels);
     }
 }
 
