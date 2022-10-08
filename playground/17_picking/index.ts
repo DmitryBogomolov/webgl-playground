@@ -8,6 +8,7 @@ import {
     vec3,
     vec4,
     Color, color, colors,
+    uint2bytes,
     logSilenced,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -61,9 +62,8 @@ function main(): void {
         ctx,
         backgroundColor: color(0.5, 0.5, 0.5),
         pixelCoord: ZERO2,
-    }
+    };
 
-    let activePoint = vec2(0, 0);
     new Tracker(container, {
         onMove(e) {
             const canvasSize = runtime.canvasSize();
@@ -73,8 +73,6 @@ function main(): void {
             runtime.requestFrameRender();
         },
     });
-
-
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
@@ -101,7 +99,7 @@ function renderFrame({
         primitive.setProgram(idProgram);
         idProgram.setUniform('u_view_proj', camera.getTransformMat());
         idProgram.setUniform('u_model', modelMat);
-        idProgram.setUniform('u_id', vec4(1, 0, 0, 1));
+        idProgram.setUniform('u_id', uint2bytes(102));
         primitive.render();
     }
 
