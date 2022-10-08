@@ -4,10 +4,10 @@ import {
     Framebuffer,
     Camera,
     Tracker,
-    Vec2, vec2,
+    Vec2, vec2, ZERO2,
     vec3,
     vec4,
-    color,
+    Color, color, colors,
     logSilenced,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -21,6 +21,18 @@ export type DESCRIPTION = never;
 
 main();
 
+interface State {
+    readonly runtime: Runtime;
+    readonly framebuffer: Framebuffer;
+    readonly camera: Camera;
+    readonly program: Program;
+    readonly idProgram: Program;
+    readonly objects: ReadonlyArray<SceneItem>;
+    readonly ctx: CanvasRenderingContext2D;
+    readonly backgroundColor: Color;
+    pixelCoord: Vec2;
+}
+
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
@@ -32,17 +44,6 @@ function main(): void {
     camera.setEyePos(vec3(0, 3, 10));
     const { objects, program, idProgram } = makeObjects(runtime);
 
-    let activePoint = vec2(0, 0);
-    new Tracker(container, {
-        onMove(e) {
-            const canvasSize = runtime.canvasSize();
-            // Flip Y coordinate.
-            const coords = vec2(e.coords.x, canvasSize.y - e.coords.y);
-            activePoint = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
-            runtime.requestFrameRender();
-        },
-    });
-
     const canvas = document.createElement('canvas');
     canvas.style.border = 'solid 1px black';
     canvas.width = framebuffer.size().x;
@@ -50,26 +51,51 @@ function main(): void {
     container.parentElement!.appendChild(canvas);
     const ctx = canvas.getContext('2d')!;
 
+    const state: State = {
+        runtime,
+        framebuffer,
+        camera,
+        program,
+        idProgram,
+        objects,
+        ctx,
+        backgroundColor: color(0.5, 0.5, 0.5),
+        pixelCoord: ZERO2,
+    }
+
+    let activePoint = vec2(0, 0);
+    new Tracker(container, {
+        onMove(e) {
+            const canvasSize = runtime.canvasSize();
+            // Flip Y coordinate.
+            const coords = vec2(e.coords.x, canvasSize.y - e.coords.y);
+            state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
+            runtime.requestFrameRender();
+        },
+    });
+
+
+
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, framebuffer, camera, program, idProgram, objects, activePoint, ctx);
+        renderFrame(state);
     });
 
     logSilenced(true);
 }
 
-function renderFrame(
-    runtime: Runtime, framebuffer: Framebuffer, camera: Camera,
-    program: Program, idProgram: Program,
-    objects: ReadonlyArray<SceneItem>,
-    activePoint: Vec2,
-    ctx: CanvasRenderingContext2D,
-): void {
+function renderFrame({
+    runtime, framebuffer, camera,
+    program, idProgram, backgroundColor,
+    objects,
+    pixelCoord,
+    ctx,
+}: State): void {
     runtime.setFramebuffer(framebuffer);
     camera.setViewportSize(framebuffer.size());
-    runtime.setClearColor(color(0, 0, 0, 0));
+    runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
     for (const { primitive, modelMat } of objects) {
         primitive.setProgram(idProgram);
@@ -91,7 +117,7 @@ function renderFrame(
     // const eq = pixels1.every((p1, i) => p1 === pixels2[i]);
     // console.log('@@@@@', eq);
 
-    const { x, y } = activePoint;
+    const { x, y } = pixelCoord;
     const idx = y * framebuffer.size().x + x;
     const pixel = pixels1[idx];
     console.log('#####', x, y, pixel);
@@ -113,7 +139,7 @@ function renderFrame(
 
     runtime.setFramebuffer(null);
     camera.setViewportSize(runtime.canvasSize());
-    runtime.setClearColor(color(0.7, 0.7, 0.7));
+    runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
     for (const { primitive, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
