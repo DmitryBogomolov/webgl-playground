@@ -35,8 +35,10 @@ function main(): void {
     let activePoint = vec2(0, 0);
     new Tracker(container, {
         onMove(e) {
-            const { x: width, y: height } = runtime.canvasSize();
-            activePoint = vec2(e.coords.x / width, 1 - e.coords.y / height);
+            const canvasSize = runtime.canvasSize();
+            // Flip Y coordinate.
+            const coords = vec2(e.coords.x, canvasSize.y - e.coords.y);
+            activePoint = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
             runtime.requestFrameRender();
         },
     });
@@ -80,17 +82,16 @@ function renderFrame(
     //ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     const raw1 = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
-    const raw2 = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
+    // const raw2 = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
     runtime.readPixels({ pixels: raw1 });
-    runtime.readPixels({ pixels: raw2 });
+    // runtime.readPixels({ pixels: raw2 });
     const pixels1 = new Uint32Array(raw1.buffer);
-    const pixels2 = new Uint32Array(raw2.buffer);
+    // const pixels2 = new Uint32Array(raw2.buffer);
 
-    const eq = pixels1.every((p1, i) => p1 === pixels2[i]);
-    console.log('@@@@@', eq);
+    // const eq = pixels1.every((p1, i) => p1 === pixels2[i]);
+    // console.log('@@@@@', eq);
 
-    const x = Math.round(activePoint.x * framebuffer.size().x);
-    const y = Math.round(activePoint.y * framebuffer.size().y);
+    const { x, y } = activePoint;
     const idx = y * framebuffer.size().x + x;
     const pixel = pixels1[idx];
     console.log('#####', x, y, pixel);
@@ -107,7 +108,7 @@ function renderFrame(
     // imageData.data.set(raw1);
     ctx.putImageData(imageData, 0, 0);
 
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = pixel > 0 ? 'blue' : 'black';
     ctx.fillRect(x - 4, ctx.canvas.height - y + 4, 8, 8);
 
     runtime.setFramebuffer(null);
@@ -144,4 +145,21 @@ function makeObjects(runtime: Runtime): {
         ),
     ];
     return { objects, program, idProgram };
+}
+
+// In perspective projection higher aspect means extra horizontal space on left and right sides.
+// I.e. if some pixel has coordinate x1 in a1 aspect then in a2 > a1 aspect that pixel would have
+// coordinate x2 > x1 if x1 < x_center and x2 < x1 of x1 > x_center. Y coordinate stays the same.
+function mapPixelCoodinates(coords: Vec2, size1: Vec2, size2: Vec2): Vec2 {
+    const aspect1 = size1.x / size1.y;
+    const aspect2 = size2.x / size2.y;
+    // Convert coordinates from [0, w1] * [0, h1] space to [-1, +1] * [-1, +1] space.
+    // Adjust [-1, +1] coordinates assuming that aspect1 * x1 == aspect2 * x2, y1 == y2.
+    const x = (2 * coords.x / size1.x - 1) * (aspect1 / aspect2);
+    const y = 2 * coords.y / size1.y - 1;
+    // Convert coodinates from [-1, +1] * [-1, +1] to [0, w2] * [0, h2].
+    return vec2(
+        Math.round(size2.x * (x + 1) / 2),
+        Math.round(size2.y * (y + 1) / 2),
+    );
 }
