@@ -8,7 +8,6 @@ import {
     Color, color, colors,
     uint2bytes,
     makeEventCoordsGetter,
-    logSilenced,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
@@ -25,6 +24,7 @@ interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
     readonly camera: Camera;
+    readonly idCamera: Camera,
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -41,12 +41,16 @@ function main(): void {
     // framebuffer.setup('color|depth', runtime.canvasSize());
     const camera = new Camera();
     camera.setEyePos(vec3(0, 3, 10));
+    const idCamera = new Camera();
+    idCamera.setEyePos(camera.getEyePos());
+    idCamera.setViewportSize(framebuffer.size());
     const { objects, program, idProgram } = makeObjects(runtime);
 
     const state: State = {
         runtime,
         framebuffer,
         camera,
+        idCamera,
         program,
         idProgram,
         objects,
@@ -70,23 +74,20 @@ function main(): void {
     runtime.frameRendered().on(() => {
         renderFrame(state);
     });
-
-    logSilenced(true);
 }
 
 function renderFrame({
-    runtime, framebuffer, camera,
+    runtime, framebuffer, camera, idCamera,
     program, idProgram, backgroundColor,
     objects,
     pixelCoord,
 }: State): void {
     runtime.setFramebuffer(framebuffer);
-    camera.setViewportSize(framebuffer.size());
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
-        idProgram.setUniform('u_view_proj', camera.getTransformMat());
+        idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
         idProgram.setUniform('u_model', modelMat);
         idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
@@ -99,7 +100,6 @@ function renderFrame({
     const activeId = pixels[idx];
 
     runtime.setFramebuffer(null);
-    camera.setViewportSize(runtime.canvasSize());
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
     for (const { primitive, id, modelMat, normalMat } of objects) {
