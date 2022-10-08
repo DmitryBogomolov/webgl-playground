@@ -14,12 +14,13 @@ import idFragShader from './shaders/id.frag';
 
 export interface SceneItem {
     readonly primitive: Primitive;
+    readonly id: number;
     readonly modelMat: Mat4;
     readonly normalMat: Mat4;
 }
 
 export interface ObjectsFactory {
-    make(size: Vec3, axis: Vec3, rotation: number, position: Vec3): SceneItem;
+    make(id: number, size: Vec3, axis: Vec3, rotation: number, position: Vec3): SceneItem;
     readonly program: Program;
     readonly idProgram: Program;
 }
@@ -59,13 +60,14 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     });
 
     return {
-        make: (size, axis, rotation, position) => {
+        make: (id, size, axis, rotation, position) => {
             const mat = identity4x4();
             apply4x4(mat, scaling4x4, size);
             apply4x4(mat, rotation4x4, axis, rotation);
             apply4x4(mat, translation4x4, position);
             return {
                 primitive,
+                id,
                 modelMat: mat,
                 normalMat: inversetranspose4x4(mat),
             };

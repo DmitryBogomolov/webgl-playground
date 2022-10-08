@@ -3,12 +3,11 @@ import {
     Program,
     Framebuffer,
     Camera,
-    Tracker,
     Vec2, vec2, ZERO2,
     vec3,
-    vec4,
     Color, color, colors,
     uint2bytes,
+    makeEventCoordsGetter,
     logSilenced,
 } from 'lib';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -64,14 +63,14 @@ function main(): void {
         pixelCoord: ZERO2,
     };
 
-    new Tracker(container, {
-        onMove(e) {
-            const canvasSize = runtime.canvasSize();
-            // Flip Y coordinate.
-            const coords = vec2(e.coords.x, canvasSize.y - e.coords.y);
-            state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
-            runtime.requestFrameRender();
-        },
+    const getCoords = makeEventCoordsGetter(container);
+    container.addEventListener('pointermove', (e) => {
+        let coords = getCoords(e);
+        // Flip Y coordinate.
+        const canvasSize = runtime.canvasSize();
+        coords = vec2(coords.x, canvasSize.y - coords.y);
+        state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
+        runtime.requestFrameRender();
     });
 
     runtime.sizeChanged().on(() => {
@@ -95,11 +94,11 @@ function renderFrame({
     camera.setViewportSize(framebuffer.size());
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
-    for (const { primitive, modelMat } of objects) {
+    for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
         idProgram.setUniform('u_view_proj', camera.getTransformMat());
         idProgram.setUniform('u_model', modelMat);
-        idProgram.setUniform('u_id', uint2bytes(102));
+        idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
     }
 
@@ -115,10 +114,13 @@ function renderFrame({
     // const eq = pixels1.every((p1, i) => p1 === pixels2[i]);
     // console.log('@@@@@', eq);
 
+    let activeId = 0;
+
     const { x, y } = pixelCoord;
     const idx = y * framebuffer.size().x + x;
     const pixel = pixels1[idx];
     console.log('#####', x, y, pixel);
+    activeId = pixel;
 
     const imageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height);
     const step = framebuffer.size().x * 4;
@@ -129,7 +131,7 @@ function renderFrame({
         srcOffset += step;
         dstOffset -= step;
     }
-    // imageData.data.set(raw1);
+     imageData.data.set(raw1);
     ctx.putImageData(imageData, 0, 0);
 
     ctx.fillStyle = pixel > 0 ? 'blue' : 'black';
@@ -139,11 +141,12 @@ function renderFrame({
     camera.setViewportSize(runtime.canvasSize());
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
-    for (const { primitive, modelMat, normalMat } of objects) {
+    for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
         program.setUniform('u_view_proj', camera.getTransformMat());
         program.setUniform('u_model', modelMat);
         program.setUniform('u_model_invtrs', normalMat);
+        program.setUniform('u_color', id === activeId ? colors.GREEN : colors.RED);
         primitive.render();
     }
 }
@@ -156,16 +159,16 @@ function makeObjects(runtime: Runtime): {
     const { make: makeObject, program, idProgram } = makeObjectsFactory(runtime);
     const objects: SceneItem[] = [
         makeObject(
-            vec3(1, 0.9, 0.6), vec3(1, 0, 0), 0.3 * Math.PI, vec3(4, 0, 0),
+            201, vec3(1, 0.9, 0.6), vec3(1, 0, 0), 0.3 * Math.PI, vec3(4, 0, 0),
         ),
         makeObject(
-            vec3(0.7, 1, 0.8), vec3(0, 1, 0), 0.4 * Math.PI, vec3(-3, 0, 0),
+            202, vec3(0.7, 1, 0.8), vec3(0, 1, 0), 0.4 * Math.PI, vec3(-3, 0, 0),
         ),
         makeObject(
-            vec3(0.9, 0.8, 1), vec3(0, 0, 1), 0.3 * Math.PI, vec3(0, 0, 5),
+            203, vec3(0.9, 0.8, 1), vec3(0, 0, 1), 0.3 * Math.PI, vec3(0, 0, 5),
         ),
         makeObject(
-            vec3(1, 0.9, 0.8), vec3(0, 1, 0), 0.2 * Math.PI, vec3(0, 0, -4),
+            204, vec3(1, 0.9, 0.8), vec3(0, 1, 0), 0.2 * Math.PI, vec3(0, 0, -4),
         ),
     ];
     return { objects, program, idProgram };

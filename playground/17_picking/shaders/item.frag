@@ -3,6 +3,8 @@ precision mediump float;
 varying vec3 v_position;
 varying vec3 v_normal;
 
+uniform vec3 u_color;
+
 const vec3 light_pos_1 = vec3(-8.0, +4.0, +5.0);
 const vec3 light_pos_2 = vec3(+8.0, -5.0, +5.0);
 const vec3 light_pos_3 = vec3(+8.0, +6.0, -5.0);
@@ -23,6 +25,5 @@ float get_total_light_coeff(vec3 pos, vec3 normal) {
 
 void main() {
     float coeff = get_total_light_coeff(v_position, normalize(v_normal));
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    gl_FragColor.rgb *= coeff;
+    gl_FragColor = vec4(u_color * coeff, 1.0);
 }
