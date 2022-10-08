@@ -28,7 +28,6 @@ interface State {
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
-    readonly ctx: CanvasRenderingContext2D;
     readonly backgroundColor: Color;
     pixelCoord: Vec2;
 }
@@ -44,13 +43,6 @@ function main(): void {
     camera.setEyePos(vec3(0, 3, 10));
     const { objects, program, idProgram } = makeObjects(runtime);
 
-    const canvas = document.createElement('canvas');
-    canvas.style.border = 'solid 1px black';
-    canvas.width = framebuffer.size().x;
-    canvas.height = framebuffer.size().y;
-    container.parentElement!.appendChild(canvas);
-    const ctx = canvas.getContext('2d')!;
-
     const state: State = {
         runtime,
         framebuffer,
@@ -58,7 +50,6 @@ function main(): void {
         program,
         idProgram,
         objects,
-        ctx,
         backgroundColor: color(0.5, 0.5, 0.5),
         pixelCoord: ZERO2,
     };
@@ -88,7 +79,6 @@ function renderFrame({
     program, idProgram, backgroundColor,
     objects,
     pixelCoord,
-    ctx,
 }: State): void {
     runtime.setFramebuffer(framebuffer);
     camera.setViewportSize(framebuffer.size());
@@ -102,40 +92,11 @@ function renderFrame({
         primitive.render();
     }
 
-    //ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    const raw1 = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
-    // const raw2 = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
-    runtime.readPixels({ pixels: raw1 });
-    // runtime.readPixels({ pixels: raw2 });
-    const pixels1 = new Uint32Array(raw1.buffer);
-    // const pixels2 = new Uint32Array(raw2.buffer);
-
-    // const eq = pixels1.every((p1, i) => p1 === pixels2[i]);
-    // console.log('@@@@@', eq);
-
-    let activeId = 0;
-
-    const { x, y } = pixelCoord;
-    const idx = y * framebuffer.size().x + x;
-    const pixel = pixels1[idx];
-    console.log('#####', x, y, pixel);
-    activeId = pixel;
-
-    const imageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height);
-    const step = framebuffer.size().x * 4;
-    let srcOffset = 0;
-    let dstOffset = imageData.data.length - step;
-    for (let i = 0; i < framebuffer.size().y; ++i) {
-        imageData.data.set(raw1.slice(srcOffset, srcOffset + step), dstOffset);
-        srcOffset += step;
-        dstOffset -= step;
-    }
-     imageData.data.set(raw1);
-    ctx.putImageData(imageData, 0, 0);
-
-    ctx.fillStyle = pixel > 0 ? 'blue' : 'black';
-    ctx.fillRect(x - 4, ctx.canvas.height - y + 4, 8, 8);
+    const buffer = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
+    runtime.readPixels({ pixels: buffer });
+    const pixels = new Uint32Array(buffer.buffer);
+    const idx = pixelCoord.y * framebuffer.size().x + pixelCoord.x;
+    const activeId = pixels[idx];
 
     runtime.setFramebuffer(null);
     camera.setViewportSize(runtime.canvasSize());
