@@ -29,8 +29,11 @@ export function isColor(arg: unknown): arg is Color {
     );
 }
 
-export function colorEq(clr1: Color, clr2: Color): boolean {
-    return clr1 === clr2 || (clr1.r === clr2.r && clr1.g === clr2.g && clr1.b === clr2.b && clr1.a === clr2.a);
+export function colorEq(clr1: Color, clr2: Color, eps: number = 1E-7): boolean {
+    return clr1 === clr2 || (
+        Math.abs(clr1.r - clr2.r) <= eps && Math.abs(clr1.g - clr2.g) <= eps
+        && Math.abs(clr1.b - clr2.b) <= eps && Math.abs(clr1.a - clr2.a) <= eps
+    );
 }
 
 export function color2uint({ r, g, b, a }: Color): number {
