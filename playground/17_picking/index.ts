@@ -4,11 +4,12 @@ import {
     Framebuffer,
     Camera,
     Vec2, vec2, ZERO2,
-    vec3,
+    vec3, mul3,
     Color, color, colors,
-    uint2bytes,
-    makeEventCoordsGetter,
+    uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
+import { Observable, observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
 /**
@@ -40,11 +41,24 @@ function main(): void {
     framebuffer.setup('color|depth', vec2(1024, 512));
     // framebuffer.setup('color|depth', runtime.canvasSize());
     const camera = new Camera();
-    camera.setEyePos(vec3(0, 3, 10));
     const idCamera = new Camera();
-    idCamera.setEyePos(camera.getEyePos());
     idCamera.setViewportSize(framebuffer.size());
     const { objects, program, idProgram } = makeObjects(runtime);
+
+    const cameraLon = observable(0);
+    const cameraLat = observable(20);
+    const cameraDist = observable(10);
+    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
+        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
+        return mul3(dir, cameraDist);
+    }, [cameraLon, cameraLat, cameraDist]);
+    cameraPos.on((cameraPos) => {
+        camera.setEyePos(cameraPos);
+        idCamera.setEyePos(cameraPos);
+    });
+    camera.changed().on(() => {
+        runtime.requestFrameRender();
+    });
 
     const state: State = {
         runtime,
@@ -74,6 +88,12 @@ function main(): void {
     runtime.frameRendered().on(() => {
         renderFrame(state);
     });
+
+    createControls(container, [
+        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
+        { label: 'camera dist', value: cameraDist, min: 4, max: 16 },
+    ]);
 }
 
 function renderFrame({
