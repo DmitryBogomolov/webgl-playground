@@ -122,12 +122,10 @@ function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: 
     }
 }
 
-function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
-    const buffer = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
-    runtime.readPixels({ pixels: buffer });
-    const pixels = new Uint32Array(buffer.buffer);
-    const idx = pixelCoord.y * framebuffer.size().x + pixelCoord.x;
-    return pixels[idx];
+function findCurrentPixel({ runtime, pixelCoord }: State): number {
+    const buffer = new Uint8Array(4);
+    runtime.readPixels({ pixels: buffer, p1: pixelCoord, p2: pixelCoord });
+    return new Uint32Array(buffer.buffer)[0];
 }
 
 function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {

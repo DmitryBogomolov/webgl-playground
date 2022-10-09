@@ -568,12 +568,12 @@ export class Runtime extends BaseWrapper implements GLWrapper {
 
     readPixels(options: ReadPixelsOptions): void {
         const p1 = options.p1 || vec2(0, 0);
-        const p2 = options.p2 || this._state.viewportSize;
+        const p2 = options.p2 || vec2(this._state.viewportSize.x - 1, this._state.viewportSize.y - 1);
         const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
         const x = Math.min(p1.x, p2.x);
         const y = Math.min(p1.y, p2.y);
-        const width = Math.abs(p1.x - p2.x);
-        const height = Math.abs(p1.y - p2.y);
+        const width = Math.abs(p1.x - p2.x) + 1;
+        const height = Math.abs(p1.y - p2.y) + 1;
         const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
         // TODO: Looks like it has no effect. Just set "false" and leave note.
