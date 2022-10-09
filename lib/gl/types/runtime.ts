@@ -1,3 +1,5 @@
+import type { Vec2 } from '../../geometry/types/vec2';
+
 export type BUFFER_MASK = (
     | 'color' | 'depth' | 'stencil'
     | 'color|depth' | 'color|stencil' | 'depth|stencil'
@@ -13,6 +15,17 @@ export type CULL_FACE = (
 );
 
 export type EXTENSION = ('element_index_uint' | 'depth_texture');
+
+export type READ_PIXELS_FORMAT = (
+    'alpha' | 'rgb' | 'rgba'
+);
+
+export interface ReadPixelsOptions {
+    readonly p1?: Vec2;
+    readonly p2?: Vec2;
+    readonly format?: READ_PIXELS_FORMAT;
+    readonly pixels: ArrayBufferView;
+}
 
 export interface RuntimeOptions {
     readonly alpha?: boolean;

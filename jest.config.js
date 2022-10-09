@@ -83,6 +83,9 @@ module.exports = {
                 LINEAR: 237,
 
                 TEXTURE_CUBE_MAP: 241,
+
+                GL_FRAMEBUFFER: 301,
+                GL_COLOR_ATTACHMENT0: 302,
             },
         },
         'ts-jest': {

@@ -1,9 +1,10 @@
-import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './types/framebuffer';
-import type { TextureRuntime } from './types/texture-2d';
+import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './types/framebuffer';
+
+import type { TextureRuntime, TEXTURE_FORMAT } from './types/texture-2d';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { Vec2 } from '../geometry/types/vec2';
 import { BaseWrapper } from './base-wrapper';
-import { Vec2 } from '../geometry/types/vec2';
-import { ZERO2 } from '../geometry/vec2';
+import { eq2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
 
@@ -33,37 +34,38 @@ const ERRORS_MAP: Readonly<Record<number, string>> = {
 export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
-    private _size: Vec2 = ZERO2;
-    private _texture: Texture | null = null;
-    private _depthTexture: Texture | null = null;
-    private _renderbuffer: WebGLRenderbuffer | null = null;
+    private readonly _attachment: FRAMEBUFFER_ATTACHMENT;
+    private readonly _texture: Texture;
+    private readonly _depthTexture: Texture | null;
+    private readonly _renderbuffer: WebGLRenderbuffer | null;
+    private _size!: Vec2;
 
-    constructor(runtime: FramebufferRuntime, tag?: string) {
+    constructor(runtime: FramebufferRuntime, options: FramebufferOptions, tag?: string) {
         super(tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._framebuffer = this._createFramebuffer();
+        const {
+            texture, depthTexture, renderbuffer,
+        } = this._setup(options.attachment, options.size, options.useDepthTexture);
+        this._attachment = options.attachment;
+        this._texture = texture;
+        this._depthTexture = depthTexture;
+        this._renderbuffer = renderbuffer;
     }
 
     dispose(): void {
         this._logger.log('dispose');
-        this._dispose();
-        this._runtime.gl.deleteFramebuffer(this._framebuffer);
-    }
-
-    private _dispose(): void {
         if (this._texture) {
             this._texture.dispose();
-            this._texture = null;
         }
         if (this._depthTexture) {
             this._depthTexture.dispose();
-            this._depthTexture = null;
         }
         if (this._renderbuffer) {
             this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
-            this._renderbuffer = null;
         }
+        this._runtime.gl.deleteFramebuffer(this._framebuffer);
     }
 
     glHandle(): WebGLFramebuffer {
@@ -98,93 +100,100 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         return renderbuffer;
     }
 
-    private _attachTexture(): void {
+    private _attachTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
-        texture.setImageData({ size: this._size, data: null }, { format: 'rgba' });
+        resizeColorTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
-        this._texture = texture;
+        return texture;
     }
 
-    private _attachDepthTexture(): void {
+    private _attachDepthTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
         texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
+        resizeDepthTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
-        this._depthTexture = texture;
+        return texture;
     }
 
-    private _attachDepthBuffer(): void {
+    private _attachDepthBuffer(): WebGLRenderbuffer {
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, this._size.x, this._size.y);
+            resizeDepthRenderbuffer(this._runtime, this._size);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
             this._runtime.bindRenderbuffer(null);
         }
-        this._renderbuffer = renderbuffer;
+        return renderbuffer;
     }
 
-    private _attachDepthStencilTexture(): void {
+    private _attachDepthStencilTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
-        texture.setImageData({ size: this._size, data: null }, { format: 'depth_stencil' });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
+        resizeDepthStencilTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
-        this._depthTexture = texture;
+        return texture;
     }
 
-    private _attachDepthStencilBuffer(): void {
+    private _attachDepthStencilBuffer(): WebGLRenderbuffer {
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, this._size.x, this._size.y);
+            resizeDepthStencilRenderbuffer(this._runtime, this._size);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
             this._runtime.bindRenderbuffer(null);
         }
-        this._renderbuffer = renderbuffer;
+        return renderbuffer;
     }
 
-    setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2, useDepthTexture?: boolean): void {
+    private _setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2, useDepthTexture?: boolean): {
+        texture: Texture,
+        depthTexture: Texture | null,
+        renderbuffer: WebGLFramebuffer | null,
+    } {
         this._logger.log('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
-        this._dispose();
         this._size = size;
+        let texture!: Texture;
+        let depthTexture: Texture | null = null;
+        let renderbuffer: WebGLRenderbuffer | null = null;
         try {
             this._runtime.bindFramebuffer(this);
             switch (attachment) {
             case 'color':
-                this._attachTexture();
+                texture = this._attachTexture();
                 break;
             case 'color|depth':
-                this._attachTexture();
+                texture = this._attachTexture();
                 if (useDepthTexture) {
-                    this._attachDepthTexture();
+                    depthTexture = this._attachDepthTexture();
                 } else {
-                    this._attachDepthBuffer();
+                    renderbuffer = this._attachDepthBuffer();
                 }
                 break;
             case 'color|depth|stencil':
-                this._attachTexture();
+                texture = this._attachTexture();
                 if (useDepthTexture) {
-                    this._attachDepthStencilTexture();
+                    depthTexture = this._attachDepthStencilTexture();
                 } else {
-                    this._attachDepthStencilBuffer();
+                    renderbuffer = this._attachDepthStencilBuffer();
                 }
                 break;
             default:
@@ -198,5 +207,68 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         } finally {
             this._runtime.bindFramebuffer(null);
         }
+        return { texture, depthTexture, renderbuffer };
     }
+
+    resize(size: Vec2): void {
+        if (eq2(this._size, size)) {
+            return;
+        }
+        this._logger.log('resize({0})', size);
+        this._size = size;
+        resizeColorTexture(this._texture, size);
+        if (this._depthTexture) {
+            switch (this._attachment) {
+            case 'color|depth':
+                resizeDepthTexture(this._texture, size);
+                break;
+            case 'color|depth|stencil':
+                resizeDepthStencilTexture(this._texture, size);
+                break;
+            }
+        }
+        if (this._renderbuffer) {
+            try {
+                this._runtime.bindRenderbuffer(wrap(this._id, this._renderbuffer));
+                switch (this._attachment) {
+                case 'color|depth':
+                    resizeDepthRenderbuffer(this._runtime, size);
+                    break;
+                case 'color|depth|stencil':
+                    resizeDepthStencilRenderbuffer(this._runtime, size);
+                    break;
+                }
+            } finally {
+                this._runtime.bindRenderbuffer(null);
+            }
+        }
+    }
+}
+
+function resizeTexture(texture: Texture, size: Vec2, format: TEXTURE_FORMAT): void {
+    texture.setImageData({ size, data: null }, { format });
+}
+
+function resizeColorTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'rgba');
+}
+
+function resizeDepthTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'depth_component32');
+}
+
+function resizeDepthStencilTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'depth_stencil');
+}
+
+function resizeRenderbuffer(runtime: FramebufferRuntime, size: Vec2, format: number): void {
+    runtime.gl.renderbufferStorage(GL_RENDERBUFFER, format, size.x, size.y);
+}
+
+function resizeDepthRenderbuffer(runtime: FramebufferRuntime, size: Vec2): void {
+    resizeRenderbuffer(runtime, size, GL_DEPTH_COMPONENT16);
+}
+
+function resizeDepthStencilRenderbuffer(runtime: FramebufferRuntime, size: Vec2): void {
+    resizeRenderbuffer(runtime, size, GL_DEPTH_STENCIL);
 }
