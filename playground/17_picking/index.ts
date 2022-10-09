@@ -37,8 +37,10 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setDepthTest(true);
-    const framebuffer = new Framebuffer(runtime);
-    framebuffer.setup('color|depth', vec2(1024, 512));
+    const framebuffer = new Framebuffer(runtime, {
+        attachment: 'color|depth',
+        size: { x: 1024, y: 512 },
+    });
     // framebuffer.setup('color|depth', runtime.canvasSize());
     const camera = new Camera();
     const idCamera = new Camera();

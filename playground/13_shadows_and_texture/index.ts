@@ -74,8 +74,11 @@ zFar.on((zFar) => {
     depthCamera.setZFar(zFar);
 });
 
-const framebuffer = new Framebuffer(runtime);
-framebuffer.setup('color|depth', { x: 512, y: 512 }, true);
+const framebuffer = new Framebuffer(runtime, {
+    attachment: 'color|depth',
+    useDepthTexture: true,
+    size: { x: 512, y: 512 },
+});
 depthCamera.setViewportSize(framebuffer.size());
 
 interface ObjectInfo {

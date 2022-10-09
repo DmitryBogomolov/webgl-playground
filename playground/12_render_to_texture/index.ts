@@ -75,8 +75,10 @@ const targetModel = computed(([xRotation, yRotation]) => {
     return mat;
 }, [xRotation, yRotation]);
 
-const framebuffer = new Framebuffer(runtime);
-framebuffer.setup('color|depth', { x: 256, y: 256 });
+const framebuffer = new Framebuffer(runtime, {
+    attachment: 'color|depth',
+    size: { x: 256, y: 256 },
+});
 textureCamera.setViewportSize(framebuffer.size());
 
 runtime.sizeChanged().on(() => {
