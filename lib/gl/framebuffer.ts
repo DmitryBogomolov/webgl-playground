@@ -1,9 +1,10 @@
 import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './types/framebuffer';
-import type { TextureRuntime } from './types/texture-2d';
+
+import type { TextureRuntime, TEXTURE_FORMAT } from './types/texture-2d';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { Vec2 } from '../geometry/types/vec2';
 import { BaseWrapper } from './base-wrapper';
-import { Vec2 } from '../geometry/types/vec2';
-import { ZERO2 } from '../geometry/vec2';
+import { eq2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
 
@@ -33,10 +34,11 @@ const ERRORS_MAP: Readonly<Record<number, string>> = {
 export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
-    private _size: Vec2 = ZERO2;
-    private readonly _texture: Texture | null = null;
-    private readonly _depthTexture: Texture | null = null;
-    private readonly _renderbuffer: WebGLRenderbuffer | null = null;
+    private readonly _attachment: FRAMEBUFFER_ATTACHMENT;
+    private readonly _texture: Texture;
+    private readonly _depthTexture: Texture | null;
+    private readonly _renderbuffer: WebGLRenderbuffer | null;
+    private _size!: Vec2;
 
     constructor(runtime: FramebufferRuntime, options: FramebufferOptions, tag?: string) {
         super(tag);
@@ -46,6 +48,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         const {
             texture, depthTexture, renderbuffer,
         } = this._setup(options.attachment, options.size, options.useDepthTexture);
+        this._attachment = options.attachment;
         this._texture = texture;
         this._depthTexture = depthTexture;
         this._renderbuffer = renderbuffer;
@@ -99,7 +102,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
 
     private _attachTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
-        texture.setImageData({ size: this._size, data: null }, { format: 'rgba' });
+        resizeColorTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -113,6 +116,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
+        resizeDepthTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -123,7 +127,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, this._size.x, this._size.y);
+            resizeDepthRenderbuffer(this._runtime, this._size);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
@@ -135,11 +139,11 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
 
     private _attachDepthStencilTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
-        texture.setImageData({ size: this._size, data: null }, { format: 'depth_stencil' });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
+        resizeDepthStencilTexture(texture, this._size);
         this._runtime.gl.framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -150,7 +154,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         const renderbuffer = this._createRenderbuffer();
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
-            this._runtime.gl.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, this._size.x, this._size.y);
+            resizeDepthStencilRenderbuffer(this._runtime, this._size);
             this._runtime.gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
@@ -205,4 +209,66 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         }
         return { texture, depthTexture, renderbuffer };
     }
+
+    resize(size: Vec2): void {
+        if (eq2(this._size, size)) {
+            return;
+        }
+        this._logger.log('resize({0})', size);
+        this._size = size;
+        resizeColorTexture(this._texture, size);
+        if (this._depthTexture) {
+            switch (this._attachment) {
+            case 'color|depth':
+                resizeDepthTexture(this._texture, size);
+                break;
+            case 'color|depth|stencil':
+                resizeDepthStencilTexture(this._texture, size);
+                break;
+            }
+        }
+        if (this._renderbuffer) {
+            try {
+                this._runtime.bindRenderbuffer(wrap(this._id, this._renderbuffer));
+                switch (this._attachment) {
+                case 'color|depth':
+                    resizeDepthRenderbuffer(this._runtime, size);
+                    break;
+                case 'color|depth|stencil':
+                    resizeDepthStencilRenderbuffer(this._runtime, size);
+                    break;
+                }
+            } finally {
+                this._runtime.bindRenderbuffer(null);
+            }
+        }
+    }
+}
+
+function resizeTexture(texture: Texture, size: Vec2, format: TEXTURE_FORMAT): void {
+    texture.setImageData({ size, data: null }, { format });
+}
+
+function resizeColorTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'rgba');
+}
+
+function resizeDepthTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'depth_component32');
+}
+
+function resizeDepthStencilTexture(texture: Texture, size: Vec2): void {
+    resizeTexture(texture, size, 'depth_stencil');
+}
+
+function resizeRenderbuffer(runtime: FramebufferRuntime, size: Vec2, format: number): void {
+    runtime.gl.renderbufferStorage(GL_RENDERBUFFER, format, size.x, size.y);
+}
+
+function resizeDepthRenderbuffer(runtime: FramebufferRuntime, size: Vec2): void {
+    resizeRenderbuffer(runtime, size, GL_DEPTH_COMPONENT16);
+}
+
+function resizeDepthStencilRenderbuffer(runtime: FramebufferRuntime, size: Vec2): void {
+    resizeRenderbuffer(runtime, size, GL_DEPTH_STENCIL);
 }
