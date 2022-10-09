@@ -39,12 +39,11 @@ function main(): void {
     runtime.setDepthTest(true);
     const framebuffer = new Framebuffer(runtime, {
         attachment: 'color|depth',
-        size: { x: 1024, y: 512 },
+        // Zero values makes framebuffer incomplete.
+        size: { x: 1, y: 1 },
     });
-    // framebuffer.setup('color|depth', runtime.canvasSize());
     const camera = new Camera();
     const idCamera = new Camera();
-    idCamera.setViewportSize(framebuffer.size());
     const { objects, program, idProgram } = makeObjects(runtime);
 
     const cameraLon = observable(0);
@@ -85,7 +84,13 @@ function main(): void {
     });
 
     runtime.sizeChanged().on(() => {
-        camera.setViewportSize(runtime.canvasSize());
+        const canvasSize = runtime.canvasSize();
+        // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
+        const x = canvasSize.x >> 1;
+        const y = x >> 1;
+        framebuffer.resize(vec2(x, y));
+        camera.setViewportSize(canvasSize);
+        idCamera.setViewportSize(framebuffer.size());
     });
     runtime.frameRendered().on(() => {
         renderFrame(state);
