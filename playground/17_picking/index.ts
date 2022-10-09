@@ -8,7 +8,7 @@ import {
     Color, color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
-import { Observable, observable, computed } from 'util/observable';
+import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
@@ -96,12 +96,13 @@ function main(): void {
     ]);
 }
 
-function renderFrame({
-    runtime, framebuffer, camera, idCamera,
-    program, idProgram, backgroundColor,
-    objects,
-    pixelCoord,
-}: State): void {
+function renderFrame(state: State): void {
+    renderColorIds(state);
+    const pixelIdx = findCurrentPixel(state);
+    renderScene(state, pixelIdx);
+}
+
+function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
     runtime.setFramebuffer(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
@@ -112,13 +113,17 @@ function renderFrame({
         idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
     }
+}
 
+function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     const buffer = new Uint8Array(framebuffer.size().x * framebuffer.size().y * 4);
     runtime.readPixels({ pixels: buffer });
     const pixels = new Uint32Array(buffer.buffer);
     const idx = pixelCoord.y * framebuffer.size().x + pixelCoord.x;
-    const activeId = pixels[idx];
+    return pixels[idx];
+}
 
+function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
     runtime.setFramebuffer(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
@@ -127,7 +132,7 @@ function renderFrame({
         program.setUniform('u_view_proj', camera.getTransformMat());
         program.setUniform('u_model', modelMat);
         program.setUniform('u_model_invtrs', normalMat);
-        program.setUniform('u_color', id === activeId ? colors.GREEN : colors.RED);
+        program.setUniform('u_color', id === pixelIdx ? colors.GREEN : colors.RED);
         primitive.render();
     }
 }
@@ -137,6 +142,7 @@ function makeObjects(runtime: Runtime): {
     program: Program,
     idProgram: Program,
  } {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { make: makeObject, program, idProgram } = makeObjectsFactory(runtime);
     const objects: SceneItem[] = [
         makeObject(
