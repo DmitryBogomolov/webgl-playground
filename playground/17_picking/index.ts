@@ -15,7 +15,12 @@ import { makeObjectsFactory, SceneItem } from './primitive';
 /**
  * Picking.
  *
- * TODO...
+ * Demonstrates how to check if some object is under pointer.
+ * Scene is rendered two times.
+ * First time scene is rendered into texture. Each object has unique integer id which is used as pixel color.
+ * Pointer coordinates are mapped to texture coordinates, framebuffer pixels are read.
+ * If selected pixel contains object id then such object is under pointer.
+ * Second time scene is rendered to canvas. If required hovered object is rendered with a different color.
  */
 export type DESCRIPTION = never;
 
