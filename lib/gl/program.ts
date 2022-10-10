@@ -1,8 +1,8 @@
 import type { UniformValue, ProgramOptions, ProgramRuntime } from './types/program';
 import type { VertexSchema } from './types/vertex-schema';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { Logger } from '../utils/logger';
 import { BaseWrapper } from './base-wrapper';
-import { Logger } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';

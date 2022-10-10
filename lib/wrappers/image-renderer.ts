@@ -5,13 +5,13 @@ import type {
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
 import type { TextureImageData } from '../gl/types/texture-2d';
+import type { Runtime } from '../gl/runtime';
 import { eq2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
 } from '../geometry/mat4';
 import { BaseWrapper } from '../gl/base-wrapper';
-import { Runtime } from '../gl/runtime';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { Texture } from '../gl/texture-2d';

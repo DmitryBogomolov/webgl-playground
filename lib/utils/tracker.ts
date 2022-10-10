@@ -1,5 +1,5 @@
-import { TrackerHandler, TrackerParams } from './types/tracker';
-import { GetEventCoordsFunc } from './types/pointer-event';
+import type { TrackerHandler, TrackerParams } from './types/tracker';
+import type { GetEventCoordsFunc } from './types/pointer-event';
 import { makeEventCoordsGetter } from './pointer-event';
 
 export class Tracker {
