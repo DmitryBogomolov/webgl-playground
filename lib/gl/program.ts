@@ -345,10 +345,6 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         return this._schema;
     }
 
-    use(): void {
-        this._runtime.useProgram(this);
-    }
-
     setUniform(name: string, value: UniformValue): void {
         this._logger.log('set_uniform({0}: {1})', name, value);
         const gl = this._runtime.gl;
@@ -363,7 +359,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
         // Otherwise it would cause an error.
         // > INVALID_OPERATION: uniformXXX: location is not from current program
-        this.use();
+        this._runtime.useProgram(this);
         setter(this._logger, gl, uniform, value);
     }
 }

@@ -20,4 +20,5 @@ export interface PrimitiveRuntime extends GLWrapper {
     bindArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void;
     bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void;
     bindVertexArrayObject(vao: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void;
+    useProgram(program: GLHandleWrapper<WebGLProgram> | null): void;
 }

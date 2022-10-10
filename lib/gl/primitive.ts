@@ -17,9 +17,8 @@ const EMPTY_SCHEMA: VertexSchema = {
 };
 
 const EMPTY_PROGRAM = {
-    program: null,
-    use() { /* empty */ },
-    setUniform() { /* empty */ },
+    id() { return 'EMPTY_PROGRAM'; },
+    glHandle() { return null; },
     schema() { return EMPTY_SCHEMA; },
 } as unknown as Program;
 
@@ -193,7 +192,7 @@ export class Primitive extends BaseWrapper {
             this._logger.warn('render without program');
             return;
         }
-        this._program.use();
+        this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
