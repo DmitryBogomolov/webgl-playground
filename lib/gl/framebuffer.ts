@@ -1,5 +1,5 @@
 import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './types/framebuffer';
-
+import type { RenderTarget } from './types/render-target';
 import type { TextureRuntime, TEXTURE_FORMAT } from './types/texture-2d';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
 import type { Vec2 } from '../geometry/types/vec2';
@@ -31,7 +31,7 @@ const ERRORS_MAP: Readonly<Record<number, string>> = {
     [GL_FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
 };
 
-export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer> {
+export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private readonly _attachment: FRAMEBUFFER_ATTACHMENT;

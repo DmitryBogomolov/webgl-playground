@@ -115,7 +115,7 @@ function renderFrame(state: State): void {
 }
 
 function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
-    runtime.setFramebuffer(framebuffer);
+    runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
     for (const { primitive, modelMat, id } of objects) {
@@ -134,7 +134,7 @@ function findCurrentPixel({ runtime, pixelCoord }: State): number {
 }
 
 function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
-    runtime.setFramebuffer(null);
+    runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
     for (const { primitive, id, modelMat, normalMat } of objects) {

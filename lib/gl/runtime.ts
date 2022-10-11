@@ -7,7 +7,7 @@ import type { Color } from './types/color';
 import type { GLValuesMap } from './types/gl-values-map';
 import type { GLWrapper } from './types/gl-wrapper';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
-import type { FramebufferTarget } from './types/framebuffer-target';
+import type { RenderTarget } from './types/render-target';
 import type { EventProxy } from '../utils/types/event-emitter';
 import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
@@ -49,7 +49,7 @@ interface State {
     boundCubeTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
-    targetFramebuffer: FramebufferTarget | null;
+    renderTarget: RenderTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
 }
 
@@ -111,6 +111,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
+    private readonly _defaultRenderTarget = new DefaultRenderTarget(`${this._id}:default_render_target`);
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
     private readonly _sizeChanged = new EventEmitter((handler) => {
@@ -170,7 +171,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
             boundCubeTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
             framebuffer: null,
-            targetFramebuffer: null,
+            renderTarget: null,
             renderbuffer: null,
         };
         this.adjustViewport();
@@ -271,7 +272,8 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._canvas.width = canvasSize.x;
         this._canvas.height = canvasSize.y;
         this._sizeChanged.emit();
-        if (this._state.targetFramebuffer === null) {
+        if (this._state.renderTarget === null) {
+            this._defaultRenderTarget.setSize(this._canvasSize);
             this._updateViewport(this._canvasSize);
         }
         return true;
@@ -542,18 +544,25 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.framebuffer = handle;
     }
 
-    getFramebuffer(): FramebufferTarget | null {
-        return this._state.targetFramebuffer;
+    getDefaultRenderTarger(): RenderTarget {
+        return this._defaultRenderTarget;
     }
 
-    setFramebuffer(framebuffer: FramebufferTarget | null): void {
-        if (this._state.targetFramebuffer === framebuffer) {
+    getRenderTarger(): RenderTarget {
+        return this._state.renderTarget || this._defaultRenderTarget;
+    }
+
+    setRenderTarget(renderTarget: RenderTarget | null): void {
+        if (renderTarget === this._defaultRenderTarget) {
+            renderTarget = null;
+        }
+        if (this._state.renderTarget === renderTarget) {
             return;
         }
-        this._logger.log('set_framebuffer({0})', framebuffer ? framebuffer.id() : null);
-        this.bindFramebuffer(framebuffer);
-        this._updateViewport(framebuffer ? framebuffer.size() : this._canvasSize);
-        this._state.targetFramebuffer = framebuffer;
+        this._logger.log('set_render_target({0})', renderTarget ? renderTarget.id() : null);
+        this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
+        this._updateViewport((renderTarget || this._defaultRenderTarget).size());
+        this._state.renderTarget = renderTarget;
     }
 
     bindRenderbuffer(renderbuffer: GLHandleWrapper<WebGLRenderbuffer> | null): void {
@@ -604,4 +613,25 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
+}
+
+class DefaultRenderTarget implements RenderTarget {
+    private readonly _id: string;
+    private _size!: Vec2;
+
+    constructor(id: string) {
+        this._id = id;
+    }
+
+    id(): string {
+        return this._id;
+    }
+
+    size(): Vec2 {
+        return this._size;
+    }
+
+    setSize(size: Vec2): void {
+        this._size = size;
+    }
 }
