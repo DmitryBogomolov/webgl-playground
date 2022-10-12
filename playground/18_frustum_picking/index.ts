@@ -5,6 +5,7 @@ import {
     Camera,
     Vec2, vec2, ZERO2,
     vec3, mul3,
+    identity4x4, mul4x4, perspective4x4, frustum4x4,
     Color, color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
@@ -104,9 +105,10 @@ function main(): void {
 }
 
 function renderFrame(state: State): void {
-    renderColorIds(state);
-    const pixelIdx = findCurrentPixel(state);
-    renderScene(state, pixelIdx);
+    // renderColorIds(state);
+    // const pixelIdx = findCurrentPixel(state);
+    // renderScene(state, pixelIdx);
+    renderScene(state, -1);
 }
 
 function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
@@ -132,9 +134,21 @@ function renderScene({ runtime, backgroundColor, camera, program, objects }: Sta
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
+
+    const transformMat = identity4x4();
+    mul4x4(camera.getViewMat(), transformMat, transformMat);
+    // const projMat = perspective4x4({ zNear: camera.getZNear(), zFar: camera.getZFar(), aspect: runtime.canvasSize().x / runtime.canvasSize().y, yFov: camera.getYFov() });
+    const dy = 2;
+    const dx = runtime.canvasSize().x / runtime.canvasSize().y * dy;
+    const projMat = frustum4x4({
+        left: -dx, right: +dx, bottom: -dy, top: +dy,
+        zNear: 4, zFar: 100
+    });
+    mul4x4(projMat, transformMat, transformMat);
+
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
-        program.setUniform('u_view_proj', camera.getTransformMat());
+        program.setUniform('u_view_proj', transformMat);
         program.setUniform('u_model', modelMat);
         program.setUniform('u_model_invtrs', normalMat);
         program.setUniform('u_color', id === pixelIdx ? colors.GREEN : colors.RED);
