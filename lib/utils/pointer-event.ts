@@ -1,4 +1,4 @@
-import { GetEventCoordsFunc } from './types/pointer-event';
+import type { GetEventCoordsFunc } from './types/pointer-event';
 import { vec2 } from '../geometry/vec2';
 
 export function makeEventCoordsGetter(element: HTMLElement): GetEventCoordsFunc {

@@ -5,9 +5,8 @@ import type {
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Color } from './types/color';
 import type { GLValuesMap } from './types/gl-values-map';
-import type { GLWrapper } from './types/gl-wrapper';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
-import type { FramebufferTarget } from './types/framebuffer-target';
+import type { RenderTarget } from './types/render-target';
 import type { EventProxy } from '../utils/types/event-emitter';
 import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
@@ -49,7 +48,7 @@ interface State {
     boundCubeTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
-    targetFramebuffer: FramebufferTarget | null;
+    renderTarget: RenderTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
 }
 
@@ -107,17 +106,14 @@ const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     extensions: [],
 };
 
-export class Runtime extends BaseWrapper implements GLWrapper {
+export class Runtime extends BaseWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
+    private readonly _defaultRenderTarget;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
     private readonly _sizeChanged = new EventEmitter((handler) => {
-        // Immediately notify subscriber so that it may perform initial calculation.
-        handler();
-    });
-    private readonly _viewportChanged = new EventEmitter((handler) => {
         // Immediately notify subscriber so that it may perform initial calculation.
         handler();
     });
@@ -147,6 +143,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
+        this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
 
         // Initial state is formed according to specification.
         // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
@@ -170,7 +167,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
             boundCubeTextures: {},
             pixelStoreUnpackFlipYWebgl: false,
             framebuffer: null,
-            targetFramebuffer: null,
+            renderTarget: null,
             renderbuffer: null,
         };
         this.adjustViewport();
@@ -228,7 +225,6 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._logger.log('update_viewport({0}, {1})', size.x, size.y);
         this.gl.viewport(0, 0, size.x, size.y);
         this._state.viewportSize = size;
-        this._viewportChanged.emit();
     }
 
     canvas(): HTMLCanvasElement {
@@ -271,7 +267,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._canvas.width = canvasSize.x;
         this._canvas.height = canvasSize.y;
         this._sizeChanged.emit();
-        if (this._state.targetFramebuffer === null) {
+        if (this._state.renderTarget === null) {
             this._updateViewport(this._canvasSize);
         }
         return true;
@@ -285,10 +281,6 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         if (this.setSize(vec2(this._canvas.clientWidth, this._canvas.clientHeight))) {
             this._renderLoop.update();
         }
-    }
-
-    viewportSize(): Vec2 {
-        return this._state.viewportSize;
     }
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
@@ -433,10 +425,6 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         return this._sizeChanged;
     }
 
-    viewportChanged(): EventProxy {
-        return this._viewportChanged;
-    }
-
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
         const handle = unwrapGLHandle(program);
         if (this._state.currentProgram === handle) {
@@ -542,18 +530,25 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.framebuffer = handle;
     }
 
-    getFramebuffer(): FramebufferTarget | null {
-        return this._state.targetFramebuffer;
+    getDefaultRenderTarger(): RenderTarget {
+        return this._defaultRenderTarget;
     }
 
-    setFramebuffer(framebuffer: FramebufferTarget | null): void {
-        if (this._state.targetFramebuffer === framebuffer) {
+    getRenderTarger(): RenderTarget {
+        return this._state.renderTarget || this._defaultRenderTarget;
+    }
+
+    setRenderTarget(renderTarget: RenderTarget | null): void {
+        if (renderTarget === this._defaultRenderTarget) {
+            renderTarget = null;
+        }
+        if (this._state.renderTarget === renderTarget) {
             return;
         }
-        this._logger.log('set_framebuffer({0})', framebuffer ? framebuffer.id() : null);
-        this.bindFramebuffer(framebuffer);
-        this._updateViewport(framebuffer ? framebuffer.size() : this._canvasSize);
-        this._state.targetFramebuffer = framebuffer;
+        this._logger.log('set_render_target({0})', renderTarget ? renderTarget.id() : null);
+        this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
+        this._updateViewport((renderTarget || this._defaultRenderTarget).size());
+        this._state.renderTarget = renderTarget;
     }
 
     bindRenderbuffer(renderbuffer: GLHandleWrapper<WebGLRenderbuffer> | null): void {
@@ -566,19 +561,21 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.renderbuffer = handle;
     }
 
-    readPixels(options: ReadPixelsOptions): void {
-        const p1 = options.p1 || vec2(0, 0);
-        const p2 = options.p2 || vec2(this._state.viewportSize.x - 1, this._state.viewportSize.y - 1);
+    readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
+        if (renderTarget === this._defaultRenderTarget) {
+            renderTarget = null;
+        }
+        const {
+            x, y, width, height,
+        } = getReadPixelsRange(renderTarget || this._defaultRenderTarget, options.p1, options.p2);
         const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
-        const x = Math.min(p1.x, p2.x);
-        const y = Math.min(p1.y, p2.y);
-        const width = Math.abs(p1.x - p2.x) + 1;
-        const height = Math.abs(p1.y - p2.y) + 1;
         const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
-        // TODO: Looks like it has no effect. Just set "false" and leave note.
+        // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
+        // So it is just set to a fixed value to avoid any inconsistencies.
         this.pixelStoreUnpackFlipYWebgl(false);
-        this.gl.readPixels(x, y, width, height, glFormat, glType, options.pixels);
+        this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
+        this.gl.readPixels(x, y, width, height, glFormat, glType, pixels);
     }
 }
 
@@ -604,4 +601,32 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
+}
+
+class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
+    private readonly _runtime: Runtime;
+
+    constructor(runtime: Runtime, tag?: string) {
+        super(tag);
+        this._runtime = runtime;
+    }
+
+    size(): Vec2 {
+        return this._runtime.canvasSize();
+    }
+}
+
+function getReadPixelsRange(
+    renderTarget: RenderTarget, p1: Vec2 | undefined, p2: Vec2 | undefined,
+): { x: number, y: number, width: number, height: number } {
+    const x1 = p1 ? p1.x : 0;
+    const x2 = p2 ? p2.x : renderTarget.size().x - 1;
+    const y1 = p1 ? p1.y : 0;
+    const y2 = p2 ? p2.y : renderTarget.size().y - 1;
+    return {
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        width: Math.abs(x1 - x2) + 1,
+        height: Math.abs(y1 - y2) + 1,
+    };
 }

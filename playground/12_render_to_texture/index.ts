@@ -86,7 +86,7 @@ runtime.sizeChanged().on(() => {
 });
 
 function renderToTexture(): void {
-    runtime.setFramebuffer(framebuffer);
+    runtime.setRenderTarget(framebuffer);
 
     runtime.setClearColor(textureBackgroundColor);
     runtime.clearBuffer('color|depth');
@@ -102,7 +102,7 @@ function renderToTexture(): void {
 }
 
 function renderScene(): void {
-    runtime.setFramebuffer(null);
+    runtime.setRenderTarget(null);
 
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');

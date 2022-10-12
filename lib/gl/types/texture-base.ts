@@ -1,5 +1,5 @@
 import type { Vec2 } from '../../geometry/types/vec2';
-import type { GLWrapper } from './gl-wrapper';
+import type { Runtime } from '../runtime';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
@@ -33,6 +33,7 @@ export interface TextureRawImageData {
 
 export type TextureImageData = TextureRawImageData | TexImageSource;
 
-export interface TextureRuntimeBase extends GLWrapper {
-    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void;
-}
+export type TextureRuntimeBase = Pick<
+    Runtime,
+    'gl' | 'pixelStoreUnpackFlipYWebgl'
+>;

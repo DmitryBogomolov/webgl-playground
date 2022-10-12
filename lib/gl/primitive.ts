@@ -1,9 +1,9 @@
 import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
 import type { VertexSchema } from './types/vertex-schema';
 import type { GLValuesMap } from './types/gl-values-map';
+import type { Program } from './program';
 import { BaseWrapper } from './base-wrapper';
 import { wrap } from './gl-handle-wrapper';
-import { Program } from './program';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -17,10 +17,11 @@ const EMPTY_SCHEMA: VertexSchema = {
 };
 
 const EMPTY_PROGRAM = {
-    program: null,
-    use() { /* empty */ },
-    setUniform() { /* empty */ },
+    dispose() { /* empty */ },
+    id() { return 'EMPTY_PROGRAM'; },
+    glHandle() { return null; },
     schema() { return EMPTY_SCHEMA; },
+    setUniform() { /* empty */ },
 } as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
@@ -193,7 +194,7 @@ export class Primitive extends BaseWrapper {
             this._logger.warn('render without program');
             return;
         }
-        this._program.use();
+        this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);

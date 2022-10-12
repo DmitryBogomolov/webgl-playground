@@ -134,7 +134,7 @@ function renderObjects(
 }
 
 function renderDepthData(program: Program, camera: Camera): void {
-    runtime.setFramebuffer(framebuffer);
+    runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(depthDataBackgroundColor);
     runtime.clearBuffer('color|depth');
     program.setUniform('u_view_proj', camera.getTransformMat());
@@ -150,7 +150,7 @@ function renderWireframe(): void {
 }
 
 function renderScene(program: Program, camera: Camera, depthCamera: Camera): void {
-    runtime.setFramebuffer(null);
+    runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
     // Color buffer (instead of depth buffer) could be used here.
