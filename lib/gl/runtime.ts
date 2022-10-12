@@ -111,7 +111,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _defaultRenderTarget = new DefaultRenderTarget(`${this._id}:default_render_target`);
+    private readonly _defaultRenderTarget;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
     private readonly _sizeChanged = new EventEmitter((handler) => {
@@ -144,6 +144,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
+        this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
 
         // Initial state is formed according to specification.
         // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
@@ -268,7 +269,6 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._canvas.height = canvasSize.y;
         this._sizeChanged.emit();
         if (this._state.renderTarget === null) {
-            this._defaultRenderTarget.setSize(this._canvasSize);
             this._updateViewport(this._canvasSize);
         }
         return true;
@@ -562,18 +562,20 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.renderbuffer = handle;
     }
 
-    readPixels(options: ReadPixelsOptions): void {
-        const p1 = options.p1 || vec2(0, 0);
-        const p2 = options.p2 || vec2(this._state.viewportSize.x - 1, this._state.viewportSize.y - 1);
+    readPixels(renderTarget: RenderTarget | null, options: ReadPixelsOptions): void {
+        if (renderTarget === this._defaultRenderTarget) {
+            renderTarget = null;
+        }
+        const {
+            x, y, width, height,
+        } = getReadPixelsRange(renderTarget || this._defaultRenderTarget, options.p1, options.p2);
         const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
-        const x = Math.min(p1.x, p2.x);
-        const y = Math.min(p1.y, p2.y);
-        const width = Math.abs(p1.x - p2.x) + 1;
-        const height = Math.abs(p1.y - p2.y) + 1;
         const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
-        // TODO: Looks like it has no effect. Just set "false" and leave note.
+        // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
+        // So it is just set to a fixed value to avoid any inconsistencies.
         this.pixelStoreUnpackFlipYWebgl(false);
+        this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this.gl.readPixels(x, y, width, height, glFormat, glType, options.pixels);
     }
 }
@@ -602,23 +604,31 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget implements RenderTarget {
-    private readonly _id: string;
+class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
+    private readonly _runtime: Runtime;
     private _size!: Vec2;
 
-    constructor(id: string) {
-        this._id = id;
-    }
-
-    id(): string {
-        return this._id;
+    constructor(runtime: Runtime, tag?: string) {
+        super(tag);
+        this._runtime = runtime;
     }
 
     size(): Vec2 {
-        return this._size;
+        return this._runtime.canvasSize();
     }
+}
 
-    setSize(size: Vec2): void {
-        this._size = size;
-    }
+function getReadPixelsRange(
+    renderTarget: RenderTarget, p1: Vec2 | undefined, p2: Vec2 | undefined,
+): { x: number, y: number, width: number, height: number } {
+    let x1 = p1 ? p1.x : 0;
+    let x2 = p2 ? p2.x : renderTarget.size().x - 1;
+    let y1 = p1 ? p1.y : 0;
+    let y2 = p2 ? p2.y : renderTarget.size().y - 1;
+    return {
+        x:  Math.min(x1, x2),
+        y:  Math.min(y1, y2),
+        width:  Math.abs(x1 - x2) + 1,
+        height:  Math.abs(y1 - y2) + 1,
+    };
 }
