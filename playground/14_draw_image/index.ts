@@ -47,7 +47,7 @@ runtime.frameRendered().on((delta) => {
 });
 
 function render1(image: ImageRenderer, step: number): void {
-    const { y: height } = runtime.viewportSize();
+    const { y: height } = runtime.getRenderTarger().size();
     const size = image.imageSize();
 
     image.setLocation({
@@ -77,7 +77,7 @@ function render1(image: ImageRenderer, step: number): void {
 }
 
 function render2(image: ImageRenderer, step: number): void {
-    const { x: width } = runtime.viewportSize();
+    const { x: width } = runtime.getRenderTarger().size();
     const size = image.imageSize();
 
     image.setLocation({
