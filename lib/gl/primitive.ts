@@ -17,9 +17,11 @@ const EMPTY_SCHEMA: VertexSchema = {
 };
 
 const EMPTY_PROGRAM = {
+    dispose() { /* empty */ },
     id() { return 'EMPTY_PROGRAM'; },
     glHandle() { return null; },
     schema() { return EMPTY_SCHEMA; },
+    setUniform() { /* empty */ },
 } as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
