@@ -24,7 +24,6 @@ export interface ReadPixelsOptions {
     readonly p1?: Vec2;
     readonly p2?: Vec2;
     readonly format?: READ_PIXELS_FORMAT;
-    readonly pixels: ArrayBufferView;
 }
 
 export interface RuntimeOptions {

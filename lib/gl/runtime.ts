@@ -562,7 +562,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         this._state.renderbuffer = handle;
     }
 
-    readPixels(renderTarget: RenderTarget | null, options: ReadPixelsOptions): void {
+    readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
         if (renderTarget === this._defaultRenderTarget) {
             renderTarget = null;
         }
@@ -576,7 +576,7 @@ export class Runtime extends BaseWrapper implements GLWrapper {
         // So it is just set to a fixed value to avoid any inconsistencies.
         this.pixelStoreUnpackFlipYWebgl(false);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
-        this.gl.readPixels(x, y, width, height, glFormat, glType, options.pixels);
+        this.gl.readPixels(x, y, width, height, glFormat, glType, pixels);
     }
 }
 
@@ -606,7 +606,6 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
 
 class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
     private readonly _runtime: Runtime;
-    private _size!: Vec2;
 
     constructor(runtime: Runtime, tag?: string) {
         super(tag);
@@ -621,14 +620,14 @@ class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
 function getReadPixelsRange(
     renderTarget: RenderTarget, p1: Vec2 | undefined, p2: Vec2 | undefined,
 ): { x: number, y: number, width: number, height: number } {
-    let x1 = p1 ? p1.x : 0;
-    let x2 = p2 ? p2.x : renderTarget.size().x - 1;
-    let y1 = p1 ? p1.y : 0;
-    let y2 = p2 ? p2.y : renderTarget.size().y - 1;
+    const x1 = p1 ? p1.x : 0;
+    const x2 = p2 ? p2.x : renderTarget.size().x - 1;
+    const y1 = p1 ? p1.y : 0;
+    const y2 = p2 ? p2.y : renderTarget.size().y - 1;
     return {
-        x:  Math.min(x1, x2),
-        y:  Math.min(y1, y2),
-        width:  Math.abs(x1 - x2) + 1,
-        height:  Math.abs(y1 - y2) + 1,
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        width: Math.abs(x1 - x2) + 1,
+        height: Math.abs(y1 - y2) + 1,
     };
 }

@@ -129,7 +129,7 @@ function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: 
 
 function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     const buffer = new Uint8Array(4);
-    runtime.readPixels(framebuffer, { pixels: buffer, p1: pixelCoord, p2: pixelCoord });
+    runtime.readPixels(framebuffer, buffer, { p1: pixelCoord, p2: pixelCoord });
     return new Uint32Array(buffer.buffer)[0];
 }
 
