@@ -1,5 +1,4 @@
-import type { GLWrapper } from './gl-wrapper';
-import type { GLHandleWrapper } from './gl-handle-wrapper';
+import type { Runtime } from '../runtime';
 
 export type PRIMITIVE_MODE = (
     'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'
@@ -16,9 +15,8 @@ export interface IndexData {
     readonly primitiveMode?: PRIMITIVE_MODE;
 }
 
-export interface PrimitiveRuntime extends GLWrapper {
-    bindArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void;
-    bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void;
-    bindVertexArrayObject(vao: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void;
-    useProgram(program: GLHandleWrapper<WebGLProgram> | null): void;
-}
+export type PrimitiveRuntime = Pick<
+    Runtime,
+    | 'gl' | 'vaoExt'
+    | 'bindArrayBuffer' | 'bindElementArrayBuffer' | 'bindVertexArrayObject' | 'useProgram'
+>;

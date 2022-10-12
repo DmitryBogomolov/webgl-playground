@@ -5,7 +5,6 @@ import type {
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Color } from './types/color';
 import type { GLValuesMap } from './types/gl-values-map';
-import type { GLWrapper } from './types/gl-wrapper';
 import type { GLHandleWrapper } from './types/gl-handle-wrapper';
 import type { RenderTarget } from './types/render-target';
 import type { EventProxy } from '../utils/types/event-emitter';
@@ -107,7 +106,7 @@ const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     extensions: [],
 };
 
-export class Runtime extends BaseWrapper implements GLWrapper {
+export class Runtime extends BaseWrapper {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();

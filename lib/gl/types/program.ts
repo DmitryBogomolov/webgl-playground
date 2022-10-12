@@ -6,8 +6,7 @@ import type { Mat3 } from '../../geometry/types/mat3';
 import type { Mat4 } from '../../geometry/types/mat4';
 import type { Color } from '../types/color';
 import type { VertexSchema } from './vertex-schema';
-import type { GLWrapper } from './gl-wrapper';
-import type { GLHandleWrapper } from './gl-handle-wrapper';
+import type { Runtime } from '../runtime';
 
 export type UniformValue = (
     | boolean
@@ -28,6 +27,7 @@ export interface ProgramOptions {
     readonly schema: VertexSchema;
 }
 
-export interface ProgramRuntime extends GLWrapper {
-    useProgram(program: GLHandleWrapper<WebGLProgram> | null): void;
-}
+export type ProgramRuntime = Pick<
+    Runtime,
+    'gl' | 'useProgram'
+>;

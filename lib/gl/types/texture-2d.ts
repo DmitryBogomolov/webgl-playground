@@ -1,8 +1,9 @@
 import type { TextureRuntimeBase } from './texture-base';
-import type { GLHandleWrapper } from './gl-handle-wrapper';
+import type { Runtime } from '../runtime';
 
 export * from './texture-base';
 
-export interface TextureRuntime extends TextureRuntimeBase {
-    bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void;
-}
+export type TextureRuntime = TextureRuntimeBase & Pick<
+    Runtime,
+    'bindTexture'
+>;

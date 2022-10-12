@@ -1,11 +1,12 @@
 import type { TextureRuntimeBase, TextureImageData } from './texture-base';
-import type { GLHandleWrapper } from './gl-handle-wrapper';
+import type { Runtime } from '../runtime';
 
 export * from './texture-base';
 
-export interface TextureCubeRuntime extends TextureRuntimeBase {
-    bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void;
-}
+export type TextureCubeRuntime = TextureRuntimeBase & Pick<
+    Runtime,
+    'bindCubeTexture'
+>;
 
 export interface TextureCubeImageData {
     readonly xPos: TextureImageData;
