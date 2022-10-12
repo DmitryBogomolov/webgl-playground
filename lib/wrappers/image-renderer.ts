@@ -53,6 +53,7 @@ export class ImageRenderer extends BaseWrapper {
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
     private _textureUnit: number = 0;
+    private _renderTargetSize: Vec2;
     private _region: ImageRendererRegion = {};
     private _location: ImageRendererLocation = {};
     private readonly _mat: Mat4 = mat4();
@@ -65,18 +66,13 @@ export class ImageRenderer extends BaseWrapper {
         this._runtime = runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture(tag);
-        this._runtime.viewportChanged().on(this._handleViewportChanged);
+        this._renderTargetSize = this._runtime.getRenderTarger().size();
     }
 
     dispose(): void {
-        this._runtime.viewportChanged().off(this._handleViewportChanged);
         this._texture.dispose();
         releasePrimitive(this._runtime);
     }
-
-    private readonly _handleViewportChanged = (): void => {
-        this._matDirty = true;
-    };
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
     private readonly _updateRegionMatrix = memoize(updateRegionMatrix, compareUpdateRegionMatrixArgs);
@@ -147,6 +143,9 @@ export class ImageRenderer extends BaseWrapper {
         if (!region) {
             throw this._logger.error('set_region: null');
         }
+        if (compareObjects(this._region, region)) {
+            return;
+        }
         this._logger.log('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
@@ -166,6 +165,9 @@ export class ImageRenderer extends BaseWrapper {
         ) {
             throw this._logger.error('set_location: not enough data');
         }
+        if (compareObjects(this._location, location)) {
+            return;
+        }
         this._logger.log('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
@@ -174,7 +176,7 @@ export class ImageRenderer extends BaseWrapper {
     private _updateMatrix(): void {
         if (this._matDirty) {
             this._updateLocationMatrix(
-                this._mat, this._runtime.viewportSize(), this._texture.size(), this._location, this._region);
+                this._mat, this._renderTargetSize, this._texture.size(), this._location, this._region);
             this._matDirty = false;
         }
         if (this._texmatDirty) {
@@ -184,8 +186,12 @@ export class ImageRenderer extends BaseWrapper {
     }
 
     render(): void {
-        this._runtime.setTextureUnit(this._textureUnit, this._texture);
+        if (!eq2(this._runtime.getRenderTarger().size(), this._renderTargetSize)) {
+            this._renderTargetSize = this._runtime.getRenderTarger().size();
+            this._matDirty = true;
+        }
         this._updateMatrix();
+        this._runtime.setTextureUnit(this._textureUnit, this._texture);
         const program = this._primitive.program();
         program.setUniform('u_mat', this._mat);
         program.setUniform('u_texmat', this._texmat);
@@ -215,8 +221,7 @@ function compareUpdateLocationMatrixArgs(
     lhs: [Mat4, Vec2, Vec2, ImageRendererLocation, ImageRendererRegion],
     rhs: [Mat4, Vec2, Vec2, ImageRendererLocation, ImageRendererRegion],
 ): boolean {
-    return eq2(lhs[1], rhs[1]) && eq2(lhs[2], rhs[2]) &&
-        compareObjects(lhs[3], rhs[3]) && compareObjects(lhs[4], rhs[4]);
+    return eq2(lhs[1], rhs[1]) && eq2(lhs[2], rhs[2]) && lhs[3] === rhs[3] && lhs[4] === rhs[4];
 }
 
 function updateLocationMatrix(
@@ -258,7 +263,7 @@ function compareUpdateRegionMatrixArgs(
     lhs: [Mat4, Vec2, ImageRendererRegion],
     rhs: [Mat4, Vec2, ImageRendererRegion],
 ): boolean {
-    return eq2(lhs[1], rhs[1]) && compareObjects(lhs[2], rhs[2]);
+    return eq2(lhs[1], rhs[1]) && lhs[2] === rhs[2];
 }
 
 function updateRegionMatrix(
