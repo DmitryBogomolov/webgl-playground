@@ -105,6 +105,10 @@ export class Camera {
         }
     }
 
+    getAspect(): number {
+        return this._viewportSize.x / this._viewportSize.y;
+    }
+
     getViewportSize(): Vec2 {
         return this._viewportSize;
     }
