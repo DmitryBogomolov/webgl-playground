@@ -138,7 +138,9 @@ function renderScene({ runtime, backgroundColor, camera, program, objects }: Sta
     const transformMat = identity4x4();
     mul4x4(camera.getViewMat(), transformMat, transformMat);
     // const projMat = perspective4x4({ zNear: camera.getZNear(), zFar: camera.getZFar(), aspect: runtime.canvasSize().x / runtime.canvasSize().y, yFov: camera.getYFov() });
-    const dy = camera.getZNear() * 0.5 * camera.getYViewSize() / camera.getViewDist();
+    // const dy = camera.getZNear() * 0.5 * camera.getYViewSize() / camera.getViewDist();
+    // const dx = camera.getAspect() * dy;
+    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
     const dx = camera.getAspect() * dy;
     const projMat = frustum4x4({
         left: -dx, right: +dx, bottom: -dy, top: +dy,
