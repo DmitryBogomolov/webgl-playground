@@ -16,7 +16,9 @@ import { makeObjectsFactory, SceneItem } from './primitive';
 /**
  * Frusum picking.
  *
- * TODO...
+ * Show picking technique when only 1x1 pixel framebuffer is used.
+ * It is achieved by using specific frustum projection that renders only one specific pixel of the scene.
+ * Look at function comments for the specifics of projection calculation.
  */
 export type DESCRIPTION = never;
 
@@ -26,7 +28,6 @@ interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
     readonly camera: Camera;
-    readonly idCamera: Camera,
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -44,7 +45,6 @@ function main(): void {
         size: { x: 1, y: 1 },
     });
     const camera = new Camera();
-    const idCamera = new Camera();
     const { objects, program, idProgram } = makeObjects(runtime);
 
     const cameraLon = observable(0);
@@ -56,7 +56,6 @@ function main(): void {
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         camera.setEyePos(cameraPos);
-        idCamera.setEyePos(cameraPos);
     });
     camera.changed().on(() => {
         runtime.requestFrameRender();
@@ -66,7 +65,6 @@ function main(): void {
         runtime,
         framebuffer,
         camera,
-        idCamera,
         program,
         idProgram,
         objects,
@@ -159,11 +157,23 @@ function makeObjects(runtime: Runtime): {
     return { objects, program, idProgram };
 }
 
+// Makes view-projection matrix that renders only one pixel.
+// View matrix is the same with default scene view matrix.
+// Default perspective projection matrix is replaced with frustum projection matrix that
+// "covers" only one required pixel
 const _idViewProjMat = mat4();
 function makeIdViewProjMat(camera: Camera, { x, y }: Vec2): Mat4 {
+    // Calculate frustum from perspective parameters.
+    // |top| = |bottom| = zNear * tan(fov / 2)
+    // |left| = |right| = aspect * |top|
     const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
     const dx = camera.getAspect() * dy;
     const { x: xViewport, y: yViewport } = camera.getViewportSize();
+    // Full [left, right] * [bottom, top] range corresponds to [0, viewport_width] * [0, viewport_height] screen.
+    // [0, W] -> [-dx, +dx] => x -> dx * (x * 2 / W - 1)
+    // [0, H] -> [-dy, +dy] => y -> dy * (y * 2 / H - 1)
+    // Select part that corresponds to a specific (x, y) pixel.
+    // In an arbitrary n pixels range [0, n] i-th (0 <= i < n) pixel occupies [i, i + 1] range.
     const x1 = dx * (2 * x / xViewport - 1);
     const x2 = dx * (2 * (x + 1) / xViewport - 1);
     const y1 = dy * (2 * y / yViewport - 1);
