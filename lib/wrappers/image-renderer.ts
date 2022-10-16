@@ -66,7 +66,7 @@ export class ImageRenderer extends BaseWrapper {
         this._runtime = runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture(tag);
-        this._renderTargetSize = this._runtime.getRenderTarger().size();
+        this._renderTargetSize = this._runtime.getRenderTarget().size();
     }
 
     dispose(): void {
@@ -186,8 +186,8 @@ export class ImageRenderer extends BaseWrapper {
     }
 
     render(): void {
-        if (!eq2(this._runtime.getRenderTarger().size(), this._renderTargetSize)) {
-            this._renderTargetSize = this._runtime.getRenderTarger().size();
+        if (!eq2(this._runtime.getRenderTarget().size(), this._renderTargetSize)) {
+            this._renderTargetSize = this._runtime.getRenderTarget().size();
             this._matDirty = true;
         }
         this._updateMatrix();

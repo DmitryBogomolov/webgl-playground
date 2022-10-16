@@ -17,8 +17,7 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-const containerAoS = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-aos')!;
-const containerSoA = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-soa')!;
+main();
 
 interface Vertex {
     readonly position: Vec2;
@@ -26,33 +25,48 @@ interface Vertex {
     readonly factor: number;
 }
 
-const vertices: Vertex[] = [
-    { position: vec2(-1, -1), color: color(0, 1, 0), factor: 0.3 },
-    { position: vec2(+1, -1), color: color(0, 0, 1), factor: 0.5 },
-    { position: vec2(+1, +1), color: color(0, 1, 0), factor: 0.7 },
-    { position: vec2(-1, +1), color: color(0, 0, 1), factor: 0.9 },
-];
-const indices = [0, 1, 2, 2, 3, 0];
+function main(): void {
+    const containerAoS = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-aos')!;
+    const containerSoA = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-soa')!;
 
-function makeAoSPrimitive(runtime: Runtime): Primitive {
+    const vertices: Vertex[] = [
+        { position: vec2(-1, -1), color: color(0, 1, 0), factor: 0.3 },
+        { position: vec2(+1, -1), color: color(0, 0, 1), factor: 0.5 },
+        { position: vec2(+1, +1), color: color(0, 1, 0), factor: 0.7 },
+        { position: vec2(-1, +1), color: color(0, 0, 1), factor: 0.9 },
+    ];
+    const indices = [0, 1, 2, 2, 3, 0];
+
+    setup(containerAoS, (runtime) => makeAoSPrimitive(runtime, vertices, indices));
+    setup(containerSoA, (runtime) => makeSoAPrimitive(runtime, vertices, indices));
+}
+
+function makeAoSPrimitive(
+    runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float2' },
         { name: 'a_color', type: 'ubyte3', normalized: true },
         { name: 'a_factor', type: 'ubyte1', normalized: true },
     ]);
-    return makePrimitive(runtime, schema, vertices.length * schema.totalSize);
+    return makePrimitive(runtime, schema, vertices.length * schema.totalSize, vertices, indices);
 }
 
-function makeSoAPrimitive(runtime: Runtime): Primitive {
+function makeSoAPrimitive(
+    runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_color', type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
         { name: 'a_position', type: 'float2', offset: 16, stride: 8 },
         { name: 'a_factor', type: 'ubyte1', normalized: true, offset: 48, stride: 4 },
     ]);
-    return makePrimitive(runtime, schema, 64);
+    return makePrimitive(runtime, schema, 64, vertices, indices);
 }
 
-function makePrimitive(runtime: Runtime, schema: VertexSchema, arrayBufferSize: number): Primitive {
+function makePrimitive(
+    runtime: Runtime, schema: VertexSchema, arrayBufferSize: number,
+    vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+): Primitive {
     const program = new Program(runtime, {
         vertShader,
         fragShader,
@@ -88,6 +102,3 @@ function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Prim
         primitive.render();
     });
 }
-
-setup(containerAoS, makeAoSPrimitive);
-setup(containerSoA, makeSoAPrimitive);

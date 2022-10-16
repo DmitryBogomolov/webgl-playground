@@ -1,6 +1,7 @@
 import {
     Runtime,
     ImageRenderer, ImageRendererRawImageData,
+    Vec2,
     color, colors, color2uint,
 } from 'lib';
 
@@ -12,42 +13,46 @@ import {
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-const runtime = new Runtime(container);
-runtime.setDepthTest(true);
-runtime.setClearColor(color(0.7, 0.7, 0.7));
+main();
 
-const imageCells = new ImageRenderer(runtime, 'image/cells');
-imageCells.setTextureUnit(3);
-const imageLetter = new ImageRenderer(runtime, 'image/f-letter');
-imageLetter.setTextureUnit(4);
-const imageLeaves = new ImageRenderer(runtime, 'image/leaves');
-imageLeaves.setTextureUnit(5);
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    runtime.setDepthTest(true);
+    runtime.setClearColor(color(0.7, 0.7, 0.7));
 
-imageCells.setImageData(generateTextureData()).catch(console.error);
-imageLetter.setImageData({ url: '/static/f-letter.png' }).then(() => {
-    runtime.requestFrameRender();
-}).catch(console.error);
-imageLeaves.setImageData({ url: '/static/leaves.jpg' }).then(() => {
-    runtime.requestFrameRender();
-}).catch(console.error);
+    const imageCells = new ImageRenderer(runtime, 'image/cells');
+    imageCells.setTextureUnit(3);
+    const imageLetter = new ImageRenderer(runtime, 'image/f-letter');
+    imageLetter.setTextureUnit(4);
+    const imageLeaves = new ImageRenderer(runtime, 'image/leaves');
+    imageLeaves.setTextureUnit(5);
 
-let step = 0;
-const SPEED = 0.1;
+    imageCells.setImageData(generateTextureData()).catch(console.error);
+    imageLetter.setImageData({ url: '/static/f-letter.png' }).then(() => {
+        runtime.requestFrameRender();
+    }).catch(console.error);
+    imageLeaves.setImageData({ url: '/static/leaves.jpg' }).then(() => {
+        runtime.requestFrameRender();
+    }).catch(console.error);
 
-runtime.frameRendered().on((delta) => {
-    runtime.clearBuffer('color');
-    step = (step + SPEED * delta / 1000) % 1;
+    let step = 0;
+    const SPEED = 0.1;
 
-    render1(imageLeaves, step);
-    render2(imageCells, step);
-    render3(imageLetter, step);
+    runtime.frameRendered().on((delta) => {
+        runtime.clearBuffer('color');
+        step = (step + SPEED * delta / 1000) % 1;
 
-    runtime.requestFrameRender();
-});
+        const size = runtime.getRenderTarget().size();
+        render1(size, imageLeaves, step);
+        render2(size, imageCells, step);
+        render3(size, imageLetter, step);
 
-function render1(image: ImageRenderer, step: number): void {
-    const { y: height } = runtime.getRenderTarger().size();
+        runtime.requestFrameRender();
+    });
+}
+
+function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
 
     image.setLocation({
@@ -76,8 +81,7 @@ function render1(image: ImageRenderer, step: number): void {
     image.render();
 }
 
-function render2(image: ImageRenderer, step: number): void {
-    const { x: width } = runtime.getRenderTarger().size();
+function render2({ x: width }: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
 
     image.setLocation({
@@ -108,7 +112,7 @@ function render2(image: ImageRenderer, step: number): void {
     image.render();
 }
 
-function render3(image: ImageRenderer, step: number): void {
+function render3(_: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
 
     image.setRegion({});

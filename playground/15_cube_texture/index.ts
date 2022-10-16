@@ -22,42 +22,46 @@ import fragShader from './shaders/cube.frag';
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-const runtime = new Runtime(container);
-runtime.setDepthTest(true);
-const camera = new Camera();
-camera.changed().on(() => runtime.requestFrameRender());
+main();
 
-const cameraLon = observable(0);
-const cameraLat = observable(30);
-const cameraPos = computed(([cameraLon, cameraLat]) => {
-    const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-    return mul3(dir, 2);
-}, [cameraLon, cameraLat]);
-cameraPos.on((cameraPos) => {
-    camera.setEyePos(cameraPos);
-});
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    runtime.setDepthTest(true);
+    const camera = new Camera();
+    camera.changed().on(() => runtime.requestFrameRender());
 
-const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime);
+    const cameraLon = observable(0);
+    const cameraLat = observable(30);
+    const cameraPos = computed(([cameraLon, cameraLat]) => {
+        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
+        return mul3(dir, 2);
+    }, [cameraLon, cameraLat]);
+    cameraPos.on((cameraPos) => {
+        camera.setEyePos(cameraPos);
+    });
 
-runtime.sizeChanged().on(() => {
-    camera.setViewportSize(runtime.canvasSize());
-});
+    const primitive = makePrimitive(runtime);
+    const texture = makeTexture(runtime);
 
-runtime.frameRendered().on(() => {
-    runtime.clearBuffer('color|depth');
+    runtime.sizeChanged().on(() => {
+        camera.setViewportSize(runtime.canvasSize());
+    });
 
-    runtime.setCubeTextureUnit(2, texture);
-    primitive.program().setUniform('u_view_proj', camera.getTransformMat());
-    primitive.program().setUniform('u_texture', 2);
-    primitive.render();
-});
+    runtime.frameRendered().on(() => {
+        runtime.clearBuffer('color|depth');
 
-createControls(container, [
-    { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-    { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
-]);
+        runtime.setCubeTextureUnit(2, texture);
+        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+        primitive.program().setUniform('u_texture', 2);
+        primitive.render();
+    });
+
+    createControls(container, [
+        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
+    ]);
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([

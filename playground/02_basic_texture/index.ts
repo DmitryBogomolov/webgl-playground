@@ -7,7 +7,7 @@ import {
     Tracker,
     Vec2, vec2, ZERO2, sub2, mul2, inv2,
 } from 'lib';
-import { observable } from 'util/observable';
+import { Observable, observable } from 'util/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -28,7 +28,103 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+const TEXTURE_SIZE = 256;
+const OFFSET = 32;
+
+main();
+
+interface Rect {
+    readonly xMin: number;
+    readonly xMax: number;
+    readonly yMin: number;
+    readonly yMax: number;
+}
+
+interface Controls {
+    readonly uNearest: HTMLElement;
+    readonly vNearest: HTMLElement;
+    readonly uLinear: HTMLElement;
+    readonly vLinear: HTMLElement;
+    readonly crossNearest: HTMLElement;
+    readonly crossLinear: HTMLElement;
+}
+
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    const primitive = makePrimitive(runtime);
+    const texture = makeTexture(runtime);
+    const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));
+    const nearestRegion: Rect = {
+        xMin: -OFFSET - TEXTURE_SIZE,
+        xMax: -OFFSET,
+        yMin: -OFFSET - TEXTURE_SIZE,
+        yMax: -OFFSET,
+    };
+    const linearRegion: Rect = {
+        xMin: -OFFSET - TEXTURE_SIZE,
+        xMax: -OFFSET,
+        yMin: +OFFSET,
+        yMax: +OFFSET + TEXTURE_SIZE,
+    };
+
+    const controls: Controls = {
+        uNearest: document.querySelector('#u-nearest') as HTMLElement,
+        vNearest: document.querySelector('#v-nearest') as HTMLElement,
+        uLinear: document.querySelector('#u-linear') as HTMLElement,
+        vLinear: document.querySelector('#v-linear') as HTMLElement,
+        crossNearest: document.querySelector('#cross-nearest') as HTMLElement,
+        crossLinear: document.querySelector('#cross-linear') as HTMLElement,
+    };
+
+    function processPointerPosition(position: Vec2): void {
+        const point = sub2(position, mul2(runtime.canvasSize(), 0.5));
+        if (inRect(point, nearestRegion)) {
+            texcoord(point2texcoord(point, nearestRegion));
+        }
+        if (inRect(point, linearRegion)) {
+            texcoord(point2texcoord(point, linearRegion));
+        }
+    }
+
+    new Tracker(container, {
+        onStart(e) {
+            processPointerPosition(e.coords);
+        },
+        onMove(e) {
+            processPointerPosition(e.coords);
+        },
+    });
+
+    function doLayout(): void {
+        layoutElements(container, controls, texcoord, nearestRegion, linearRegion);
+    }
+
+    texcoord.on(() => runtime.requestFrameRender());
+    texcoord.on(doLayout);
+
+    runtime.frameRendered().on(() => {
+        runtime.clearBuffer();
+
+        const ratio = mul2(inv2(runtime.canvasSize()), 2);
+
+        const size = mul2(ratio, TEXTURE_SIZE / 2);
+        const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);
+
+        drawRect(runtime, primitive, texture, size, vec2(-offset.x, +offset.y), 'nearest', null);
+        drawRect(runtime, primitive, texture, size, vec2(-offset.x, -offset.y), 'linear', null);
+        drawRect(runtime, primitive, texture, size, vec2(+offset.x, +offset.y), 'nearest', texcoord());
+        drawRect(runtime, primitive, texture, size, vec2(+offset.x, -offset.y), 'linear', texcoord());
+    });
+
+    doLayout();
+}
+
+function makeTexture(runtime: Runtime): Texture {
+    const texture = new Texture(runtime);
+    texture.setImageData(makeTextureData(), { unpackFlipY: true });
+    return texture;
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -68,75 +164,15 @@ function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
-function makeTexture(runtime: Runtime): Texture {
-    const texture = new Texture(runtime);
-    texture.setImageData(makeTextureData(), { unpackFlipY: true });
-    return texture;
-}
-
-const runtime = new Runtime(container);
-
-const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime);
-
-const TEXTURE_SIZE = 256;
-const OFFSET = 32;
-const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));
-
-interface Rect {
-    readonly xMin: number;
-    readonly xMax: number;
-    readonly yMin: number;
-    readonly yMax: number;
-}
-
-const nearestRegion: Rect = {
-    xMin: -OFFSET - TEXTURE_SIZE,
-    xMax: -OFFSET,
-    yMin: -OFFSET - TEXTURE_SIZE,
-    yMax: -OFFSET,
-};
-const linearRegion: Rect = {
-    xMin: -OFFSET - TEXTURE_SIZE,
-    xMax: -OFFSET,
-    yMin: +OFFSET,
-    yMax: +OFFSET + TEXTURE_SIZE,
-};
-
-function inRect(point: Vec2, rect: Rect): boolean {
-    return rect.xMin <= point.x && point.x <= rect.xMax && rect.yMin <= point.y && point.y <= rect.yMax;
-}
-
-function point2texcoord(point: Vec2, rect: Rect): Vec2 {
-    return vec2(
-        (point.x - rect.xMin) / (rect.xMax - rect.xMin),
-        (point.y - rect.yMax) / (rect.yMin - rect.yMax),
-    );
-}
-
-function processPointerPosition(position: Vec2): void {
-    const point = sub2(position, mul2(runtime.canvasSize(), 0.5));
-    if (inRect(point, nearestRegion)) {
-        texcoord(point2texcoord(point, nearestRegion));
-    }
-    if (inRect(point, linearRegion)) {
-        texcoord(point2texcoord(point, linearRegion));
-    }
-}
-
-const uNearest = document.querySelector('#u-nearest') as HTMLElement;
-const vNearest = document.querySelector('#v-nearest') as HTMLElement;
-const uLinear = document.querySelector('#u-linear') as HTMLElement;
-const vLinear = document.querySelector('#v-linear') as HTMLElement;
-const crossNearest = document.querySelector('#cross-nearest') as HTMLElement;
-const crossLinear = document.querySelector('#cross-linear') as HTMLElement;
-
 function moveElement(label: HTMLElement, x: number, y: number): void {
     label.style.left = `${x}px`;
     label.style.top = `${y}px`;
 }
 
-function layoutElements(): void {
+function layoutElements(
+    container: HTMLElement, controls: Controls,
+    texcoord: Observable<Vec2>, nearestRegion: Rect, linearRegion: Rect,
+): void {
     const boundingRect = container.getBoundingClientRect();
     const cx = (boundingRect.left + boundingRect.right) / 2;
     const cy = (boundingRect.top + boundingRect.bottom) / 2;
@@ -146,51 +182,26 @@ function layoutElements(): void {
     const uText = tex.x.toFixed(2);
     const vText = tex.y.toFixed(2);
 
-    moveElement(uNearest, cx + nearestRegion.xMin + dx, cy + nearestRegion.yMax);
-    uNearest.textContent = uText;
+    moveElement(controls.uNearest, cx + nearestRegion.xMin + dx, cy + nearestRegion.yMax);
+    controls.uNearest.textContent = uText;
 
-    moveElement(vNearest, cx + nearestRegion.xMin, cy + nearestRegion.yMin + dy);
-    vNearest.textContent = vText;
+    moveElement(controls.vNearest, cx + nearestRegion.xMin, cy + nearestRegion.yMin + dy);
+    controls.vNearest.textContent = vText;
 
-    moveElement(uLinear, cx + linearRegion.xMin + dx, cy + linearRegion.yMin);
-    uLinear.textContent = uText;
+    moveElement(controls.uLinear, cx + linearRegion.xMin + dx, cy + linearRegion.yMin);
+    controls.uLinear.textContent = uText;
 
-    moveElement(vLinear, cx + linearRegion.xMin, cy + linearRegion.yMin + dy);
-    vLinear.textContent = vText;
+    moveElement(controls.vLinear, cx + linearRegion.xMin, cy + linearRegion.yMin + dy);
+    controls.vLinear.textContent = vText;
 
-    moveElement(crossNearest, cx + nearestRegion.xMin + dx, cy + nearestRegion.yMin + dy);
-    moveElement(crossLinear, cx + linearRegion.xMin + dx, cy + linearRegion.yMin + dy);
+    moveElement(controls.crossNearest, cx + nearestRegion.xMin + dx, cy + nearestRegion.yMin + dy);
+    moveElement(controls.crossLinear, cx + linearRegion.xMin + dx, cy + linearRegion.yMin + dy);
 }
 
-layoutElements();
-
-new Tracker(container, {
-    onStart(e) {
-        processPointerPosition(e.coords);
-    },
-    onMove(e) {
-        processPointerPosition(e.coords);
-    },
-});
-
-texcoord.on(() => runtime.requestFrameRender());
-texcoord.on(layoutElements);
-
-runtime.frameRendered().on(() => {
-    runtime.clearBuffer();
-
-    const ratio = mul2(inv2(runtime.canvasSize()), 2);
-
-    const size = mul2(ratio, TEXTURE_SIZE / 2);
-    const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);
-
-    drawRect(size, vec2(-offset.x, +offset.y), 'nearest', null);
-    drawRect(size, vec2(-offset.x, -offset.y), 'linear', null);
-    drawRect(size, vec2(+offset.x, +offset.y), 'nearest', texcoord());
-    drawRect(size, vec2(+offset.x, -offset.y), 'linear', texcoord());
-});
-
-function drawRect(size: Vec2, offset: Vec2, filter: 'nearest' | 'linear', texcoord: Vec2 | null): void {
+function drawRect(
+    runtime: Runtime, primitive: Primitive, texture: Texture,
+    size: Vec2, offset: Vec2, filter: 'nearest' | 'linear', texcoord: Vec2 | null,
+): void {
     texture.setParameters({
         min_filter: filter,
         mag_filter: filter,
@@ -203,4 +214,15 @@ function drawRect(size: Vec2, offset: Vec2, filter: 'nearest' | 'linear', texcoo
     program.setUniform('u_use_custom', !!texcoord);
     program.setUniform('u_texcoord', texcoord || ZERO2);
     primitive.render();
+}
+
+function inRect(point: Vec2, rect: Rect): boolean {
+    return rect.xMin <= point.x && point.x <= rect.xMax && rect.yMin <= point.y && point.y <= rect.yMax;
+}
+
+function point2texcoord(point: Vec2, rect: Rect): Vec2 {
+    return vec2(
+        (point.x - rect.xMin) / (rect.xMax - rect.xMin),
+        (point.y - rect.yMax) / (rect.yMin - rect.yMax),
+    );
 }

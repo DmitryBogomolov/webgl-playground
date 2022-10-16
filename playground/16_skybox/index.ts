@@ -12,7 +12,6 @@ import { createControls } from 'util/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';
 
-
 /**
  * Skybox.
  *
@@ -26,6 +25,17 @@ import { makeTexture } from './texture';
 export type DESCRIPTION = never;
 
 main();
+
+interface State {
+    readonly runtime: Runtime;
+    readonly camera: Camera;
+    readonly modelMat: Observable<Mat4>;
+    readonly normalMat: Observable<Mat4>;
+    readonly isCubeShown: Observable<boolean>;
+    readonly quad: Primitive;
+    readonly cube: Primitive;
+    readonly texture: TextureCube;
+}
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
@@ -72,7 +82,7 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
-        renderFrame(runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture);
+        renderFrame({ runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture });
     });
 
     createControls(container, [
@@ -85,11 +95,9 @@ function main(): void {
     ]);
 }
 
-function renderFrame(
-    runtime: Runtime, camera: Camera,
-    modelMat: Observable<Mat4>, normalMat: Observable<Mat4>, isCubeShown: Observable<boolean>,
-    quad: Primitive, cube: Primitive, texture: TextureCube,
-): void {
+function renderFrame({
+    runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture,
+}: State): void {
     runtime.clearBuffer('color|depth');
 
     runtime.setCubeTextureUnit(4, texture);

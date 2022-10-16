@@ -19,7 +19,36 @@ import { convolutionKernels } from './convolution_kernels';
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+main();
+
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    const primitive = makePrimitive(runtime);
+    const texture = makeTexture(runtime);
+
+    const kernelName = observable(convolutionKernels[0].name);
+    const currentKernel = computed(([name]) => {
+        return convolutionKernels.find((kernel) => kernel.name === name)!;
+    }, [kernelName]);
+    currentKernel.on(() => runtime.requestFrameRender());
+
+    runtime.frameRendered().on(() => {
+        runtime.clearBuffer();
+        runtime.setTextureUnit(3, texture);
+        const program = primitive.program();
+        program.setUniform('u_canvas_size', runtime.canvasSize());
+        program.setUniform('u_texture_size', texture.size());
+        program.setUniform('u_texture', 3);
+        program.setUniform('u_kernel', currentKernel().kernel);
+        program.setUniform('u_kernel_weight', currentKernel().weight);
+        primitive.render();
+    });
+
+    createControls(container, [
+        { label: 'kernel', options: convolutionKernels.map((kernel) => kernel.name), selection: kernelName },
+    ]);
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -68,29 +97,3 @@ function makeTexture(runtime: Runtime): Texture {
 
     return texture;
 }
-
-const runtime = new Runtime(container);
-const primitive = makePrimitive(runtime);
-const texture = makeTexture(runtime);
-
-const kernelName = observable(convolutionKernels[0].name);
-const currentKernel = computed(([name]) => {
-    return convolutionKernels.find((kernel) => kernel.name === name)!;
-}, [kernelName]);
-currentKernel.on(() => runtime.requestFrameRender());
-
-runtime.frameRendered().on(() => {
-    runtime.clearBuffer();
-    runtime.setTextureUnit(3, texture);
-    const program = primitive.program();
-    program.setUniform('u_canvas_size', runtime.canvasSize());
-    program.setUniform('u_texture_size', texture.size());
-    program.setUniform('u_texture', 3);
-    program.setUniform('u_kernel', currentKernel().kernel);
-    program.setUniform('u_kernel_weight', currentKernel().weight);
-    primitive.render();
-});
-
-createControls(container, [
-    { label: 'kernel', options: convolutionKernels.map((kernel) => kernel.name), selection: kernelName },
-]);

@@ -16,11 +16,21 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+main();
 
 interface Vertex {
     readonly position: Vec2;
     readonly color: Color;
+}
+
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    const primitive = makePrimitive(runtime);
+    runtime.frameRendered().on(() => {
+        runtime.clearBuffer();
+        primitive.render();
+    });
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
@@ -84,10 +94,3 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     return primitive;
 }
-
-const runtime = new Runtime(container);
-const primitive = makePrimitive(runtime);
-runtime.frameRendered().on(() => {
-    runtime.clearBuffer();
-    primitive.render();
-});
