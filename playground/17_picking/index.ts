@@ -118,9 +118,9 @@ function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: 
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
+    idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
-        idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
         idProgram.setUniform('u_model', modelMat);
         idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
@@ -137,9 +137,9 @@ function renderScene({ runtime, backgroundColor, camera, program, objects }: Sta
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
+    program.setUniform('u_view_proj', camera.getTransformMat());
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
-        program.setUniform('u_view_proj', camera.getTransformMat());
         program.setUniform('u_model', modelMat);
         program.setUniform('u_model_invtrs', normalMat);
         program.setUniform('u_color', id === pixelIdx ? colors.GREEN : colors.RED);
