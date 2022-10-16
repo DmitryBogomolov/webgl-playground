@@ -22,10 +22,69 @@ import Worker from 'worker-loader!./worker';
  */
 export type DESCRIPTION = never;
 
-const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+main();
 
-const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
-const COLOR_UPDATE_INTERVAL = 1 * 1000;
+interface State {
+    clr: Color;
+    scale: number;
+}
+
+function main(): void {
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime(container);
+    const primitive = makePrimitive(runtime);
+
+    const state: State = {
+        clr: color(0, 0, 0),
+        scale: 0,
+    };
+
+    runtime.frameRendered().on(() => {
+        runtime.clearBuffer();
+        primitive.program().setUniform('u_scale', state.scale);
+        primitive.program().setUniform('u_color', state.clr);
+        primitive.render();
+    });
+    runWorker(runtime, state);
+    logSilenced(true);
+}
+
+function runWorker(runtime: Runtime, state: State): void {
+    const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
+    const COLOR_UPDATE_INTERVAL = 1 * 1000;
+
+    const messenger = new WorkerMessenger(new Worker(), {
+        [TYPE_SCALE](payload) {
+            state.scale = payload as number;
+            runtime.requestFrameRender();
+        },
+        [TYPE_COLOR](payload) {
+            state.clr = payload as Color;
+            runtime.requestFrameRender();
+        },
+    });
+
+    let scaleDelta = 0;
+    let colorDelta = 0;
+
+    let lastTime = performance.now();
+    setInterval(() => {
+        const time = performance.now();
+        const delta = time - lastTime;
+        lastTime = time;
+
+        scaleDelta += delta;
+        colorDelta += delta;
+        if (scaleDelta > SCALE_UPDATE_INTERVAL) {
+            messenger.post(TYPE_SCALE, scaleDelta / 1000);
+            scaleDelta = 0;
+        }
+        if (colorDelta > COLOR_UPDATE_INTERVAL) {
+            messenger.post(TYPE_COLOR, colorDelta / 1000);
+            colorDelta = 0;
+        }
+    }, 25);
+}
 
 function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -63,54 +122,3 @@ function makePrimitive(runtime: Runtime): Primitive {
 
     return primitive;
 }
-
-const runtime = new Runtime(container);
-const primitive = makePrimitive(runtime);
-
-let clr = color(0, 0, 0);
-let scale = 0;
-
-function runWorker(runtime: Runtime): void {
-    const messenger = new WorkerMessenger(new Worker(), {
-        [TYPE_SCALE](payload) {
-            scale = payload as number;
-            runtime.requestFrameRender();
-        },
-        [TYPE_COLOR](payload) {
-            clr = payload as Color;
-            runtime.requestFrameRender();
-        },
-    });
-
-    let scaleDelta = 0;
-    let colorDelta = 0;
-
-    let lastTime = performance.now();
-    setInterval(() => {
-        const time = performance.now();
-        const delta = time - lastTime;
-        lastTime = time;
-
-        scaleDelta += delta;
-        colorDelta += delta;
-        if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            messenger.post(TYPE_SCALE, scaleDelta / 1000);
-            scaleDelta = 0;
-        }
-        if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            messenger.post(TYPE_COLOR, colorDelta / 1000);
-            colorDelta = 0;
-        }
-    }, 25);
-}
-
-
-
-runtime.frameRendered().on(() => {
-    runtime.clearBuffer();
-    primitive.program().setUniform('u_scale', scale);
-    primitive.program().setUniform('u_color', clr);
-    primitive.render();
-});
-runWorker(runtime);
-logSilenced(true);
