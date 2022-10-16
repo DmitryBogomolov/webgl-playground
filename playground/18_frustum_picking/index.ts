@@ -5,9 +5,10 @@ import {
     Camera,
     Vec2, vec2, ZERO2,
     vec3, mul3,
-    identity4x4, mul4x4, perspective4x4, frustum4x4,
+    mul4x4, frustum4x4,
     Color, color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
+    linearMapping,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -76,22 +77,14 @@ function main(): void {
 
     const getCoords = makeEventCoordsGetter(container);
     container.addEventListener('pointermove', (e) => {
-        let coords = getCoords(e);
+        const coords = getCoords(e);
         // Flip Y coordinate.
-        const canvasSize = runtime.canvasSize();
-        coords = vec2(coords.x, canvasSize.y - coords.y);
-        state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
+        state.pixelCoord = vec2(coords.x, runtime.canvasSize().y - coords.y);
         runtime.requestFrameRender();
     });
 
     runtime.sizeChanged().on(() => {
-        const canvasSize = runtime.canvasSize();
-        // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
-        const x = canvasSize.x >> 1;
-        const y = x >> 1;
-        framebuffer.resize(vec2(x, y));
-        camera.setViewportSize(canvasSize);
-        idCamera.setViewportSize(framebuffer.size());
+        camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
         renderFrame(state);
@@ -105,28 +98,42 @@ function main(): void {
 }
 
 function renderFrame(state: State): void {
-    // renderColorIds(state);
-    // const pixelIdx = findCurrentPixel(state);
-    // renderScene(state, pixelIdx);
-    renderScene(state, -1);
+    const pixelIdx = findCurrentPixel(state);
+    renderScene(state, pixelIdx);
 }
 
-function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
+function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pixelCoord }: State): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
+
+    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
+    const dx = camera.getAspect() * dy;
+
+    const mapX = linearMapping(0, runtime.canvasSize().x, -dx, +dx);
+    const mapY = linearMapping(0, runtime.canvasSize().y, -dy, +dy);
+
+    const x1 = mapX(pixelCoord.x);
+    const x2 = mapX(pixelCoord.x + 1);
+    const y1 = mapY(pixelCoord.y);
+    const y2 = mapY(pixelCoord.y + 1);
+
+    const projMat = frustum4x4({
+        left: x1, right: x2, bottom: y1, top: y2,
+        zNear: camera.getZNear(), zFar: camera.getZFar(),
+    });
+    const transformMat = mul4x4(projMat, camera.getViewMat());
+
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
-        idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
+        idProgram.setUniform('u_view_proj', transformMat);
         idProgram.setUniform('u_model', modelMat);
         idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
     }
-}
 
-function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     const buffer = new Uint8Array(4);
-    runtime.readPixels(framebuffer, buffer, { p1: pixelCoord, p2: pixelCoord });
+    runtime.readPixels(framebuffer, buffer);
     return new Uint32Array(buffer.buffer)[0];
 }
 
@@ -135,22 +142,9 @@ function renderScene({ runtime, backgroundColor, camera, program, objects }: Sta
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
 
-    const transformMat = identity4x4();
-    mul4x4(camera.getViewMat(), transformMat, transformMat);
-    // const projMat = perspective4x4({ zNear: camera.getZNear(), zFar: camera.getZFar(), aspect: runtime.canvasSize().x / runtime.canvasSize().y, yFov: camera.getYFov() });
-    // const dy = camera.getZNear() * 0.5 * camera.getYViewSize() / camera.getViewDist();
-    // const dx = camera.getAspect() * dy;
-    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
-    const dx = camera.getAspect() * dy;
-    const projMat = frustum4x4({
-        left: -dx, right: +dx, bottom: -dy, top: +dy,
-        zNear: camera.getZNear(), zFar: camera.getZFar(),
-    });
-    mul4x4(projMat, transformMat, transformMat);
-
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
-        program.setUniform('u_view_proj', transformMat);
+        program.setUniform('u_view_proj', camera.getTransformMat());
         program.setUniform('u_model', modelMat);
         program.setUniform('u_model_invtrs', normalMat);
         program.setUniform('u_color', id === pixelIdx ? colors.GREEN : colors.RED);
