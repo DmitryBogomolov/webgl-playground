@@ -15,19 +15,31 @@ import { setupTracker } from './tracker';
  */
 export type DESCRIPTION = never;
 
-const containerBevel = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-bevel')!;
-const containerRound = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-round')!;
-
-const state = new State();
-
-const runtimeBevel = new Runtime(containerBevel);
-const runtimeRound = new Runtime(containerRound);
+main();
 
 interface LineConstructor<T extends Line> {
     new(runtime: Runtime): T;
 }
 
-function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): T {
+function main(): void {
+    const containerBevel = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-bevel')!;
+    const containerRound = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-round')!;
+
+    const state = new State();
+
+    const runtimeBevel = new Runtime(containerBevel);
+    const runtimeRound = new Runtime(containerRound);
+
+    setupLine(runtimeBevel, state, BevelLine);
+    setupLine(runtimeRound, state, RoundLine);
+
+    const tree = new SearchTree(() => runtimeBevel.size(), state);
+
+    setupTracker(runtimeBevel, tree, state);
+    setupTracker(runtimeRound, tree, state);
+}
+
+function setupLine<T extends Line>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
     const line = new ctor(runtime);
     runtime.frameRendered().on(() => {
         runtime.clearBuffer();
@@ -49,11 +61,3 @@ function setupLine<T extends Line>(runtime: Runtime, ctor: LineConstructor<T>): 
     line.setThickness(state.thickness);
     return line;
 }
-
-setupLine(runtimeBevel, BevelLine);
-setupLine(runtimeRound, RoundLine);
-
-const tree = new SearchTree(() => runtimeBevel.size(), state);
-
-setupTracker(runtimeBevel, tree, state);
-setupTracker(runtimeRound, tree, state);
