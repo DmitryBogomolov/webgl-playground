@@ -385,6 +385,37 @@ export function perspective4x4(
     return out;
 }
 
+export interface Frustum4x4Options {
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+    readonly zNear: number;
+    readonly zFar: number;
+}
+
+const FRUSTUM4X4_MAP = [
+    rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2),
+    rowcol2idx(0, 2), rowcol2idx(1, 2), rowcol2idx(2, 3), rowcol2idx(3, 2),
+] as const;
+export function frustum4x4(
+    { left, right, bottom, top, zNear, zFar }: Frustum4x4Options, out: Mat4 = mat4(),
+): Mat4 {
+    const rl = 1 / (right - left);
+    const tb = 1 / (top - bottom);
+    const nf = 1 / (zNear - zFar);
+    zero4x4(out);
+    const [xx, yy, zz, xz, yz, zw, wz] = FRUSTUM4X4_MAP;
+    (out as number[])[xx] = 2 * zNear * rl;
+    (out as number[])[yy] = 2 * zNear * tb;
+    (out as number[])[zz] = (zNear + zFar) * nf;
+    (out as number[])[xz] = (right + left) * rl;
+    (out as number[])[yz] = (top + bottom) * tb;
+    (out as number[])[zw] = 2 * zNear * zFar * nf;
+    (out as number[])[wz] = -1;
+    return out;
+}
+
 export interface LookAt4x4Options {
     readonly eye: Vec3;
     readonly center: Vec3;

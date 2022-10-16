@@ -5,6 +5,7 @@ import {
     Camera,
     Vec2, vec2, ZERO2,
     vec3, mul3,
+    Mat4, mat4, apply4x4, clone4x4, frustum4x4,
     Color, color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
@@ -13,14 +14,11 @@ import { createControls } from 'util/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
 /**
- * Picking.
+ * Frusum picking.
  *
- * Demonstrates how to check if some object is under pointer.
- * Scene is rendered two times.
- * First time scene is rendered into texture. Each object has unique integer id which is used as pixel color.
- * Pointer coordinates are mapped to texture coordinates, framebuffer pixels are read.
- * If selected pixel contains object id then such object is under pointer.
- * Second time scene is rendered to canvas. If required hovered object is rendered with a different color.
+ * Show picking technique when only 1x1 pixel framebuffer is used.
+ * It is achieved by using specific frustum projection that renders only one specific pixel of the scene.
+ * Look at function comments for the specifics of projection calculation.
  */
 export type DESCRIPTION = never;
 
@@ -30,7 +28,6 @@ interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
     readonly camera: Camera;
-    readonly idCamera: Camera,
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -48,7 +45,6 @@ function main(): void {
         size: { x: 1, y: 1 },
     });
     const camera = new Camera();
-    const idCamera = new Camera();
     const { objects, program, idProgram } = makeObjects(runtime);
 
     const cameraLon = observable(0);
@@ -60,7 +56,6 @@ function main(): void {
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         camera.setEyePos(cameraPos);
-        idCamera.setEyePos(cameraPos);
     });
     camera.changed().on(() => {
         runtime.requestFrameRender();
@@ -70,7 +65,6 @@ function main(): void {
         runtime,
         framebuffer,
         camera,
-        idCamera,
         program,
         idProgram,
         objects,
@@ -80,22 +74,14 @@ function main(): void {
 
     const getCoords = makeEventCoordsGetter(container);
     container.addEventListener('pointermove', (e) => {
-        let coords = getCoords(e);
+        const coords = getCoords(e);
         // Flip Y coordinate.
-        const canvasSize = runtime.canvasSize();
-        coords = vec2(coords.x, canvasSize.y - coords.y);
-        state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
+        state.pixelCoord = vec2(coords.x, runtime.canvasSize().y - coords.y);
         runtime.requestFrameRender();
     });
 
     runtime.sizeChanged().on(() => {
-        const canvasSize = runtime.canvasSize();
-        // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
-        const x = canvasSize.x >> 1;
-        const y = x >> 1;
-        framebuffer.resize(vec2(x, y));
-        camera.setViewportSize(canvasSize);
-        idCamera.setViewportSize(framebuffer.size());
+        camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRendered().on(() => {
         renderFrame(state);
@@ -109,27 +95,25 @@ function main(): void {
 }
 
 function renderFrame(state: State): void {
-    renderColorIds(state);
     const pixelIdx = findCurrentPixel(state);
     renderScene(state, pixelIdx);
 }
 
-function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
+function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pixelCoord }: State): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
-    idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
+    const transformMat = makeIdViewProjMat(camera, pixelCoord);
+    idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
         idProgram.setUniform('u_model', modelMat);
         idProgram.setUniform('u_id', uint2bytes(id));
         primitive.render();
     }
-}
 
-function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     const buffer = new Uint8Array(4);
-    runtime.readPixels(framebuffer, buffer, { p1: pixelCoord, p2: pixelCoord });
+    runtime.readPixels(framebuffer, buffer);
     return new Uint32Array(buffer.buffer)[0];
 }
 
@@ -171,19 +155,33 @@ function makeObjects(runtime: Runtime): {
     return { objects, program, idProgram };
 }
 
-// In perspective projection higher aspect means extra horizontal space on left and right sides.
-// I.e. if some pixel has coordinate x1 in a1 aspect then in a2 > a1 aspect that pixel would have
-// coordinate x2 > x1 if x1 < x_center and x2 < x1 of x1 > x_center. Y coordinate stays the same.
-function mapPixelCoodinates(coords: Vec2, size1: Vec2, size2: Vec2): Vec2 {
-    const aspect1 = size1.x / size1.y;
-    const aspect2 = size2.x / size2.y;
-    // Convert coordinates from [0, w1] * [0, h1] space to [-1, +1] * [-1, +1] space.
-    // Adjust [-1, +1] coordinates assuming that aspect1 * x1 == aspect2 * x2, y1 == y2.
-    const x = (2 * coords.x / size1.x - 1) * (aspect1 / aspect2);
-    const y = 2 * coords.y / size1.y - 1;
-    // Convert coodinates from [-1, +1] * [-1, +1] to [0, w2] * [0, h2].
-    return vec2(
-        Math.round(size2.x * (x + 1) / 2),
-        Math.round(size2.y * (y + 1) / 2),
-    );
+// Makes view-projection matrix that renders only one pixel.
+// View matrix is the same with default scene view matrix.
+// Default perspective projection matrix is replaced with frustum projection matrix that
+// "covers" only one required pixel
+const _idViewProjMat = mat4();
+function makeIdViewProjMat(camera: Camera, { x, y }: Vec2): Mat4 {
+    // Calculate frustum from perspective parameters.
+    // |top| = |bottom| = zNear * tan(fov / 2)
+    // |left| = |right| = aspect * |top|
+    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
+    const dx = camera.getAspect() * dy;
+    const { x: xViewport, y: yViewport } = camera.getViewportSize();
+    // Full [left, right] * [bottom, top] range corresponds to [0, viewport_width] * [0, viewport_height] screen.
+    // [0, W] -> [-dx, +dx] => x -> dx * (x * 2 / W - 1)
+    // [0, H] -> [-dy, +dy] => y -> dy * (y * 2 / H - 1)
+    // Select part that corresponds to a specific (x, y) pixel.
+    // In an arbitrary n pixels range [0, n] i-th (0 <= i < n) pixel occupies [i, i + 1] range.
+    const x1 = dx * (2 * x / xViewport - 1);
+    const x2 = dx * (2 * (x + 1) / xViewport - 1);
+    const y1 = dy * (2 * y / yViewport - 1);
+    const y2 = dy * (2 * (y + 1) / yViewport - 1);
+
+    const mat = _idViewProjMat;
+    clone4x4(camera.getViewMat(), mat);
+    apply4x4(mat, frustum4x4, {
+        left: x1, right: x2, bottom: y1, top: y2,
+        zNear: camera.getZNear(), zFar: camera.getZFar(),
+    });
+    return mat;
 }

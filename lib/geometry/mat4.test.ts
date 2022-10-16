@@ -4,7 +4,7 @@ import {
     add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
     det4x4, inverse4x4, inversetranspose4x4,
     translation4x4, scaling4x4, rotation4x4, xrotation4x4, yrotation4x4, zrotation4x4,
-    orthographic4x4, perspective4x4, lookAt4x4, targetTo4x4,
+    orthographic4x4, perspective4x4, frustum4x4, lookAt4x4, targetTo4x4,
 } from './mat4';
 
 describe('mat4', () => {
@@ -423,6 +423,24 @@ describe('mat4', () => {
         ).toBeMat4([
             1.2071, 0, 0, 0,
             0, 2.4142, 0, 0,
+            0, 0, -1.002, -0.2002,
+            0, 0, -1, 0,
+        ]);
+    });
+
+    it('frustum4x4', () => {
+        expect(
+            frustum4x4({
+                left: -3,
+                right: +5,
+                bottom: -1,
+                top: +2,
+                zNear: 0.1,
+                zFar: 100,
+            }),
+        ).toBeMat4([
+            0.025, 0, 0.25, 0,
+            0, 0.0667, 0.3333, 0,
             0, 0, -1.002, -0.2002,
             0, 0, -1, 0,
         ]);
