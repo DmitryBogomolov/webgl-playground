@@ -530,11 +530,11 @@ export class Runtime extends BaseWrapper {
         this._state.framebuffer = handle;
     }
 
-    getDefaultRenderTarger(): RenderTarget {
+    getDefaultRenderTarget(): RenderTarget {
         return this._defaultRenderTarget;
     }
 
-    getRenderTarger(): RenderTarget {
+    getRenderTarget(): RenderTarget {
         return this._state.renderTarget || this._defaultRenderTarget;
     }
 

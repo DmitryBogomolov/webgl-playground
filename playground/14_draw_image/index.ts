@@ -43,7 +43,7 @@ function main(): void {
         runtime.clearBuffer('color');
         step = (step + SPEED * delta / 1000) % 1;
 
-        const size = runtime.getRenderTarger().size();
+        const size = runtime.getRenderTarget().size();
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
