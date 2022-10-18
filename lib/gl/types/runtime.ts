@@ -14,6 +14,10 @@ export type CULL_FACE = (
     'back' | 'front' | 'front_and_back'
 );
 
+export type BLEND_FUNC = (
+    'one|zero' | 'src_alpha|one_minus_src_alpha' | 'one|one_minus_src_alpha'
+);
+
 export type EXTENSION = ('element_index_uint' | 'depth_texture');
 
 export type READ_PIXELS_FORMAT = (
