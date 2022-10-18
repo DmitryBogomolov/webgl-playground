@@ -6,7 +6,7 @@ import {
     div2c,
     Vec3, vec3, add3, mul3,
     Mat4, translation4x4,
-    color,
+    Color, color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
@@ -33,6 +33,7 @@ interface ObjectInfo {
 interface LabelInfo {
     readonly position: Vec3;
     readonly texture: Texture;
+    readonly color: Color;
 }
 
 interface State {
@@ -114,6 +115,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
             program.setUniform('u_base_distance', baseDist);
             program.setUniform('u_view_position', viewPos);
             program.setUniform('u_texture', 5);
+            program.setUniform('u_color', label.color);
             labelPrimitive.render();
         }
     }
@@ -141,10 +143,12 @@ function makeObjectLabels(runtime: Runtime, position: Vec3, id: string): LabelIn
         {
             texture: makeLabelTexture(runtime, `${id}//(-1,-1,-1)`, FONT_SIZE),
             position: add3(position, vec3(-0.5, -0.5, -0.5)),
+            color: colors.RED,
         },
         {
             texture: makeLabelTexture(runtime, `${id}//(+1,+1,+1)`, FONT_SIZE),
             position: add3(position, vec3(+0.5, +0.5, +0.5)),
+            color: colors.BLUE,
         },
     ];
 }

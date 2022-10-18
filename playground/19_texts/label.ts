@@ -53,7 +53,7 @@ export function makeLabelTexture(runtime: Runtime, text: string, fontSize: numbe
     canvas.height = fontSize;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = '#FFF';
     ctx.font = font;
     ctx.fillText(text, width / 2, fontSize / 2);
 
