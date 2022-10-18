@@ -48,7 +48,7 @@ export function makeLabelTexture(runtime: Runtime, text: string, fontSize: numbe
     const ctx = canvas.getContext('2d')!;
     const font = `${fontSize}px Verdana`;
     ctx.font = font;
-    const width = ctx.measureText(text).width | 0;
+    const width = Math.ceil(ctx.measureText(text).width) + 2;
     canvas.width = width;
     canvas.height = fontSize;
     ctx.textAlign = 'center';
@@ -58,7 +58,7 @@ export function makeLabelTexture(runtime: Runtime, text: string, fontSize: numbe
     ctx.fillText(text, width / 2, fontSize / 2);
 
     texture.setImageData(canvas, { unpackFlipY: true });
-    // runtime.canvas().parentElement!.parentElement!.appendChild(canvas);
+    runtime.canvas().parentElement!.parentElement!.appendChild(canvas);
 
     return texture;
 }

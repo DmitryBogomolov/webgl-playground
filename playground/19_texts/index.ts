@@ -3,6 +3,7 @@ import {
     Primitive,
     Texture,
     Camera,
+    div2c,
     Vec3, vec3, add3,
     Mat4, translation4x4,
     color,
@@ -68,6 +69,7 @@ function main(): void {
 function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
+    const canvasSize = runtime.canvasSize();
     for (const { modelMat, labels } of objects) {
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
@@ -80,6 +82,8 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
             const program = labelPrimitive.program();
             program.setUniform('u_view_proj', viewProjMat);
             program.setUniform('u_position', label.position);
+            // Pass texture to canvas size ratio.
+            program.setUniform('u_size_coeff', div2c(label.texture.size(), canvasSize));
             program.setUniform('u_texture', 5);
             labelPrimitive.render();
         }
@@ -106,11 +110,11 @@ function makeObjects(runtime: Runtime): ObjectInfo[] {
 function makeObjectLabels(runtime: Runtime, position: Vec3, id: string): LabelInfo[] {
     return [
         {
-            texture: makeLabelTexture(runtime, `${id}: (-1,-1,-1)`, FONT_SIZE),
+            texture: makeLabelTexture(runtime, `${id}//(-1,-1,-1)`, FONT_SIZE),
             position: add3(position, vec3(-0.5, -0.5, -0.5)),
         },
         {
-            texture: makeLabelTexture(runtime, `${id}: (+1,+1,+1)`, FONT_SIZE),
+            texture: makeLabelTexture(runtime, `${id}//(+1,+1,+1)`, FONT_SIZE),
             position: add3(position, vec3(+0.5, +0.5, +0.5)),
         },
     ];
