@@ -4,10 +4,13 @@ import {
     Texture,
     Camera,
     div2c,
-    Vec3, vec3, add3,
+    Vec3, vec3, add3, mul3,
     Mat4, translation4x4,
     color,
+    deg2rad, spherical2zxy,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 import { makeLabelPrimitive, makeLabelTexture } from './label';
 
@@ -46,7 +49,17 @@ function main(): void {
     runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
-    camera.setEyePos(vec3(0, 1, 5));
+
+    const cameraLon = observable(0);
+    const cameraLat = observable(10);
+    const cameraDist = observable(5);
+    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
+        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
+        return mul3(dir, cameraDist);
+    }, [cameraLon, cameraLat, cameraDist]);
+    cameraPos.on((cameraPos) => {
+        camera.setEyePos(cameraPos);
+    });
 
     const state: State = {
         runtime,
@@ -63,7 +76,15 @@ function main(): void {
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
+    camera.changed().on(() => {
+        runtime.requestFrameRender();
+    });
 
+    createControls(container, [
+        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
+        { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
+    ]);
 }
 
 function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
