@@ -70,6 +70,8 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
     const canvasSize = runtime.canvasSize();
+    const baseDist = camera.getViewDist();
+    const viewPos = camera.getEyePos();
     for (const { modelMat, labels } of objects) {
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
@@ -82,8 +84,11 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
             const program = labelPrimitive.program();
             program.setUniform('u_view_proj', viewProjMat);
             program.setUniform('u_position', label.position);
-            // Pass texture to canvas size ratio.
+            // Texture to canvas size ratio.
             program.setUniform('u_size_coeff', div2c(label.texture.size(), canvasSize));
+            // Base distance and view position for depth coeff.
+            program.setUniform('u_base_distance', baseDist);
+            program.setUniform('u_view_position', viewPos);
             program.setUniform('u_texture', 5);
             labelPrimitive.render();
         }
