@@ -17,7 +17,9 @@ import { makeLabelPrimitive, makeLabelTexture } from './label';
 /**
  * Texts.
  *
- * TODO...
+ * Shows text rendering.
+ * Each text item has separate texture and quad primitive. The specifics are how quad points
+ * are transformed to properly display generated texture. See shader code for details.
  */
 export type DESCRIPTION = never;
 
