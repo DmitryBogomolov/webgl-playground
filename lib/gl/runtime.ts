@@ -25,6 +25,7 @@ const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
 const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
 const GL_TEXTURE0 = WebGL.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
+const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
 const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
 const GL_CULL_FACE = WebGL.CULL_FACE;
 const GL_BLEND = WebGL.BLEND;
@@ -51,6 +52,7 @@ interface State {
     boundTextures: { [key: number]: WebGLTexture | null };
     boundCubeTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
+    pixelStoreUnpackPremultiplyAlphaWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
     renderTarget: RenderTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
@@ -557,8 +559,17 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
-        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
-        this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
+        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
+        this._state.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
+    }
+
+    pixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlphaWebgl: boolean): void {
+        if (this._state.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
+            return;
+        }
+        this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
+        this.gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
+        this._state.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
     }
 
     bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
@@ -647,6 +658,7 @@ function getDefaultState(): State {
         boundTextures: {},
         boundCubeTextures: {},
         pixelStoreUnpackFlipYWebgl: false,
+        pixelStoreUnpackPremultiplyAlphaWebgl: false,
         framebuffer: null,
         renderTarget: null,
         renderbuffer: null,

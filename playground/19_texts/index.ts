@@ -49,7 +49,7 @@ function main(): void {
     const runtime = new Runtime(container);
     runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    runtime.setBlendFunc('src_alpha|one_minus_src_alpha');
+    runtime.setBlendFunc('one|one_minus_src_alpha');
     const camera = new Camera();
 
     const cameraLon = observable(0);
@@ -98,7 +98,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
 
     runtime.setDepthMask(true);
     runtime.setBlending(false);
-    for (const { modelMat, labels } of objects) {
+    for (const { modelMat } of objects) {
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
         program.setUniform('u_model', modelMat);

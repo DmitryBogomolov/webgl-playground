@@ -57,7 +57,7 @@ export function makeLabelTexture(runtime: Runtime, text: string, fontSize: numbe
     ctx.font = font;
     ctx.fillText(text, width / 2, fontSize / 2);
 
-    texture.setImageData(canvas, { unpackFlipY: true });
+    texture.setImageData(canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
     // runtime.canvas().parentElement!.parentElement!.appendChild(canvas);
 
     return texture;
