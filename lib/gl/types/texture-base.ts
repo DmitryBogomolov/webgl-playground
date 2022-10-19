@@ -22,6 +22,7 @@ export interface TextureParameters {
 
 export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
+    readonly unpackPremultiplyAlpha?: boolean;
     readonly generateMipmap?: boolean;
     readonly format?: TEXTURE_FORMAT;
 }
@@ -35,5 +36,5 @@ export type TextureImageData = TextureRawImageData | TexImageSource;
 
 export type TextureRuntimeBase = Pick<
     Runtime,
-    'gl' | 'pixelStoreUnpackFlipYWebgl'
+    'gl' | 'setPixelStoreUnpackFlipYWebgl' | 'setPixelStoreUnpackPremultiplyAlphaWebgl'
 >;

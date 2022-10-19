@@ -1,5 +1,5 @@
 import type {
-    BUFFER_MASK, DEPTH_FUNC, CULL_FACE, READ_PIXELS_FORMAT, ReadPixelsOptions, EXTENSION,
+    BUFFER_MASK, DEPTH_FUNC, CULL_FACE, BLEND_FUNC, READ_PIXELS_FORMAT, ReadPixelsOptions, EXTENSION,
     RuntimeOptions,
 } from './types/runtime';
 import type { Vec2 } from '../geometry/types/vec2';
@@ -25,8 +25,10 @@ const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
 const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
 const GL_TEXTURE0 = WebGL.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
+const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
 const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
 const GL_CULL_FACE = WebGL.CULL_FACE;
+const GL_BLEND = WebGL.BLEND;
 
 interface State {
     viewportSize: Vec2;
@@ -35,8 +37,11 @@ interface State {
     clearStencil: number;
     depthTest: boolean;
     depthFunc: DEPTH_FUNC;
+    depthMask: boolean;
     culling: boolean;
     cullFace: CULL_FACE;
+    blending: boolean;
+    blendFunc: BLEND_FUNC;
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
@@ -47,6 +52,7 @@ interface State {
     boundTextures: { [key: number]: WebGLTexture | null };
     boundCubeTextures: { [key: number]: WebGLTexture | null };
     pixelStoreUnpackFlipYWebgl: boolean;
+    pixelStoreUnpackPremultiplyAlphaWebgl: boolean;
     framebuffer: WebGLFramebuffer | null;
     renderTarget: RenderTarget | null;
     renderbuffer: WebGLRenderbuffer | null;
@@ -77,6 +83,18 @@ const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'back': WebGL.BACK,
     'front': WebGL.FRONT,
     'front_and_back': WebGL.FRONT_AND_BACK,
+};
+
+const BLEND_FUNC_MAP_SRC: GLValuesMap<BLEND_FUNC> = {
+    'one|zero': WebGL.ONE,
+    'src_alpha|one_minus_src_alpha': WebGL.SRC_ALPHA,
+    'one|one_minus_src_alpha': WebGL.ONE,
+};
+
+const BLEND_FUNC_MAP_DST: GLValuesMap<BLEND_FUNC> = {
+    'one|zero': WebGL.ZERO,
+    'src_alpha|one_minus_src_alpha': WebGL.ONE_MINUS_SRC_ALPHA,
+    'one|one_minus_src_alpha': WebGL.ONE_MINUS_SRC_ALPHA,
 };
 
 const READ_PIXELS_FORMAT_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
@@ -144,32 +162,7 @@ export class Runtime extends BaseWrapper {
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
-
-        // Initial state is formed according to specification.
-        // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
-        this._state = {
-            viewportSize: ZERO2,
-            clearColor: color(0, 0, 0, 0),
-            clearDepth: 1,
-            clearStencil: 0,
-            depthTest: false,
-            depthFunc: 'less',
-            culling: false,
-            cullFace: 'back',
-            currentProgram: null,
-            vertexArrayObject: null,
-            arrayBuffer: null,
-            elementArrayBuffers: {
-                [null as unknown as number]: null,
-            },
-            textureUnit: 0,
-            boundTextures: {},
-            boundCubeTextures: {},
-            pixelStoreUnpackFlipYWebgl: false,
-            framebuffer: null,
-            renderTarget: null,
-            renderbuffer: null,
-        };
+        this._state = getDefaultState();
         this.adjustViewport();
         if (this._options.trackWindowResize) {
             onWindowResize(this._handleWindowResize);
@@ -377,6 +370,20 @@ export class Runtime extends BaseWrapper {
         return true;
     }
 
+    getDepthMask(): boolean {
+        return this._state.depthMask;
+    }
+
+    setDepthMask(depthMask: boolean): boolean {
+        if (this._state.depthMask === depthMask) {
+            return false;
+        }
+        this._logger.log('set_depth_mask({0})', depthMask);
+        this.gl.depthMask(Boolean(depthMask));
+        this._state.depthMask = Boolean(depthMask);
+        return true;
+    }
+
     getCulling(): boolean {
         return this._state.culling;
     }
@@ -410,6 +417,42 @@ export class Runtime extends BaseWrapper {
         this._logger.log('set_cull_face({0})', cullFace);
         this.gl.cullFace(value);
         this._state.cullFace = cullFace;
+        return true;
+    }
+
+    getBlending(): boolean {
+        return this._state.blending;
+    }
+
+    setBlending(blending: boolean): boolean {
+        if (this._state.blending === blending) {
+            return false;
+        }
+        this._logger.log('set_blending({0})', blending);
+        if (blending) {
+            this.gl.enable(GL_BLEND);
+        } else {
+            this.gl.disable(GL_BLEND);
+        }
+        this._state.blending = Boolean(blending);
+        return true;
+    }
+
+    getBlendFunc(): BLEND_FUNC {
+        return this._state.blendFunc;
+    }
+
+    setBlendFunc(blendFunc: BLEND_FUNC): boolean {
+        const value = BLEND_FUNC_MAP_SRC[blendFunc];
+        if (!value) {
+            throw this._logger.error('set_blend_func({0}): bad value', blendFunc);
+        }
+        if (this._state.blendFunc === blendFunc) {
+            return false;
+        }
+        this._logger.log('set_blend_func({0})', blendFunc);
+        this.gl.blendFunc(value, BLEND_FUNC_MAP_DST[blendFunc]);
+        this._state.blendFunc = blendFunc;
         return true;
     }
 
@@ -511,13 +554,32 @@ export class Runtime extends BaseWrapper {
         this.bindCubeTexture(texture);
     }
 
-    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
+    getPixelStoreUnpackFlipYWebgl(): boolean {
+        return this._state.pixelStoreUnpackFlipYWebgl;
+    }
+
+    setPixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): boolean {
         if (this._state.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
-            return;
+            return false;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
-        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, unpackFlipYWebgl);
-        this._state.pixelStoreUnpackFlipYWebgl = unpackFlipYWebgl;
+        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
+        this._state.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
+        return true;
+    }
+
+    getPixelStoreUnpackPremultiplyAlphaWebgl(): boolean {
+        return this._state.pixelStoreUnpackPremultiplyAlphaWebgl;
+    }
+
+    setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlphaWebgl: boolean): boolean {
+        if (this._state.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
+            return false;
+        }
+        this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
+        this.gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
+        this._state.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
+        return true;
     }
 
     bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
@@ -573,13 +635,45 @@ export class Runtime extends BaseWrapper {
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
         // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
         // So it is just set to a fixed value to avoid any inconsistencies.
-        this.pixelStoreUnpackFlipYWebgl(false);
+        this.setPixelStoreUnpackFlipYWebgl(false);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this.gl.readPixels(x, y, width, height, glFormat, glType, pixels);
     }
 }
 
 const CANVAS_TAG = Symbol('CanvasTag');
+
+// Initial state is formed according to specification.
+// These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
+function getDefaultState(): State {
+    return {
+        viewportSize: ZERO2,
+        clearColor: color(0, 0, 0, 0),
+        clearDepth: 1,
+        clearStencil: 0,
+        depthTest: false,
+        depthFunc: 'less',
+        depthMask: true,
+        culling: false,
+        cullFace: 'back',
+        blending: false,
+        blendFunc: 'one|zero',
+        currentProgram: null,
+        vertexArrayObject: null,
+        arrayBuffer: null,
+        elementArrayBuffers: {
+            [null as unknown as number]: null,
+        },
+        textureUnit: 0,
+        boundTextures: {},
+        boundCubeTextures: {},
+        pixelStoreUnpackFlipYWebgl: false,
+        pixelStoreUnpackPremultiplyAlphaWebgl: false,
+        framebuffer: null,
+        renderTarget: null,
+        renderbuffer: null,
+    };
+}
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
