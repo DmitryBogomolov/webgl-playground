@@ -95,17 +95,20 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
     const canvasSize = runtime.canvasSize();
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
+
+    runtime.setDepthMask(true);
+    runtime.setBlending(false);
     for (const { modelMat, labels } of objects) {
-        runtime.setDepthMask(true);
-        runtime.setBlending(false);
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
         program.setUniform('u_model', modelMat);
         program.setUniform('u_color', [1, 0, 1]);
         primitive.render();
+    }
 
-        runtime.setDepthMask(false)
-        runtime.setBlending(true);
+    runtime.setDepthMask(false);
+    runtime.setBlending(true);
+    for (const { labels } of objects) {
         for (const label of labels) {
             runtime.setTextureUnit(5, label.texture);
             const program = labelPrimitive.program();
