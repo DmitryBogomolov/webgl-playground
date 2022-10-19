@@ -554,22 +554,32 @@ export class Runtime extends BaseWrapper {
         this.bindCubeTexture(texture);
     }
 
-    pixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): void {
+    getPixelStoreUnpackFlipYWebgl(): boolean {
+        return this._state.pixelStoreUnpackFlipYWebgl;
+    }
+
+    setPixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): boolean {
         if (this._state.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
-            return;
+            return false;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
         this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
         this._state.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
+        return true;
     }
 
-    pixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlphaWebgl: boolean): void {
+    getPixelStoreUnpackPremultiplyAlphaWebgl(): boolean {
+        return this._state.pixelStoreUnpackPremultiplyAlphaWebgl;
+    }
+
+    setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlphaWebgl: boolean): boolean {
         if (this._state.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
-            return;
+            return false;
         }
         this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
         this.gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
         this._state.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
+        return true;
     }
 
     bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
@@ -625,7 +635,7 @@ export class Runtime extends BaseWrapper {
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
         // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
         // So it is just set to a fixed value to avoid any inconsistencies.
-        this.pixelStoreUnpackFlipYWebgl(false);
+        this.setPixelStoreUnpackFlipYWebgl(false);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this.gl.readPixels(x, y, width, height, glFormat, glType, pixels);
     }

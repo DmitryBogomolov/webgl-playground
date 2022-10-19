@@ -138,8 +138,8 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
                 type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
             }
         }
-        this._runtime.pixelStoreUnpackFlipYWebgl(unpackFlipY);
-        this._runtime.pixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);
+        this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
+        this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);
         this._bind();
         return { format, type };
     }
