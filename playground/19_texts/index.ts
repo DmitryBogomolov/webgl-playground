@@ -96,6 +96,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
     for (const { modelMat, labels } of objects) {
+        runtime.setDepthMask(true);
         runtime.setBlending(false);
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
@@ -103,6 +104,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
         program.setUniform('u_color', [1, 0, 1]);
         primitive.render();
 
+        runtime.setDepthMask(false)
         runtime.setBlending(true);
         for (const label of labels) {
             runtime.setTextureUnit(5, label.texture);

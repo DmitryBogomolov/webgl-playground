@@ -36,6 +36,7 @@ interface State {
     clearStencil: number;
     depthTest: boolean;
     depthFunc: DEPTH_FUNC;
+    depthMask: boolean;
     culling: boolean;
     cullFace: CULL_FACE;
     blending: boolean;
@@ -367,6 +368,20 @@ export class Runtime extends BaseWrapper {
         return true;
     }
 
+    getDepthMask(): boolean {
+        return this._state.depthMask;
+    }
+
+    setDepthMask(depthMask: boolean): boolean {
+        if (this._state.depthMask === depthMask) {
+            return false;
+        }
+        this._logger.log('set_depth_mask({0})', depthMask);
+        this.gl.depthMask(Boolean(depthMask));
+        this._state.depthMask = Boolean(depthMask);
+        return true;
+    }
+
     getCulling(): boolean {
         return this._state.culling;
     }
@@ -617,6 +632,7 @@ function getDefaultState(): State {
         clearStencil: 0,
         depthTest: false,
         depthFunc: 'less',
+        depthMask: true,
         culling: false,
         cullFace: 'back',
         blending: false,
