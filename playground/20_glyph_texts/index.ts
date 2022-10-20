@@ -12,7 +12,8 @@ import {
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
-import { makeLabelPrimitive, makeLabelTexture } from './label';
+import { makeStringPrimitive, makeGlyphTexture } from './label';
+import { makeGlyphAtlas } from './glyph';
 
 /**
  * Glyph texts.
@@ -50,8 +51,16 @@ function main(): void {
     runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     runtime.setBlendFunc('one|one_minus_src_alpha');
-    const camera = new Camera();
 
+    const atlas = makeGlyphAtlas(FONT_SIZE);
+    const texture = new Texture(runtime);
+    texture.setImageData(atlas.canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
+    texture.setParameters({
+        mag_filter: 'nearest',
+        min_filter: 'nearest',
+    });
+
+    const camera = new Camera();
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
@@ -67,7 +76,7 @@ function main(): void {
         runtime,
         camera,
         primitive: makePrimitive(runtime),
-        labelPrimitive: makeLabelPrimitive(runtime),
+        labelPrimitive: makeStringPrimitive(runtime),
         objects: makeObjects(runtime),
     };
 
@@ -87,6 +96,8 @@ function main(): void {
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
     ]);
+
+    container.parentElement!.appendChild(atlas.canvas);
 }
 
 function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
@@ -146,12 +157,12 @@ function makeObjects(runtime: Runtime): ObjectInfo[] {
 function makeObjectLabels(runtime: Runtime, position: Vec3, id: string): LabelInfo[] {
     return [
         {
-            texture: makeLabelTexture(runtime, `${id}//(-1,-1,-1)`, FONT_SIZE),
+            texture: makeGlyphTexture(runtime, `${id}//(-1,-1,-1)`, FONT_SIZE),
             position: add3(position, vec3(-0.5, -0.5, -0.5)),
             color: colors.RED,
         },
         {
-            texture: makeLabelTexture(runtime, `${id}//(+1,+1,+1)`, FONT_SIZE),
+            texture: makeGlyphTexture(runtime, `${id}//(+1,+1,+1)`, FONT_SIZE),
             position: add3(position, vec3(+0.5, +0.5, +0.5)),
             color: colors.BLUE,
         },
