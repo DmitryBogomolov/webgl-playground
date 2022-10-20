@@ -14,7 +14,7 @@ export interface Glyph {
 }
 
 export interface GlyphAtlas {
-    readonly glyphs: ReadonlyArray<Glyph>;
+    readonly glyphs: ReadonlyMap<number, Glyph>;
     readonly canvas: HTMLCanvasElement;
 }
 
@@ -49,7 +49,7 @@ export function makeGlyphAtlas(fontSize: number): GlyphAtlas {
     }
 
     return {
-        glyphs,
+        glyphs: new Map((glyphs).map((glyph) => [glyph.char.charCodeAt(0), glyph])),
         canvas,
     };
 }

@@ -1,4 +1,5 @@
 attribute vec2 a_position;
+attribute vec2 a_texcoord;
 
 uniform mat4 u_view_proj;
 uniform vec3 u_position;
@@ -21,5 +22,5 @@ void main() {
     float depth_coeff = u_base_distance / distance(u_position, u_view_position);
     position.xy += a_position * u_size_coeff * depth_coeff * position.w;
     gl_Position = position;
-    v_texcoord = (a_position + vec2(1.0)) / 2.0;
+    v_texcoord = a_texcoord;
 }

@@ -7,13 +7,13 @@ import {
     Vec3, vec3, add3, mul3,
     Mat4, translation4x4,
     Color, color, colors,
-    deg2rad, spherical2zxy,
+    deg2rad, spherical2zxy, Vec2,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
-import { makeStringPrimitive, makeGlyphTexture } from './label';
-import { makeGlyphAtlas } from './glyph';
+import { makeStringPrimitive, getNextLabel } from './label';
+import { GlyphAtlas, makeGlyphAtlas } from './glyph';
 
 /**
  * Glyph texts.
@@ -33,15 +33,16 @@ interface ObjectInfo {
 
 interface LabelInfo {
     readonly position: Vec3;
-    readonly texture: Texture;
+    readonly primitive: Primitive;
+    readonly size: Vec2;
     readonly color: Color;
 }
 
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
+    readonly atlasTexture: Texture;
     readonly primitive: Primitive;
-    readonly labelPrimitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
@@ -75,9 +76,9 @@ function main(): void {
     const state: State = {
         runtime,
         camera,
+        atlasTexture: texture,
         primitive: makePrimitive(runtime),
-        labelPrimitive: makeStringPrimitive(runtime),
-        objects: makeObjects(runtime),
+        objects: makeObjects(runtime, atlas),
     };
 
     runtime.frameRendered().on(() => {
@@ -100,7 +101,7 @@ function main(): void {
     container.parentElement!.appendChild(atlas.canvas);
 }
 
-function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
+function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
     const canvasSize = runtime.canvasSize();
@@ -119,50 +120,48 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
 
     runtime.setDepthMask(false);
     runtime.setBlending(true);
+    runtime.setTextureUnit(5, atlasTexture);
     for (const { labels } of objects) {
         for (const label of labels) {
-            runtime.setTextureUnit(5, label.texture);
-            const program = labelPrimitive.program();
+            const program = label.primitive.program();
             program.setUniform('u_view_proj', viewProjMat);
             program.setUniform('u_position', label.position);
             // Texture to canvas size ratio.
-            program.setUniform('u_size_coeff', div2c(label.texture.size(), canvasSize));
+            program.setUniform('u_size_coeff', div2c(label.size, canvasSize));
             // Base distance and view position for depth coeff.
             program.setUniform('u_base_distance', baseDist);
             program.setUniform('u_view_position', viewPos);
             program.setUniform('u_texture', 5);
             program.setUniform('u_color', label.color);
-            labelPrimitive.render();
+            label.primitive.render();
         }
     }
 }
 
-function makeObjects(runtime: Runtime): ObjectInfo[] {
+function makeObjects(runtime: Runtime, atlas: GlyphAtlas): ObjectInfo[] {
     const objects: ObjectInfo[] = [];
     const STEP = 2;
-    let i = 0;
     for (let dx = -STEP; dx <= +STEP; dx += STEP) {
         for (let dy = -STEP; dy <= +STEP; dy += STEP) {
             const position = vec3(dx, dy, 0);
             objects.push({
                 modelMat: translation4x4(position),
-                labels: makeObjectLabels(runtime, position, `#${i}`),
+                labels: makeObjectLabels(runtime, position, atlas),
             });
-            ++i;
         }
     }
     return objects;
 }
 
-function makeObjectLabels(runtime: Runtime, position: Vec3, id: string): LabelInfo[] {
+function makeObjectLabels(runtime: Runtime, position: Vec3, atlas: GlyphAtlas): LabelInfo[] {
     return [
         {
-            texture: makeGlyphTexture(runtime, `${id}//(-1,-1,-1)`, FONT_SIZE),
+            ...makeStringPrimitive(runtime, atlas, getNextLabel()),
             position: add3(position, vec3(-0.5, -0.5, -0.5)),
             color: colors.RED,
         },
         {
-            texture: makeGlyphTexture(runtime, `${id}//(+1,+1,+1)`, FONT_SIZE),
+            ...makeStringPrimitive(runtime, atlas, getNextLabel()),
             position: add3(position, vec3(+0.5, +0.5, +0.5)),
             color: colors.BLUE,
         },
