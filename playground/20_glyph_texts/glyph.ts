@@ -41,7 +41,7 @@ export function makeGlyphAtlas(fontSize: number): GlyphAtlas {
     canvas.height = ATLAS_SIZE;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = '#FFF';
     ctx.font = font;
 
     for (const glyph of glyphs) {
