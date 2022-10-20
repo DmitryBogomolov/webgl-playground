@@ -56,10 +56,6 @@ function main(): void {
     const atlas = makeGlyphAtlas(FONT_SIZE);
     const texture = new Texture(runtime);
     texture.setImageData(atlas.canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
-    texture.setParameters({
-        mag_filter: 'nearest',
-        min_filter: 'nearest',
-    });
 
     const camera = new Camera();
     const cameraLon = observable(0);
