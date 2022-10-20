@@ -18,7 +18,9 @@ import { GlyphAtlas, makeGlyphAtlas } from './glyph';
 /**
  * Glyph texts.
  *
- * TODO...
+ * Shows text rendering with glyph texture.
+ * Rather than making separate texture for each text, single texture is created for a set of characters.
+ * Then each text is assembled from characters of that single texture.
  */
 export type DESCRIPTION = never;
 
@@ -94,7 +96,7 @@ function main(): void {
         { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
     ]);
 
-    container.parentElement!.appendChild(atlas.canvas);
+    // container.parentElement!.appendChild(atlas.canvas);
 }
 
 function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {

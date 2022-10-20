@@ -10,7 +10,8 @@ const ATLAS_SIZE = 128;
 export interface Glyph {
     readonly char: string;
     readonly size: Vec2;
-    readonly coord: Vec2;
+    // Top-left glyph position in atlas; X goes right, Y goes down.
+    readonly location: Vec2;
 }
 
 export interface GlyphAtlas {
@@ -18,6 +19,7 @@ export interface GlyphAtlas {
     readonly canvas: HTMLCanvasElement;
 }
 
+// Layout glyphs in square texture of ATLAS_SIZE*ATLAS_SIZE.
 export function makeGlyphAtlas(fontSize: number): GlyphAtlas {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
@@ -26,15 +28,16 @@ export function makeGlyphAtlas(fontSize: number): GlyphAtlas {
     const letterHeight = fontSize;
     let xOffset = 0;
     let yOffset = 0;
-    const glyphs: Glyph[] = ALPHABET.map((ch) => {
-        const width = Math.ceil(ctx.measureText(ch).width) + 1;
+    const glyphs: Glyph[] = ALPHABET.map((char) => {
+        const width = Math.ceil(ctx.measureText(char).width) + 1;
         if (xOffset + width > ATLAS_SIZE) {
             yOffset += letterHeight;
             xOffset = 0;
         }
-        const glyph: Glyph = { char: ch, size: vec2(width, letterHeight), coord: vec2(xOffset, yOffset) };
+        const location = vec2(xOffset, yOffset);
+        const size = vec2(width, letterHeight);
         xOffset += width;
-        return glyph;
+        return { char, size, location };
     });
 
     canvas.width = ATLAS_SIZE;
@@ -43,9 +46,8 @@ export function makeGlyphAtlas(fontSize: number): GlyphAtlas {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#FFF';
     ctx.font = font;
-
-    for (const glyph of glyphs) {
-        ctx.fillText(glyph.char, glyph.coord.x + glyph.size.x / 2, glyph.coord.y + glyph.size.y / 2);
+    for (const { char, size, location } of glyphs) {
+        ctx.fillText(char, location.x + size.x / 2, location.y + size.y / 2);
     }
 
     return {

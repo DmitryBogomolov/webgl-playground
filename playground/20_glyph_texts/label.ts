@@ -9,6 +9,10 @@ import {
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
 
+// Generates quads for each character in string.
+// All quads are aligned horizontally and cover [-1,+1]*[-1,+1] range.
+// Calculates texture coordinates for each quad based on glyph location in atlas.
+// Also calculates total pixel size of generated quad (required in shader to calculate actual position).
 export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: string): {
     primitive: Primitive,
     size: Vec2,
@@ -25,15 +29,15 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     const { width: atlasWidth, height: atlasHeight } = atlas.canvas;
     let xOffset = -1;
     for (let i = 0; i < text.length; ++i) {
-        const glyph = atlas.glyphs.get(text.charCodeAt(i))!;
+        const { size, location } = atlas.glyphs.get(text.charCodeAt(i))!;
         const x1 = xOffset;
-        const x2 = xOffset + 2 * glyph.size.x / fullWidth;
+        const x2 = xOffset + 2 * size.x / fullWidth;
         const y1 = -1;
         const y2 = +1;
-        const u1 = glyph.coord.x / atlasWidth;
-        const u2 = (glyph.coord.x + glyph.size.x) / atlasWidth;
-        const v1 = 1 - (glyph.coord.y + glyph.size.y) / atlasHeight;
-        const v2 = 1 - glyph.coord.y / atlasHeight;
+        const u1 = location.x / atlasWidth;
+        const u2 = (location.x + size.x) / atlasWidth;
+        const v1 = 1 - (location.y + size.y) / atlasHeight;
+        const v2 = 1 - location.y / atlasHeight;
         xOffset = x2;
 
         vertices.push(
@@ -47,7 +51,6 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
             idx + 0, idx + 1, idx + 2,
             idx + 2, idx + 3, idx + 0,
         );
-
     }
 
     const schema = parseVertexSchema([
@@ -75,6 +78,7 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     return { primitive, size: vec2(fullWidth, fullHeight) };
 }
 
+// Just an arbitrary set of words.
 const LABELS_POOL = [
     'anna',
     'colin',
