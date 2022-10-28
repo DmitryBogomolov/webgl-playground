@@ -1,6 +1,6 @@
 import {
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
-    eq3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
+    eq3, isZero3, isUnit3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
     dot3, mul3, div3, mul3c, div3c, add3, sub3, cross3, rotate3,
 } from './vec3';
 
@@ -16,6 +16,19 @@ describe('vec3', () => {
     it('eq3', () => {
         expect(eq3({ x: 1, y: 2, z: 3 }, { x: 2, y: 3, z: 4 })).toEqual(false);
         expect(eq3({ x: 1, y: 2, z: 3 }, { x: 1, y: 2, z: 3 })).toEqual(true);
+    });
+
+    it('isZero3', () => {
+        expect(isZero3({ x: 0, y: 0, z: 0 })).toEqual(true);
+        expect(isZero3({ x: 0.1, y: 0, z: 0 })).toEqual(false);
+    });
+
+    it('isUnit3', () => {
+        expect(isUnit3({ x: 1, y: 0, z: 0 })).toEqual(true);
+        expect(isUnit3({ x: 0, y: -1, z: 0 })).toEqual(true);
+        expect(isUnit3({ x: 0, y: 0, z: 1 })).toEqual(true);
+        expect(isUnit3({ x: -1 / 3, y: 2 / 3, z: -2 / 3 })).toEqual(true);
+        expect(isUnit3({ x: 2, y: -1, z: 0 })).toEqual(false);
     });
 
     it('dot3', () => {

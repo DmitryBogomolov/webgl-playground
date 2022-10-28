@@ -36,6 +36,14 @@ export function eq4(a: Vec4, b: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
     );
 }
 
+export function isZero4(v: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen4(v), 0, eps);
+}
+
+export function isUnit4(v: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen4(v), 1, eps);
+}
+
 export function dot4(a: Vec4, b: Vec4): number {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }

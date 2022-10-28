@@ -28,6 +28,14 @@ export function eq2(a: Vec2, b: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
     return a === b || (eq(a.x, b.x, eps) && eq(a.y, b.y, eps));
 }
 
+export function isZero2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen2(v), 0, eps);
+}
+
+export function isUnit2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen2(v), 1, eps);
+}
+
 export function add2(a: Vec2, b: Vec2): Vec2 {
     return vec2(a.x + b.x, a.y + b.y);
 }

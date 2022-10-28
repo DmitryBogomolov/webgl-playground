@@ -33,6 +33,14 @@ export function eq3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
     );
 }
 
+export function isZero3(v: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen3(v), 0, eps);
+}
+
+export function isUnit3(v: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen3(v), 1, eps);
+}
+
 export function dot3(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
