@@ -120,3 +120,11 @@ export function rotate3(v: Vec3, axis: Vec3, rotation: number): Vec3 {
         v.x * (z * x * t - y * s) + v.y * (z * y * t + x * s) + v.z * (z * z * t + c),
     );
 }
+
+export function collinear3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
+    return isZero3(cross3(a, b), eps);
+}
+
+export function orthogonal3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(dot3(a, b), 0, eps);
+}
