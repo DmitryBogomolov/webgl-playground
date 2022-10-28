@@ -1,4 +1,5 @@
 import type { Vec3 } from './types/vec3';
+import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec3Impl implements Vec3 {
     readonly x: number;
@@ -26,9 +27,9 @@ export function isVec3(v: unknown): v is Vec3 {
     return !!v && ('x' in (v as Vec3)) && ('y' in (v as Vec3)) && ('z' in (v as Vec3));
 }
 
-export function eq3(a: Vec3, b: Vec3, eps: number = 1E-7): boolean {
+export function eq3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
     return a === b || (
-        Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps && Math.abs(a.z - b.z) <= eps
+        eq(a.x, b.x, eps) && eq(a.y, b.y, eps) && eq(a.z, b.z, eps)
     );
 }
 

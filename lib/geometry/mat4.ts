@@ -3,6 +3,7 @@ import type { Vec3 } from './types/vec3';
 import type { Vec4 } from './types/vec4';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { vec4 } from './vec4';
+import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 const MAT_RANK = 4;
 const MAT_SIZE = MAT_RANK ** 2;
@@ -33,12 +34,12 @@ function idx2rowcol(idx: number): Pair {
     return [idx % MAT_RANK, (idx / MAT_RANK) | 0];
 }
 
-export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = 1E-7): boolean {
+export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = FLOAT_EQ_EPS): boolean {
     if (lhs === rhs) {
         return true;
     }
     for (let i = 0; i < MAT_SIZE; ++i) {
-        if (Math.abs(lhs[i] - rhs[i]) > eps) {
+        if (!eq(lhs[i], rhs[i], eps)) {
             return false;
         }
     }

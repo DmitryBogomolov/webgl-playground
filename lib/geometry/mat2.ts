@@ -1,6 +1,7 @@
 import type { Mat2 } from './types/mat2';
 import type { Vec2 } from './types/vec2';
 import { vec2 } from './vec2';
+import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 const MAT_RANK = 2;
 const MAT_SIZE = MAT_RANK ** 2;
@@ -20,12 +21,12 @@ function set(mat: Mat2, ...values: number[]): Mat2 {
     return mat;
 }
 
-export function eq2x2(lhs: Mat2, rhs: Mat2, eps: number = 1E-7): boolean {
+export function eq2x2(lhs: Mat2, rhs: Mat2, eps: number = FLOAT_EQ_EPS): boolean {
     if (lhs === rhs) {
         return true;
     }
     for (let i = 0; i < MAT_SIZE; ++i) {
-        if (Math.abs(lhs[i] - rhs[i]) > eps) {
+        if (!eq(lhs[i], rhs[i], eps)) {
             return false;
         }
     }

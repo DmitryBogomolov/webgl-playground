@@ -1,4 +1,5 @@
 import type { Vec4 } from './types/vec4';
+import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec4Impl implements Vec4 {
     readonly x: number;
@@ -29,10 +30,9 @@ export function isVec4(v: unknown): v is Vec4 {
     return !!v && ('x' in (v as Vec4)) && ('y' in (v as Vec4)) && ('z' in (v as Vec4)) && ('w' in (v as Vec4));
 }
 
-export function eq4(a: Vec4, b: Vec4, eps: number = 1E-7): boolean {
+export function eq4(a: Vec4, b: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
     return a === b || (
-        Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps
-        && Math.abs(a.z - b.z) <= eps && Math.abs(a.w - b.w) <= eps
+        eq(a.x, b.x, eps) && eq(a.y, b.y, eps) && eq(a.z, b.z, eps) && eq(a.w, b.w, eps)
     );
 }
 
