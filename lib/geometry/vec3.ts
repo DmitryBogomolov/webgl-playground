@@ -128,3 +128,9 @@ export function collinear3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolea
 export function orthogonal3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
     return eq(dot3(a, b), 0, eps);
 }
+
+export function project3(v: Vec3, axis: Vec3): Vec3 {
+    const n = norm3(axis);
+    const len = dot3(v, n);
+    return mul3(n, len);
+}

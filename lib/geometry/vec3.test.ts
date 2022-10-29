@@ -2,7 +2,7 @@ import {
     ZERO3, UNIT3, XUNIT3, YUNIT3, ZUNIT3,
     eq3, isZero3, isUnit3, neg3, inv3, len3, sqrlen3, norm3, dir3, dist3, sqrdist3,
     dot3, mul3, div3, mul3c, div3c, add3, sub3, cross3, rotate3,
-    collinear3, orthogonal3,
+    collinear3, orthogonal3, project3,
 } from './vec3';
 
 describe('vec3', () => {
@@ -114,5 +114,15 @@ describe('vec3', () => {
         expect(orthogonal3({ x: 1, y: 1, z: 0 }, { x: 2, y: -2, z: 0 })).toEqual(true);
         expect(orthogonal3({ x: 0, y: 1, z: 2 }, { x: 4, y: 0, z: 0 })).toEqual(true);
         expect(orthogonal3({ x: 1, y: 1, z: 0 }, { x: 2, y: 1, z: 3 })).toEqual(false);
+    });
+
+    it('project3', () => {
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: -10, y: 0, z: 0 })).toBeVec3({ x: 2, y: 0, z: 0 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: 0, y: -20, z: 0 })).toBeVec3({ x: 0, y: 3, z: 0 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: 0, y: 0, z: -30 })).toBeVec3({ x: 0, y: 0, z: 4 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: -20, y: -30, z: 0 })).toBeVec3({ x: 2, y: 3, z: 0 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: 0, y: -30, z: -40 })).toBeVec3({ x: 0, y: 3, z: 4 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: -20, y: 0, z: -40 })).toBeVec3({ x: 2, y: 0, z: 4 });
+        expect(project3({ x: 2, y: 3, z: 4 }, { x: -20, y: -30, z: -40 })).toBeVec3({ x: 2, y: 3, z: 4 });
     });
 });
