@@ -1,6 +1,6 @@
 import type { Plane3 } from './types/plane3';
 import type { Vec3 } from './types/vec3';
-import { XUNIT3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, norm3 } from './vec3';
+import { XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3 } from './vec3';
 import { floatEq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Plane3Impl implements Plane3 {
@@ -15,7 +15,7 @@ export class Plane3Impl implements Plane3 {
 
 function normalizeNormal(normal: Vec3): Vec3 {
     const n = norm3(normal);
-    return n.x >= 0 ? n : vec3(-n.x, n.y, n.z);
+    return n.x >= 0 ? n : neg3(n);
 }
 
 export const XOY = plane3(ZUNIT3, 0);
