@@ -1,6 +1,6 @@
 import type { Line3 } from './types/line3';
 import type { Vec3 } from './types/vec3';
-import { isVec3, eq3, norm3, neg3 } from './vec3';
+import { isVec3, eq3, norm3, neg3, project3, add3 } from './vec3';
 import { FLOAT_EQ_EPS } from './float-eq';
 
 export class Line3Impl implements Line3 {
@@ -9,7 +9,7 @@ export class Line3Impl implements Line3 {
 
     constructor(direction: Vec3, anchor: Vec3) {
         this.direction = normalizeDirection(direction);
-        this.anchor = normalizeAnchor(anchor, this.direction);
+        this.anchor = normalizeAnchor(anchor, direction);
     }
 }
 
@@ -19,8 +19,8 @@ function normalizeDirection(direction: Vec3): Vec3 {
 }
 
 function normalizeAnchor(anchor: Vec3, direction: Vec3): Vec3 {
-    // TODO...
-    return anchor;
+    const offset = project3(neg3(anchor), direction);
+    return add3(anchor, offset);
 }
 
 export function line3(direction: Vec3, anchor: Vec3): Line3 {
