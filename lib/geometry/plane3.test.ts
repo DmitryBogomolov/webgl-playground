@@ -1,12 +1,12 @@
 import {
-    XOY, YOZ, ZOX, plane3eq,
+    XOY3, YOZ3, ZOX3, plane3eq,
 } from './plane3';
 
 describe('plane3', () => {
     it('constants', () => {
-        expect(plane3eq(XOY, { normal: { x: 0, y: 0, z: 1 }, distance: 0 })).toEqual(true);
-        expect(plane3eq(YOZ, { normal: { x: 1, y: 0, z: 0 }, distance: 0 })).toEqual(true);
-        expect(plane3eq(ZOX, { normal: { x: 0, y: 1, z: 0 }, distance: 0 })).toEqual(true);
+        expect(plane3eq(XOY3, { normal: { x: 0, y: 0, z: 1 }, distance: 0 })).toEqual(true);
+        expect(plane3eq(YOZ3, { normal: { x: 1, y: 0, z: 0 }, distance: 0 })).toEqual(true);
+        expect(plane3eq(ZOX3, { normal: { x: 0, y: 1, z: 0 }, distance: 0 })).toEqual(true);
     });
 
     it('plane3eq', () => {

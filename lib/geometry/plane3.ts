@@ -20,9 +20,9 @@ function normalizeNormal(normal: Vec3): Vec3 {
     return n.x >= 0 ? n : neg3(n);
 }
 
-export const XOY = plane3(ZUNIT3, 0);
-export const YOZ = plane3(XUNIT3, 0);
-export const ZOX = plane3(YUNIT3, 0);
+export const XOY3 = plane3(ZUNIT3, 0);
+export const YOZ3 = plane3(XUNIT3, 0);
+export const ZOX3 = plane3(YUNIT3, 0);
 
 export function plane3(normal: Vec3, distance: number): Plane3 {
     return new Plane3Impl(normal, distance);
