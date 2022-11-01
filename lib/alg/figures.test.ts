@@ -1,5 +1,5 @@
-import type { Vec2 } from './types/vec2';
-import type { Vec3 } from './types/vec3';
+import type { Vec2 } from './../geometry/types/vec2';
+import type { Vec3 } from './../geometry/types/vec3';
 import { VertexData, generateCube, generateSphere } from './figures';
 
 describe('figures', () => {
