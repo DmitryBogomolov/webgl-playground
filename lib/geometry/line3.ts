@@ -31,10 +31,10 @@ export function line3(direction: Vec3, anchor: Vec3): Line3 {
     return new Line3Impl(direction, anchor);
 }
 
-export function isLine3(l: unknown): l is Line3 {
-    return !!l &&(isVec3((l as Line3).direction) && isVec3((l as Line3).anchor));
+export function isLine3(line: unknown): line is Line3 {
+    return !!line && (isVec3((line as Line3).direction) && isVec3((line as Line3).anchor));
 }
 
-export function line3eq(a: Line3, b: Line3, eps: number = FLOAT_EQ_EPS): boolean {
-    return a === b || (eq3(a.direction, b.direction, eps) && eq3(a.anchor, b.anchor, eps));
+export function line3eq(lhs: Line3, rhs: Line3, eps: number = FLOAT_EQ_EPS): boolean {
+    return lhs === rhs || (eq3(lhs.direction, rhs.direction, eps) && eq3(lhs.anchor, rhs.anchor, eps));
 }
