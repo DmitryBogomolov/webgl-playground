@@ -1,6 +1,7 @@
 import type { Line3 } from './types/line3';
 import type { Vec3 } from './types/vec3';
-import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3, project3, add3 } from './vec3';
+import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3 } from './vec3';
+import { point3line3projection } from './relations3';
 import { FLOAT_EQ_EPS } from './float-eq';
 
 export class Line3Impl implements Line3 {
@@ -19,8 +20,7 @@ function normalizeDirection(direction: Vec3): Vec3 {
 }
 
 function normalizeAnchor(anchor: Vec3, direction: Vec3): Vec3 {
-    const offset = project3(neg3(anchor), direction);
-    return add3(anchor, offset);
+    return point3line3projection(ZERO3, { anchor, direction });
 }
 
 export const OX3 = line3(XUNIT3, ZERO3);
