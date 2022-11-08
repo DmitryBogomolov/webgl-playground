@@ -8,14 +8,11 @@ export class Plane3Impl implements Plane3 {
     readonly distance: number;
 
     constructor(normal: Vec3, distance: number) {
-        this.normal = normalizeNormal(normal);
-        this.distance = distance;
+        const norm = norm3(normal);
+        // Opposite normal defines the same plane. Pick one normal.
+        this.normal = norm.x >= 0 ? norm : neg3(norm);
+        this.distance = norm.x >= 0 ? distance : -distance;
     }
-}
-
-function normalizeNormal(normal: Vec3): Vec3 {
-    const n = norm3(normal);
-    return n.x >= 0 ? n : neg3(n);
 }
 
 export const XOY3 = plane3(ZUNIT3, 0);

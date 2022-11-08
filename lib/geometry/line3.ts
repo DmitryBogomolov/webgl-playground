@@ -1,7 +1,6 @@
 import type { Line3 } from './types/line3';
 import type { Vec3 } from './types/vec3';
-import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3 } from './vec3';
-import { point3line3projection } from './relations3';
+import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3, project3, sub3 } from './vec3';
 import { FLOAT_EQ_EPS } from './float-eq';
 
 export class Line3Impl implements Line3 {
@@ -9,18 +8,12 @@ export class Line3Impl implements Line3 {
     readonly anchor: Vec3;
 
     constructor(direction: Vec3, anchor: Vec3) {
-        this.direction = normalizeDirection(direction);
-        this.anchor = normalizeAnchor(anchor, direction);
+        const dir = norm3(direction);
+        // Opposite direction defines the same line. Pick one direction.
+        this.direction = dir.x >= 0 ? dir : neg3(dir);
+        // Pick point on the line closest to (0,0,0). That would be projection onto the line.
+        this.anchor = sub3(anchor, project3(anchor, this.direction));
     }
-}
-
-function normalizeDirection(direction: Vec3): Vec3 {
-    const d = norm3(direction);
-    return d.x >= 0 ? d : neg3(d);
-}
-
-function normalizeAnchor(anchor: Vec3, direction: Vec3): Vec3 {
-    return point3line3projection(ZERO3, { anchor, direction });
 }
 
 export const OX3 = line3(XUNIT3, ZERO3);
