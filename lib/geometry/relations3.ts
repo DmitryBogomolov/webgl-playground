@@ -66,14 +66,14 @@ export function line3line3distance(line1: Line3, line2: Line3): number {
 
 function lin(
     a11: number, a12: number, a21: number, a22: number, b1: number, b2: number,
-): { type: 'one', value: [number, number] } | { type: 'none' } | { type: 'many' } {
+): { type: 'one', t1: number, t2: number } | { type: 'many' } | { type: 'none' } {
     const det = a11 * a22 - a21 * a12;
     const det1 = b1 * a22 - b2 * a12;
     const det2 = a11 * b2 - a21 * b2;
     const t1 = det1 / det;
     const t2 = det2 / det;
     if (Number.isFinite(t1) && Number.isFinite(t2)) {
-        return { type: 'one', value: [t1, t2] };
+        return { type: 'one', t1, t2 };
     }
     return det1 === 0 && det2 === 0 ? { type: 'many' } : { type: 'none' };
 }
@@ -93,7 +93,7 @@ export function line3line3intersection(line1: Line3, line2: Line3): Vec3 | null 
     if (xy.type === 'many' && yz.type === 'many') {
         return null;
     }
-    const t = (xy.type === 'one' && xy.value[0]) || (yz.type === 'one' && yz.value[0]) as number;
+    const t = (xy.type === 'one' && xy.t1) || (yz.type === 'one' && yz.t2) as number;
     return add3(line1.anchor, mul3(line1.direction, t));
 }
 
