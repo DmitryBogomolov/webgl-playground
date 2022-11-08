@@ -1,4 +1,5 @@
 import type { Vec2 } from './types/vec2';
+import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec2Impl implements Vec2 {
     readonly x: number;
@@ -23,8 +24,16 @@ export function isVec2(v: unknown): v is Vec2 {
     return !!v && ('x' in (v as Vec2)) && ('y' in (v as Vec2));
 }
 
-export function eq2(a: Vec2, b: Vec2, eps: number = 1E-7): boolean {
-    return a === b || (Math.abs(a.x - b.x) <= eps && Math.abs(a.y - b.y) <= eps);
+export function eq2(a: Vec2, b: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
+    return a === b || (eq(a.x, b.x, eps) && eq(a.y, b.y, eps));
+}
+
+export function isZero2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen2(v), 0, eps);
+}
+
+export function isUnit2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
+    return eq(sqrlen2(v), 1, eps);
 }
 
 export function add2(a: Vec2, b: Vec2): Vec2 {

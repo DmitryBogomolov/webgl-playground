@@ -5,7 +5,7 @@ import type { Mat4 } from '../geometry/types/mat4';
 import type { EventProxy } from '../utils/types/event-emitter';
 import { Logger } from '../utils/logger';
 import { EventEmitter } from '../utils/event-emitter';
-import { fovDist2Size } from '../geometry/scalar';
+import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
 import {
