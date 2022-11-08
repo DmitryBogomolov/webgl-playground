@@ -63,9 +63,37 @@ export function line3line3distance(line1: Line3, line2: Line3): number {
     return point3line3distance(line1.anchor, line2);
 }
 
+function lin(
+    a11: number, a12: number, a21: number, a22: number, b1: number, b2: number,
+): { type: 'one', value: [number, number] } | { type: 'none' } | { type: 'many' } {
+    const det = a11 * a22 - a21 * a12;
+    const det1 = b1 * a22 - b2 * a12;
+    const det2 = a11 * b2 - a21 * b2;
+    const t1 = det1 / det;
+    const t2 = det2 / det;
+    if (Number.isFinite(t1) && Number.isFinite(t2)) {
+        return { type: 'one', value: [t1, t2] };
+    }
+    return det1 === 0 && det2 === 0 ? { type: 'many' } : { type: 'none' };
+}
+
 export function line3line3intersection(line1: Line3, line2: Line3): Vec3 | null {
-    // TODO...
-    return null;
+    const xy = lin(
+        line1.direction.x, -line2.direction.x, line1.direction.y, -line2.direction.y,
+        -line1.anchor.x + line2.anchor.x, -line1.anchor.y + line2.anchor.y,
+    );
+    const yz = lin(
+        line1.direction.y, -line2.direction.y, line1.direction.z, -line2.direction.z,
+        -line1.anchor.y + line2.anchor.y, -line1.anchor.z + line2.anchor.z,
+    )
+    if (xy.type === 'none' || yz.type === 'none') {
+        return null;
+    }
+    if (xy.type === 'many' && yz.type === 'many') {
+        return null;
+    }
+    const t = (xy.type === 'one' && xy.value[0]) || (yz.type === 'one' && yz.value[0]) as number;
+    return add3(line1.anchor, mul3(line1.direction, t));
 }
 
 export function plane3plane3intersection(plane1: Plane3, plane2: Plane3): Line3 | null {
