@@ -1,7 +1,8 @@
 import type { Vec3 } from './types/vec3';
-import type { Line3 } from'./types/line3';
-import type { Plane3 } from'./types/plane3';
-import { add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3 } from './vec3';
+import type { Line3 } from './types/line3';
+import type { Plane3 } from './types/plane3';
+import { add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3, isZero3 } from './vec3';
+import { line3 } from './line3';
 
 export function point3line3projection(point: Vec3, line: Line3): Vec3 {
     // Take direction from line point to targer point, project it onto line direction.
@@ -85,7 +86,7 @@ export function line3line3intersection(line1: Line3, line2: Line3): Vec3 | null 
     const yz = lin(
         line1.direction.y, -line2.direction.y, line1.direction.z, -line2.direction.z,
         -line1.anchor.y + line2.anchor.y, -line1.anchor.z + line2.anchor.z,
-    )
+    );
     if (xy.type === 'none' || yz.type === 'none') {
         return null;
     }
@@ -96,7 +97,22 @@ export function line3line3intersection(line1: Line3, line2: Line3): Vec3 | null 
     return add3(line1.anchor, mul3(line1.direction, t));
 }
 
-export function plane3plane3intersection(plane1: Plane3, plane2: Plane3): Line3 | null {
-    // TODO...
-    return null;
+export function plane3plane3intersection(plane1: Plane3, plane2: Plane3): Line3 | number {
+    const normal1 = norm3(plane1.normal);
+    const normal2 = norm3(plane2.normal);
+    const direction = cross3(normal1, normal2);
+    if (isZero3(direction)) {
+        return Math.abs(plane1.distance - plane2.distance);
+    }
+    // Line is defined as anchor + direction * t. Substitute it into planes.
+    // (normal1, anchor + direction * t) = distance1, (normal2, anchor + direction * t) = distance2
+    // After simplification
+    // ((normal1, direction) * normal2 - (normal2, direction) * normal1, anchor) =
+    // = (normal1, direction) * distance2 - (normal2, direction) * distance1.
+    const dot1 = dot3(normal1, direction);
+    const dot2 = dot3(normal2, direction);
+    const vec = add3(mul3(normal2, +dot1), mul3(normal1, -dot2));
+    const d = dot1 * plane2.distance - dot2 * plane1.distance;
+    const anchor = mul3(norm3(vec), d / len3(vec));
+    return line3(direction, anchor);
 }
