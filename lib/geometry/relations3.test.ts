@@ -11,30 +11,30 @@ describe('relations3', () => {
     it('point3line3projection', () => {
         expect(point3line3projection(
             { x: 4, y: 4, z: 10 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toBeVec3({ x: 4, y: 4, z: 1 });
         expect(point3line3projection(
             { x: 2, y: 2, z: -4 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toBeVec3({ x: 2, y: 2, z: 1 });
         expect(point3line3projection(
             { x: 3, y: 3, z: 1 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toBeVec3({ x: 3, y: 3, z: 1 });
     });
 
     it('point3line3distance', () => {
         expect(point3line3distance(
             { x: 4, y: 4, z: 10 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toEqual(9);
         expect(point3line3distance(
             { x: 2, y: 2, z: -4 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toEqual(5);
         expect(point3line3distance(
             { x: 3, y: 3, z: 1 },
-            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 }},
+            { direction: { x: 1, y: 1, z: 0 }, anchor: { x: 2, y: 2, z: 1 } },
         )).toEqual(0);
     });
 
@@ -129,6 +129,6 @@ describe('relations3', () => {
         expect(plane3plane3intersection(
             { normal: { x: 2, y: 0, z: 0 }, distance: 4 },
             { normal: { x: 0, y: 3, z: 0 }, distance: 5 },
-        )).toEqual({ direction: { x: 0, y: 0, z: 1 }, anchor: {} });
+        )).toEqual({ direction: { x: 0, y: 0, z: 1 }, anchor: { x: 4, y: 5, z: 0 } });
     });
 });

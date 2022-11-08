@@ -1,7 +1,7 @@
 import type { Vec3 } from './types/vec3';
 import type { Line3 } from './types/line3';
 import type { Plane3 } from './types/plane3';
-import { add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3, isZero3 } from './vec3';
+import { vec3, add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3, isZero3 } from './vec3';
 import { line3 } from './line3';
 
 export function point3line3projection(point: Vec3, line: Line3): Vec3 {
@@ -104,15 +104,29 @@ export function plane3plane3intersection(plane1: Plane3, plane2: Plane3): Line3 
     if (isZero3(direction)) {
         return Math.abs(plane1.distance - plane2.distance);
     }
-    // Line is defined as anchor + direction * t. Substitute it into planes.
-    // (normal1, anchor + direction * t) = distance1, (normal2, anchor + direction * t) = distance2
-    // After simplification
-    // ((normal1, direction) * normal2 - (normal2, direction) * normal1, anchor) =
-    // = (normal1, direction) * distance2 - (normal2, direction) * distance1.
-    const dot1 = dot3(normal1, direction);
-    const dot2 = dot3(normal2, direction);
-    const vec = add3(mul3(normal2, +dot1), mul3(normal1, -dot2));
-    const d = dot1 * plane2.distance - dot2 * plane1.distance;
-    const anchor = mul3(norm3(vec), d / len3(vec));
-    return line3(direction, anchor);
+
+    // Line anchor point belongs to both lines.
+    // (normal1, anchor) = distance1 and (normal2, anchor) = distance2.
+    // It gives two equations and three unknowns (intersection line itself).
+    // That lines intersects at least one of XOY, YOZ, ZOY planes. Pick any point.
+    let anchor: Vec3 | null = null;
+    if (anchor === null) {
+        const ret = lin(normal1.x, normal1.y, normal2.x, normal2.y, plane1.distance, plane2.distance);
+        if (ret.type === 'one') {
+            anchor = vec3(ret.t1, ret.t2, 0);
+        }
+    }
+    if (anchor === null) {
+        const ret = lin(normal1.y, normal1.z, normal2.y, normal2.z, plane1.distance, plane2.distance);
+        if (ret.type === 'one') {
+            anchor = vec3(0, ret.t1, ret.t2);
+        }
+    }
+    if (anchor === null) {
+        const ret = lin(normal1.x, normal1.z, normal2.x, normal2.z, plane1.distance, plane2.distance);
+        if (ret.type === 'one') {
+            anchor = vec3(ret.t1, 0, ret.t2);
+        }
+    }
+    return line3(direction, anchor!);
 }
