@@ -3,11 +3,11 @@ import {
     Primitive,
     Camera,
     mul3,
-    Mat4, identity4x4,
+    Mat4, identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     Color, color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
+import { observable, computed, Observable } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 
@@ -24,7 +24,7 @@ interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
     readonly primitive: Primitive;
-    readonly modelMat: Mat4;
+    readonly modelMat: Observable<Mat4>;
     readonly modelClr: Color;
 }
 
@@ -46,12 +46,23 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
+    const xRotation = observable(0);
+    const yRotation = observable(0);
+    const _modelMat = identity4x4();
+    const modelMat = computed(([xRotation, yRotation]) => {
+        const mat = _modelMat;
+        identity4x4(mat);
+        apply4x4(mat, xrotation4x4, deg2rad(xRotation));
+        apply4x4(mat, yrotation4x4, deg2rad(yRotation));
+        return mat;
+    }, [xRotation, yRotation]);
+
     const state: State = {
         runtime,
         camera,
         primitive: makePrimitive(runtime),
-        modelMat: identity4x4(),
-        modelClr: color(0.8, 0.2, 0),
+        modelMat,
+        modelClr: color(0.5, 0.1, 0.5),
     };
 
     runtime.frameRendered().on(() => {
@@ -61,14 +72,16 @@ function main(): void {
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
-    camera.changed().on(() => {
+    [camera.changed(), modelMat].forEach((proxy) => proxy.on(() => {
         runtime.requestFrameRender();
-    });
+    }));
 
     createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
+        { label: 'x rotation', value: xRotation, min: -180, max: +180 },
+        { label: 'y rotation', value: yRotation, min: -180, max: +180 },
     ]);
 }
 
@@ -76,7 +89,7 @@ function renderScene({ runtime, camera, primitive, modelMat, modelClr }: State):
     runtime.clearBuffer('color|depth');
 
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
-    primitive.program().setUniform('u_model', modelMat);
+    primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
 }
