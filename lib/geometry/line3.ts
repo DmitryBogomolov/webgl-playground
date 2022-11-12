@@ -1,6 +1,6 @@
 import type { Line3 } from './types/line3';
 import type { Vec3 } from './types/vec3';
-import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, project3, sub3, isZero3 } from './vec3';
+import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, project3, sub3 } from './vec3';
 import { FLOAT_EQ_EPS } from './float-eq';
 import { normalizeDirection3 } from './dir-norm3';
 
@@ -32,9 +32,8 @@ export function line3eq(lhs: Line3, rhs: Line3, eps: number = FLOAT_EQ_EPS): boo
 }
 
 export function line3ofPoints(point1: Vec3, point2: Vec3): Line3 {
-    const direction = sub3(point2, point1);
-    if (isZero3(direction)) {
+    if (eq3(point1, point2)) {
         throw new Error('same points');
     }
-    return line3(direction, point1);
+    return line3(sub3(point2, point1), point1);
 }
