@@ -1,7 +1,7 @@
 import {
     ZERO2, UNIT2, XUNIT2, YUNIT2,
     eq2, isZero2, isUnit2, neg2, inv2, len2, sqrlen2, norm2,
-    dot2, mul2, div2, mul2c, div2c, add2, sub2, dir2, dist2, sqrdist2,
+    dot2, mul2, div2, mul2c, div2c, add2, sub2, dir2, dist2, sqrdist2, project2,
 } from './vec2';
 
 describe('vec2', () => {
@@ -87,5 +87,12 @@ describe('vec2', () => {
 
     it('sqrdist2', () => {
         expect(sqrdist2({ x: 1, y: 2 }, { x: 4, y: 1 })).toBeCloseTo(10);
+    });
+
+    it('project2', () => {
+        expect(project2({ x: 2, y: 3 }, { x: -10, y: 0 })).toBeVec2({ x: 2, y: 0 });
+        expect(project2({ x: 2, y: 3 }, { x: 0, y: -20 })).toBeVec2({ x: 0, y: 3 });
+        expect(project2({ x: 2, y: 3 }, { x: -20, y: -30 })).toBeVec2({ x: 2, y: 3 });
+        expect(project2({ x: 2, y: 3 }, { x: 0, y: -30 })).toBeVec2({ x: 0, y: 3 });
     });
 });
