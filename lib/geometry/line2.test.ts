@@ -30,14 +30,14 @@ describe('line2', () => {
         )).toEqual(true);
         expect(line2eq(
             line2({ x: 0, y: -3 }, { x: 1, y: 2 }),
-            { direction: { x: 0, y: -1 }, anchor: { x: 1, y: 0 } },
+            { direction: { x: 0, y: 1 }, anchor: { x: 1, y: 0 } },
         )).toEqual(true);
     });
 
     it('line2ofPoints', () => {
         expect(line2eq(
             line2ofPoints({ x: 1, y: 4 }, { x: 1, y: 0 }),
-            { direction: { x: 0, y: -1 }, anchor: { x: 1, y: 0 } },
+            { direction: { x: 0, y: 1 }, anchor: { x: 1, y: 0 } },
         )).toEqual(true);
     });
 });

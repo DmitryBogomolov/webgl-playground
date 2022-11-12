@@ -1,16 +1,15 @@
 import type { Line2 } from './types/line2';
 import type { Vec2 } from './types/vec2';
-import { ZERO2, XUNIT2, YUNIT2, isVec2, eq2, norm2, neg2, project2, sub2, isZero2 } from './vec2';
+import { ZERO2, XUNIT2, YUNIT2, isVec2, eq2, project2, sub2, isZero2 } from './vec2';
 import { FLOAT_EQ_EPS } from './float-eq';
+import { normalizeDirection2 } from './dir-norm2';
 
 export class Line2Impl implements Line2 {
     readonly direction: Vec2;
     readonly anchor: Vec2;
 
     constructor(direction: Vec2, anchor: Vec2) {
-        const dir = norm2(direction);
-        // Opposite direction defines the same line. Pick one direction.
-        this.direction = dir.x >= 0 ? dir : neg2(dir);
+        this.direction = normalizeDirection2(direction);
         // Pick point on the line closest to (0,0). That would be projection onto the line.
         this.anchor = sub2(anchor, project2(anchor, this.direction));
     }

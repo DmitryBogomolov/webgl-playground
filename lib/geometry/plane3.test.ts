@@ -30,12 +30,12 @@ describe('plane3', () => {
             { normal: { x: 1, y: 0, z: 0 }, distance: -5 },
         )).toEqual(true);
         expect(plane3eq(
-            plane3({ x: 0, y: -3, z: 0 }, 4),
-            { normal: { x: 0, y: -1, z: 0 }, distance: 4 },
+            plane3({ x: 0, y: 3, z: 0 }, 4),
+            { normal: { x: 0, y: 1, z: 0 }, distance: 4 },
         )).toEqual(true);
         expect(plane3eq(
             plane3({ x: 0, y: 0, z: -2 }, -3),
-            { normal: { x: 0, y: 0, z: -1 }, distance: -3 },
+            { normal: { x: 0, y: 0, z: 1 }, distance: 3 },
         )).toEqual(true);
     });
 

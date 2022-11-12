@@ -1,17 +1,16 @@
 import type { Plane3 } from './types/plane3';
 import type { Vec3 } from './types/vec3';
-import { XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3, cross3, sub3, isZero3, dot3 } from './vec3';
+import { XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, cross3, sub3, isZero3, dot3 } from './vec3';
 import { floatEq, FLOAT_EQ_EPS } from './float-eq';
+import { normalizeDirection3 } from './dir-norm3';
 
 export class Plane3Impl implements Plane3 {
     readonly normal: Vec3;
     readonly distance: number;
 
     constructor(normal: Vec3, distance: number) {
-        const norm = norm3(normal);
-        // Opposite normal defines the same plane. Pick one normal.
-        this.normal = norm.x >= 0 ? norm : neg3(norm);
-        this.distance = norm.x >= 0 ? distance : -distance;
+        this.normal = normalizeDirection3(normal);
+        this.distance = dot3(normal, this.normal) >= 0 ? distance : -distance;
     }
 }
 
