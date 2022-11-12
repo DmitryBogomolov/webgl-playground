@@ -1,5 +1,5 @@
 import {
-    XOY3, YOZ3, ZOX3, plane3, plane3eq,
+    XOY3, YOZ3, ZOX3, plane3, plane3eq, plane3ofPoints,
 } from './plane3';
 
 describe('plane3', () => {
@@ -36,6 +36,13 @@ describe('plane3', () => {
         expect(plane3eq(
             plane3({ x: 0, y: 0, z: -2 }, -3),
             { normal: { x: 0, y: 0, z: -1 }, distance: -3 },
+        )).toEqual(true);
+    });
+
+    it('plane3ofPoints', () => {
+        expect(plane3eq(
+            plane3ofPoints({ x: 5, y: 3, z: -4 }, { x: -10, y: 3, z: -1 }, { x: 0, y: 3, z: 2 }),
+            { normal: { x: 0, y: 1, z: 0 }, distance: 3 },
         )).toEqual(true);
     });
 });

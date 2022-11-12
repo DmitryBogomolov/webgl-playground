@@ -1,5 +1,5 @@
 import {
-    OX3, OY3, OZ3, line3, line3eq,
+    OX3, OY3, OZ3, line3, line3eq, line3ofPoints,
 } from './line3';
 
 describe('line3', () => {
@@ -36,6 +36,13 @@ describe('line3', () => {
         expect(line3eq(
             line3({ x: 0, y: 0, z: -2 }, { x: 1, y: 2, z: 3 }),
             { direction: { x: 0, y: 0, z: -1 }, anchor: { x: 1, y: 2, z: 0 } },
+        )).toEqual(true);
+    });
+
+    it('line3ofPoints', () => {
+        expect(line3eq(
+            line3ofPoints({ x: 1, y: 4, z: 5 }, { x: 1, y: 0, z: 5 }),
+            { direction: { x: 0, y: -1, z: 0 }, anchor: { x: 1, y: 0, z: 5 } },
         )).toEqual(true);
     });
 });

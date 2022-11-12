@@ -1,6 +1,6 @@
 import type { Line3 } from './types/line3';
 import type { Vec3 } from './types/vec3';
-import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3, project3, sub3 } from './vec3';
+import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, neg3, project3, sub3, isZero3 } from './vec3';
 import { FLOAT_EQ_EPS } from './float-eq';
 
 export class Line3Impl implements Line3 {
@@ -30,4 +30,12 @@ export function isLine3(line: unknown): line is Line3 {
 
 export function line3eq(lhs: Line3, rhs: Line3, eps: number = FLOAT_EQ_EPS): boolean {
     return lhs === rhs || (eq3(lhs.direction, rhs.direction, eps) && eq3(lhs.anchor, rhs.anchor, eps));
+}
+
+export function line3ofPoints(point1: Vec3, point2: Vec3): Line3 {
+    const direction = sub3(point2, point1);
+    if (isZero3(direction)) {
+        throw new Error('same points');
+    }
+    return line3(direction, point1);
 }
