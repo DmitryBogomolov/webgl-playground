@@ -2,14 +2,15 @@ import {
     Runtime,
     Primitive,
     Camera,
-    mul3,
+    Vec3, vec3, mul3,
     Mat4, identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     Color, color,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed, Observable } from 'util/observable';
 import { createControls } from 'util/controls';
-import { makePrimitive } from './primitive';
+import { makePrimitive, makeControurPrimitive } from './primitive';
+import { findContour } from './contour';
 
 /**
  * Contour line.
@@ -24,8 +25,10 @@ interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
     readonly primitive: Primitive;
+    readonly contourPrimitive: Primitive;
     readonly modelMat: Observable<Mat4>;
     readonly modelClr: Color;
+    readonly modelPoints: ReadonlyArray<Vec3>;
 }
 
 function main(): void {
@@ -61,8 +64,19 @@ function main(): void {
         runtime,
         camera,
         primitive: makePrimitive(runtime),
+        contourPrimitive: makeControurPrimitive(runtime),
         modelMat,
         modelClr: color(0.5, 0.1, 0.5),
+        modelPoints: [
+            vec3(-0.5, -0.5, -0.5),
+            vec3(+0.5, -0.5, -0.5),
+            vec3(+0.5, +0.5, -0.5),
+            vec3(-0.5, +0.5, -0.5),
+            vec3(-0.5, -0.5, +0.5),
+            vec3(+0.5, -0.5, +0.5),
+            vec3(+0.5, +0.5, +0.5),
+            vec3(-0.5, +0.5, +0.5),
+        ]
     };
 
     runtime.frameRendered().on(() => {
@@ -73,6 +87,7 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
     [camera.changed(), modelMat].forEach((proxy) => proxy.on(() => {
+        updateContourPrimitive(state);
         runtime.requestFrameRender();
     }));
 
@@ -85,11 +100,17 @@ function main(): void {
     ]);
 }
 
-function renderScene({ runtime, camera, primitive, modelMat, modelClr }: State): void {
+function renderScene({ runtime, camera, primitive, contourPrimitive, modelMat, modelClr }: State): void {
     runtime.clearBuffer('color|depth');
 
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
     primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
+
+    contourPrimitive.render();
+}
+
+function updateContourPrimitive({ contourPrimitive, camera, modelMat, modelPoints }: State): void {
+    const points = findContour(modelPoints, modelMat(), camera.getTransformMat());
 }

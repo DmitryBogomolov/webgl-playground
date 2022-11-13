@@ -9,6 +9,9 @@ import {
 } from 'lib';
 import vertShader from './shader/object.vert';
 import fragShader from './shader/object.frag';
+import contourVertShader from './shader/contour.vert';
+import contourFragShader from './shader/contour.frag';
+
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
@@ -36,6 +39,26 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const program = new Program(runtime, {
         vertShader,
         fragShader,
+        schema,
+    });
+    primitive.setProgram(program);
+
+    return primitive;
+}
+
+export function makeControurPrimitive(runtime: Runtime): Primitive {
+    const schema = parseVertexSchema([
+        { name: 'a_position', type: 'float2' },
+    ]);
+
+    const primitive = new Primitive(runtime);
+    primitive.allocateVertexBuffer(schema.totalSize * 8);
+    primitive.allocateIndexBuffer(2 * 8 * 4);
+    primitive.setVertexSchema(schema);
+
+    const program = new Program(runtime, {
+        vertShader: contourVertShader,
+        fragShader: contourFragShader,
         schema,
     });
     primitive.setProgram(program);
