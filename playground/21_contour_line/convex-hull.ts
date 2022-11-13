@@ -28,7 +28,6 @@ export function findConvexHull(points: ReadonlyArray<Vec2>): Vec2[] {
             list2.push(point);
         }
     }
-    debugger
     const result1 = findConvexHullCore(minStart, maxStart, list1);
     const result2 = findConvexHullCore(maxStart, minStart, list2);
     return [minStart, ...result1, maxStart, ...result2];

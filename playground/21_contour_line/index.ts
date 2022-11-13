@@ -103,14 +103,42 @@ function main(): void {
 function renderScene({ runtime, camera, primitive, contourPrimitive, modelMat, modelClr }: State): void {
     runtime.clearBuffer('color|depth');
 
+    runtime.setDepthTest(true);
+    runtime.setDepthMask(true);
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
     primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
 
+    runtime.setDepthTest(false);
+    runtime.setDepthMask(false);
     contourPrimitive.render();
 }
 
 function updateContourPrimitive({ contourPrimitive, camera, modelMat, modelPoints }: State): void {
     const points = findContour(modelPoints, modelMat(), camera.getTransformMat());
+    console.log('###', points);
+    const vertexData = new Float32Array(points.length * 2);
+    const indexData = new Uint16Array(points.length * 2);
+    for (let i = 0; i < points.length; ++i) {
+        vertexData[2 * i + 0] = points[i].x;
+        vertexData[2 * i + 1] = points[i].y;
+        indexData[2 * i + 0] = i;
+        indexData[2 * i + 1] = (i + 1) % points.length;
+    }
+    // const vertexData = new Float32Array([
+    //     -0.5, -0.5,
+    //     +0.5, -0.5,
+    //     +0.5, +0.5,
+    //     -0.5, +0.5,
+    // ]);
+    // const indexData = new Uint16Array([
+    //     0, 1,
+    //     1, 2,
+    //     2, 3,
+    //     3, 0,
+    // ]);
+    contourPrimitive.updateVertexData(vertexData);
+    contourPrimitive.updateIndexData(indexData);
+    contourPrimitive.setIndexData({ indexCount: indexData.length, primitiveMode: 'lines' });
 }
