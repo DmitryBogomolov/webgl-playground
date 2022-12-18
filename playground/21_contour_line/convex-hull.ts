@@ -1,5 +1,5 @@
 import {
-    Vec2, vec2, dot2, dir2, line3line3distance,
+    Vec2, vec2, dot2, dir2,
 } from 'lib';
 
 const EPS = 1E-5;
