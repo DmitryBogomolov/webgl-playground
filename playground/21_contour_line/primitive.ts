@@ -5,7 +5,8 @@ import {
     generateCube,
     parseVertexSchema,
     VertexWriter,
-    UNIT3,
+    Vec2,
+    UNIT3, vec3,
 } from 'lib';
 import vertShader from './shader/object.vert';
 import fragShader from './shader/object.frag';
@@ -46,14 +47,20 @@ export function makePrimitive(runtime: Runtime): Primitive {
     return primitive;
 }
 
+// Cube has 6 faces. If each face contains intersection segment then there are 6 segments total.
+const MAX_CONTOUR_SEGMENTS = 6;
+const VERTEX_PER_SEGMENT = 4;
+const INDEX_PER_SEGMENT = 6;
+
 export function makeControurPrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
+        { name: 'a_position', type: 'float3' },
+        { name: 'a_other', type: 'float2' },
     ]);
 
     const primitive = new Primitive(runtime);
-    primitive.allocateVertexBuffer(schema.totalSize * 8);
-    primitive.allocateIndexBuffer(2 * 8 * 4);
+    primitive.allocateVertexBuffer(schema.totalSize * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
+    primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
     primitive.setVertexSchema(schema);
 
     const program = new Program(runtime, {
@@ -64,4 +71,33 @@ export function makeControurPrimitive(runtime: Runtime): Primitive {
     primitive.setProgram(program);
 
     return primitive;
+}
+
+export function updateContourData(primitive: Primitive, points: ReadonlyArray<Vec2>): void {
+    const segmentCount = points.length;
+    const vertexData = new ArrayBuffer(segmentCount * primitive.schema().totalSize * VERTEX_PER_SEGMENT);
+    const indexData = new Uint16Array(segmentCount * INDEX_PER_SEGMENT);
+    const vertexWriter = new VertexWriter(primitive.schema(), vertexData);
+    for (let i = 0; i < segmentCount; ++i) {
+        const p1 = points[i];
+        const p2 = points[(i + 1) % segmentCount];
+        const vertexIdx = VERTEX_PER_SEGMENT * i;
+        vertexWriter.writeAttribute(vertexIdx + 0, 'a_position', vec3(p1.x, p1.y, -1));
+        vertexWriter.writeAttribute(vertexIdx + 1, 'a_position', vec3(p1.x, p1.y, +1));
+        vertexWriter.writeAttribute(vertexIdx + 2, 'a_position', vec3(p2.x, p2.y, +1));
+        vertexWriter.writeAttribute(vertexIdx + 3, 'a_position', vec3(p2.x, p2.y, -1));
+        vertexWriter.writeAttribute(vertexIdx + 0, 'a_other', p2);
+        vertexWriter.writeAttribute(vertexIdx + 1, 'a_other', p2);
+        vertexWriter.writeAttribute(vertexIdx + 2, 'a_other', p1);
+        vertexWriter.writeAttribute(vertexIdx + 3, 'a_other', p1);
+        const indexIdx = INDEX_PER_SEGMENT * i;
+        indexData.set(
+            [vertexIdx + 0, vertexIdx + 1, vertexIdx + 3, vertexIdx + 3, vertexIdx + 2, vertexIdx + 0],
+            indexIdx,
+        );
+    }
+
+    primitive.updateVertexData(vertexData);
+    primitive.updateIndexData(indexData);
+    primitive.setIndexData({ indexCount: indexData.length, primitiveMode: 'triangles' });
 }
