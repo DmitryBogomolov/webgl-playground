@@ -85,10 +85,13 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
         const q1 = points[pickIndex(i - 1, segmentCount)];
         const q2 = points[pickIndex(i + 2, segmentCount)];
         const vertexIdx = VERTEX_PER_SEGMENT * i;
-        vertexWriter.writeAttribute(vertexIdx + 0, 'a_position', vec3(p1.x, p1.y, -1));
-        vertexWriter.writeAttribute(vertexIdx + 1, 'a_position', vec3(p1.x, p1.y, +1));
-        vertexWriter.writeAttribute(vertexIdx + 2, 'a_position', vec3(p2.x, p2.y, +1));
-        vertexWriter.writeAttribute(vertexIdx + 3, 'a_position', vec3(p2.x, p2.y, -1));
+        // Only half of line thickness is required, because other half overlaps figure itself.
+        // Assuming that line goes CCW, right half is drawn.
+        // For segment start it means 0 and +2 offsets, for segment end it means 0 and -2.
+        vertexWriter.writeAttribute(vertexIdx + 0, 'a_position', vec3(p1.x, p1.y, 0));
+        vertexWriter.writeAttribute(vertexIdx + 1, 'a_position', vec3(p1.x, p1.y, +2));
+        vertexWriter.writeAttribute(vertexIdx + 2, 'a_position', vec3(p2.x, p2.y, 0));
+        vertexWriter.writeAttribute(vertexIdx + 3, 'a_position', vec3(p2.x, p2.y, -2));
         const other1 = vec4(p2.x, p2.y, q1.x, q1.y);
         const other2 = vec4(p1.x, p1.y, q2.x, q2.y);
         vertexWriter.writeAttribute(vertexIdx + 0, 'a_other', other1);
