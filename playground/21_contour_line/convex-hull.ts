@@ -4,6 +4,8 @@ import {
 
 const EPS = 1E-5;
 
+// Finds convex hull of points using "Quickhull" algorithm.
+// https://en.wikipedia.org/wiki/Quickhull
 export function findConvexHull(points: ReadonlyArray<Vec2>): Vec2[] {
     let minStart = vec2(+Infinity, +Infinity);
     let maxStart = vec2(-Infinity, -Infinity);
