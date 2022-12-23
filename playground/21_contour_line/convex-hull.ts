@@ -32,7 +32,9 @@ export function findConvexHull(points: ReadonlyArray<Vec2>): Vec2[] {
     }
     const result1 = findConvexHullCore(minStart, maxStart, list1);
     const result2 = findConvexHullCore(maxStart, minStart, list2);
-    return [minStart, ...result1, maxStart, ...result2];
+    // Go from leftmost point to points below then to rightmost point then to points above then back.
+    // That gives CCW order.
+    return [minStart, ...result2, maxStart, ...result1];
 }
 
 function getNormal(p1: Vec2, p2: Vec2): Vec2 {
@@ -77,5 +79,6 @@ function findConvexHullCore(p1: Vec2, p2: Vec2, points: ReadonlyArray<Vec2>): Ve
     }
     const result1 = findConvexHullCore(p1, targetPoint, list1);
     const result2 = findConvexHullCore(targetPoint, p2, list2);
-    return [...result1, targetPoint, ...result2];
+    // Take points right-to-left to ensure CCW order.
+    return [...result2, targetPoint, ...result1];
 }
