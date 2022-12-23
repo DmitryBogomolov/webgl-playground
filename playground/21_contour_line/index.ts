@@ -31,6 +31,8 @@ interface State {
     readonly modelMat: Observable<Mat4>;
     readonly modelClr: Color;
     readonly modelPoints: ReadonlyArray<Vec3>;
+    readonly contourEnabled: Observable<boolean>;
+    readonly contourThickness: Observable<number>;
 }
 
 function main(): void {
@@ -62,6 +64,9 @@ function main(): void {
         return mat;
     }, [xRotation, yRotation]);
 
+    const contourEnabled = observable(true);
+    const contourThickness = observable(16);
+
     const state: State = {
         runtime,
         camera,
@@ -79,6 +84,8 @@ function main(): void {
             vec3(+0.5, +0.5, +0.5),
             vec3(-0.5, +0.5, +0.5),
         ],
+        contourEnabled,
+        contourThickness,
     };
 
     runtime.frameRendered().on(() => {
@@ -88,7 +95,7 @@ function main(): void {
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
-    [camera.changed(), modelMat].forEach((proxy) => proxy.on(() => {
+    [camera.changed(), modelMat, contourEnabled, contourThickness].forEach((proxy) => proxy.on(() => {
         updateContourPrimitive(state);
         runtime.requestFrameRender();
     }));
@@ -99,10 +106,16 @@ function main(): void {
         { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
         { label: 'x rotation', value: xRotation, min: -180, max: +180 },
         { label: 'y rotation', value: yRotation, min: -180, max: +180 },
+        { label: 'enabled', checked: contourEnabled },
+        { label: 'thickness', value: contourThickness, min: 0, max: 32 },
     ]);
 }
 
-function renderScene({ runtime, camera, primitive, contourPrimitive, modelMat, modelClr }: State): void {
+function renderScene({
+    runtime,
+    camera, primitive, contourPrimitive, modelMat, modelClr,
+    contourEnabled, contourThickness,
+}: State): void {
     runtime.clearBuffer('color|depth');
 
     runtime.setDepthTest(true);
@@ -112,11 +125,13 @@ function renderScene({ runtime, camera, primitive, contourPrimitive, modelMat, m
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
 
-    runtime.setDepthTest(false);
-    runtime.setDepthMask(false);
-    contourPrimitive.program().setUniform('u_canvas_size', runtime.canvasSize());
-    contourPrimitive.program().setUniform('u_thickness', 20);
-    contourPrimitive.render();
+    if (contourEnabled()) {
+        runtime.setDepthTest(false);
+        runtime.setDepthMask(false);
+        contourPrimitive.program().setUniform('u_canvas_size', runtime.canvasSize());
+        contourPrimitive.program().setUniform('u_thickness', contourThickness());
+        contourPrimitive.render();
+    }
 }
 
 function updateContourPrimitive({ contourPrimitive, camera, modelMat, modelPoints }: State): void {
