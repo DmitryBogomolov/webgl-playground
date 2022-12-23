@@ -15,7 +15,9 @@ import { findContour } from './contour';
 /**
  * Contour line.
  *
- * TODO...
+ * Draws object contour.
+ * Object points are projected onto screen (2D space). Convex hull of projected points gives object contour.
+ * Contour line is then rendered as 2D line of constant pixel width.
  */
 export type DESCRIPTION = never;
 
