@@ -7,6 +7,7 @@ import {
     VertexWriter,
     Vec2,
     UNIT3, vec3,
+    vec4,
 } from 'lib';
 import vertShader from './shader/object.vert';
 import fragShader from './shader/object.frag';
@@ -55,7 +56,7 @@ const INDEX_PER_SEGMENT = 6;
 export function makeControurPrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
-        { name: 'a_other', type: 'float2' },
+        { name: 'a_other', type: 'float4' },
     ]);
 
     const primitive = new Primitive(runtime);
@@ -80,16 +81,20 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     const vertexWriter = new VertexWriter(primitive.schema(), vertexData);
     for (let i = 0; i < segmentCount; ++i) {
         const p1 = points[i];
-        const p2 = points[(i + 1) % segmentCount];
+        const p2 = points[pickIndex(i + 1, segmentCount)];
+        const q1 = points[pickIndex(i - 1, segmentCount)];
+        const q2 = points[pickIndex(i + 2, segmentCount)];
         const vertexIdx = VERTEX_PER_SEGMENT * i;
         vertexWriter.writeAttribute(vertexIdx + 0, 'a_position', vec3(p1.x, p1.y, -1));
         vertexWriter.writeAttribute(vertexIdx + 1, 'a_position', vec3(p1.x, p1.y, +1));
         vertexWriter.writeAttribute(vertexIdx + 2, 'a_position', vec3(p2.x, p2.y, +1));
         vertexWriter.writeAttribute(vertexIdx + 3, 'a_position', vec3(p2.x, p2.y, -1));
-        vertexWriter.writeAttribute(vertexIdx + 0, 'a_other', p2);
-        vertexWriter.writeAttribute(vertexIdx + 1, 'a_other', p2);
-        vertexWriter.writeAttribute(vertexIdx + 2, 'a_other', p1);
-        vertexWriter.writeAttribute(vertexIdx + 3, 'a_other', p1);
+        const other1 = vec4(p2.x, p2.y, q1.x, q1.y);
+        const other2 = vec4(p1.x, p1.y, q2.x, q2.y);
+        vertexWriter.writeAttribute(vertexIdx + 0, 'a_other', other1);
+        vertexWriter.writeAttribute(vertexIdx + 1, 'a_other', other1);
+        vertexWriter.writeAttribute(vertexIdx + 2, 'a_other', other2);
+        vertexWriter.writeAttribute(vertexIdx + 3, 'a_other', other2);
         const indexIdx = INDEX_PER_SEGMENT * i;
         indexData.set(
             [vertexIdx + 0, vertexIdx + 1, vertexIdx + 3, vertexIdx + 3, vertexIdx + 2, vertexIdx + 0],
@@ -100,4 +105,8 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     primitive.updateVertexData(vertexData);
     primitive.updateIndexData(indexData);
     primitive.setIndexData({ indexCount: indexData.length, primitiveMode: 'triangles' });
+}
+
+function pickIndex(i: number, length: number): number {
+    return (i < 0 ? i + length : i) % length;
 }
