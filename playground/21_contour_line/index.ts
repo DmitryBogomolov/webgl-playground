@@ -89,11 +89,16 @@ function main(): void {
     };
 
     runtime.frameRendered().on(() => {
-        updateContourPrimitive(state);
         renderScene(state);
     });
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
+    });
+    [camera.changed(), modelMat].forEach((emitter) => {
+        emitter.on(() => {
+            updateContourPrimitive(state);
+            runtime.requestFrameRender();
+        });
     });
     [camera.changed(), modelMat, contourEnabled, contourThickness].forEach((emitter) => {
         emitter.on(() => {
