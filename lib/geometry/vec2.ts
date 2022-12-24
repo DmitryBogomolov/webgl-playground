@@ -96,6 +96,12 @@ export function sqrdist2(a: Vec2, b: Vec2): number {
     return sqrlen2(sub2(a, b));
 }
 
+export function project2(v: Vec2, axis: Vec2): Vec2 {
+    const n = norm2(axis);
+    const len = dot2(v, n);
+    return mul2(n, len);
+}
+
 export function pointToLineDistance2(point: Vec2, p1: Vec2, p2: Vec2): number {
     return Math.abs((p2.x - p1.x) * (p1.y - point.y) - (p1.x - point.x) * (p2.y - p1.y)) / dist2(p1, p2);
 }

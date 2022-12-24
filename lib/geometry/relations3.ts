@@ -3,6 +3,7 @@ import type { Line3 } from './types/line3';
 import type { Plane3 } from './types/plane3';
 import { vec3, add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3, isZero3 } from './vec3';
 import { line3 } from './line3';
+import { solveSysLinEq } from './sys-lin-eq';
 
 export function point3line3projection(point: Vec3, line: Line3): Vec3 {
     // Take direction from line point to targer point, project it onto line direction.
@@ -64,36 +65,22 @@ export function line3line3distance(line1: Line3, line2: Line3): number {
     return point3line3distance(line1.anchor, line2);
 }
 
-function lin(
-    a11: number, a12: number, a21: number, a22: number, b1: number, b2: number,
-): { type: 'one', t1: number, t2: number } | { type: 'many' } | { type: 'none' } {
-    const det = a11 * a22 - a21 * a12;
-    const det1 = b1 * a22 - b2 * a12;
-    const det2 = a11 * b2 - a21 * b2;
-    const t1 = det1 / det;
-    const t2 = det2 / det;
-    if (Number.isFinite(t1) && Number.isFinite(t2)) {
-        return { type: 'one', t1, t2 };
-    }
-    return det1 === 0 && det2 === 0 ? { type: 'many' } : { type: 'none' };
-}
-
 export function line3line3intersection(line1: Line3, line2: Line3): Vec3 | null {
-    const xy = lin(
-        line1.direction.x, -line2.direction.x, line1.direction.y, -line2.direction.y,
-        -line1.anchor.x + line2.anchor.x, -line1.anchor.y + line2.anchor.y,
+    const xy = solveSysLinEq(
+        [line1.direction.x, -line2.direction.x, line1.direction.y, -line2.direction.y],
+        [-line1.anchor.x + line2.anchor.x, -line1.anchor.y + line2.anchor.y],
     );
-    const yz = lin(
-        line1.direction.y, -line2.direction.y, line1.direction.z, -line2.direction.z,
-        -line1.anchor.y + line2.anchor.y, -line1.anchor.z + line2.anchor.z,
+    const yz = solveSysLinEq(
+        [line1.direction.y, -line2.direction.y, line1.direction.z, -line2.direction.z],
+        [-line1.anchor.y + line2.anchor.y, -line1.anchor.z + line2.anchor.z],
     );
-    if (xy.type === 'none' || yz.type === 'none') {
+    if (xy === null || yz === null) {
         return null;
     }
-    if (xy.type === 'many' && yz.type === 'many') {
+    if (xy === undefined && yz === undefined) {
         return null;
     }
-    const t = (xy.type === 'one' && xy.t1) || (yz.type === 'one' && yz.t2) as number;
+    const t = (xy && xy[0]) || (yz && yz[0]) as number;
     return add3(line1.anchor, mul3(line1.direction, t));
 }
 
@@ -111,21 +98,21 @@ export function plane3plane3intersection(plane1: Plane3, plane2: Plane3): Line3 
     // That lines intersects at least one of XOY, YOZ, ZOY planes. Pick any point.
     let anchor: Vec3 | null = null;
     if (anchor === null) {
-        const ret = lin(normal1.x, normal1.y, normal2.x, normal2.y, plane1.distance, plane2.distance);
-        if (ret.type === 'one') {
-            anchor = vec3(ret.t1, ret.t2, 0);
+        const ret = solveSysLinEq([normal1.x, normal1.y, normal2.x, normal2.y], [plane1.distance, plane2.distance]);
+        if (ret) {
+            anchor = vec3(ret[0], ret[1], 0);
         }
     }
     if (anchor === null) {
-        const ret = lin(normal1.y, normal1.z, normal2.y, normal2.z, plane1.distance, plane2.distance);
-        if (ret.type === 'one') {
-            anchor = vec3(0, ret.t1, ret.t2);
+        const ret = solveSysLinEq([normal1.y, normal1.z, normal2.y, normal2.z], [plane1.distance, plane2.distance]);
+        if (ret) {
+            anchor = vec3(0, ret[0], ret[1]);
         }
     }
     if (anchor === null) {
-        const ret = lin(normal1.x, normal1.z, normal2.x, normal2.z, plane1.distance, plane2.distance);
-        if (ret.type === 'one') {
-            anchor = vec3(ret.t1, 0, ret.t2);
+        const ret = solveSysLinEq([normal1.x, normal1.z, normal2.x, normal2.z], [plane1.distance, plane2.distance]);
+        if (ret) {
+            anchor = vec3(ret[0], 0, ret[1]);
         }
     }
     return line3(direction, anchor!);
