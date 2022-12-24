@@ -43,14 +43,14 @@ export class Camera {
 
     private _markProjDirty(): void {
         this._projDirty = true;
-        this._changed.emit();
         this._markTransformDirty();
+        this._changed.emit();
     }
 
     private _markViewDirty(): void {
         this._viewDirty = true;
-        this._changed.emit();
         this._markTransformDirty();
+        this._changed.emit();
     }
 
     private _markTransformDirty(): void {

@@ -167,5 +167,34 @@ describe('camera', () => {
             camera.setViewportSize({ x: 200, y: 100 });
             expect(count).toEqual(3);
         });
+
+        it('return actual state on changed event', () => {
+            const camera = new Camera();
+            let handler: () => void;
+            camera.changed().on(() => {
+                handler();
+            });
+            camera.getTransformMat();
+
+            handler = () => {
+                expect(camera.getTransformMat()).toBeMat4([
+                    0, 0, -1.7321, 0,
+                    -1.5492, 0.7746, 0, 0,
+                    -0.4473, -0.8946, 0, 2.2165,
+                    -0.4472, -0.8944, 0, 2.2361,
+                ]);
+            };
+            camera.setEyePos({ x: 1, y: 2, z: 0 });
+
+            handler = () => {
+                expect(camera.getTransformMat()).toBeMat4([
+                    0, 0, -1.7321, 0,
+                    -1.5492, 0.7746, 0, 0,
+                    -0.4481, -0.8962, 0, 2.2205,
+                    -0.4472, -0.8944, 0, 2.2361,
+                ]);
+            };
+            camera.setZFar(10);
+        });
     });
 });
