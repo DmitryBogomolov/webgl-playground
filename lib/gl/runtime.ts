@@ -174,6 +174,7 @@ export class Runtime extends BaseWrapper {
         this._logger.log('dispose');
         this._renderLoop.cancel();
         this._renderLoop.clearCallbacks();
+        this._sizeChanged.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         if (this._options.trackWindowResize) {
