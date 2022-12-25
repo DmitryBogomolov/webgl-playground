@@ -8,6 +8,7 @@ import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import Mustache from 'mustache';
 
 interface Playground {
+    readonly name: string;
     readonly title: string;
     readonly hasWorker: boolean;
     readonly hasMarkup: boolean;
@@ -50,6 +51,7 @@ fs.readdirSync(PLAYGROUND_DIR).forEach((dirName) => {
         const markupPath = path.join(currentDir, 'markup.html');
         const hasMarkup = fs.existsSync(markupPath);
         playgrounds[dirName] = {
+            name: dirName,
             title: capitalizeName(dirName),
             hasWorker: fs.existsSync(path.join(currentDir, 'worker.ts')),
             hasMarkup,
@@ -210,6 +212,7 @@ function renderRootPage(): string {
 function renderPlaygroundPage(name: string): string {
     const playground = playgrounds[name]!;
     return Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
+        name: playground.name,
         title: playground.title,
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/${name}.js`,

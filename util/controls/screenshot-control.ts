@@ -21,7 +21,7 @@ export class ScreenshotControl extends BaseControl {
 
     private readonly _handleClick = async (): Promise<void> => {
         const blob = await takeCanvasSnapshot(this._runtime);
-        downloadBlob(blob, 'test');
+        downloadBlob(blob, PLAYGROUND_NAME);
     };
 }
 
