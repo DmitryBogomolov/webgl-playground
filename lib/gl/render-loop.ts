@@ -31,7 +31,7 @@ export class RenderLoop {
         return this._frameRendered.proxy();
     }
 
-    clearRenderCallbacks(): void {
+    clearCallbacks(): void {
         this._frameRendered.clear();
     }
 }

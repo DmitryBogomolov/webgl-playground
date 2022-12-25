@@ -136,6 +136,7 @@ export class Runtime extends BaseWrapper {
         handler();
     });
     private readonly _state: State;
+    // TODO: Replace it with getters.
     readonly gl: WebGLRenderingContext;
     readonly vaoExt: OES_vertex_array_object;
 
@@ -172,6 +173,7 @@ export class Runtime extends BaseWrapper {
     dispose(): void {
         this._logger.log('dispose');
         this._renderLoop.cancel();
+        this._renderLoop.clearCallbacks();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         if (this._options.trackWindowResize) {
