@@ -67,7 +67,7 @@ const entry: EntryObject = {
 };
 
 Object.entries(playgrounds).forEach(([name, playground]) => {
-    entry[name] = path.join(PLAYGROUND_DIR, name, 'index.ts');
+    entry[name] = [path.join(TEMPLATES_DIR, 'test.ts'), path.join(PLAYGROUND_DIR, name, 'index.ts')];
     if (playground.hasWorker) {
         entry[name + '_worker'] = path.join(PLAYGROUND_DIR, name, 'worker.ts');
     }
