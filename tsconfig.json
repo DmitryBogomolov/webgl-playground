@@ -81,6 +81,7 @@
     "include": [
         "./lib/**/*.ts",
         "./types/*.ts",
+        "./util/**/*.ts",
         "./playground/**/*.ts",
         "./*.ts"
     ],
