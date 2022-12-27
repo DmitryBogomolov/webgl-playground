@@ -8,7 +8,7 @@ import {
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed, Observable } from 'util/observable';
-import { createControls, createScreenshotControl } from 'util/controls';
+import { createControls } from 'util/controls';
 import { makePrimitive, makeControurPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
 
@@ -115,8 +115,6 @@ function main(): void {
         { label: 'enabled', checked: contourEnabled },
         { label: 'thickness', value: contourThickness, min: 0, max: 32 },
     ]);
-
-    createScreenshotControl(container, runtime);
 }
 
 function renderScene({

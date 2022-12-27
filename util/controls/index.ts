@@ -1,9 +1,7 @@
-import type { Runtime } from 'lib';
 import { ControlsPanel } from './controls-panel';
 import { RangeControlOptions } from './controls/range-control';
 import { SelectControlOptions } from './controls/select-control';
 import { CheckControlOptions } from './controls/check-control';
-import { ScreenshotControl } from './screenshot-control';
 
 export type SharedControlOptions = RangeControlOptions | SelectControlOptions | CheckControlOptions;
 
@@ -35,8 +33,4 @@ export function createControls(
         }
     });
     return panel;
-}
-
-export function createScreenshotControl(container: HTMLElement, runtime: Runtime): ScreenshotControl {
-    return new ScreenshotControl(container, runtime);
 }
