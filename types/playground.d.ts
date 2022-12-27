@@ -28,5 +28,6 @@ declare module 'worker-loader!*' {
     export default LoadedWorker;
 }
 
+declare const PLAYGROUND_NAME: string;
 declare const PLAYGROUND_ROOT: string;
 declare const WORKER_URL: string;

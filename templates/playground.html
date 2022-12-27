@@ -16,8 +16,14 @@
             border: 2px solid black;
             background-color: darkgrey;
         }
+        .screenshot-button {
+            position: absolute;
+            right: 0;
+            opacity: 50%;
+        }
     </style>
     <script>
+        PLAYGROUND_NAME = '{{ name }}';
         PLAYGROUND_ROOT = '#playground-root';
         {{ #worker_url }}
         WORKER_URL = '{{ &worker_url }}';

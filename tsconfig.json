@@ -81,7 +81,9 @@
     "include": [
         "./lib/**/*.ts",
         "./types/*.ts",
+        "./util/**/*.ts",
         "./playground/**/*.ts",
+        "./templates/**/*.ts",
         "./*.ts"
     ],
     "exclude": [
