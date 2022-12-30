@@ -9,10 +9,10 @@ import {
     UNIT3, vec3,
     vec4,
 } from 'lib';
-import vertShader from './shader/object.vert';
-import fragShader from './shader/object.frag';
-import contourVertShader from './shader/contour.vert';
-import contourFragShader from './shader/contour.frag';
+import vertShader from './shaders/object.vert';
+import fragShader from './shaders/object.frag';
+import contourVertShader from './shaders/contour.vert';
+import contourFragShader from './shaders/contour.frag';
 
 
 export function makePrimitive(runtime: Runtime): Primitive {

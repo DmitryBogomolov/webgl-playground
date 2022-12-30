@@ -11,10 +11,10 @@ import {
     Mat4, translation4x4,
     Color,
 } from 'lib';
-import objectVertShader from './shader/object.vert';
-import objectFragShader from './shader/object.frag';
-import outlineVertShader from './shader/outline.vert';
-import outlineFragShader from './shader/outline.frag';
+import objectVertShader from './shaders/object.vert';
+import objectFragShader from './shaders/object.frag';
+import outlineVertShader from './shaders/outline.vert';
+import outlineFragShader from './shaders/outline.frag';
 
 export interface Model {
     readonly primitive: Primitive;
