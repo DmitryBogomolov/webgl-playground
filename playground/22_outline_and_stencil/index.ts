@@ -81,9 +81,20 @@ function main(): void {
 }
 
 function renderScene({
-    runtime, camera, models, objectProgram,
+    runtime, camera, models, objectProgram, outlineProgram,
 }: State): void {
     runtime.clearBuffer('color|depth');
+
+    const outlineColor = colors.BLACK;
+    for (const { primitive, mat } of models) {
+        outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
+        outlineProgram.setUniform('u_model', mat);
+        outlineProgram.setUniform('u_color', outlineColor);
+        outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
+        outlineProgram.setUniform('u_thickness', 10);
+        primitive.setProgram(outlineProgram);
+        primitive.render();
+    }
 
     for (const { primitive, mat, color } of models) {
         objectProgram.setUniform('u_view_proj', camera.getTransformMat());

@@ -1,7 +1,5 @@
 precision mediump float;
 
-varying vec3 v_normal;
-
 uniform vec3 u_color;
 
 void main() {
