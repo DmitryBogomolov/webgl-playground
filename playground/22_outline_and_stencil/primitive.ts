@@ -4,15 +4,17 @@ import {
     Program,
     generateCube, generateSphere, generatePlaneX, generatePlaneY, generatePlaneZ,
     VertexIndexData, VertexData, VertexMaker,
-    parseVertexSchema,
+    parseVertexSchema, VertexSchema,
     VertexWriter,
     vec2,
     Vec3,
     Mat4, translation4x4,
     Color,
 } from 'lib';
-import vertShader from './shader/object.vert';
-import fragShader from './shader/object.frag';
+import objectVertShader from './shader/object.vert';
+import objectFragShader from './shader/object.frag';
+import outlineVertShader from './shader/outline.vert';
+import outlineFragShader from './shader/outline.frag';
 
 export interface Model {
     readonly primitive: Primitive;
@@ -27,16 +29,25 @@ export interface ModelOptions {
     readonly color: Color;
 }
 
-export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): Model[] {
+export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
+    models: Model[],
+    objectProgram: Program,
+    outlineProgram: Program,
+} {
     const models: Model[] = [];
 
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
         { name: 'a_normal', type: 'float3' },
     ]);
-    const program = new Program(runtime, {
-        vertShader,
-        fragShader,
+    const objectProgram = new Program(runtime, {
+        vertShader: objectVertShader,
+        fragShader: objectFragShader,
+        schema,
+    });
+    const outlineProgram = new Program(runtime, {
+        vertShader: outlineVertShader,
+        fragShader: outlineFragShader,
         schema,
     });
 
@@ -64,7 +75,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
                 break;
             }
         }
-        const primitive = makePrimitive(runtime, program, vertexIndexData!);
+        const primitive = makePrimitive(runtime, schema, vertexIndexData!);
         const mat = translation4x4(location);
         models.push({
             primitive,
@@ -74,13 +85,12 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
         });
     }
 
-    return models;
+    return { models, objectProgram, outlineProgram };
 }
 
 function makePrimitive(
-    runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
+    runtime: Runtime, schema: VertexSchema, { vertices, indices }: VertexIndexData<VertexData>,
 ): Primitive {
-    const schema = program.schema();
     const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
@@ -96,8 +106,6 @@ function makePrimitive(
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
     primitive.setIndexData({ indexCount: indexData.length });
-
-    primitive.setProgram(program);
 
     return primitive;
 }

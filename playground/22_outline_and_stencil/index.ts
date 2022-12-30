@@ -1,5 +1,6 @@
 import {
     Runtime,
+    Program,
     Camera,
     vec3, mul3,
     color, colors,
@@ -22,6 +23,8 @@ interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
     readonly models: ReadonlyArray<Model>;
+    readonly objectProgram: Program;
+    readonly outlineProgram: Program;
 }
 
 function main(): void {
@@ -42,17 +45,20 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
+    const { models, objectProgram, outlineProgram } = makeModels(runtime, [
+        {
+            type: 'cube',
+            size: vec3(1.2, 1.8, 1.4),
+            location: vec3(1, 0, 0),
+            color: colors.BLUE,
+        },
+    ]);
     const state: State = {
         runtime,
         camera,
-        models: makeModels(runtime, [
-            {
-                type: 'cube',
-                size: vec3(1.2, 1.8, 1.4),
-                location: vec3(0, 0, 0),
-                color: colors.BLUE,
-            },
-        ]),
+        models,
+        objectProgram,
+        outlineProgram,
     };
 
     runtime.frameRendered().on(() => {
@@ -75,14 +81,15 @@ function main(): void {
 }
 
 function renderScene({
-    runtime, camera, models,
+    runtime, camera, models, objectProgram,
 }: State): void {
     runtime.clearBuffer('color|depth');
 
     for (const { primitive, mat, color } of models) {
-        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
-        primitive.program().setUniform('u_model', mat);
-        primitive.program().setUniform('u_color', color);
+        objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+        objectProgram.setUniform('u_model', mat);
+        objectProgram.setUniform('u_color', color);
+        primitive.setProgram(objectProgram);
         primitive.render();
     }
 }
