@@ -3,7 +3,7 @@ import {
     Program,
     Camera,
     vec3, mul3,
-    color, colors,
+    Color, color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
@@ -25,11 +25,12 @@ interface State {
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
+    readonly outlineColor: Color;
 }
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime(container, { stencil: true });
     runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
@@ -59,6 +60,7 @@ function main(): void {
         models,
         objectProgram,
         outlineProgram,
+        outlineColor: colors.BLACK,
     };
 
     runtime.frameRendered().on(() => {
@@ -81,11 +83,24 @@ function main(): void {
 }
 
 function renderScene({
-    runtime, camera, models, objectProgram, outlineProgram,
+    runtime, camera, models, objectProgram, outlineProgram, outlineColor,
 }: State): void {
-    runtime.clearBuffer('color|depth');
+    runtime.clearBuffer('color|depth|stencil');
 
-    const outlineColor = colors.BLACK;
+    runtime.setStencilTest(true);
+    runtime.setStencilMask(0xFF);
+    runtime.setStencilFunc({ func: 'always', ref: 1, mask: 0xFF });
+    runtime.setStencilOp({ fail: 'keep', zfail: 'keep', zpass: 'replace' });
+    for (const { primitive, mat, color } of models) {
+        objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+        objectProgram.setUniform('u_model', mat);
+        objectProgram.setUniform('u_color', color);
+        primitive.setProgram(objectProgram);
+        primitive.render();
+    }
+
+    runtime.setStencilMask(0);
+    runtime.setStencilFunc({ func: 'notequal', ref: 1, mask: 0xFF });
     for (const { primitive, mat } of models) {
         outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
         outlineProgram.setUniform('u_model', mat);
@@ -93,14 +108,6 @@ function renderScene({
         outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
         outlineProgram.setUniform('u_thickness', 10);
         primitive.setProgram(outlineProgram);
-        primitive.render();
-    }
-
-    for (const { primitive, mat, color } of models) {
-        objectProgram.setUniform('u_view_proj', camera.getTransformMat());
-        objectProgram.setUniform('u_model', mat);
-        objectProgram.setUniform('u_color', color);
-        primitive.setProgram(objectProgram);
         primitive.render();
     }
 }

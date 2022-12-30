@@ -3,7 +3,7 @@ import {
     Primitive,
     Program,
     generateCube, generateSphere, generatePlaneX, generatePlaneY, generatePlaneZ,
-    VertexIndexData, VertexData, VertexMaker,
+    VertexIndexData, VertexData,
     parseVertexSchema, VertexSchema,
     VertexWriter,
     vec2,

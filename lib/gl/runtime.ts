@@ -437,7 +437,7 @@ export class Runtime extends BaseWrapper {
         } else {
             this.gl.disable(GL_STENCIL_TEST);
         }
-        this._state.depthTest = Boolean(stencilTest);
+        this._state.stencilTest = Boolean(stencilTest);
         return true;
     }
 
@@ -464,18 +464,18 @@ export class Runtime extends BaseWrapper {
             throw this._logger.error('set_stencil_func({0}): bad value', stencilFunc);
         }
         const func = STENCIL_FUNC_MAP[stencilFunc.func];
-        const mask = Number(stencilFunc.mask);
         const ref = Number(stencilFunc.ref);
+        const mask = Number(stencilFunc.mask);
         if (!func || !(mask >= 0) || !(ref >= 0)) {
-            throw this._logger.error('set_stencil_func(func={0}, mask={1}, ref={2}): bad value',
-                stencilFunc.func, stencilFunc.mask, stencilFunc.ref);
+            throw this._logger.error('set_stencil_func(func={0}, ref={1}, mask={2}): bad value',
+                stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
         }
         if (compareStencilFunc(this._state.stencilFunc, stencilFunc)) {
             return false;
         }
-        this._logger.log('set_stencil_func(func={0}, mask={1}, ref={2})',
-            stencilFunc.func, stencilFunc.mask, stencilFunc.ref);
-        this.gl.stencilFunc(func, mask, ref);
+        this._logger.log('set_stencil_func(func={0}, ref={1}, mask={2})',
+            stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
+        this.gl.stencilFunc(func, ref, mask);
         this._state.stencilFunc = { ...stencilFunc };
         return true;
     }
@@ -500,6 +500,8 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
             stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
+        this.gl.stencilOp(fail, zfail, zpass);
+        this._state.stencilOp = { ...stencilOp };
         return true;
     }
 
