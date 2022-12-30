@@ -7,7 +7,7 @@ import {
     parseVertexSchema, VertexSchema,
     VertexWriter,
     vec2,
-    Vec3,
+    Vec3, norm3, add3,
     Mat4, translation4x4,
     Color,
 } from 'lib';
@@ -29,6 +29,13 @@ export interface ModelOptions {
     readonly color: Color;
 }
 
+interface VertexInfo {
+    readonly position: Vec3;
+    readonly normal: Vec3;
+    // Se notes in shader.
+    readonly offset: Vec3;
+}
+
 export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
     models: Model[],
     objectProgram: Program,
@@ -39,6 +46,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },
         { name: 'a_normal', type: 'float3' },
+        { name: 'a_offset', type: 'float3' },
     ]);
     const objectProgram = new Program(runtime, {
         vertShader: objectVertShader,
@@ -51,27 +59,25 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
         schema,
     });
 
-    const makeVertex: VertexMaker<VertexData> = (vertex) => vertex;
-
     for (const { type, size, location, color } of list) {
-        let vertexIndexData: VertexIndexData<VertexData>;
+        let vertexIndexData: VertexIndexData<VertexInfo>;
         switch (type) {
         case 'cube':
-            vertexIndexData = generateCube(size, makeVertex);
+            vertexIndexData = generateCube(size, makeCubeVertexInfo);
             break;
         case 'sphere':
-            vertexIndexData = generateSphere(size, makeVertex);
+            vertexIndexData = generateSphere(size, makeSphereVertexInfo);
             break;
         case 'plane':
             switch (0) {
             case size.x:
-                vertexIndexData = generatePlaneX(vec2(size.y, size.z), makeVertex);
+                vertexIndexData = generatePlaneX(vec2(size.y, size.z), makePlaneVertexInfo);
                 break;
             case size.y:
-                vertexIndexData = generatePlaneY(vec2(size.x, size.z), makeVertex);
+                vertexIndexData = generatePlaneY(vec2(size.x, size.z), makePlaneVertexInfo);
                 break;
             case size.z:
-                vertexIndexData = generatePlaneZ(vec2(size.x, size.y), makeVertex);
+                vertexIndexData = generatePlaneZ(vec2(size.x, size.y), makePlaneVertexInfo);
                 break;
             }
         }
@@ -81,21 +87,45 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
             primitive,
             mat,
             color,
-
         });
     }
 
     return { models, objectProgram, outlineProgram };
 }
 
+function makeCubeVertexInfo({ position, normal }: VertexData): VertexInfo {
+    return {
+        position,
+        normal,
+        offset: norm3(position),
+    };
+}
+
+function makeSphereVertexInfo({ position, normal }: VertexData): VertexInfo {
+    return {
+        position,
+        normal,
+        offset: normal,
+    };
+}
+
+function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
+    return {
+        position,
+        normal,
+        offset: norm3(add3(norm3(position), normal)),
+    };
+}
+
 function makePrimitive(
-    runtime: Runtime, schema: VertexSchema, { vertices, indices }: VertexIndexData<VertexData>,
+    runtime: Runtime, schema: VertexSchema, { vertices, indices }: VertexIndexData<VertexInfo>,
 ): Primitive {
     const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 'a_position', vertices[i].position);
         writer.writeAttribute(i, 'a_normal', vertices[i].normal);
+        writer.writeAttribute(i, 'a_offset', vertices[i].offset);
     }
     const indexData = new Uint16Array(indices);
 
