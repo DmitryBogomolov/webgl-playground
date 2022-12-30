@@ -1,5 +1,11 @@
 import type {
-    BUFFER_MASK, DEPTH_FUNC, CULL_FACE, BLEND_FUNC, READ_PIXELS_FORMAT, ReadPixelsOptions, EXTENSION,
+    BUFFER_MASK,
+    DEPTH_FUNC,
+    StencilFuncState, StencilOpState, STENCIL_FUNC, STENCIL_OP,
+    CULL_FACE,
+    BLEND_FUNC,
+    READ_PIXELS_FORMAT, ReadPixelsOptions,
+    EXTENSION,
     RuntimeOptions,
 } from './types/runtime';
 import type { Vec2 } from '../geometry/types/vec2';
@@ -27,6 +33,7 @@ const GL_TEXTURE0 = WebGL.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
 const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
 const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
+const GL_STENCIL_TEST = WebGL.STENCIL_TEST;
 const GL_CULL_FACE = WebGL.CULL_FACE;
 const GL_BLEND = WebGL.BLEND;
 
@@ -36,8 +43,12 @@ interface State {
     clearDepth: number;
     clearStencil: number;
     depthTest: boolean;
-    depthFunc: DEPTH_FUNC;
     depthMask: boolean;
+    depthFunc: DEPTH_FUNC;
+    stencilTest: boolean;
+    stencilMask: number;
+    stencilFunc: StencilFuncState;
+    stencilOp: StencilOpState;
     culling: boolean;
     cullFace: CULL_FACE;
     blending: boolean;
@@ -79,6 +90,28 @@ const DEPTH_FUNC_MAP: GLValuesMap<DEPTH_FUNC> = {
     'always': WebGL.ALWAYS,
 };
 
+const STENCIL_FUNC_MAP: GLValuesMap<STENCIL_FUNC> = {
+    'never': WebGL.NEVER,
+    'less': WebGL.LESS,
+    'lequal': WebGL.LEQUAL,
+    'greater': WebGL.GREATER,
+    'gequal': WebGL.GEQUAL,
+    'equal': WebGL.EQUAL,
+    'notequal': WebGL.NOTEQUAL,
+    'always': WebGL.ALWAYS,
+};
+
+const STENCIL_OP_MAP: GLValuesMap<STENCIL_OP> = {
+    'keep': WebGL.KEEP,
+    'zero': WebGL.ZERO,
+    'replace': WebGL.REPLACE,
+    'incr': WebGL.INCR,
+    'incr_wrap': WebGL.INCR_WRAP,
+    'decr': WebGL.DECR,
+    'decr_wrap': WebGL.DECR_WRAP,
+    'invert': WebGL.INVERT,
+};
+
 const CULL_FACE_MAP: GLValuesMap<CULL_FACE> = {
     'back': WebGL.BACK,
     'front': WebGL.FRONT,
@@ -118,9 +151,12 @@ const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
 
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
     alpha: true,
+    depth: true,
+    stencil: false,
     antialias: false,
     premultipliedAlpha: false,
     trackWindowResize: true,
+    failIfMajorPerformanceCaveat: true,
     extensions: [],
 };
 
@@ -315,7 +351,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_clear_depth({0})', clearDepth);
-        this.gl.clearDepth(clearDepth);
+        this.gl.clearDepth(Number(clearDepth));
         this._state.clearDepth = Number(clearDepth);
         return true;
     }
@@ -332,7 +368,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_clear_stencil({0})', clearStencil);
-        this.gl.clearStencil(clearStencil);
+        this.gl.clearStencil(Number(clearStencil));
         this._state.clearStencil = Number(clearStencil);
         return true;
     }
@@ -355,6 +391,20 @@ export class Runtime extends BaseWrapper {
         return true;
     }
 
+    getDepthMask(): boolean {
+        return this._state.depthMask;
+    }
+
+    setDepthMask(depthMask: boolean): boolean {
+        if (this._state.depthMask === depthMask) {
+            return false;
+        }
+        this._logger.log('set_depth_mask({0})', depthMask);
+        this.gl.depthMask(Boolean(depthMask));
+        this._state.depthMask = Boolean(depthMask);
+        return true;
+    }
+
     getDepthFunc(): DEPTH_FUNC {
         return this._state.depthFunc;
     }
@@ -373,17 +423,83 @@ export class Runtime extends BaseWrapper {
         return true;
     }
 
-    getDepthMask(): boolean {
-        return this._state.depthMask;
+    getStencilTest(): boolean {
+        return this._state.stencilTest;
     }
 
-    setDepthMask(depthMask: boolean): boolean {
-        if (this._state.depthMask === depthMask) {
+    setStencilTest(stencilTest: boolean): boolean {
+        if (this._state.stencilTest === stencilTest) {
             return false;
         }
-        this._logger.log('set_depth_mask({0})', depthMask);
-        this.gl.depthMask(Boolean(depthMask));
-        this._state.depthMask = Boolean(depthMask);
+        this._logger.log('set_stencil_test({0})', stencilTest);
+        if (stencilTest) {
+            this.gl.enable(GL_STENCIL_TEST);
+        } else {
+            this.gl.disable(GL_STENCIL_TEST);
+        }
+        this._state.depthTest = Boolean(stencilTest);
+        return true;
+    }
+
+    getStencilMask(): number {
+        return this._state.stencilMask;
+    }
+
+    setStencilMask(stencilMask: number): boolean {
+        if (this._state.stencilMask === stencilMask) {
+            return false;
+        }
+        this._logger.log('set_stencil_mask({0})', stencilMask);
+        this.gl.stencilMask(Number(stencilMask));
+        this._state.stencilMask = Number(stencilMask);
+        return true;
+    }
+
+    getStencilFunc(): StencilFuncState {
+        return this._state.stencilFunc;
+    }
+
+    setStencilFunc(stencilFunc: StencilFuncState): boolean {
+        if (!stencilFunc) {
+            throw this._logger.error('set_stencil_func({0}): bad value', stencilFunc);
+        }
+        const func = STENCIL_FUNC_MAP[stencilFunc.func];
+        const mask = Number(stencilFunc.mask);
+        const ref = Number(stencilFunc.ref);
+        if (!func || !(mask >= 0) || !(ref >= 0)) {
+            throw this._logger.error('set_stencil_func(func={0}, mask={1}, ref={2}): bad value',
+                stencilFunc.func, stencilFunc.mask, stencilFunc.ref);
+        }
+        if (compareStencilFunc(this._state.stencilFunc, stencilFunc)) {
+            return false;
+        }
+        this._logger.log('set_stencil_func(func={0}, mask={1}, ref={2})',
+            stencilFunc.func, stencilFunc.mask, stencilFunc.ref);
+        this.gl.stencilFunc(func, mask, ref);
+        this._state.stencilFunc = { ...stencilFunc };
+        return true;
+    }
+
+    getStencilOp(): StencilOpState {
+        return this._state.stencilOp;
+    }
+
+    setStencilOp(stencilOp: StencilOpState): boolean {
+        if (!stencilOp) {
+            throw this._logger.error('set_stencil_op({0}): bad value', stencilOp);
+        }
+        const fail = STENCIL_OP_MAP[stencilOp.fail];
+        const zfail = STENCIL_OP_MAP[stencilOp.zfail];
+        const zpass = STENCIL_OP_MAP[stencilOp.zpass];
+        if (!fail || !zfail || !zpass) {
+            throw this._logger.error('set_stencil_op(fail={0}, zfail={1}, zpass={2}): bad value',
+                stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
+        }
+        if (compareStencilOp(this._state.stencilOp, stencilOp)) {
+            return false;
+        }
+        this._logger.log('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
+            stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
         return true;
     }
 
@@ -655,8 +771,12 @@ function getDefaultState(): State {
         clearDepth: 1,
         clearStencil: 0,
         depthTest: false,
-        depthFunc: 'less',
         depthMask: true,
+        depthFunc: 'less',
+        stencilTest: false,
+        stencilMask: 0x7FFFFFFF,
+        stencilFunc: { func: 'always', ref: 0, mask: 0x7FFFFFFF },
+        stencilOp: { fail: 'keep', zfail: 'keep', zpass: 'keep' },
         culling: false,
         cullFace: 'back',
         blending: false,
@@ -726,4 +846,12 @@ function getReadPixelsRange(
         width: Math.abs(x1 - x2) + 1,
         height: Math.abs(y1 - y2) + 1,
     };
+}
+
+function compareStencilFunc(lhs: StencilFuncState, rhs: StencilFuncState): boolean {
+    return lhs.func === rhs.func && lhs.mask === rhs.mask && lhs.ref === rhs.ref;
+}
+
+function compareStencilOp(lhs: StencilOpState, rhs: StencilOpState): boolean {
+    return lhs.fail === rhs.fail && lhs.zfail === rhs.zfail && lhs.zpass === rhs.zpass;
 }
