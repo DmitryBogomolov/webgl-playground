@@ -6,7 +6,7 @@ import {
     Color, color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
+import { Observable, observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { Model, makeModels } from './primitive';
 
@@ -26,6 +26,7 @@ interface State {
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
     readonly outlineColor: Color;
+    readonly outlineThickness: Observable<number>;
 }
 
 function main(): void {
@@ -45,6 +46,8 @@ function main(): void {
     cameraPos.on((cameraPos) => {
         camera.setEyePos(cameraPos);
     });
+
+    const outlineThickness = observable(10);
 
     const { models, objectProgram, outlineProgram } = makeModels(runtime, [
         {
@@ -79,6 +82,7 @@ function main(): void {
         objectProgram,
         outlineProgram,
         outlineColor: colors.BLACK,
+        outlineThickness,
     };
 
     runtime.frameRendered().on(() => {
@@ -87,7 +91,7 @@ function main(): void {
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
-    [camera.changed()].forEach((emitter) => {
+    [camera.changed(), outlineThickness].forEach((emitter) => {
         emitter.on(() => {
             runtime.requestFrameRender();
         });
@@ -97,11 +101,12 @@ function main(): void {
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
+        { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
     ]);
 }
 
 function renderScene({
-    runtime, camera, models, objectProgram, outlineProgram, outlineColor,
+    runtime, camera, models, objectProgram, outlineProgram, outlineColor, outlineThickness,
 }: State): void {
     runtime.clearBuffer('color|depth|stencil');
 
@@ -124,7 +129,7 @@ function renderScene({
         outlineProgram.setUniform('u_model', mat);
         outlineProgram.setUniform('u_color', outlineColor);
         outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
-        outlineProgram.setUniform('u_thickness', 10);
+        outlineProgram.setUniform('u_thickness', outlineThickness());
         primitive.setProgram(outlineProgram);
         primitive.render();
     }
