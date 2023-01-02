@@ -66,7 +66,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
             vertexIndexData = generateCube(size, makeCubeVertexInfo);
             break;
         case 'sphere':
-            vertexIndexData = generateSphere(size, makeSphereVertexInfo);
+            vertexIndexData = generateSphere(size, makeSphereVertexInfo, 12);
             break;
         case 'plane':
             switch (0) {

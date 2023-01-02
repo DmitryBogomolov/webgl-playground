@@ -49,9 +49,27 @@ function main(): void {
     const { models, objectProgram, outlineProgram } = makeModels(runtime, [
         {
             type: 'cube',
-            size: vec3(1.2, 1.8, 1.4),
-            location: vec3(1, 0, 0),
+            size: vec3(1.2, 1.3, 1.4),
+            location: vec3(2, 0, 0),
             color: colors.BLUE,
+        },
+        {
+            type: 'sphere',
+            size: vec3(1.1, 0.9, 1.2),
+            location: vec3(-1.5, 0, 0),
+            color: colors.RED,
+        },
+        {
+            type: 'cube',
+            size: vec3(1.3, 0.9, 1.1),
+            location: vec3(0, 0.4, -1.4),
+            color: colors.CYAN,
+        },
+        {
+            type: 'sphere',
+            size: vec3(1.0, 1.2, 1.2),
+            location: vec3(0, -0.3, 1.2),
+            color: colors.MAGENTA,
         },
     ]);
     const state: State = {
