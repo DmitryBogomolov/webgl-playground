@@ -81,7 +81,7 @@ function main(): void {
         models,
         objectProgram,
         outlineProgram,
-        outlineColor: colors.BLACK,
+        outlineColor: color(0.9, 0.9, 0),
         outlineThickness,
     };
 
