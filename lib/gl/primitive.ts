@@ -89,6 +89,9 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateVertexBuffer(size: number): void {
+        if (size <= 0) {
+            throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
+        }
         this._logger.log('allocate_vertex_buffer({0})', size);
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
@@ -97,6 +100,9 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateIndexBuffer(size: number): void {
+        if (size <= 0) {
+            throw this._logger.error('allocate_index_buffer({0}): bad value', size);
+        }
         this._logger.log('allocate_index_buffer({0})', size);
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
