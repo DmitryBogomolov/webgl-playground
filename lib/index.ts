@@ -14,6 +14,7 @@ export * from './utils/deg-rad';
 export * from './utils/fov';
 export * from './utils/linear-mapping';
 export * from './utils/canvas-snapshot';
+export * from './utils/pixel-view-proj-mat';
 export * from './geometry/types/vec2';
 export * from './geometry/vec2';
 export * from './geometry/types/vec3';
