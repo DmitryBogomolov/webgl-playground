@@ -19,10 +19,10 @@ const EMPTY_SCHEMA: VertexSchema = {
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
     id() { return 'EMPTY_PROGRAM'; },
-    glHandle() { return null; },
+    glHandle() { return null as unknown as WebGLProgram; },
     schema() { return EMPTY_SCHEMA; },
     setUniform() { /* empty */ },
-} as unknown as Program;
+} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'schema' | 'setUniform'> as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGL.POINTS,
