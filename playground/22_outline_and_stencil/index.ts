@@ -5,10 +5,10 @@ import {
     Framebuffer,
     Vec2,
     vec3, mul3,
-    Mat4, mat4, clone4x4, apply4x4, frustum4x4,
+    mat4,
     Color, color, colors,
     deg2rad, spherical2zxy,
-    makeEventCoordsGetter, uint2bytes,
+    makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { Observable, observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
@@ -194,6 +194,7 @@ function renderOutline({
     }
 }
 
+const _transformMat = mat4();
 function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
@@ -201,7 +202,8 @@ function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State
 
     runtime.setDepthTest(true);
     runtime.setStencilTest(false);
-    const transformMat = makeIdViewProjMat(camera, coords);
+    const transformMat = _transformMat;
+    makePixelViewProjMat(camera, coords, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, mat, id } of models) {
         primitive.setProgram(idProgram);
@@ -213,31 +215,4 @@ function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State
     const buffer = new Uint8Array(4);
     runtime.readPixels(framebuffer, buffer);
     return new Uint32Array(buffer.buffer)[0];
-}
-
-const _idViewProjMat = mat4();
-function makeIdViewProjMat(camera: Camera, { x, y }: Vec2): Mat4 {
-    // Calculate frustum from perspective parameters.
-    // |top| = |bottom| = zNear * tan(fov / 2)
-    // |left| = |right| = aspect * |top|
-    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
-    const dx = camera.getAspect() * dy;
-    const { x: xViewport, y: yViewport } = camera.getViewportSize();
-    // Full [left, right] * [bottom, top] range corresponds to [0, viewport_width] * [0, viewport_height] screen.
-    // [0, W] -> [-dx, +dx] => x -> dx * (x * 2 / W - 1)
-    // [0, H] -> [-dy, +dy] => y -> dy * (y * 2 / H - 1)
-    // Select part that corresponds to a specific (x, y) pixel.
-    // In an arbitrary n pixels range [0, n] i-th (0 <= i < n) pixel occupies [i, i + 1] range.
-    const x1 = dx * (2 * x / xViewport - 1);
-    const x2 = dx * (2 * (x + 1) / xViewport - 1);
-    const y1 = dy * (2 * y / yViewport - 1);
-    const y2 = dy * (2 * (y + 1) / yViewport - 1);
-
-    const mat = _idViewProjMat;
-    clone4x4(camera.getViewMat(), mat);
-    apply4x4(mat, frustum4x4, {
-        left: x1, right: x2, bottom: y1, top: y2,
-        zNear: camera.getZNear(), zFar: camera.getZFar(),
-    });
-    return mat;
 }
