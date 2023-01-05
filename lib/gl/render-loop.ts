@@ -1,4 +1,4 @@
-import type { EventProxy } from '../utils/types/event-emitter';
+import type { EventProxy } from '../utils/event-emitter.types';
 import { EventEmitter } from '../utils/event-emitter';
 
 // export type RenderFrameCallback = (delta: number, timestamp: number) => void;

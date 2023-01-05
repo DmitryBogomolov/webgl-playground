@@ -1,4 +1,4 @@
-import type { EventHandler, EventProxy } from './types/event-emitter';
+import type { EventHandler, EventProxy } from './event-emitter.types';
 
 export class EventEmitter<T extends readonly unknown[] = []> implements EventProxy<T> {
     private readonly _handlers: EventHandler<T>[] = [];

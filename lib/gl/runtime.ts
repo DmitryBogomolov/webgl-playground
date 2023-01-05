@@ -13,7 +13,7 @@ import type { Color } from './color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
-import type { EventProxy } from '../utils/types/event-emitter';
+import type { EventProxy } from '../utils/event-emitter.types';
 import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';
