@@ -41,7 +41,6 @@ function main(): void {
     runtime.setDepthTest(true);
     const framebuffer = new Framebuffer(runtime, {
         attachment: 'color|depth',
-        // Zero values make framebuffer incomplete.
         size: { x: 1, y: 1 },
     });
     const camera = new Camera();
