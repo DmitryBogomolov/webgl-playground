@@ -19,10 +19,10 @@ const EMPTY_SCHEMA: VertexSchema = {
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
     id() { return 'EMPTY_PROGRAM'; },
-    glHandle() { return null; },
+    glHandle() { return null as unknown as WebGLProgram; },
     schema() { return EMPTY_SCHEMA; },
     setUniform() { /* empty */ },
-} as unknown as Program;
+} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'schema' | 'setUniform'> as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGL.POINTS,
@@ -89,6 +89,9 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateVertexBuffer(size: number): void {
+        if (size <= 0) {
+            throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
+        }
         this._logger.log('allocate_vertex_buffer({0})', size);
         const gl = this._runtime.gl;
         this._vertexBufferSize = size;
@@ -97,6 +100,9 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateIndexBuffer(size: number): void {
+        if (size <= 0) {
+            throw this._logger.error('allocate_index_buffer({0}): bad value', size);
+        }
         this._logger.log('allocate_index_buffer({0})', size);
         const gl = this._runtime.gl;
         this._indexBufferSize = size;
@@ -118,17 +124,18 @@ export class Primitive extends BaseWrapper {
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
-    setVertexSchema(schema: VertexSchema): void {
-        if (this._schema === schema) {
+    setVertexSchema(schema: VertexSchema | null): void {
+        const _schema = schema || EMPTY_SCHEMA;
+        if (this._schema === _schema) {
             return;
         }
-        this._logger.log('set_vertex_schema(attributes={0}, size={1})', schema.attributes.length, schema.totalSize);
-        this._schema = schema;
+        this._logger.log('set_vertex_schema(attributes={0}, size={1})', _schema.attributes.length, _schema.totalSize);
+        this._schema = _schema;
         const gl = this._runtime.gl;
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            for (const attr of schema.attributes) {
+            for (const attr of _schema.attributes) {
                 gl.vertexAttribPointer(
                     attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
                 );
@@ -177,15 +184,16 @@ export class Primitive extends BaseWrapper {
         return this._program;
     }
 
-    setProgram(program: Program): void {
+    setProgram(program: Program | null): void {
+        const _program = program || EMPTY_PROGRAM;
         if (this._program === program) {
             return;
         }
-        this._logger.log('set_program({0})', program.id());
-        if (program.schema() !== this._schema) {
+        this._logger.log('set_program({0})', _program.id());
+        if (_program.schema() !== this._schema) {
             throw this._logger.error('program schema does not match');
         }
-        this._program = program;
+        this._program = _program;
     }
 
     render(): void {
