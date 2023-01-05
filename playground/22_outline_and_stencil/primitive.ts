@@ -15,11 +15,14 @@ import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
 import outlineVertShader from './shaders/outline.vert';
 import outlineFragShader from './shaders/outline.frag';
+import idVertShader from './shaders/id.vert';
+import idFragShader from './shaders/id.frag';
 
 export interface Model {
     readonly primitive: Primitive;
     readonly mat: Mat4;
     readonly color: Color;
+    readonly id: number;
 }
 
 export interface ModelOptions {
@@ -40,6 +43,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
     models: Model[],
     objectProgram: Program,
     outlineProgram: Program,
+    idProgram: Program,
 } {
     const models: Model[] = [];
 
@@ -58,7 +62,13 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
         fragShader: outlineFragShader,
         schema,
     });
+    const idProgram = new Program(runtime, {
+        vertShader: idVertShader,
+        fragShader: idFragShader,
+        schema,
+    });
 
+    let nextObjectId = 2001;
     for (const { type, size, location, color } of list) {
         let vertexIndexData: VertexIndexData<VertexInfo>;
         switch (type) {
@@ -87,10 +97,11 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
             primitive,
             mat,
             color,
+            id: nextObjectId++,
         });
     }
 
-    return { models, objectProgram, outlineProgram };
+    return { models, objectProgram, outlineProgram, idProgram };
 }
 
 function makeCubeVertexInfo({ position, normal }: VertexData): VertexInfo {
