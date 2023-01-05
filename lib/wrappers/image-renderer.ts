@@ -1,7 +1,7 @@
 import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
-} from './types/image-renderer';
+} from './image-renderer.types';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Mat4 } from '../geometry/types/mat4';
 import type { TextureImageData } from '../gl/texture-2d.types';

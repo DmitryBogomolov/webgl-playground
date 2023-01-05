@@ -1,4 +1,4 @@
-import type { Vec2 } from '../../geometry/types/vec2';
+import type { Vec2 } from '../geometry/types/vec2';
 
 export interface ImageRendererRawImageData {
     readonly size: Vec2;
