@@ -1,4 +1,4 @@
-import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 
 class GLHandleWrapperImpl<T> implements GLHandleWrapper<T> {
     private readonly _id: string;

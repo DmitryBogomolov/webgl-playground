@@ -1,12 +1,12 @@
-import type { Vec2 } from '../../geometry/types/vec2';
-import type { Vec3 } from '../../geometry/types/vec3';
-import type { Vec4 } from '../../geometry/types/vec4';
-import type { Mat2 } from '../../geometry/types/mat2';
-import type { Mat3 } from '../../geometry/types/mat3';
-import type { Mat4 } from '../../geometry/types/mat4';
-import type { Color } from '../types/color';
-import type { VertexSchema } from './vertex-schema';
-import type { Runtime } from '../runtime';
+import type { Vec2 } from '../geometry/types/vec2';
+import type { Vec3 } from '../geometry/types/vec3';
+import type { Vec4 } from '../geometry/types/vec4';
+import type { Mat2 } from '../geometry/types/mat2';
+import type { Mat3 } from '../geometry/types/mat3';
+import type { Mat4 } from '../geometry/types/mat4';
+import type { Color } from './color.types';
+import type { VertexSchema } from './vertex-schema.types';
+import type { Runtime } from './runtime';
 
 export type UniformValue = (
     | boolean

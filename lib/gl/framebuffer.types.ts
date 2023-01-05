@@ -1,5 +1,5 @@
-import type { Vec2 } from '../../geometry/types/vec2';
-import type { Runtime } from '../runtime';
+import type { Vec2 } from '../geometry/types/vec2';
+import type { Runtime } from './runtime';
 
 export type FRAMEBUFFER_ATTACHMENT = ('color' | 'color|depth' | 'color|depth|stencil');
 

@@ -1,6 +1,6 @@
-import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
-import type { VertexSchema } from './types/vertex-schema';
-import type { GLValuesMap } from './types/gl-values-map';
+import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './primitive.types';
+import type { VertexSchema } from './vertex-schema.types';
+import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
 import { BaseWrapper } from './base-wrapper';
 import { wrap } from './gl-handle-wrapper';

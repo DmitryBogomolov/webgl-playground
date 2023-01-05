@@ -1,4 +1,4 @@
-import type { CAMERA_PROJECTION } from './types/camera';
+import type { CAMERA_PROJECTION } from './camera.types';
 import type { Vec2 } from '../geometry/types/vec2';
 import type { Vec3 } from '../geometry/types/vec3';
 import type { Mat4 } from '../geometry/types/mat4';

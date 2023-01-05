@@ -1,6 +1,6 @@
-import type { UniformValue, ProgramOptions, ProgramRuntime } from './types/program';
-import type { VertexSchema } from './types/vertex-schema';
-import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+import type { UniformValue, ProgramOptions, ProgramRuntime } from './program.types';
+import type { VertexSchema } from './vertex-schema.types';
+import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Logger } from '../utils/logger';
 import { BaseWrapper } from './base-wrapper';
 import { isVec2 } from '../geometry/vec2';
