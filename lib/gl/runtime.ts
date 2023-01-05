@@ -149,15 +149,19 @@ const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'depth_texture': 'WEBGL_depth_texture',
 };
 
-const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
+const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: true,
     depth: true,
     stencil: false,
     antialias: false,
     premultipliedAlpha: false,
-    trackWindowResize: true,
     failIfMajorPerformanceCaveat: true,
+};
+
+const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
+    trackWindowResize: true,
     extensions: [],
+    contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
 export class Runtime extends BaseWrapper {
@@ -190,7 +194,7 @@ export class Runtime extends BaseWrapper {
 
     constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
         super(tag);
-        this._options = { ...DEFAULT_OPTIONS, ...options };
+        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
         this._gl = this._getContext();
@@ -230,7 +234,8 @@ export class Runtime extends BaseWrapper {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl', this._options as WebGLContextAttributes);
+        const context = this._canvas.getContext('webgl',
+            { ...DEFAULT_CONTEXT_ATTRIBUTES, ...this._options.contextAttributes });
         if (!context) {
             throw this._logger.error('failed to get webgl context');
         }
