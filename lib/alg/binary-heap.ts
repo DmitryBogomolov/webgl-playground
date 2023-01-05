@@ -1,4 +1,4 @@
-export type CmpFunc<T> = (lhs: T, rhs: T) => boolean;
+type CmpFunc<T> = (lhs: T, rhs: T) => boolean;
 
 function getParentIdx(idx: number): number {
     return (idx - 1) >> 1;
@@ -52,7 +52,7 @@ export class BinaryHeap<T> {
     private readonly _cmpFunc: CmpFunc<T>;
     private _elements: T[] = [];
 
-    constructor(cmpFunc: CmpFunc<T> = defaultCmp) {
+    constructor(cmpFunc: (lhs: T, rhs: T) => boolean = defaultCmp) {
         this._cmpFunc = cmpFunc;
     }
 
