@@ -1,4 +1,4 @@
-import type { Vec2 } from './types/vec2';
+import type { Vec2 } from './vec2.types';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec2Impl implements Vec2 {

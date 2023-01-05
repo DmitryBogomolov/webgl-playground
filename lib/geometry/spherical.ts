@@ -1,5 +1,5 @@
-import type { Spherical } from './types/spherical';
-import type { Vec3 } from './types/vec3';
+import type { Spherical } from './spherical.types';
+import type { Vec3 } from './vec3.types';
 import { vec3 } from './vec3';
 
 export function spherical2zxy({ azimuth, elevation }: Spherical): Vec3 {

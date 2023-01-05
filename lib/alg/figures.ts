@@ -1,5 +1,5 @@
-import { Vec2 } from './../geometry/types/vec2';
-import { Vec3 } from './../geometry/types/vec3';
+import { Vec2 } from '../geometry/vec2.types';
+import { Vec3 } from '../geometry/vec3.types';
 import { vec2, mul2 } from './../geometry/vec2';
 import { vec3, mul3, norm3, cross3 } from './../geometry/vec3';
 

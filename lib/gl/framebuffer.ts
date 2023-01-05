@@ -2,7 +2,7 @@ import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } f
 import type { RenderTarget } from './render-target.types';
 import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import type { Vec2 } from '../geometry/types/vec2';
+import type { Vec2 } from '../geometry/vec2.types';
 import { BaseWrapper } from './base-wrapper';
 import { eq2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';

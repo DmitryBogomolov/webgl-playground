@@ -1,6 +1,6 @@
-import type { Vec3 } from './types/vec3';
-import type { Line3 } from './types/line3';
-import type { Plane3 } from './types/plane3';
+import type { Vec3 } from './vec3.types';
+import type { Line3 } from './line3.types';
+import type { Plane3 } from './plane3.types';
 import { vec3, add3, sub3, mul3, norm3, project3, dist3, dot3, cross3, len3, isZero3 } from './vec3';
 import { line3 } from './line3';
 import { solveSysLinEq } from './sys-lin-eq';

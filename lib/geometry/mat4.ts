@@ -1,6 +1,6 @@
-import type { Mat4 } from './types/mat4';
-import type { Vec3 } from './types/vec3';
-import type { Vec4 } from './types/vec4';
+import type { Mat4 } from './mat4.types';
+import type { Vec3 } from './vec3.types';
+import type { Vec4 } from './vec4.types';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { vec4 } from './vec4';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';

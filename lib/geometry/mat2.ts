@@ -1,5 +1,5 @@
-import type { Mat2 } from './types/mat2';
-import type { Vec2 } from './types/vec2';
+import type { Mat2 } from './mat2.types';
+import type { Vec2 } from './vec2.types';
 import { vec2 } from './vec2';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 

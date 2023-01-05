@@ -1,5 +1,5 @@
-import type { Line3 } from './types/line3';
-import type { Vec3 } from './types/vec3';
+import type { Line3 } from './line3.types';
+import type { Vec3 } from './vec3.types';
 import { ZERO3, XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, project3, sub3 } from './vec3';
 import { FLOAT_EQ_EPS } from './float-eq';
 import { normalizeDirection3 } from './dir-norm3';

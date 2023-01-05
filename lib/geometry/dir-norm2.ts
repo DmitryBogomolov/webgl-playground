@@ -1,4 +1,4 @@
-import { Vec2 } from './types/vec2';
+import { Vec2 } from './vec2.types';
 import { norm2, neg2 } from './vec2';
 
 // Opposite vectors define same line direction. Pick one.

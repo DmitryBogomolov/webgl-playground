@@ -1,4 +1,4 @@
-import type { Vec2 } from '../geometry/types/vec2';
+import type { Vec2 } from '../geometry/vec2.types';
 import type { Runtime } from './runtime';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
