@@ -1,4 +1,5 @@
-import { KDTree, KDTreeSearchItem } from './kd-tree';
+import type { KDTreeSearchItem } from './kd-tree.types';
+import { KDTree } from './kd-tree';
 
 describe('kd-tree', () => {
     describe('KDTree', () => {

@@ -1,9 +1,7 @@
+import type {
+    KDTreeDistance, KDTreeDistanceFunc, KDTreeAxisFuncList, KDTreeSearchItem,
+} from './kd-tree.types';
 import { BinaryHeap } from './binary-heap';
-
-export type KDTreeAxisFunc<T> = (element: T) => number;
-export type KDTreeDistance = ReadonlyArray<number>;
-export type KDTreeDistanceFunc = (distance: KDTreeDistance) => number;
-export type KDTreeAxisFuncList<T> = ReadonlyArray<KDTreeAxisFunc<T>>;
 
 interface KDNode<T> {
     readonly element: T;
@@ -42,11 +40,6 @@ interface InRadiusContext<T> extends BaseContext<T> {
 interface Proxy<T> {
     readonly element: T;
     readonly idx: number;
-}
-
-export interface KDTreeSearchItem {
-    readonly index: number;
-    readonly distance: number;
 }
 
 // https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf

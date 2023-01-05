@@ -1,6 +1,7 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import type { Vec3 } from '../geometry/vec3.types';
-import { VertexData, generateCube, generateSphere } from './figures';
+import type { VertexData } from './figures.types';
+import { generateCube, generateSphere } from './figures';
 
 describe('figures', () => {
     function dumpPosition({ x, y, z }: Vec3): string {
