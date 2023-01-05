@@ -183,15 +183,16 @@ export class Primitive extends BaseWrapper {
         return this._program;
     }
 
-    setProgram(program: Program): void {
+    setProgram(program: Program | null): void {
+        const _program = program || EMPTY_PROGRAM;
         if (this._program === program) {
             return;
         }
-        this._logger.log('set_program({0})', program.id());
-        if (program.schema() !== this._schema) {
+        this._logger.log('set_program({0})', _program.id());
+        if (_program.schema() !== this._schema) {
             throw this._logger.error('program schema does not match');
         }
-        this._program = program;
+        this._program = _program;
     }
 
     render(): void {
