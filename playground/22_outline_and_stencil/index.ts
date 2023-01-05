@@ -17,7 +17,12 @@ import { Model, makeModels } from './primitive';
 /**
  * Outline and stencil.
  *
- * TODO...
+ * Shows outlining technique through a stencil buffer.
+ * First, all objects are rendered as-is and stencil buffer is filled.
+ * Second, all objects are rendered slightly enlarged and only empty stencil pixels are affected.
+ * It gives the outline effect.
+ * Enlarging is performed along object normal in clip space.
+ * Effect is not always good but suffices for demonstration.
  */
 export type DESCRIPTION = never;
 
