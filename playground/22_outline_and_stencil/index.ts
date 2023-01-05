@@ -135,44 +135,62 @@ function main(): void {
     ]);
 }
 
-function renderScene({
-    runtime, camera, backgroundColor, models,
-    objectProgram, outlineProgram, outlineColor, outlineThickness,
-    selectedObjects,
+function renderScene(state: State): void {
+    state.runtime.setRenderTarget(null);
+    renderObjects(state);
+    renderOutline(state);
+}
+
+function renderObjects({
+    runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
-    runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth|stencil');
-
-    console.log('@@@OBJECTS', selectedObjects);
-
     runtime.setDepthTest(true);
     runtime.setDepthMask(true);
+
+    for (const { primitive, mat, color, id } of models) {
+        if (!selectedObjects.has(id)) {
+            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+            objectProgram.setUniform('u_model', mat);
+            objectProgram.setUniform('u_color', color);
+            primitive.setProgram(objectProgram);
+            primitive.render();
+        }
+    }
+
     runtime.setStencilTest(true);
     runtime.setStencilMask(0xFF);
     runtime.setStencilFunc({ func: 'always', ref: 1, mask: 0xFF });
     runtime.setStencilOp({ fail: 'keep', zfail: 'replace', zpass: 'replace' });
-    for (const { primitive, mat, color } of models) {
-        objectProgram.setUniform('u_view_proj', camera.getTransformMat());
-        objectProgram.setUniform('u_model', mat);
-        objectProgram.setUniform('u_color', color);
-        primitive.setProgram(objectProgram);
-        primitive.render();
+    for (const { primitive, mat, color, id } of models) {
+        if (selectedObjects.has(id)) {
+            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+            objectProgram.setUniform('u_model', mat);
+            objectProgram.setUniform('u_color', color);
+            primitive.setProgram(objectProgram);
+            primitive.render();
+        }
     }
+}
 
-    runtime.setDepthTest(false);
+function renderOutline({
+    runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
+}: State): void {
+    runtime.setDepthTest(true);
     runtime.setDepthMask(false);
-    runtime.clearBuffer('depth');
     runtime.setStencilMask(0);
     runtime.setStencilFunc({ func: 'notequal', ref: 1, mask: 0xFF });
-    for (const { primitive, mat } of models) {
-        outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
-        outlineProgram.setUniform('u_model', mat);
-        outlineProgram.setUniform('u_color', outlineColor);
-        outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
-        outlineProgram.setUniform('u_thickness', outlineThickness());
-        primitive.setProgram(outlineProgram);
-        primitive.render();
+    for (const { primitive, mat, id } of models) {
+        if (selectedObjects.has(id)) {
+            outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
+            outlineProgram.setUniform('u_model', mat);
+            outlineProgram.setUniform('u_color', outlineColor);
+            outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
+            outlineProgram.setUniform('u_thickness', outlineThickness());
+            primitive.setProgram(outlineProgram);
+            primitive.render();
+        }
     }
 }
 
