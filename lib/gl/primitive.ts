@@ -124,17 +124,18 @@ export class Primitive extends BaseWrapper {
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
-    setVertexSchema(schema: VertexSchema): void {
-        if (this._schema === schema) {
+    setVertexSchema(schema: VertexSchema | null): void {
+        const _schema = schema || EMPTY_SCHEMA;
+        if (this._schema === _schema) {
             return;
         }
-        this._logger.log('set_vertex_schema(attributes={0}, size={1})', schema.attributes.length, schema.totalSize);
-        this._schema = schema;
+        this._logger.log('set_vertex_schema(attributes={0}, size={1})', _schema.attributes.length, _schema.totalSize);
+        this._schema = _schema;
         const gl = this._runtime.gl;
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            for (const attr of schema.attributes) {
+            for (const attr of _schema.attributes) {
                 gl.vertexAttribPointer(
                     attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
                 );
