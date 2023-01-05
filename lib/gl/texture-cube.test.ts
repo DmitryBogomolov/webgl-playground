@@ -32,7 +32,7 @@ describe('texture-cube', () => {
                 texParameteri,
             } as unknown as WebGLRenderingContext;
             runtime = {
-                gl: ctx,
+                gl: () => ctx,
                 bindCubeTexture,
             } as unknown as Runtime;
         });

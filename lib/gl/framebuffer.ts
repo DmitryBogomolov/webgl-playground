@@ -63,9 +63,9 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
             this._depthTexture.dispose();
         }
         if (this._renderbuffer) {
-            this._runtime.gl.deleteRenderbuffer(this._renderbuffer);
+            this._runtime.gl().deleteRenderbuffer(this._renderbuffer);
         }
-        this._runtime.gl.deleteFramebuffer(this._framebuffer);
+        this._runtime.gl().deleteFramebuffer(this._framebuffer);
     }
 
     glHandle(): WebGLFramebuffer {
@@ -85,7 +85,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     }
 
     private _createFramebuffer(): WebGLFramebuffer {
-        const framebuffer = this._runtime.gl.createFramebuffer();
+        const framebuffer = this._runtime.gl().createFramebuffer();
         if (!framebuffer) {
             throw this._logger.error('failed to create framebuffer');
         }
@@ -93,7 +93,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     }
 
     private _createRenderbuffer(): WebGLRenderbuffer {
-        const renderbuffer = this._runtime.gl.createRenderbuffer();
+        const renderbuffer = this._runtime.gl().createRenderbuffer();
         if (!renderbuffer) {
             throw this._logger.error('failed to create renderbuffer');
         }
@@ -103,7 +103,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
     private _attachTexture(): Texture {
         const texture = new Texture(this._runtime as unknown as TextureRuntime);
         resizeColorTexture(texture, this._size);
-        this._runtime.gl.framebufferTexture2D(
+        this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
         return texture;
@@ -117,7 +117,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
             min_filter: 'nearest',
         });
         resizeDepthTexture(texture, this._size);
-        this._runtime.gl.framebufferTexture2D(
+        this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
         return texture;
@@ -128,7 +128,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
             resizeDepthRenderbuffer(this._runtime, this._size);
-            this._runtime.gl.framebufferRenderbuffer(
+            this._runtime.gl().framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
@@ -144,7 +144,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
             min_filter: 'nearest',
         });
         resizeDepthStencilTexture(texture, this._size);
-        this._runtime.gl.framebufferTexture2D(
+        this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
         return texture;
@@ -155,7 +155,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         try {
             this._runtime.bindRenderbuffer(wrap(this._id, renderbuffer));
             resizeDepthStencilRenderbuffer(this._runtime, this._size);
-            this._runtime.gl.framebufferRenderbuffer(
+            this._runtime.gl().framebufferRenderbuffer(
                 GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer,
             );
         } finally {
@@ -200,7 +200,7 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
                 this._logger.error('bad attachment type: {0}', attachment);
                 break;
             }
-            const status = this._runtime.gl.checkFramebufferStatus(GL_FRAMEBUFFER);
+            const status = this._runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
             if (status !== GL_FRAMEBUFFER_COMPLETE) {
                 throw this._logger.error('failed to setup attachment: {0}', ERRORS_MAP[status]);
             }
@@ -262,7 +262,7 @@ function resizeDepthStencilTexture(texture: Texture, size: Vec2): void {
 }
 
 function resizeRenderbuffer(runtime: FramebufferRuntime, size: Vec2, format: number): void {
-    runtime.gl.renderbufferStorage(GL_RENDERBUFFER, format, size.x, size.y);
+    runtime.gl().renderbufferStorage(GL_RENDERBUFFER, format, size.x, size.y);
 }
 
 function resizeDepthRenderbuffer(runtime: FramebufferRuntime, size: Vec2): void {

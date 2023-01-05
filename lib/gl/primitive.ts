@@ -67,13 +67,13 @@ export class Primitive extends BaseWrapper {
 
     dispose(): void {
         this._logger.log('dispose');
-        this._runtime.gl.deleteBuffer(this._vertexBuffer);
-        this._runtime.gl.deleteBuffer(this._indexBuffer);
-        this._runtime.vaoExt.deleteVertexArrayOES(this._vao);
+        this._runtime.gl().deleteBuffer(this._vertexBuffer);
+        this._runtime.gl().deleteBuffer(this._indexBuffer);
+        this._runtime.vaoExt().deleteVertexArrayOES(this._vao);
     }
 
     private _createVao(): WebGLVertexArrayObjectOES {
-        const vao = this._runtime.vaoExt.createVertexArrayOES();
+        const vao = this._runtime.vaoExt().createVertexArrayOES();
         if (!vao) {
             throw this._logger.error('failed to create vertex array object');
         }
@@ -81,7 +81,7 @@ export class Primitive extends BaseWrapper {
     }
 
     private _createBuffer(): WebGLBuffer {
-        const buffer = this._runtime.gl.createBuffer();
+        const buffer = this._runtime.gl().createBuffer();
         if (!buffer) {
             throw this._logger.error('failed to create buffer');
         }
@@ -93,7 +93,7 @@ export class Primitive extends BaseWrapper {
             throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
         }
         this._logger.log('allocate_vertex_buffer({0})', size);
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
@@ -104,7 +104,7 @@ export class Primitive extends BaseWrapper {
             throw this._logger.error('allocate_index_buffer({0}): bad value', size);
         }
         this._logger.log('allocate_index_buffer({0})', size);
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
@@ -112,14 +112,14 @@ export class Primitive extends BaseWrapper {
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
@@ -131,7 +131,7 @@ export class Primitive extends BaseWrapper {
         }
         this._logger.log('set_vertex_schema(attributes={0}, size={1})', _schema.attributes.length, _schema.totalSize);
         this._schema = _schema;
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
@@ -197,7 +197,7 @@ export class Primitive extends BaseWrapper {
     }
 
     render(): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
             this._logger.warn('render without program');
             return;

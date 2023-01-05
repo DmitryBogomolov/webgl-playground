@@ -227,11 +227,11 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     private _dispose(): void {
         this._deleteShader(this._vertShader);
         this._deleteShader(this._fragShader);
-        this._runtime.gl.deleteProgram(this._program);
+        this._runtime.gl().deleteProgram(this._program);
     }
 
     private _createProgram(): WebGLProgram {
-        const program = this._runtime.gl.createProgram();
+        const program = this._runtime.gl().createProgram();
         if (!program) {
             throw this._logger.error('failed to create program');
         }
@@ -239,7 +239,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _createShader(type: number, source: string): WebGLShader {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         const shader = gl.createShader(type)!;
         if (!shader) {
             throw this._logger.error('failed to create shader');
@@ -251,7 +251,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _deleteShader(shader: WebGLShader): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         if (shader) {
             gl.detachShader(this._program, shader);
             gl.deleteShader(shader);
@@ -259,14 +259,14 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _bindAttributes(): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         for (const attr of this._schema.attributes) {
             gl.bindAttribLocation(this._program, attr.location, attr.name);
         }
     }
 
     private _linkProgram(): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         gl.linkProgram(this._program);
         if (!gl.getProgramParameter(this._program, GL_LINK_STATUS)) {
             const linkInfo = gl.getProgramInfoLog(this._program)!;
@@ -284,7 +284,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _collectAttributes(): AttributesMap {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         const program = this._program;
         const count = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES) as number;
         const attributes: Record<string, ShaderAttribute> = {};
@@ -322,7 +322,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     }
 
     private _collectUniforms(): UniformsMap {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         const program = this._program;
         const count = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS) as number;
         const uniforms: Record<string, ShaderUniform> = {};
@@ -347,7 +347,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
 
     setUniform(name: string, value: UniformValue): void {
         this._logger.log('set_uniform({0}: {1})', name, value);
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         const uniform = this._uniforms[name];
         if (!uniform) {
             throw this._logger.error('uniform "{0}" is unknown', name);

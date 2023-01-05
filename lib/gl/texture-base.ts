@@ -94,7 +94,7 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
 
     dispose(): void {
         this._logger.log('dispose');
-        this._runtime.gl.deleteTexture(this._texture);
+        this._runtime.gl().deleteTexture(this._texture);
     }
 
     glHandle(): WebGLTexture {
@@ -106,7 +106,7 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
     }
 
     private _createTexture(): WebGLTexture {
-        const texture = this._runtime.gl.createTexture();
+        const texture = this._runtime.gl().createTexture();
         if (!texture) {
             throw this._logger.error('failed to create texture');
         }
@@ -116,7 +116,7 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
     protected abstract _bind(): void;
 
     private _initTextureState(): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         this._bind();
         // Default "wrap_s", "wrap_t" values are "repeat". Default "min_filter" value is "nearest_mipmap_linear".
         // Change them to a more suitable ones.
@@ -147,22 +147,22 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
     protected _updateData(imageData: TextureImageData, target: number, format: number, type: number): void {
         if (isTextureRawImageData(imageData)) {
             const { size, data } = imageData;
-            this._runtime.gl.texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
+            this._runtime.gl().texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
             this._size = size;
         } else {
-            this._runtime.gl.texImage2D(target, 0, format, format, type, imageData);
+            this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
             this._size = vec2(imageData.width, imageData.height);
         }
     }
 
     protected _endDataUpdate(options?: TextureImageDataOptions): void {
         if (options && options.generateMipmap) {
-            this._runtime.gl.generateMipmap(this._target);
+            this._runtime.gl().generateMipmap(this._target);
         }
     }
 
     setParameters(params: TextureParameters): void {
-        const gl = this._runtime.gl;
+        const gl = this._runtime.gl();
         for (const [key, val] of Object.entries(params)) {
             if (val !== undefined) {
                 const value = GL_MAPS[key as keyof State][val as keyof typeof GL_MAPS];

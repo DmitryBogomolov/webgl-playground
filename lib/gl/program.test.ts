@@ -46,7 +46,7 @@ describe('program', () => {
                 getProgramParameter,
             } as unknown as WebGLRenderingContext;
             runtime = {
-                gl: ctx,
+                gl: () => ctx,
             } as unknown as Runtime;
         });
 
