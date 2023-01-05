@@ -1,4 +1,4 @@
-import { Vec2 } from '../../geometry/types/vec2';
+import { Vec2 } from '../geometry/vec2.types';
 
 export interface Event {
     readonly clientX: number;

@@ -1,8 +1,8 @@
-import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './types/framebuffer';
-import type { RenderTarget } from './types/render-target';
-import type { TextureRuntime, TEXTURE_FORMAT } from './types/texture-2d';
-import type { GLHandleWrapper } from './types/gl-handle-wrapper';
-import type { Vec2 } from '../geometry/types/vec2';
+import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './framebuffer.types';
+import type { RenderTarget } from './render-target.types';
+import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
+import type { GLHandleWrapper } from './gl-handle-wrapper.types';
+import type { Vec2 } from '../geometry/vec2.types';
 import { BaseWrapper } from './base-wrapper';
 import { eq2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';

@@ -1,6 +1,6 @@
-import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './types/primitive';
-import type { VertexSchema } from './types/vertex-schema';
-import type { GLValuesMap } from './types/gl-values-map';
+import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './primitive.types';
+import type { VertexSchema } from './vertex-schema.types';
+import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
 import { BaseWrapper } from './base-wrapper';
 import { wrap } from './gl-handle-wrapper';
@@ -89,7 +89,7 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateVertexBuffer(size: number): void {
-        if (size <= 0) {
+        if (size < 0) {
             throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
         }
         this._logger.log('allocate_vertex_buffer({0})', size);
@@ -100,7 +100,7 @@ export class Primitive extends BaseWrapper {
     }
 
     allocateIndexBuffer(size: number): void {
-        if (size <= 0) {
+        if (size < 0) {
             throw this._logger.error('allocate_index_buffer({0}): bad value', size);
         }
         this._logger.log('allocate_index_buffer({0})', size);

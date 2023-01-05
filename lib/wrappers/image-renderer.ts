@@ -1,10 +1,10 @@
 import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
-} from './types/image-renderer';
-import type { Vec2 } from '../geometry/types/vec2';
-import type { Mat4 } from '../geometry/types/mat4';
-import type { TextureImageData } from '../gl/types/texture-2d';
+} from './image-renderer.types';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { Mat4 } from '../geometry/mat4.types';
+import type { TextureImageData } from '../gl/texture-2d.types';
 import type { Runtime } from '../gl/runtime';
 import { eq2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';

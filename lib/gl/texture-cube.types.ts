@@ -1,7 +1,7 @@
-import type { TextureRuntimeBase, TextureImageData } from './texture-base';
-import type { Runtime } from '../runtime';
+import type { TextureRuntimeBase, TextureImageData } from './texture-base.types';
+import type { Runtime } from './runtime';
 
-export * from './texture-base';
+export * from './texture-base.types';
 
 export type TextureCubeRuntime = TextureRuntimeBase & Pick<
     Runtime,

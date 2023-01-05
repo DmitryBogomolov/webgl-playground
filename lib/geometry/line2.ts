@@ -1,5 +1,5 @@
-import type { Line2 } from './types/line2';
-import type { Vec2 } from './types/vec2';
+import type { Line2 } from './line2.types';
+import type { Vec2 } from './vec2.types';
 import { XUNIT2, YUNIT2, isVec2, eq2, dot2, sub2, norm2, vec2 } from './vec2';
 import { floatEq, FLOAT_EQ_EPS } from './float-eq';
 import { normalizeDirection2 } from './dir-norm2';

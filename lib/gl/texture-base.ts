@@ -1,10 +1,10 @@
 import type {
     TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
     TextureRuntimeBase, TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
-} from './types/texture-base';
-import type { Vec2 } from '../geometry/types/vec2';
-import type { GLValuesMap } from './types/gl-values-map';
-import type { GLHandleWrapper } from './types/gl-handle-wrapper';
+} from './texture-base.types';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { GLValuesMap } from './gl-values-map.types';
+import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseWrapper } from './base-wrapper';
 import { vec2, ZERO2 } from '../geometry/vec2';
 

@@ -1,4 +1,4 @@
-import { Vec3 } from './types/vec3';
+import { Vec3 } from './vec3.types';
 import { norm3, neg3 } from './vec3';
 
 // Opposite vectors define same line direction or plane normal. Pick one.

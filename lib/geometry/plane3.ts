@@ -1,5 +1,5 @@
-import type { Plane3 } from './types/plane3';
-import type { Vec3 } from './types/vec3';
+import type { Plane3 } from './plane3.types';
+import type { Vec3 } from './vec3.types';
 import { XUNIT3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, cross3, sub3, isZero3, dot3 } from './vec3';
 import { floatEq, FLOAT_EQ_EPS } from './float-eq';
 import { normalizeDirection3 } from './dir-norm3';

@@ -1,4 +1,4 @@
-import type { Vec2 } from '../../geometry/types/vec2';
+import type { Vec2 } from '../geometry/vec2.types';
 
 export type BUFFER_MASK = (
     | 'color' | 'depth' | 'stencil'

@@ -1,4 +1,4 @@
-import type { Vec4 } from '../geometry/types/vec4';
+import type { Vec4 } from '../geometry/vec4.types';
 import { vec4 } from '../geometry/vec4';
 
 export function uint2bytes(value: number): Vec4 {

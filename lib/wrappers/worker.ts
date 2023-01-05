@@ -1,4 +1,4 @@
-import type { WorkerMessagePayload, WorkerMessageHandlers } from './types/worker';
+import type { WorkerMessagePayload, WorkerMessageHandlers } from './worker.types';
 
 interface WorkerEventData {
     readonly type: string;

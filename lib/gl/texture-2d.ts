@@ -1,6 +1,6 @@
 import type {
     TextureImageData, TextureImageDataOptions, TextureRuntime,
-} from './types/texture-2d';
+} from './texture-2d.types';
 import { TextureBase, textureImageDataToStr } from './texture-base';
 
 const WebGL = WebGLRenderingContext.prototype;

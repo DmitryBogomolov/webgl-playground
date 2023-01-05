@@ -7,13 +7,13 @@ import type {
     READ_PIXELS_FORMAT, ReadPixelsOptions,
     EXTENSION,
     RuntimeOptions,
-} from './types/runtime';
-import type { Vec2 } from '../geometry/types/vec2';
-import type { Color } from './types/color';
-import type { GLValuesMap } from './types/gl-values-map';
-import type { GLHandleWrapper } from './types/gl-handle-wrapper';
-import type { RenderTarget } from './types/render-target';
-import type { EventProxy } from '../utils/types/event-emitter';
+} from './runtime.types';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { Color } from './color.types';
+import type { GLValuesMap } from './gl-values-map.types';
+import type { GLHandleWrapper } from './gl-handle-wrapper.types';
+import type { RenderTarget } from './render-target.types';
+import type { EventProxy } from '../utils/event-emitter.types';
 import { BaseWrapper } from './base-wrapper';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';

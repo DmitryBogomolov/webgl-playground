@@ -1,6 +1,6 @@
 import type {
     TextureCubeRuntime, TextureCubeImageData, TextureImageDataOptions, TextureImageData,
-} from './types/texture-cube';
+} from './texture-cube.types';
 import { TextureBase, textureImageDataToStr } from './texture-base';
 
 const WebGL = WebGLRenderingContext.prototype;

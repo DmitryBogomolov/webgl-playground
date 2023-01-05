@@ -1,5 +1,5 @@
-import type { Vec2 } from './types/vec2';
-import type { Line2 } from './types/line2';
+import type { Vec2 } from './vec2.types';
+import type { Line2 } from './line2.types';
 import { vec2, add2, mul2, norm2, dot2 } from './vec2';
 import { solveSysLinEq } from './sys-lin-eq';
 

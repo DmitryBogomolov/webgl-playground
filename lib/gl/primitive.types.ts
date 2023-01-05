@@ -1,4 +1,4 @@
-import type { Runtime } from '../runtime';
+import type { Runtime } from './runtime';
 
 export type PRIMITIVE_MODE = (
     'points' | 'line_strip' | 'line_loop' | 'lines' | 'triangle_strip' | 'triangle_fan' | 'triangles'

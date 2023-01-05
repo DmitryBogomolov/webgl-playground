@@ -1,22 +1,8 @@
-import { Vec2 } from './../geometry/types/vec2';
-import { Vec3 } from './../geometry/types/vec3';
+import type { VertexMaker, VertexIndexData } from './figures.types';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { Vec3 } from '../geometry/vec3.types';
 import { vec2, mul2 } from './../geometry/vec2';
 import { vec3, mul3, norm3, cross3 } from './../geometry/vec3';
-
-export interface VertexIndexData<T> {
-    readonly vertices: ReadonlyArray<T>;
-    readonly indices: ReadonlyArray<number>;
-}
-
-export interface VertexMaker<T> {
-    (vertex: VertexData, idx: number): T;
-}
-
-export interface VertexData {
-    readonly position: Vec3;
-    readonly normal: Vec3;
-    readonly texcoord: Vec2;
-}
 
 export function generatePlaneX<T>(
     size: Vec2, makeVertex: VertexMaker<T>,

@@ -1,5 +1,5 @@
-import type { Vec2 } from '../../geometry/types/vec2';
-import type { Runtime } from '../runtime';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { Runtime } from './runtime';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
