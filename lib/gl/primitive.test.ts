@@ -25,8 +25,8 @@ describe('primitive', () => {
                 createVertexArrayOES,
             } as unknown as OES_vertex_array_object;
             runtime = {
-                gl: ctx,
-                vaoExt,
+                gl: () => ctx,
+                vaoExt: () => vaoExt,
             } as unknown as Runtime;
         });
 

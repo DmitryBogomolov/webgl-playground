@@ -44,7 +44,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container, { stencil: true });
+    const runtime = new Runtime(container, { contextAttributes: { stencil: true } });
     runtime.setDepthTest(true);
     const camera = new Camera();
     const framebuffer = new Framebuffer(runtime, {

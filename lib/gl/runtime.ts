@@ -149,15 +149,19 @@ const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
     'depth_texture': 'WEBGL_depth_texture',
 };
 
-const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
+const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: true,
     depth: true,
     stencil: false,
     antialias: false,
     premultipliedAlpha: false,
-    trackWindowResize: true,
     failIfMajorPerformanceCaveat: true,
+};
+
+const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
+    trackWindowResize: true,
     extensions: [],
+    contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
 export class Runtime extends BaseWrapper {
@@ -165,16 +169,16 @@ export class Runtime extends BaseWrapper {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _defaultRenderTarget;
+    private readonly _state: State;
+    private readonly _gl: WebGLRenderingContext;
+    private readonly _vaoExt: OES_vertex_array_object;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
+
     private readonly _sizeChanged = new EventEmitter((handler) => {
         // Immediately notify subscriber so that it may perform initial calculation.
         handler();
     });
-    private readonly _state: State;
-    // TODO: Replace it with getters.
-    readonly gl: WebGLRenderingContext;
-    readonly vaoExt: OES_vertex_array_object;
 
     private readonly _handleContextLost: EventListener = () => {
         this._logger.warn('context is lost');
@@ -190,11 +194,11 @@ export class Runtime extends BaseWrapper {
 
     constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
         super(tag);
-        this._options = { ...DEFAULT_OPTIONS, ...options };
+        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
-        this.gl = this._getContext();
-        this.vaoExt = this._getVaoExt();
+        this._gl = this._getContext();
+        this._vaoExt = this._getVaoExt();
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
@@ -204,6 +208,14 @@ export class Runtime extends BaseWrapper {
         if (this._options.trackWindowResize) {
             onWindowResize(this._handleWindowResize);
         }
+    }
+
+    gl(): WebGLRenderingContext {
+        return this._gl;
+    }
+
+    vaoExt(): OES_vertex_array_object {
+        return this._vaoExt;
     }
 
     dispose(): void {
@@ -222,7 +234,8 @@ export class Runtime extends BaseWrapper {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl', this._options as WebGLContextAttributes);
+        const context = this._canvas.getContext('webgl',
+            { ...DEFAULT_CONTEXT_ATTRIBUTES, ...this._options.contextAttributes });
         if (!context) {
             throw this._logger.error('failed to get webgl context');
         }
@@ -230,7 +243,7 @@ export class Runtime extends BaseWrapper {
     }
 
     private _getVaoExt(): OES_vertex_array_object {
-        const ext = this.gl.getExtension('OES_vertex_array_object');
+        const ext = this._gl.getExtension('OES_vertex_array_object');
         if (!ext) {
             throw this._logger.error('failed to get OES_vertex_array_object extension');
         }
@@ -243,7 +256,7 @@ export class Runtime extends BaseWrapper {
             if (!name) {
                 throw this._logger.error('extension {0}: bad value', ext);
             }
-            const ret = this.gl.getExtension(name) as unknown;
+            const ret = this._gl.getExtension(name) as unknown;
             if (!ret) {
                 throw this._logger.error('failed to get {0} extension', name);
             }
@@ -255,7 +268,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('update_viewport({0}, {1})', size.x, size.y);
-        this.gl.viewport(0, 0, size.x, size.y);
+        this._gl.viewport(0, 0, size.x, size.y);
         this._state.viewportSize = size;
     }
 
@@ -318,7 +331,7 @@ export class Runtime extends BaseWrapper {
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         const value = BUFFER_MASK_MAP[mask];
         this._logger.log('clear_buffer({0})', mask);
-        this.gl.clear(value);
+        this._gl.clear(value);
     }
 
     getClearColor(): Color {
@@ -334,7 +347,7 @@ export class Runtime extends BaseWrapper {
         }
         const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
-        this.gl.clearColor(r, g, b, a);
+        this._gl.clearColor(r, g, b, a);
         this._state.clearColor = clearColor;
         return true;
     }
@@ -351,7 +364,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_clear_depth({0})', clearDepth);
-        this.gl.clearDepth(Number(clearDepth));
+        this._gl.clearDepth(Number(clearDepth));
         this._state.clearDepth = Number(clearDepth);
         return true;
     }
@@ -368,7 +381,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_clear_stencil({0})', clearStencil);
-        this.gl.clearStencil(Number(clearStencil));
+        this._gl.clearStencil(Number(clearStencil));
         this._state.clearStencil = Number(clearStencil);
         return true;
     }
@@ -383,9 +396,9 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_depth_test({0})', depthTest);
         if (depthTest) {
-            this.gl.enable(GL_DEPTH_TEST);
+            this._gl.enable(GL_DEPTH_TEST);
         } else {
-            this.gl.disable(GL_DEPTH_TEST);
+            this._gl.disable(GL_DEPTH_TEST);
         }
         this._state.depthTest = Boolean(depthTest);
         return true;
@@ -400,7 +413,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_depth_mask({0})', depthMask);
-        this.gl.depthMask(Boolean(depthMask));
+        this._gl.depthMask(Boolean(depthMask));
         this._state.depthMask = Boolean(depthMask);
         return true;
     }
@@ -418,7 +431,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_depth_func({0})', depthFunc);
-        this.gl.depthFunc(value);
+        this._gl.depthFunc(value);
         this._state.depthFunc = depthFunc;
         return true;
     }
@@ -433,9 +446,9 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_stencil_test({0})', stencilTest);
         if (stencilTest) {
-            this.gl.enable(GL_STENCIL_TEST);
+            this._gl.enable(GL_STENCIL_TEST);
         } else {
-            this.gl.disable(GL_STENCIL_TEST);
+            this._gl.disable(GL_STENCIL_TEST);
         }
         this._state.stencilTest = Boolean(stencilTest);
         return true;
@@ -450,7 +463,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_stencil_mask({0})', stencilMask);
-        this.gl.stencilMask(Number(stencilMask));
+        this._gl.stencilMask(Number(stencilMask));
         this._state.stencilMask = Number(stencilMask);
         return true;
     }
@@ -475,7 +488,7 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_stencil_func(func={0}, ref={1}, mask={2})',
             stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
-        this.gl.stencilFunc(func, ref, mask);
+        this._gl.stencilFunc(func, ref, mask);
         this._state.stencilFunc = { ...stencilFunc };
         return true;
     }
@@ -500,7 +513,7 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
             stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
-        this.gl.stencilOp(fail, zfail, zpass);
+        this._gl.stencilOp(fail, zfail, zpass);
         this._state.stencilOp = { ...stencilOp };
         return true;
     }
@@ -515,9 +528,9 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_culling({0})', culling);
         if (culling) {
-            this.gl.enable(GL_CULL_FACE);
+            this._gl.enable(GL_CULL_FACE);
         } else {
-            this.gl.disable(GL_CULL_FACE);
+            this._gl.disable(GL_CULL_FACE);
         }
         this._state.culling = Boolean(culling);
         return true;
@@ -536,7 +549,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_cull_face({0})', cullFace);
-        this.gl.cullFace(value);
+        this._gl.cullFace(value);
         this._state.cullFace = cullFace;
         return true;
     }
@@ -551,9 +564,9 @@ export class Runtime extends BaseWrapper {
         }
         this._logger.log('set_blending({0})', blending);
         if (blending) {
-            this.gl.enable(GL_BLEND);
+            this._gl.enable(GL_BLEND);
         } else {
-            this.gl.disable(GL_BLEND);
+            this._gl.disable(GL_BLEND);
         }
         this._state.blending = Boolean(blending);
         return true;
@@ -572,7 +585,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('set_blend_func({0})', blendFunc);
-        this.gl.blendFunc(value, BLEND_FUNC_MAP_DST[blendFunc]);
+        this._gl.blendFunc(value, BLEND_FUNC_MAP_DST[blendFunc]);
         this._state.blendFunc = blendFunc;
         return true;
     }
@@ -595,7 +608,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('use_program({0})', program ? program.id() : null);
-        this.gl.useProgram(handle);
+        this._gl.useProgram(handle);
         this._state.currentProgram = handle;
     }
 
@@ -605,7 +618,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? vertexArrayObject.id() : null);
-        this.vaoExt.bindVertexArrayOES(handle);
+        this._vaoExt.bindVertexArrayOES(handle);
         this._state.vertexArrayObject = handle;
     }
 
@@ -615,7 +628,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_array_buffer({0})', buffer ? buffer.id() : null);
-        this.gl.bindBuffer(GL_ARRAY_BUFFER, handle);
+        this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
         this._state.arrayBuffer = handle;
     }
 
@@ -625,7 +638,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_element_array_buffer({0})', buffer ? buffer.id() : null);
-        this.gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
+        this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
         this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = handle;
     }
 
@@ -635,7 +648,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_texture({0})', texture ? texture.id() : null);
-        this.gl.bindTexture(GL_TEXTURE_2D, handle);
+        this._gl.bindTexture(GL_TEXTURE_2D, handle);
         this._state.boundTextures[this._state.textureUnit] = handle;
     }
 
@@ -645,7 +658,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_cube_texture({0})', texture ? texture.id() : null);
-        this.gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
+        this._gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
         this._state.boundCubeTextures[this._state.textureUnit] = handle;
     }
 
@@ -656,7 +669,7 @@ export class Runtime extends BaseWrapper {
         }
         if (this._state.textureUnit !== unit) {
             this._logger.log('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
-            this.gl.activeTexture(GL_TEXTURE0 + unit);
+            this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._state.textureUnit = unit;
         }
         this.bindTexture(texture);
@@ -669,7 +682,7 @@ export class Runtime extends BaseWrapper {
         }
         if (this._state.textureUnit !== unit) {
             this._logger.log('set_cube_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
-            this.gl.activeTexture(GL_TEXTURE0 + unit);
+            this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._state.textureUnit = unit;
         }
         this.bindCubeTexture(texture);
@@ -684,7 +697,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
-        this.gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
+        this._gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
         this._state.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
         return true;
     }
@@ -698,7 +711,7 @@ export class Runtime extends BaseWrapper {
             return false;
         }
         this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
-        this.gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
+        this._gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
         this._state.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
         return true;
     }
@@ -709,7 +722,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_framebuffer({0})', framebuffer ? framebuffer.id() : null);
-        this.gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
+        this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
         this._state.framebuffer = handle;
     }
 
@@ -740,7 +753,7 @@ export class Runtime extends BaseWrapper {
             return;
         }
         this._logger.log('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
-        this.gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
+        this._gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
         this._state.renderbuffer = handle;
     }
 
@@ -758,7 +771,7 @@ export class Runtime extends BaseWrapper {
         // So it is just set to a fixed value to avoid any inconsistencies.
         this.setPixelStoreUnpackFlipYWebgl(false);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
-        this.gl.readPixels(x, y, width, height, glFormat, glType, pixels);
+        this._gl.readPixels(x, y, width, height, glFormat, glType, pixels);
     }
 }
 

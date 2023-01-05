@@ -53,12 +53,7 @@ export interface ReadPixelsOptions {
 }
 
 export interface RuntimeOptions {
-    readonly alpha?: boolean;
-    readonly depth?: boolean;
-    readonly stencil?: boolean;
-    readonly antialias?: boolean;
-    readonly failIfMajorPerformanceCaveat?: boolean;
-    readonly premultipliedAlpha?: boolean;
     readonly trackWindowResize?: boolean;
     readonly extensions?: ReadonlyArray<EXTENSION>;
+    readonly contextAttributes?: WebGLContextAttributes;
 }
