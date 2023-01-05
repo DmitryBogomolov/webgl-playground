@@ -165,16 +165,16 @@ export class Runtime extends BaseWrapper {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _defaultRenderTarget;
+    private readonly _state: State;
+    private readonly _gl: WebGLRenderingContext;
+    private readonly _vaoExt: OES_vertex_array_object;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
+
     private readonly _sizeChanged = new EventEmitter((handler) => {
         // Immediately notify subscriber so that it may perform initial calculation.
         handler();
     });
-    private readonly _state: State;
-    // TODO: Replace it with getters.
-    private readonly _gl: WebGLRenderingContext;
-    private readonly _vaoExt: OES_vertex_array_object;
 
     private readonly _handleContextLost: EventListener = () => {
         this._logger.warn('context is lost');
