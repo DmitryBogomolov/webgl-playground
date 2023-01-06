@@ -3,6 +3,7 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Vec3 } from '../geometry/vec3.types';
 import type { Mat4 } from '../geometry/mat4.types';
 import type { EventProxy } from '../utils/event-emitter.types';
+import type { Logger } from '../utils/logger';
 import { BaseWrapper } from './base-wrapper';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../utils/fov';
@@ -32,6 +33,10 @@ export class Camera extends BaseWrapper {
     private _upDir: Vec3 = YUNIT3;
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
+
+    constructor(baseLogger?: Logger, tag?: string) {
+        super(baseLogger || null, tag);
+    }
 
     /**
      * Notifies about every camera change.

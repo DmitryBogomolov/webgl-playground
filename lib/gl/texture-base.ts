@@ -85,7 +85,7 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
     };
 
     constructor(runtime: TextureRuntimeBase, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._texture = this._createTexture();

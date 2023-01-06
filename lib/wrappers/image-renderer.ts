@@ -62,7 +62,7 @@ export class ImageRenderer extends BaseWrapper {
     private _texmatDirty: boolean = true;
 
     constructor(runtime: Runtime, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._runtime = runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture(tag);

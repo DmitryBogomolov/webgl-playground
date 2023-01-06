@@ -197,7 +197,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     private readonly _program: WebGLProgram;
 
     constructor(runtime: ProgramRuntime, options: ProgramOptions, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._schema = options.schema;

@@ -193,7 +193,7 @@ export class Runtime extends BaseWrapper {
     };
 
     constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
-        super(tag);
+        super(null, tag);
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
@@ -839,7 +839,7 @@ class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
     private readonly _runtime: Runtime;
 
     constructor(runtime: Runtime, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._runtime = runtime;
     }
 

@@ -57,7 +57,7 @@ export class Primitive extends BaseWrapper {
     private _program: Program = EMPTY_PROGRAM;
 
     constructor(runtime: PrimitiveRuntime, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._vao = this._createVao();
