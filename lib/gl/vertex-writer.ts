@@ -68,25 +68,27 @@ const unwrappers: UnwrappersMap = {
     [4]: unwrap4,
 };
 
-const logger = new Logger('VertexWriter');
+const defaultLogger = new Logger('VertexWriter');
 
 export class VertexWriter {
     private readonly _attrs: AttributesMap;
     private readonly _views: AttributeTypeMap<TypedArray>;
+    private readonly _logger: Logger;
 
-    constructor(schema: VertexSchema, target: ArrayBufferView | ArrayBuffer) {
+    constructor(schema: VertexSchema, target: ArrayBufferView | ArrayBuffer, logger: Logger = defaultLogger) {
         this._attrs = buildMap(schema);
         this._views = buildViews(schema, wrapBuffer(target));
+        this._logger = logger;
     }
 
     writeAttribute(vertexIndex: number, attrName: string, attrValue: AttrValue): void {
         const attr = this._attrs[attrName];
         if (!attr) {
-            throw logger.error('attribute "{0}" is unknown', attrName);
+            throw this._logger.error('attribute "{0}" is unknown', attrName);
         }
         const values = unwrappers[attr.size](attrValue);
         if (values === null) {
-            throw logger.error(
+            throw this._logger.error(
                 'attribute "{0}" size is {1} but value is {2}', attrName, attr.size, attrValue,
             );
         }
