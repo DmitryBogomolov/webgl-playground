@@ -1,4 +1,4 @@
-import { Logger, Runtime, Primitive, Program, VertexWriter, VertexSchema } from 'lib';
+import { LoggerImpl, Runtime, Primitive, Program, VertexWriter, VertexSchema } from 'lib';
 import { Vertex } from '../vertex';
 
 export interface LineParams {
@@ -13,7 +13,7 @@ export interface LineParams {
 }
 
 export class Line {
-    private readonly _logger = new Logger(this.constructor.name);
+    private readonly _logger = new LoggerImpl(this.constructor.name);
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;

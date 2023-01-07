@@ -1,7 +1,8 @@
 import type {
     AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
 } from './vertex-schema.types';
-import { Logger } from '../utils/logger';
+import type { Logger } from '../utils/logger.types';
+import { LoggerImpl } from '../utils/logger';
 
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -58,7 +59,7 @@ function getStride({ name, stride }: AttributeOptions, logger: Logger): number {
     return 0;
 }
 
-const defaultLogger = new Logger('VertexSchema');
+const defaultLogger = new LoggerImpl('VertexSchema');
 
 export function parseVertexSchema(
     attrOptions: ReadonlyArray<AttributeOptions>, logger: Logger = defaultLogger,

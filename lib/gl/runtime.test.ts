@@ -1,5 +1,7 @@
 import { Runtime } from './runtime';
 
+jest.mock('../utils/logger');
+
 describe('runtime', () => {
     describe('Runtime', () => {
         let container: HTMLElement;

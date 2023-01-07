@@ -1,3 +1,4 @@
+export * from './utils/logger.types';
 export * from './utils/logger';
 export * from './utils/indexes-generator';
 export * from './utils/pointer-event.types';

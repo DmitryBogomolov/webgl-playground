@@ -40,6 +40,7 @@ describe('framebuffer', () => {
             } as unknown as WebGLRenderingContext;
             runtime = {
                 gl: () => ctx,
+                logger: () => null,
                 bindFramebuffer,
             } as unknown as Runtime;
         });

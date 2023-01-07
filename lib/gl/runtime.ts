@@ -15,6 +15,7 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../utils/event-emitter.types';
 import { BaseWrapper } from './base-wrapper';
+import { RootLogger } from '../utils/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';
 import { RenderLoop } from './render-loop';
@@ -193,7 +194,7 @@ export class Runtime extends BaseWrapper {
     };
 
     constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
-        super(null, tag);
+        super(null, tag, RootLogger);
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
         this._logger.log('init');
         this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
@@ -210,14 +211,6 @@ export class Runtime extends BaseWrapper {
         }
     }
 
-    gl(): WebGLRenderingContext {
-        return this._gl;
-    }
-
-    vaoExt(): OES_vertex_array_object {
-        return this._vaoExt;
-    }
-
     dispose(): void {
         this._logger.log('dispose');
         this._renderLoop.cancel();
@@ -231,6 +224,19 @@ export class Runtime extends BaseWrapper {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
+    }
+
+
+    gl(): WebGLRenderingContext {
+        return this._gl;
+    }
+
+    vaoExt(): OES_vertex_array_object {
+        return this._vaoExt;
+    }
+
+    logSilent(silent: boolean): void {
+        (this._logger as RootLogger).setSilent(silent);
     }
 
     private _getContext(): WebGLRenderingContext {

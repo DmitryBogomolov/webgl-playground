@@ -1,4 +1,3 @@
-import { logSilenced } from './lib/utils/logger';
 import type { Vec2 } from './lib/geometry/vec2.types';
 import type { Vec3 } from './lib/geometry/vec3.types';
 import type { Vec4 } from './lib/geometry/vec4.types';
@@ -131,5 +130,3 @@ expect.extend({
         };
     },
 });
-
-logSilenced(true);

@@ -3,7 +3,6 @@ import {
     parseVertexSchema,
     WorkerMessenger,
     Color, color,
-    logSilenced,
     Runtime,
     Primitive,
     Program,
@@ -46,7 +45,6 @@ function main(): void {
         primitive.render();
     });
     runWorker(runtime, state);
-    logSilenced(true);
 }
 
 function runWorker(runtime: Runtime, state: State): void {

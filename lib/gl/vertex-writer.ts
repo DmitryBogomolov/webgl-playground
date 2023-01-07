@@ -1,6 +1,7 @@
 import type { AttrValue } from './vertex-writer.types';
 import type { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema.types';
-import { Logger } from '../utils/logger';
+import type { Logger } from '../utils/logger.types';
+import { LoggerImpl } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -68,7 +69,7 @@ const unwrappers: UnwrappersMap = {
     [4]: unwrap4,
 };
 
-const defaultLogger = new Logger('VertexWriter');
+const defaultLogger = new LoggerImpl('VertexWriter');
 
 export class VertexWriter {
     private readonly _attrs: AttributesMap;
