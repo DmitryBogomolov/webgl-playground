@@ -17,6 +17,6 @@ export interface IndexData {
 
 export type PrimitiveRuntime = Pick<
     Runtime,
-    | 'gl' | 'vaoExt'
+    | 'gl' | 'vaoExt' | 'logger'
     | 'bindArrayBuffer' | 'bindElementArrayBuffer' | 'bindVertexArrayObject' | 'useProgram'
 >;

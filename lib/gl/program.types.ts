@@ -29,5 +29,5 @@ export interface ProgramOptions {
 
 export type ProgramRuntime = Pick<
     Runtime,
-    'gl' | 'useProgram'
+    'gl' | 'logger' | 'useProgram'
 >;

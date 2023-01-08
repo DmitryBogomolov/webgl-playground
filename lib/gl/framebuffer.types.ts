@@ -11,5 +11,5 @@ export interface FramebufferOptions {
 
 export type FramebufferRuntime = Pick<
     Runtime,
-    'gl' | 'bindFramebuffer' | 'bindRenderbuffer'
+    'gl' | 'logger' | 'bindFramebuffer' | 'bindRenderbuffer'
 >;

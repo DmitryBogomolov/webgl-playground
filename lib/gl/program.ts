@@ -1,7 +1,7 @@
 import type { UniformValue, ProgramOptions, ProgramRuntime } from './program.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import type { Logger } from '../utils/logger';
+import type { Logger } from '../utils/logger.types';
 import { BaseWrapper } from './base-wrapper';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
@@ -197,7 +197,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
     private readonly _program: WebGLProgram;
 
     constructor(runtime: ProgramRuntime, options: ProgramOptions, tag?: string) {
-        super(tag);
+        super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
         this._schema = options.schema;

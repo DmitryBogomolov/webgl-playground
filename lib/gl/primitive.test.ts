@@ -27,6 +27,7 @@ describe('primitive', () => {
             runtime = {
                 gl: () => ctx,
                 vaoExt: () => vaoExt,
+                logger: () => null,
             } as unknown as Runtime;
         });
 

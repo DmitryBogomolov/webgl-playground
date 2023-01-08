@@ -1,7 +1,8 @@
 import type {
     AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
 } from './vertex-schema.types';
-import { Logger } from '../utils/logger';
+import type { Logger } from '../utils/logger.types';
+import { LoggerImpl } from '../utils/logger';
 
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -22,7 +23,7 @@ const BYTE_SIZES: AttributeTypeMap<number> = {
     float: 4,
 };
 
-function parseType({ name, type }: AttributeOptions): AttributeType {
+function parseType({ name, type }: AttributeOptions, logger: Logger): AttributeType {
     const ret = type.substring(0, type.length - 1);
     if (!(ret in GL_TYPES)) {
         throw logger.error('item "{0}" type "{1}" name is not valid', name, type);
@@ -30,7 +31,7 @@ function parseType({ name, type }: AttributeOptions): AttributeType {
     return ret as AttributeType;
 }
 
-function parseSize({ name, type }: AttributeOptions): number {
+function parseSize({ name, type }: AttributeOptions, logger: Logger): number {
     const size = Number(type[type.length - 1]);
     if (!(1 <= size && size <= 4)) {
         throw logger.error('item "{0}" type "{1}" size is not valid', name, type);
@@ -38,7 +39,7 @@ function parseSize({ name, type }: AttributeOptions): number {
     return size;
 }
 
-function getOffset({ name, offset }: AttributeOptions, currentOffset: number): number {
+function getOffset({ name, offset }: AttributeOptions, currentOffset: number, logger: Logger): number {
     if (offset !== undefined) {
         if (offset % 4 !== 0) {
             throw logger.error('item "{0}" offset "{1}" is not valid', name, offset);
@@ -48,7 +49,7 @@ function getOffset({ name, offset }: AttributeOptions, currentOffset: number): n
     return currentOffset;
 }
 
-function getStride({ name, stride }: AttributeOptions): number {
+function getStride({ name, stride }: AttributeOptions, logger: Logger): number {
     if (stride !== undefined) {
         if (stride % 4 !== 0) {
             throw logger.error('item "{0}" stride "{1}" is not valid', name, stride);
@@ -58,16 +59,18 @@ function getStride({ name, stride }: AttributeOptions): number {
     return 0;
 }
 
-const logger = new Logger('VertexSchema');
+const defaultLogger = new LoggerImpl('VertexSchema');
 
-export function parseVertexSchema(attrOptions: ReadonlyArray<AttributeOptions>): VertexSchema {
+export function parseVertexSchema(
+    attrOptions: ReadonlyArray<AttributeOptions>, logger: Logger = defaultLogger,
+): VertexSchema {
     const attributes: Attribute[] = [];
     let currentOffset = 0;
     for (let i = 0; i < attrOptions.length; ++i) {
         const attrOption = attrOptions[i];
-        const type = parseType(attrOption);
-        const size = parseSize(attrOption);
-        const offset = getOffset(attrOption, currentOffset);
+        const type = parseType(attrOption, logger);
+        const size = parseSize(attrOption, logger);
+        const offset = getOffset(attrOption, currentOffset, logger);
         attributes.push({
             name: attrOption.name,
             location: i,
@@ -75,7 +78,7 @@ export function parseVertexSchema(attrOptions: ReadonlyArray<AttributeOptions>):
             gltype: GL_TYPES[type],
             size,
             normalized: type !== 'float' && !!attrOption.normalized,
-            stride: getStride(attrOption),
+            stride: getStride(attrOption, logger),
             offset,
         });
         currentOffset = offset + BYTE_SIZES[type] * size;

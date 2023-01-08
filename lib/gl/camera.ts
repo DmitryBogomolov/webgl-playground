@@ -3,7 +3,8 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Vec3 } from '../geometry/vec3.types';
 import type { Mat4 } from '../geometry/mat4.types';
 import type { EventProxy } from '../utils/event-emitter.types';
-import { Logger } from '../utils/logger';
+import type { Logger } from '../utils/logger.types';
+import { BaseWrapper } from './base-wrapper';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
@@ -14,8 +15,7 @@ import {
     mul4x4, inverse4x4,
 } from '../geometry/mat4';
 
-export class Camera {
-    private readonly _logger = new Logger('Camera');
+export class Camera extends BaseWrapper {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
@@ -33,6 +33,10 @@ export class Camera {
     private _upDir: Vec3 = YUNIT3;
     private _centerPos: Vec3 = ZERO3;
     private _eyePos: Vec3 = ZUNIT3;
+
+    constructor(rootLogger?: Logger, tag?: string) {
+        super(rootLogger || null, tag);
+    }
 
     /**
      * Notifies about every camera change.
