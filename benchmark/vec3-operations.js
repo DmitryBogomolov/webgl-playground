@@ -1,8 +1,6 @@
-// @ts-ignore
 const SAMPLE_COUNT = 1E4;
 
-// @ts-ignore
-function measure(callback: (i: number) => void): number {
+function measure(callback) {
     const start = Date.now();
     for (let i = 0; i < SAMPLE_COUNT; ++i) {
         callback(i);
@@ -11,78 +9,65 @@ function measure(callback: (i: number) => void): number {
     return end - start;
 }
 
-interface Vec3 {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-}
-
-class Vec3Cls implements Vec3 {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-    constructor(x: number, y: number, z: number) {
+class Vec3Cls {
+    constructor(x, y, z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 }
 
-function v3(x: number, y: number, z: number): Vec3 {
+function v3(x, y, z) {
     return new Vec3Cls(x, y, z);
 }
 
-function f1(v: Vec3, k: number): Vec3 {
+function f1(v, k) {
     return v3(v.x * k, v.y * k, v.z * k);
 }
 
-function f1x(v: Vec3, k: number, out: Vec3): void {
+function f1x(v, k, out) {
     const x = v.x * k;
     const y = v.y * k;
     const z = v.z * k;
-    (out as any).x = x;
-    (out as any).y = y;
-    (out as any).z = z;
+    out.x = x;
+    out.y = y;
+    out.z = z;
 }
 
-function f1z(v: Vec3, k: number, out: Vec3 = v3(0, 0, 0)): Vec3 {
+function f1z(v, k, out = v3(0, 0, 0)) {
     const x = v.x * k;
     const y = v.y * k;
     const z = v.z * k;
-    (out as any).x = x;
-    (out as any).y = y;
-    (out as any).z = z;
+    out.x = x;
+    out.y = y;
+    out.z = z;
     return out;
 }
 
-function f2(a: Vec3, b: Vec3): Vec3 {
+function f2(a, b) {
     return v3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
-function f2x(a: Vec3, b: Vec3, out: Vec3): void {
+function f2x(a, b, out) {
     const x = a.x + b.x;
     const y = a.y + b.y;
     const z = a.z + b.z;
-    (out as any).x = x;
-    (out as any).y = y;
-    (out as any).z = z;
+    out.x = x;
+    out.y = y;
+    out.z = z;
 }
 
-function f2z(a: Vec3, b: Vec3, out: Vec3 = v3(0, 0, 0)): Vec3 {
+function f2z(a, b, out = v3(0, 0, 0)) {
     const x = a.x + b.x;
     const y = a.y + b.y;
     const z = a.z + b.z;
-    (out as any).x = x;
-    (out as any).y = y;
-    (out as any).z = z;
+    out.x = x;
+    out.y = y;
+    out.z = z;
     return out;
 }
 
-function test1(
-    a: Vec3, b: Vec3, storage: Vec3[],
-    f1: (v: Vec3, k: number) => Vec3,
-    f2: (a: Vec3, b: Vec3) => Vec3,
-): Vec3 {
+function test1(a, b, storage, f1, f2) {
     for (let i = 0; i < storage.length; ++i) {
         const k = i / (storage.length - 1);
         const x1 = f2(f1(a, 1 - k), f1(b, k));
@@ -98,11 +83,7 @@ function test1(
     return result;
 }
 
-function test2(
-    a: Vec3, b: Vec3, storage: Vec3[],
-    f1x: (v: Vec3, k: number, out: Vec3) => void,
-    f2x: (a: Vec3, b: Vec3, out: Vec3) => void,
-): Vec3 {
+function test2(a, b, storage, f1x, f2x) {
     const scratch1 = v3(0, 0, 0);
     const scratch2 = v3(0, 0, 0);
 
@@ -146,7 +127,7 @@ function test2(
 
 const a = v3(1, 4, 8);
 const b = v3(3, 2, 9);
-const storage = new Array<Vec3>(512);
+const storage = new Array(512);
 
 console.log(measure(() => test1(a, b, storage, f1, f2)));
 console.log(measure(() => test2(a, b, storage, f1x, f2x)));
