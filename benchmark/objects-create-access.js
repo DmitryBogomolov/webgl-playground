@@ -1,13 +1,4 @@
-const SAMPLE_COUNT = 1E8;
-
-function measure(callback) {
-    const start = Date.now();
-    for (let i = 0; i < SAMPLE_COUNT; ++i) {
-        callback(i);
-    }
-    const end = Date.now();
-    return end - start;
-}
+const { measure } = require('./util');
 
 function Prt(x, y, z) {
     this.x = x;
