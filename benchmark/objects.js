@@ -1,9 +1,9 @@
 const SAMPLE_COUNT = 1E8;
 
-function measure(callback, ...args) {
+function measure(callback) {
     const start = Date.now();
     for (let i = 0; i < SAMPLE_COUNT; ++i) {
-        callback(i, ...args);
+        callback(i);
     }
     const end = Date.now();
     return end - start;
@@ -54,14 +54,14 @@ function accessObj(idx, obj) {
 }
 
 const SCHEMA = [
-    ['create arr', createArr],
-    ['create obj', createObj],
-    ['create prt', createPrt],
-    ['create cls', createCls],
-    ['access arr', accessArr, [1.2, 2.3, 3.4]],
-    ['access obj', accessObj, { x: 1.2, y: 2.3, z: 3.4 }],
-    ['access prt', accessObj, new Prt(1.2, 2.3, 3.4)],
-    ['access cls', accessObj, new Cls(1.2, 2.3, 3.4)],
+    ['create arr', (i) => createArr(i)],
+    ['create obj', (i) => createObj(i)],
+    ['create prt', (i) => createPrt(i)],
+    ['create cls', (i) => createCls(i)],
+    ['access arr', (i) => accessArr(i, [1.2, 2.3, 3.4])],
+    ['access obj', (i) => accessObj(i, { x: 1.2, y: 2.3, z: 3.4 })],
+    ['access prt', (i) => accessObj(i, new Prt(1.2, 2.3, 3.4))],
+    ['access cls', (i) => accessObj(i, new Cls(1.2, 2.3, 3.4))],
 ];
 
 const durations = SCHEMA.map(([_, callback, ...args]) => measure(callback, ...args));
