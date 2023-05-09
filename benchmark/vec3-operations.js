@@ -1,4 +1,4 @@
-const { measure } = require('./util');
+const { runBenchmarks } = require('./util');
 
 class Vec3 {
     constructor(x, y, z) {
@@ -120,8 +120,9 @@ const a = v3(1, 4, 8);
 const b = v3(3, 2, 9);
 const storage = new Array(512);
 
-console.log(measure(() => test_ret(a, b, storage, f1_ret, f2_ret)));
-console.log(measure(() => test_out(a, b, storage, f1_out, f2_out)));
-
-console.log(measure(() => test_ret(a, b, storage, f1_both, f2_both)));
-console.log(measure(() => test_out(a, b, storage, f1_both, f2_both)));
+runBenchmarks([
+    { name: 'return 1', action: () => test_ret(a, b, storage, f1_ret, f2_ret) },
+    { name: 'update 1', action: () => test_out(a, b, storage, f1_out, f2_out) },
+    { name: 'return 2', action: () => test_ret(a, b, storage, f1_both, f2_both) },
+    { name: 'update 2', action: () => test_out(a, b, storage, f1_both, f2_both) },
+]);
