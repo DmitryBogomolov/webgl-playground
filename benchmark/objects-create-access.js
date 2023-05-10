@@ -53,4 +53,4 @@ runBenchmarks([
     { name: 'access obj', action: (i) => accessObj(i, { x: 1.2, y: 2.3, z: 3.4 }) },
     { name: 'access prt', action: (i) => accessObj(i, new Prt(1.2, 2.3, 3.4)) },
     { name: 'access cls', action: (i) => accessObj(i, new Cls(1.2, 2.3, 3.4)) },
-]);
+], 1E6);

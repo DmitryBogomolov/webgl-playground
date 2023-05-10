@@ -1,5 +1,3 @@
-const DEFAULT_SAMPLE_COUNT = 1E4;
-
 function now() {
     return performance.now();
 }
@@ -29,12 +27,10 @@ function measure(callback, samples) {
 }
 
 function fmt(value) {
-    const t = Math.max(Math.log10(value), 0) | 0;
-    const precision = Math.max(4 - t, 0);
-    return value.toFixed(precision);
+    return value .toPrecision(4);
 }
 
-function runBenchmarks(targets, sampleCount = DEFAULT_SAMPLE_COUNT) {
+function runBenchmarks(targets, sampleCount) {
     const samples = new Array(sampleCount);
     const reports = targets.map(({ name, action }) => {
         const report = measure(action, samples);

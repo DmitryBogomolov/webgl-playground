@@ -125,4 +125,4 @@ runBenchmarks([
     { name: 'update 1', action: () => test_out(a, b, storage, f1_out, f2_out) },
     { name: 'return 2', action: () => test_ret(a, b, storage, f1_both, f2_both) },
     { name: 'update 2', action: () => test_out(a, b, storage, f1_both, f2_both) },
-]);
+], 1E4);
