@@ -222,12 +222,12 @@ const ROTATION4X4_MAP = [
     rowcol2idx(2, 0), rowcol2idx(2, 1), rowcol2idx(2, 2),
     rowcol2idx(3, 3),
 ] as const;
+const _rotation4x4_aux = vec3(0, 0, 0);
 export function rotation4x4(axis: Vec3, rotation: number, out: Mat4 = mat4()): Mat4 {
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
     const t = 1 - c;
-    // TODO: Optimize.
-    const { x, y, z } = norm3(axis);
+    const { x, y, z } = norm3(axis, _rotation4x4_aux);
     zero4x4(out);
     const [xx, xy, xz, yx, yy, yz, zx, zy, zz, ww] = ROTATION4X4_MAP;
     (out as number[])[xx] = x * x * t + c;
@@ -395,12 +395,14 @@ const LOOKAT4X4_MAP = [
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
     rowcol2idx(3, 3),
 ] as const;
+const _lookAt4x4_aux_x = vec3(0, 0, 0);
+const _lookAt4x4_aux_y = vec3(0, 0, 0);
+const _lookAt4x4_aux_z = vec3(0, 0, 0);
 export function lookAt4x4(options: LookAt4x4Options, out: Mat4 = mat4()): Mat4 {
     const { eye, center, up } = options;
-    // TODO: Optimize.
-    const zAxis = norm3(sub3(eye, center));
-    const xAxis = norm3(cross3(up, zAxis));
-    const yAxis = cross3(zAxis, xAxis);
+    const zAxis = norm3(sub3(eye, center, _lookAt4x4_aux_z), _lookAt4x4_aux_z);
+    const xAxis = norm3(cross3(up, zAxis, _lookAt4x4_aux_x), _lookAt4x4_aux_x);
+    const yAxis = cross3(zAxis, xAxis, _lookAt4x4_aux_y);
     zero4x4(out);
     const [
         xx, xy, xz,
@@ -438,12 +440,14 @@ const TARGET4X4_MAP = [
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
     rowcol2idx(3, 3),
 ] as const;
+const _targetTo4x4_aux_x = vec3(0, 0, 0);
+const _targetTo4x4_aux_y = vec3(0, 0, 0);
+const _targetTo4x4_aux_z = vec3(0, 0, 0);
 export function targetTo4x4(options: TargetTo4x4Options, out: Mat4 = mat4()): Mat4 {
     const { eye, target, up } = options;
-    // TODO: Optimize.
-    const zAxis = norm3(sub3(eye, target));
-    const xAxis = cross3(norm3(up), zAxis);
-    const yAxis = cross3(zAxis, xAxis);
+    const zAxis = norm3(sub3(eye, target, _targetTo4x4_aux_z), _targetTo4x4_aux_z);
+    const xAxis = cross3(norm3(up, _targetTo4x4_aux_x), zAxis, _targetTo4x4_aux_x);
+    const yAxis = cross3(zAxis, xAxis, _targetTo4x4_aux_y);
     zero4x4(out);
     const [
         xx, xy, xz,
