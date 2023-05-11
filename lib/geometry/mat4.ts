@@ -4,9 +4,14 @@ import type { Vec4 } from './vec4.types';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { vec4 } from './vec4';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
+import { range, rowcol2idxRank, idx2rowcolRank, excludeRowColRank } from './helpers';
 
 const MAT_RANK = 4;
 const MAT_SIZE = MAT_RANK ** 2;
+
+const rowcol2idx = rowcol2idxRank.bind(null, MAT_RANK);
+const idx2rowcol = idx2rowcolRank.bind(null, MAT_RANK);
+const excludeRowCol = excludeRowColRank.bind(null, MAT_RANK);
 
 export function isMat4(mat: unknown): mat is Mat4 {
     return Array.isArray(mat) && mat.length === MAT_SIZE;
@@ -14,24 +19,6 @@ export function isMat4(mat: unknown): mat is Mat4 {
 
 export function mat4(): Mat4 {
     return Array<number>(MAT_SIZE).fill(0);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function range<T extends (idx: number) => any>(
-    size: number, func: T,
-): ReadonlyArray<NonNullable<ReturnType<T>>> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return Array<number>(size).fill(0).map((_, i) => func(i)).filter((t) => t !== null);
-}
-
-type Pair = [number, number];
-
-function rowcol2idx(row: number, col: number): number {
-    return col * MAT_RANK + row;
-}
-
-function idx2rowcol(idx: number): Pair {
-    return [idx % MAT_RANK, (idx / MAT_RANK) | 0];
 }
 
 export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = FLOAT_EQ_EPS): boolean {
@@ -83,7 +70,7 @@ export function clone4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
 
 const TRANSPOSE4X4_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
-    return row < col ? [idx, rowcol2idx(col, row)] as Pair : null;
+    return row < col ? [idx, rowcol2idx(col, row)] : null;
 });
 export function transpose4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
     clone4x4(mat, out);
@@ -111,7 +98,7 @@ export function sub4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
 
 const MUL4x4_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
-    return range(MAT_RANK, (k) => [rowcol2idx(row, k), rowcol2idx(k, col)] as Pair);
+    return range(MAT_RANK, (k) => [rowcol2idx(row, k), rowcol2idx(k, col)]);
 });
 const _mul4x4_aux = mat4();
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
@@ -154,23 +141,6 @@ function det3x3(mat: Mat4, indices: ReadonlyArray<number>): number {
         + mat[indices[1]] * mat[indices[6]] * mat[indices[5]]
         + mat[indices[2]] * mat[indices[3]] * mat[indices[7]]
         - mat[indices[2]] * mat[indices[6]] * mat[indices[4]];
-}
-
-function excludeRowCol(row: number, col: number): number[] {
-    const ret = Array<number>((MAT_RANK - 1) ** 2);
-    let k = 0;
-    for (let i = 0; i < MAT_RANK; ++i) {
-        if (i === row) {
-            continue;
-        }
-        for (let j = 0; j < MAT_RANK; ++j) {
-            if (j === col) {
-                continue;
-            }
-            ret[k++] = rowcol2idx(i, j);
-        }
-    }
-    return ret;
 }
 
 const DET4X4_MAP = range(MAT_RANK, (col) =>
