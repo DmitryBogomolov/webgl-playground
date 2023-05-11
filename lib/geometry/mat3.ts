@@ -113,15 +113,15 @@ const MUL3x3_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
     return range(MAT_RANK, (k) => [rowcol2idx(row, k), rowcol2idx(k, col)] as Pair);
 });
-const _mul3x3Aux = mat3() as number[];
+const _mul3x3_aux = mat3();
 export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
-    const aux = _mul3x3Aux;
+    const aux = _mul3x3_aux;
     for (let i = 0; i < MAT_SIZE; ++i) {
         let val = 0;
         for (const [lidx, ridx] of MUL3x3_MAP[i]) {
             val += lhs[lidx] * rhs[ridx];
         }
-        aux[i] = val;
+        (aux as number[])[i] = val;
     }
     return clone3x3(aux, out);
 }
@@ -182,38 +182,38 @@ const ADJUGATE3X3_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
     return [1 - 2 * ((row + col) & 1), excludeRowCol(col, row)] as [number, ReadonlyArray<number>];
 });
-const _adjugate3x3Aux = mat3() as number[];
+const _adjugate3x3_aux = mat3();
 export function adjugate3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
-    const aux = _adjugate3x3Aux;
+    const aux = _adjugate3x3_aux;
     for (let i = 0; i < MAT_SIZE; ++i) {
         const [sign, indices] = ADJUGATE3X3_MAP[i];
-        aux[i] = sign * det2x2(mat, indices);
+        (aux as number[])[i] = sign * det2x2(mat, indices);
     }
     return clone3x3(aux, out);
 }
 
-const _inverse3x3Aux = mat3() as number[];
+const _inverse3x3_aux = mat3();
 export function inverse3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
-    const aux = _inverse3x3Aux;
+    const aux = _inverse3x3_aux;
     let k = 1 / det3x3(mat);
     if (!Number.isFinite(k)) {
         k = 0;
     }
     adjugate3x3(mat, aux);
     for (let i = 0; i < MAT_SIZE; ++i) {
-        aux[i] = aux[i] * k;
+        (aux as number[])[i] = aux[i] * k;
     }
     return clone3x3(aux, out);
 }
 
 type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
-const _tmpMat = mat3();
+const _apply3x3_aux = mat3();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function apply3x3<T extends (...args: any[]) => any>(
     mat: Mat3, func: T, ...args: SkipLast<Parameters<T>>
 ): void {
-    func(...args, _tmpMat);
-    mul3x3(_tmpMat, mat, mat);
+    func(...args, _apply3x3_aux);
+    mul3x3(_apply3x3_aux, mat, mat);
 }
 
 const TRANSLATION3X3_MAP = [rowcol2idx(0, 2), rowcol2idx(1, 2)] as const;
@@ -262,9 +262,8 @@ const PROJECTION4X4_MAP = [
     rowcol2idx(0, 2), rowcol2idx(1, 2),
     rowcol2idx(2, 2),
 ] as const;
-export function projection3x3(
-    { left, right, bottom, top }: Projection3x3Options, out: Mat3 = mat3(),
-): Mat3 {
+export function projection3x3(options: Projection3x3Options, out: Mat3 = mat3()): Mat3 {
+    const { left, right, bottom, top } = options;
     const kx = 2 / (right - left);
     const ky = 2 / (top - bottom);
     const dx = -(left + right) / 2 * kx;

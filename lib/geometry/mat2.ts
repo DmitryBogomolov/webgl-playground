@@ -14,13 +14,6 @@ export function mat2(): Mat2 {
     return Array<number>(MAT_SIZE).fill(0);
 }
 
-function set(mat: Mat2, ...values: number[]): Mat2 {
-    for (let i = 0; i < MAT_SIZE; ++i) {
-        (mat as number[])[i] = values[i];
-    }
-    return mat;
-}
-
 export function eq2x2(lhs: Mat2, rhs: Mat2, eps: number = FLOAT_EQ_EPS): boolean {
     if (lhs === rhs) {
         return true;
@@ -69,10 +62,11 @@ export function transpose2x2(mat: Mat2, out: Mat2 = mat2()): Mat2 {
         m11, m21,
         m12, m22,
     ] = mat as number[];
-    return set(out,
-        m11, m12,
-        m21, m22,
-    );
+    (out as number[])[0] = m11;
+    (out as number[])[1] = m12;
+    (out as number[])[2] = m21;
+    (out as number[])[3] = m22;
+    return out;
 }
 
 export function add2x2(lhs: Mat2, rhs: Mat2, out: Mat2 = mat2()): Mat2 {
@@ -88,7 +82,6 @@ export function sub2x2(lhs: Mat2, rhs: Mat2, out: Mat2 = mat2()): Mat2 {
     }
     return out;
 }
-
 
 export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2 = mat2()): Mat2 {
     const [

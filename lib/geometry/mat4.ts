@@ -113,15 +113,15 @@ const MUL4x4_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
     return range(MAT_RANK, (k) => [rowcol2idx(row, k), rowcol2idx(k, col)] as Pair);
 });
-const _mul4x4Aux = mat4() as number[];
+const _mul4x4_aux = mat4();
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
-    const aux = _mul4x4Aux;
+    const aux = _mul4x4_aux;
     for (let i = 0; i < MAT_SIZE; ++i) {
         let val = 0;
         for (const [lidx, ridx] of MUL4x4_MAP[i]) {
             val += lhs[lidx] * rhs[ridx];
         }
-        aux[i] = val;
+        (aux as number[])[i] = val;
     }
     return clone4x4(aux, out);
 }
@@ -189,26 +189,26 @@ const ADJUGATE4X4_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
     return [1 - 2 * ((row + col) & 1), excludeRowCol(col, row)] as [number, ReadonlyArray<number>];
 });
-const _adjugate4x4Aux = mat4() as number[];
+const _adjugate4x4_aux = mat4();
 export function adjugate4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
-    const aux = _adjugate4x4Aux;
+    const aux = _adjugate4x4_aux;
     for (let i = 0; i < MAT_SIZE; ++i) {
         const [sign, indices] = ADJUGATE4X4_MAP[i];
-        aux[i] = sign * det3x3(mat, indices);
+        (aux as number[])[i] = sign * det3x3(mat, indices);
     }
     return clone4x4(aux, out);
 }
 
-const _inverse4x4Aux = mat4() as number[];
+const _inverse4x4_aux = mat4();
 export function inverse4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
-    const aux = _inverse4x4Aux;
+    const aux = _inverse4x4_aux;
     let k = 1 / det4x4(mat);
     if (!Number.isFinite(k)) {
         k = 0;
     }
     adjugate4x4(mat, aux);
     for (let i = 0; i < MAT_SIZE; ++i) {
-        aux[i] = aux[i] * k;
+        (aux as number[])[i] = aux[i] * k;
     }
     return clone4x4(aux, out);
 }
@@ -220,13 +220,13 @@ export function inversetranspose4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
 }
 
 type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
-const _apply4x4Aux = mat4() as number[];
+const _apply4x4_aux = mat4();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function apply4x4<T extends (...args: any[]) => any>(
     mat: Mat4, func: T, ...args: SkipLast<Parameters<T>>
 ): void {
-    func(...args, _apply4x4Aux);
-    mul4x4(_apply4x4Aux, mat, mat);
+    func(...args, _apply4x4_aux);
+    mul4x4(_apply4x4_aux, mat, mat);
 }
 
 const TRANSLATION4X4_MAP = [rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3)] as const;
@@ -336,9 +336,8 @@ const ORTHOGRAPHIC4X4_MAP = [
     rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2), rowcol2idx(3, 3),
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
 ] as const;
-export function orthographic4x4(
-    { left, right, bottom, top, zNear, zFar }: Orthogrpahic4x4Options, out: Mat4 = mat4(),
-): Mat4 {
+export function orthographic4x4(options: Orthogrpahic4x4Options, out: Mat4 = mat4()): Mat4 {
+    const { left, right, bottom, top, zNear, zFar } = options;
     const lr = 1 / (left - right);
     const bt = 1 / (bottom - top);
     const nf = 1 / (zNear - zFar);
@@ -365,9 +364,8 @@ const PERSPECTIVE4X4_MAP = [
     rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2),
     rowcol2idx(2, 3), rowcol2idx(3, 2),
 ] as const;
-export function perspective4x4(
-    { yFov, aspect, zNear, zFar }: Perspective4x4Options, out: Mat4 = mat4(),
-): Mat4 {
+export function perspective4x4(options: Perspective4x4Options, out: Mat4 = mat4()): Mat4 {
+    const { yFov, aspect, zNear, zFar } = options;
     const f = 1 / Math.tan(yFov / 2);
     let p = -1;
     let q = -2 * zNear;
@@ -399,9 +397,8 @@ const FRUSTUM4X4_MAP = [
     rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2),
     rowcol2idx(0, 2), rowcol2idx(1, 2), rowcol2idx(2, 3), rowcol2idx(3, 2),
 ] as const;
-export function frustum4x4(
-    { left, right, bottom, top, zNear, zFar }: Frustum4x4Options, out: Mat4 = mat4(),
-): Mat4 {
+export function frustum4x4(options: Frustum4x4Options, out: Mat4 = mat4()): Mat4 {
+    const { left, right, bottom, top, zNear, zFar } = options;
     const rl = 1 / (right - left);
     const tb = 1 / (top - bottom);
     const nf = 1 / (zNear - zFar);
@@ -430,9 +427,8 @@ const LOOKAT4X4_MAP = [
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
     rowcol2idx(3, 3),
 ] as const;
-export function lookAt4x4(
-    { eye, center, up }: LookAt4x4Options, out: Mat4 = mat4(),
-): Mat4 {
+export function lookAt4x4(options: LookAt4x4Options, out: Mat4 = mat4()): Mat4 {
+    const { eye, center, up } = options;
     const zAxis = norm3(sub3(eye, center));
     const xAxis = norm3(cross3(up, zAxis));
     const yAxis = cross3(zAxis, xAxis);
@@ -473,9 +469,8 @@ const TARGET4X4_MAP = [
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
     rowcol2idx(3, 3),
 ] as const;
-export function targetTo4x4(
-    { eye, target, up }: TargetTo4x4Options, out: Mat4 = mat4(),
-): Mat4 {
+export function targetTo4x4(options: TargetTo4x4Options, out: Mat4 = mat4()): Mat4 {
+    const { eye, target, up } = options;
     const zAxis = norm3(sub3(eye, target));
     const xAxis = cross3(norm3(up), zAxis);
     const yAxis = cross3(zAxis, xAxis);
