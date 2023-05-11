@@ -259,6 +259,7 @@ export function rotation4x4(axis: Vec3, rotation: number, out: Mat4 = mat4()): M
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
     const t = 1 - c;
+    // TODO: Optimize.
     const { x, y, z } = norm3(axis);
     zero4x4(out);
     const [xx, xy, xz, yx, yy, yz, zx, zy, zz, ww] = ROTATION4X4_MAP;
@@ -429,6 +430,7 @@ const LOOKAT4X4_MAP = [
 ] as const;
 export function lookAt4x4(options: LookAt4x4Options, out: Mat4 = mat4()): Mat4 {
     const { eye, center, up } = options;
+    // TODO: Optimize.
     const zAxis = norm3(sub3(eye, center));
     const xAxis = norm3(cross3(up, zAxis));
     const yAxis = cross3(zAxis, xAxis);
@@ -471,6 +473,7 @@ const TARGET4X4_MAP = [
 ] as const;
 export function targetTo4x4(options: TargetTo4x4Options, out: Mat4 = mat4()): Mat4 {
     const { eye, target, up } = options;
+    // TODO: Optimize.
     const zAxis = norm3(sub3(eye, target));
     const xAxis = cross3(norm3(up), zAxis);
     const yAxis = cross3(zAxis, xAxis);
