@@ -1,4 +1,5 @@
 import type { Vec2 } from './vec2.types';
+import { upd2 } from './vec2.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec2Impl implements Vec2 {
@@ -38,13 +39,6 @@ export function isUnit2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v2(): Vec2 {
     return vec2(0, 0);
-}
-
-function upd2(out: Vec2, x: number, y: number): Vec2 {
-    type V2 = { x: number; y: number; };
-    (out as V2).x = x;
-    (out as V2).y = y;
-    return out;
 }
 
 export function clone2(v: Vec2, out: Vec2 = v2()): Vec2 {

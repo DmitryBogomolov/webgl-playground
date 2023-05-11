@@ -1,4 +1,5 @@
 import type { Vec3 } from './vec3.types';
+import { upd3 } from './vec3.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec3Impl implements Vec3 {
@@ -43,14 +44,6 @@ export function isUnit3(v: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v3(): Vec3 {
     return vec3(0, 0, 0);
-}
-
-function upd3(out: Vec3, x: number, y: number, z: number): Vec3 {
-    type V3 = { x: number; y: number; z: number; };
-    (out as V3).x = x;
-    (out as V3).y = y;
-    (out as V3).z = z;
-    return out;
 }
 
 export function clone3(v: Vec3, out: Vec3 = v3()): Vec3 {

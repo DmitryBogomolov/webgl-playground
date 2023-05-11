@@ -1,5 +1,6 @@
 import type { Mat2 } from './mat2.types';
 import type { Vec2 } from './vec2.types';
+import { upd2 } from './vec2.helper';
 import { vec2 } from './vec2';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
@@ -99,13 +100,13 @@ export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2 = mat2()): Mat2 {
     return out;
 }
 
-export function mul2v2(lhs: Mat2, rhs: Vec2): Vec2 {
+export function mul2v2(lhs: Mat2, rhs: Vec2, out: Vec2 = vec2(0, 0)): Vec2 {
     const [
         a11, a21,
         a12, a22,
     ] = lhs as number[];
     const { x, y } = rhs;
-    return vec2(
+    return upd2(out,
         a11 * x + a12 * y,
         a21 * x + a22 * y,
     );

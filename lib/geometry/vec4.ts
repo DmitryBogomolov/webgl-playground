@@ -1,4 +1,5 @@
 import type { Vec4 } from './vec4.types';
+import { upd4 } from './vec4.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec4Impl implements Vec4 {
@@ -46,15 +47,6 @@ export function isUnit4(v: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v4(): Vec4 {
     return vec4(0, 0, 0, 0);
-}
-
-function upd4(out: Vec4, x: number, y: number, z: number, w: number): Vec4 {
-    type V4 = { x: number; y: number; z: number; w: number; };
-    (out as V4).x = x;
-    (out as V4).y = y;
-    (out as V4).z = z;
-    (out as V4).w = w;
-    return out;
 }
 
 export function clone4(v: Vec4, out: Vec4 = v4()): Vec4 {

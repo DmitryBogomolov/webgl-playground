@@ -2,7 +2,9 @@ import type { Mat3 } from './mat3.types';
 import type { Vec2 } from './vec2.types';
 import type { Vec3 } from './vec3.types';
 import type { AnyFunc, SkipLastArg } from './helpers.types';
+import { upd2 } from './vec2.helper';
 import { vec2 } from './vec2';
+import { upd3 } from './vec3.helper';
 import { vec3 } from './vec3';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 import { range, rowcol2idxRank, idx2rowcolRank, excludeRowColRank } from './helpers';
@@ -114,19 +116,20 @@ export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3 = mat3()): Mat3 {
     return clone3x3(aux, out);
 }
 
-export function mul3v2(lhs: Mat3, rhs: Vec2): Vec2 {
-    const v = mul3v3(lhs, vec3(rhs.x, rhs.y, 1));
-    return vec2(v.x / v.z, v.y / v.z);
+const _mul3v2_aux = vec3(0, 0, 0);
+export function mul3v2(lhs: Mat3, rhs: Vec2, out: Vec2 = vec2(0, 0)): Vec2 {
+    const v = mul3v3(lhs, vec3(rhs.x, rhs.y, 1), _mul3v2_aux);
+    return upd2(out, v.x / v.z, v.y / v.z);
 }
 
-export function mul3v3(lhs: Mat3, rhs: Vec3): Vec3 {
+export function mul3v3(lhs: Mat3, rhs: Vec3, out: Vec3 = vec3(0, 0, 0)): Vec3 {
     const [
         a11, a21, a31,
         a12, a22, a32,
         a13, a23, a33,
     ] = lhs as number[];
     const { x, y, z } = rhs;
-    return vec3(
+    return upd3(out,
         a11 * x + a12 * y + a13 * z,
         a21 * x + a22 * y + a23 * z,
         a31 * x + a32 * y + a33 * z,

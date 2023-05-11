@@ -2,7 +2,9 @@ import type { Mat4 } from './mat4.types';
 import type { Vec3 } from './vec3.types';
 import type { Vec4 } from './vec4.types';
 import type { AnyFunc, SkipLastArg } from './helpers.types';
+import { upd3 } from './vec3.helper';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
+import { upd4 } from './vec4.helper';
 import { vec4 } from './vec4';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 import { range, rowcol2idxRank, idx2rowcolRank, excludeRowColRank } from './helpers';
@@ -114,12 +116,13 @@ export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4 = mat4()): Mat4 {
     return clone4x4(aux, out);
 }
 
-export function mul4v3(lhs: Mat4, rhs: Vec3): Vec3 {
-    const v = mul4v4(lhs, vec4(rhs.x, rhs.y, rhs.z, 1));
-    return vec3(v.x / v.w, v.y / v.w, v.z / v.w);
+const _mul4v3_aux = vec4(0, 0, 0, 0);
+export function mul4v3(lhs: Mat4, rhs: Vec3, out: Vec3 = vec3(0, 0, 0)): Vec3 {
+    const v = mul4v4(lhs, vec4(rhs.x, rhs.y, rhs.z, 1), _mul4v3_aux);
+    return upd3(out, v.x / v.w, v.y / v.w, v.z / v.w);
 }
 
-export function mul4v4(lhs: Mat4, rhs: Vec4): Vec4 {
+export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4 = vec4(0, 0, 0, 0)): Vec4 {
     const [
         a11, a21, a31, a41,
         a12, a22, a32, a42,
@@ -127,7 +130,7 @@ export function mul4v4(lhs: Mat4, rhs: Vec4): Vec4 {
         a14, a24, a34, a44,
     ] = lhs as number[];
     const { x, y, z, w } = rhs;
-    return vec4(
+    return upd4(out,
         a11 * x + a12 * y + a13 * z + a14 * w,
         a21 * x + a22 * y + a23 * z + a24 * w,
         a31 * x + a32 * y + a33 * z + a34 * w,
