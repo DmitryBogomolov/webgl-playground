@@ -67,11 +67,11 @@ export function div2(v: Vec2, k: number, out: Vec2 = v2()): Vec2 {
     return upd2(out, v.x / k, v.y / k);
 }
 
-export function mul2c(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+export function mulc2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
     return upd2(out, a.x * b.x, a.y * b.y);
 }
 
-export function div2c(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+export function divc2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
     return upd2(out, a.x / b.x, a.y / b.y);
 }
 

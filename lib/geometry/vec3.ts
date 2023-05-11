@@ -53,11 +53,11 @@ export function div3(v: Vec3, k: number): Vec3 {
     return vec3(v.x / k, v.y / k, v.z / k);
 }
 
-export function mul3c(a: Vec3, b: Vec3): Vec3 {
+export function mulc3(a: Vec3, b: Vec3): Vec3 {
     return vec3(a.x * b.x, a.y * b.y, a.z * b.z);
 }
 
-export function div3c(a: Vec3, b: Vec3): Vec3 {
+export function divc3(a: Vec3, b: Vec3): Vec3 {
     return vec3(a.x / b.x, a.y / b.y, a.z / b.z);
 }
 

@@ -1,7 +1,7 @@
 import {
     ZERO4, UNIT4, XUNIT4, YUNIT4, ZUNIT4, WUNIT4,
     eq4, isZero4, isUnit4, neg4, inv4, len4, sqrlen4, norm4,
-    dot4, mul4, div4, mul4c, div4c, add4, sub4,
+    dot4, mul4, div4, mulc4, divc4, add4, sub4,
 } from './vec4';
 
 describe('vec4', () => {
@@ -53,13 +53,13 @@ describe('vec4', () => {
         expect(div4({ x: 1, y: 2, z: 3, w: 4 }, 4)).toBeVec4({ x: 0.25, y: 0.5, z: 0.75, w: 1 });
     });
 
-    it('mul4c', () => {
-        expect(mul4c({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 3, z: 4, w: 5 }))
+    it('mulc4', () => {
+        expect(mulc4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 3, z: 4, w: 5 }))
             .toBeVec4({ x: 2, y: 6, z: 12, w: 20 });
     });
 
-    it('div4c', () => {
-        expect(div4c({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 3, z: 4, w: 5 }))
+    it('divc4', () => {
+        expect(divc4({ x: 1, y: 2, z: 3, w: 4 }, { x: 2, y: 3, z: 4, w: 5 }))
             .toBeVec4({ x: 0.5, y: 0.6667, z: 0.75, w: 0.8 });
     });
 
