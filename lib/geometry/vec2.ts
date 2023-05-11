@@ -47,6 +47,10 @@ function upd2(out: Vec2, x: number, y: number): Vec2 {
     return out;
 }
 
+export function clone2(v: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, v.x, v.y);
+}
+
 export function add2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
     return upd2(out, a.x + b.x, a.y + b.y);
 }

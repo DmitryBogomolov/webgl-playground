@@ -53,6 +53,10 @@ function upd3(out: Vec3, x: number, y: number, z: number): Vec3 {
     return out;
 }
 
+export function clone3(v: Vec3, out: Vec3 = v3()): Vec3 {
+    return upd3(out, v.x, v.y, v.z);
+}
+
 export function dot3(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }

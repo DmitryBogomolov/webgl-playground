@@ -57,6 +57,10 @@ function upd4(out: Vec4, x: number, y: number, z: number, w: number): Vec4 {
     return out;
 }
 
+export function clone4(v: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, v.x, v.y, v.z, v.w);
+}
+
 export function dot4(a: Vec4, b: Vec4): number {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
