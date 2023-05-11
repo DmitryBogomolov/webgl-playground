@@ -44,11 +44,11 @@ function runWorker(index) {
         });
         worker.on('error', (err) => {
             reject(err);
-        })
+        });
     });
 }
 
-function runBenchmarksMaster(targets, sampleCount) {
+function runBenchmarksMaster(targets, _sampleCount) {
     const tasks = [];
     for (let i = 0; i < targets.length; ++i) {
         tasks.push(runWorker(i));
