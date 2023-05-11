@@ -1,4 +1,5 @@
-const cluster = require('node:cluster');
+const process = require('node:process');
+const { fork } = require('node:child_process');
 
 function now() {
     return performance.now();
@@ -14,19 +15,29 @@ function measure(name, callback, sampleCount) {
         samples[i] = sampleEnd - sampleStart;
     }
     const end = now();
-    samples.sort((a, b) => a - b);
-    let sum = 0;
-    samples.forEach((sample) => {
-        sum += sample;
-    });
+    samples.sort();
     return {
         name,
         total: end - start,
         min: samples[0],
         max: samples[samples.length - 1],
-        avg: sum / samples.length,
-        med: samples[samples.length >> 1],
+        avg: average(samples),
+        med: median(samples),
     };
+}
+
+function average(items) {
+    let sum = 0;
+    for (const item of items) {
+        sum += item;
+    }
+    return sum / items.length;
+}
+
+function median(items) {
+    const i2 = items.length >> 1;
+    const i1 = i2 - 1 + (items.length & 1);
+    return (items[i1] + items[i2]) / 2;
 }
 
 function fmt(value) {
@@ -35,16 +46,14 @@ function fmt(value) {
 
 function runWorker(index) {
     return new Promise((resolve, reject) => {
-        const worker = cluster.fork();
-        worker.on('online', () => {
-            worker.send({ index });
-        });
+        const worker = fork(require.main.filename);
         worker.on('message', (payload) => {
             resolve(payload);
         });
         worker.on('error', (err) => {
             reject(err);
         });
+        worker.send({ index });
     });
 }
 
@@ -78,7 +87,7 @@ function printReports(reports) {
 }
 
 function runBenchmarks(targets, sampleCount) {
-    if (cluster.isMaster) {
+    if (process.connected === undefined) {
         return runBenchmarksMaster(targets, sampleCount);
     } else {
         runBenchmarksWorker(targets, sampleCount);
