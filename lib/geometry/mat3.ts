@@ -1,6 +1,7 @@
 import type { Mat3 } from './mat3.types';
 import type { Vec2 } from './vec2.types';
 import type { Vec3 } from './vec3.types';
+import type { AnyFunc, SkipLastArg } from './helpers.types';
 import { vec2 } from './vec2';
 import { vec3 } from './vec3';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
@@ -176,12 +177,8 @@ export function inverse3x3(mat: Mat3, out: Mat3 = mat3()): Mat3 {
     return clone3x3(aux, out);
 }
 
-type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
 const _apply3x3_aux = mat3();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function apply3x3<T extends (...args: any[]) => any>(
-    mat: Mat3, func: T, ...args: SkipLast<Parameters<T>>
-): void {
+export function apply3x3<T extends AnyFunc>(mat: Mat3, func: T, ...args: SkipLastArg<T>): void {
     func(...args, _apply3x3_aux);
     mul3x3(_apply3x3_aux, mat, mat);
 }

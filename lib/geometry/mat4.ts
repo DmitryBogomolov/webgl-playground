@@ -1,6 +1,7 @@
 import type { Mat4 } from './mat4.types';
 import type { Vec3 } from './vec3.types';
 import type { Vec4 } from './vec4.types';
+import type { AnyFunc, SkipLastArg } from './helpers.types';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { vec4 } from './vec4';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
@@ -189,12 +190,8 @@ export function inversetranspose4x4(mat: Mat4, out: Mat4 = mat4()): Mat4 {
     return out;
 }
 
-type SkipLast<T> = T extends [...args: infer P, last?: unknown] ? P : never;
 const _apply4x4_aux = mat4();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function apply4x4<T extends (...args: any[]) => any>(
-    mat: Mat4, func: T, ...args: SkipLast<Parameters<T>>
-): void {
+export function apply4x4<T extends AnyFunc>(mat: Mat4, func: T, ...args: SkipLastArg<T>): void {
     func(...args, _apply4x4_aux);
     mul4x4(_apply4x4_aux, mat, mat);
 }
