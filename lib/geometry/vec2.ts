@@ -36,32 +36,43 @@ export function isUnit2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
     return eq(sqrlen2(v), 1, eps);
 }
 
-export function add2(a: Vec2, b: Vec2): Vec2 {
-    return vec2(a.x + b.x, a.y + b.y);
+function v2(): Vec2 {
+    return vec2(0, 0);
 }
 
-export function sub2(a: Vec2, b: Vec2): Vec2 {
-    return vec2(a.x - b.x, a.y - b.y);
+function upd2(out: Vec2, x: number, y: number): Vec2 {
+    type V2 = { x: number; y: number; };
+    (out as V2).x = x;
+    (out as V2).y = y;
+    return out;
+}
+
+export function add2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, a.x + b.x, a.y + b.y);
+}
+
+export function sub2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, a.x - b.x, a.y - b.y);
 }
 
 export function dot2(a: Vec2, b: Vec2): number {
     return a.x * b.x + a.y * b.y;
 }
 
-export function mul2(v: Vec2, k: number): Vec2 {
-    return vec2(v.x * k, v.y * k);
+export function mul2(v: Vec2, k: number, out: Vec2 = v2()): Vec2 {
+    return upd2(out, v.x * k, v.y * k);
 }
 
-export function div2(v: Vec2, k: number): Vec2 {
-    return vec2(v.x / k, v.y / k);
+export function div2(v: Vec2, k: number, out: Vec2 = v2()): Vec2 {
+    return upd2(out, v.x / k, v.y / k);
 }
 
-export function mul2c(a: Vec2, b: Vec2): Vec2 {
-    return vec2(a.x * b.x, a.y * b.y);
+export function mul2c(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, a.x * b.x, a.y * b.y);
 }
 
-export function div2c(a: Vec2, b: Vec2): Vec2 {
-    return vec2(a.x / b.x, a.y / b.y);
+export function div2c(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, a.x / b.x, a.y / b.y);
 }
 
 export function len2(v: Vec2): number {
@@ -72,34 +83,36 @@ export function sqrlen2(v: Vec2): number {
     return dot2(v, v);
 }
 
-export function neg2(v: Vec2): Vec2 {
-    return vec2(-v.x, -v.y);
+export function neg2(v: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, -v.x, -v.y);
 }
 
-export function inv2(v: Vec2): Vec2 {
-    return vec2(1 / v.x, 1 / v.y);
+export function inv2(v: Vec2, out: Vec2 = v2()): Vec2 {
+    return upd2(out, 1 / v.x, 1 / v.y);
 }
 
-export function norm2(v: Vec2): Vec2 {
-    return mul2(v, 1 / len2(v));
+export function norm2(v: Vec2, out: Vec2 = v2()): Vec2 {
+    return mul2(v, 1 / len2(v), out);
 }
 
+const _dist2_aux = v2();
 export function dist2(a: Vec2, b: Vec2): number {
-    return len2(sub2(a, b));
+    return len2(sub2(a, b, _dist2_aux));
 }
 
-export function dir2(a: Vec2, b: Vec2): Vec2 {
-    return norm2(sub2(b, a));
+export function dir2(a: Vec2, b: Vec2, out: Vec2 = v2()): Vec2 {
+    return norm2(sub2(b, a, out), out);
 }
 
+const _sqrdist2_aux = v2();
 export function sqrdist2(a: Vec2, b: Vec2): number {
-    return sqrlen2(sub2(a, b));
+    return sqrlen2(sub2(a, b, _sqrdist2_aux));
 }
 
-export function project2(v: Vec2, axis: Vec2): Vec2 {
-    const n = norm2(axis);
+export function project2(v: Vec2, axis: Vec2, out: Vec2 = v2()): Vec2 {
+    const n = norm2(axis, out);
     const len = dot2(v, n);
-    return mul2(n, len);
+    return mul2(n, len, out);
 }
 
 export function pointToLineDistance2(point: Vec2, p1: Vec2, p2: Vec2): number {
