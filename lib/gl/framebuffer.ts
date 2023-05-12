@@ -4,7 +4,7 @@ import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Vec2 } from '../geometry/vec2.types';
 import { BaseWrapper } from './base-wrapper';
-import { eq2 } from '../geometry/vec2';
+import { eq2, clone2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
 
@@ -214,8 +214,8 @@ export class Framebuffer extends BaseWrapper implements GLHandleWrapper<WebGLFra
         if (eq2(this._size, size)) {
             return;
         }
+        this._size = clone2(size);
         this._logger.log('resize({0})', size);
-        this._size = size;
         resizeColorTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {
