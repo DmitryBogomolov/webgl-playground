@@ -1,4 +1,5 @@
 import type { Vec4 } from './vec4.types';
+import { upd4 } from './vec4.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
 export class Vec4Impl implements Vec4 {
@@ -44,24 +45,32 @@ export function isUnit4(v: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
     return eq(sqrlen4(v), 1, eps);
 }
 
+function v4(): Vec4 {
+    return vec4(0, 0, 0, 0);
+}
+
+export function clone4(v: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, v.x, v.y, v.z, v.w);
+}
+
 export function dot4(a: Vec4, b: Vec4): number {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-export function mul4(v: Vec4, k: number): Vec4 {
-    return vec4(v.x * k, v.y * k, v.z * k, v.w * k);
+export function mul4(v: Vec4, k: number, out: Vec4 = v4()): Vec4 {
+    return upd4(out, v.x * k, v.y * k, v.z * k, v.w * k);
 }
 
-export function div4(v: Vec4, k: number): Vec4 {
-    return vec4(v.x / k, v.y / k, v.z / k, v.w / k);
+export function div4(v: Vec4, k: number, out: Vec4 = v4()): Vec4 {
+    return upd4(out, v.x / k, v.y / k, v.z / k, v.w / k);
 }
 
-export function mul4c(a: Vec4, b: Vec4): Vec4 {
-    return vec4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+export function mulc4(a: Vec4, b: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
 }
 
-export function div4c(a: Vec4, b: Vec4): Vec4 {
-    return vec4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
+export function divc4(a: Vec4, b: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
 }
 
 export function len4(v: Vec4): number {
@@ -72,22 +81,22 @@ export function sqrlen4(v: Vec4): number {
     return dot4(v, v);
 }
 
-export function neg4(v: Vec4): Vec4 {
-    return vec4(-v.x, -v.y, -v.z, -v.w);
+export function neg4(v: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, -v.x, -v.y, -v.z, -v.w);
 }
 
-export function inv4(v: Vec4): Vec4 {
-    return vec4(1 / v.x, 1 / v.y, 1 / v.z, 1 / v.w);
+export function inv4(v: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, 1 / v.x, 1 / v.y, 1 / v.z, 1 / v.w);
 }
 
-export function norm4(v: Vec4): Vec4 {
-    return mul4(v, 1 / len4(v));
+export function norm4(v: Vec4, out: Vec4 = v4()): Vec4 {
+    return mul4(v, 1 / len4(v), out);
 }
 
-export function add4(a: Vec4, b: Vec4): Vec4 {
-    return vec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+export function add4(a: Vec4, b: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
-export function sub4(a: Vec4, b: Vec4): Vec4 {
-    return vec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+export function sub4(a: Vec4, b: Vec4, out: Vec4 = v4()): Vec4 {
+    return upd4(out, a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }

@@ -1,13 +1,4 @@
-const SAMPLE_COUNT = 1E8;
-
-function measure(callback, ...args) {
-    const start = Date.now();
-    for (let i = 0; i < SAMPLE_COUNT; ++i) {
-        callback(i, ...args);
-    }
-    const end = Date.now();
-    return end - start;
-}
+const { runBenchmarks } = require('./util');
 
 function Prt(x, y, z) {
     this.x = x;
@@ -53,19 +44,13 @@ function accessObj(idx, obj) {
     obj.z = z * 1.4 + idx;
 }
 
-const SCHEMA = [
-    ['create arr', createArr],
-    ['create obj', createObj],
-    ['create prt', createPrt],
-    ['create cls', createCls],
-    ['access arr', accessArr, [1.2, 2.3, 3.4]],
-    ['access obj', accessObj, { x: 1.2, y: 2.3, z: 3.4 }],
-    ['access prt', accessObj, new Prt(1.2, 2.3, 3.4)],
-    ['access cls', accessObj, new Cls(1.2, 2.3, 3.4)],
-];
-
-const durations = SCHEMA.map(([_, callback, ...args]) => measure(callback, ...args));
-
-SCHEMA.forEach(([name], i) => {
-    console.log(name, durations[i]);
-});
+runBenchmarks([
+    { name: 'create arr', action: (i) => createArr(i) },
+    { name: 'create obj', action: (i) => createObj(i) },
+    { name: 'create prt', action: (i) => createPrt(i) },
+    { name: 'create cls', action: (i) => createCls(i) },
+    { name: 'access arr', action: (i) => accessArr(i, [1.2, 2.3, 3.4]) },
+    { name: 'access obj', action: (i) => accessObj(i, { x: 1.2, y: 2.3, z: 3.4 }) },
+    { name: 'access prt', action: (i) => accessObj(i, new Prt(1.2, 2.3, 3.4)) },
+    { name: 'access cls', action: (i) => accessObj(i, new Cls(1.2, 2.3, 3.4)) },
+], 1E6);

@@ -3,7 +3,7 @@ import {
     Primitive,
     Texture,
     Camera,
-    div2c,
+    divc2,
     Vec3, vec3, add3, mul3,
     Mat4, translation4x4,
     Color, color, colors,
@@ -125,7 +125,7 @@ function renderScene({ runtime, camera, primitive, atlasTexture, objects }: Stat
             program.setUniform('u_view_proj', viewProjMat);
             program.setUniform('u_position', label.position);
             // Texture to canvas size ratio.
-            program.setUniform('u_size_coeff', div2c(label.size, canvasSize));
+            program.setUniform('u_size_coeff', divc2(label.size, canvasSize));
             // Base distance and view position for depth coeff.
             program.setUniform('u_base_distance', baseDist);
             program.setUniform('u_view_position', viewPos);
