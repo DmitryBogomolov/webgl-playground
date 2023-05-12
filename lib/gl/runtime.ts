@@ -20,7 +20,7 @@ import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';
 import { RenderLoop } from './render-loop';
 import { color, colorEq, isColor } from './color';
-import { ZERO2, vec2, isVec2, eq2 } from '../geometry/vec2';
+import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -308,15 +308,14 @@ export class Runtime extends BaseWrapper {
         if (!isVec2(size)) {
             throw this._logger.error('set_size({0}): bad value', size);
         }
-        const canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
-        if (eq2(this._size, size) && eq2(this._canvasSize, canvasSize)) {
+        if (eq2(this._size, size)) {
             return false;
         }
         this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
-        this._size = size;
-        this._canvasSize = canvasSize;
-        this._canvas.width = canvasSize.x;
-        this._canvas.height = canvasSize.y;
+        this._size = clone2(size);
+        this._canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
+        this._canvas.width = this._canvasSize.x;
+        this._canvas.height = this._canvasSize.y;
         this._sizeChanged.emit();
         if (this._state.renderTarget === null) {
             this._updateViewport(this._canvasSize);

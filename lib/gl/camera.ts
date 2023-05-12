@@ -7,8 +7,8 @@ import type { Logger } from '../utils/logger.types';
 import { BaseWrapper } from './base-wrapper';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../utils/fov';
-import { vec2, isVec2, eq2, mul2 } from '../geometry/vec2';
-import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, norm3, dist3 } from '../geometry/vec3';
+import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
+import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, clone3, norm3, dist3, vec3 } from '../geometry/vec3';
 import {
     mat4,
     perspective4x4, orthographic4x4, lookAt4x4,
@@ -122,7 +122,7 @@ export class Camera extends BaseWrapper {
             throw this._logger.error('bad "viewportSize" value: {0}', value);
         }
         if (!eq2(this._viewportSize, value)) {
-            this._viewportSize = value;
+            this._viewportSize = clone2(value);
             this._markProjDirty();
         }
     }
@@ -153,9 +153,9 @@ export class Camera extends BaseWrapper {
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
             throw this._logger.error('bad "upDir" value: {0}', value);
         }
-        const upDir = norm3(value);
+        const upDir = norm3(value, _v3_scratch);
         if (!eq3(this._upDir, upDir)) {
-            this._upDir = upDir;
+            this._upDir = clone3(upDir);
             this._markViewDirty();
         }
     }
@@ -169,7 +169,7 @@ export class Camera extends BaseWrapper {
             throw this._logger.error('bad "centerPos" value: {0}', value);
         }
         if (!eq3(this._centerPos, value)) {
-            this._centerPos = value;
+            this._centerPos = clone3(value);
             this._markViewDirty();
         }
     }
@@ -183,7 +183,7 @@ export class Camera extends BaseWrapper {
             throw this._logger.error('bad "eyePos" value: {0}', value);
         }
         if (!eq3(this._eyePos, value)) {
-            this._eyePos = value;
+            this._eyePos = clone3(value);
             this._markViewDirty();
         }
     }
@@ -296,11 +296,14 @@ const perspectiveImpl: ProjImpl = {
     },
 };
 
+const _v2_scratch = vec2(0, 0);
+const _v3_scratch = vec3(0, 0, 0);
+
 const orthographicImpl: ProjImpl = {
     type: 'orthographic',
 
     buildMat(zNear, zFar, _yFov, viewportSize, mat) {
-        const { x, y } = mul2(viewportSize, 0.5);
+        const { x, y } = mul2(viewportSize, 0.5, _v2_scratch);
         orthographic4x4({
             zNear,
             zFar,
