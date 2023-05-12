@@ -4,10 +4,13 @@ import type { Vec3 } from '../geometry/vec3.types';
 import { vec2, mul2 } from './../geometry/vec2';
 import { vec3, mul3, norm3, cross3 } from './../geometry/vec3';
 
+const _v2_scratch = vec2(0, 0);
+const _v3_scratch = vec3(0, 0, 0);
+
 export function generatePlaneX<T>(
     size: Vec2, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
-    const { x: dw, y: dh } = mul2(size, 0.5);
+    const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch);
     let idx = 0;
     const vertices = [
         makeVertex({ position: vec3(0, -dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
@@ -22,7 +25,7 @@ export function generatePlaneX<T>(
 export function generatePlaneY<T>(
     size: Vec2, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
-    const { x: dw, y: dh } = mul2(size, 0.5);
+    const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch);
     let idx = 0;
     const vertices = [
         makeVertex({ position: vec3(-dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
@@ -37,7 +40,7 @@ export function generatePlaneY<T>(
 export function generatePlaneZ<T>(
     size: Vec2, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
-    const { x: dw, y: dh } = mul2(size, 0.5);
+    const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch);
     let idx = 0;
     const vertices = [
         makeVertex({ position: vec3(-dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
@@ -52,7 +55,7 @@ export function generatePlaneZ<T>(
 export function generateCube<T>(
     size: Vec3, makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
-    const { x: dx, y: dy, z: dz } = mul3(size, 0.5);
+    const { x: dx, y: dy, z: dz } = mul3(size, 0.5, _v3_scratch);
 
     let idx = 0;
     const vertices = [
@@ -136,7 +139,7 @@ export function generateSphere<T>(
                 0,
                 rz * sinList[i] * -sinList[j],
             );
-            const normal = norm3(cross3(v1, v2));
+            const normal = norm3(cross3(v1, v2, _v3_scratch));
 
             const texcoord = vec2(j / lonCount, 1 - i / partition);
 
