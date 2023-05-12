@@ -6,7 +6,7 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseWrapper } from './base-wrapper';
-import { vec2, ZERO2 } from '../geometry/vec2';
+import { vec2, clone2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -148,7 +148,7 @@ export abstract class TextureBase extends BaseWrapper implements GLHandleWrapper
         if (isTextureRawImageData(imageData)) {
             const { size, data } = imageData;
             this._runtime.gl().texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
-            this._size = size;
+            this._size = clone2(size);
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
             this._size = vec2(imageData.width, imageData.height);
