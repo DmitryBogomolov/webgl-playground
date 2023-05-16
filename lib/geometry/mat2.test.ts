@@ -38,13 +38,8 @@ describe('mat2', () => {
     });
 
     it('zero2x2', () => {
-        const mat = make([
-            1, 2,
-            3, 1,
-        ]);
-
         expect(
-            zero2x2(mat),
+            zero2x2(),
         ).toBeMat2([
             0, 0,
             0, 0,
@@ -52,13 +47,8 @@ describe('mat2', () => {
     });
 
     it('identity2x2', () => {
-        const mat = make([
-            1, 2,
-            -3, 1,
-        ]);
-
         expect(
-            identity2x2(mat),
+            identity2x2(),
         ).toBeMat2([
             1, 0,
             0, 1,

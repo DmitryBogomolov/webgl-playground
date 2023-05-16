@@ -78,14 +78,8 @@ describe('mat3', () => {
     });
 
     it('zero3x3', () => {
-        const mat = make([
-            1, 2, 3,
-            0, 1, 0,
-            1, 2, 1,
-        ]);
-
         expect(
-            zero3x3(mat),
+            zero3x3(),
         ).toBeMat3([
             0, 0, 0,
             0, 0, 0,
@@ -94,14 +88,8 @@ describe('mat3', () => {
     });
 
     it('identity3x3', () => {
-        const mat = make([
-            1, 2, -3,
-            0, 1, 0,
-            1, -2, 1,
-        ]);
-
         expect(
-            identity3x3(mat),
+            identity3x3(),
         ).toBeMat3([
             1, 0, 0,
             0, 1, 0,
