@@ -1,11 +1,11 @@
+import type { Runtime, VertexData, VertexIndexData } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     parseVertexSchema, VertexWriter,
     vec2,
     vec3,
-    generateSphere, generateCube, generatePlaneZ, VertexIndexData, VertexData,
+    generateSphere, generateCube, generatePlaneZ,
 } from 'lib';
 import vertShader from './shaders/mapping.vert';
 import fragShader from './shaders/mapping.frag';

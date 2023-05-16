@@ -1,8 +1,9 @@
+import type { Mat3Mut } from 'lib';
 import {
     Runtime,
     color, colors,
     vec2, mul2,
-    Mat3Mut, mat3, projection3x3, mul3x3,
+    mat3, projection3x3, mul3x3,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';

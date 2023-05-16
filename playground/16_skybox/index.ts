@@ -1,13 +1,13 @@
+import type { Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
+import type { Observable } from 'util/observable';
 import {
     Runtime,
-    Primitive,
-    TextureCube,
     Camera,
     mul3,
-    Mat4, Mat4Mut, mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
+    mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { Observable, observable, computed } from 'util/observable';
+import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';

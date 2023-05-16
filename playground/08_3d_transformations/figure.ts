@@ -1,7 +1,7 @@
+import type { Primitive, Vec3, Mat4, Mat4Mut } from 'lib';
 import {
-    Primitive,
-    Vec3, ZERO3, UNIT3, YUNIT3, ZUNIT3, eq3, mul3, cross3, norm3,
-    Mat4, Mat4Mut, mat4, targetTo4x4, identity4x4, scaling4x4, mul4x4, apply4x4, rotation4x4, yrotation4x4,
+    ZERO3, UNIT3, YUNIT3, ZUNIT3, eq3, mul3, cross3, norm3,
+    mat4, targetTo4x4, identity4x4, scaling4x4, mul4x4, apply4x4, rotation4x4, yrotation4x4,
 } from 'lib';
 
 export interface FigureRenderer {

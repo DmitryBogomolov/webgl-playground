@@ -1,19 +1,20 @@
+import type { Primitive, Vec2, Vec3, Mat4, Color } from 'lib';
+import type { GlyphAtlas } from './glyph';
 import {
     Runtime,
-    Primitive,
     Texture,
     Camera,
     divc2,
-    Vec3, vec3, add3, mul3,
-    Mat4, translation4x4,
-    Color, color, colors,
-    deg2rad, spherical2zxy, Vec2,
+    vec3, add3, mul3,
+    translation4x4,
+    color, colors,
+    deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 import { makeStringPrimitive, getNextLabel } from './label';
-import { GlyphAtlas, makeGlyphAtlas } from './glyph';
+import { makeGlyphAtlas } from './glyph';
 
 /**
  * Glyph texts.

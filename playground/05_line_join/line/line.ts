@@ -1,4 +1,5 @@
-import { LoggerImpl, Runtime, Primitive, Program, VertexWriter, VertexSchema } from 'lib';
+import type { Runtime, VertexSchema } from 'lib';
+import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
 import { Vertex } from '../vertex';
 
 export interface LineParams {

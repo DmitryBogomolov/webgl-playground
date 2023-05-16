@@ -1,8 +1,9 @@
+import type { Mat4Mut } from 'lib';
 import {
     Runtime,
     color,
     ZERO3, YUNIT3, vec3,
-    Mat4Mut, mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
+    mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';

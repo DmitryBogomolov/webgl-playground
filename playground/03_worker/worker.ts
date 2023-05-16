@@ -1,6 +1,6 @@
+import type { Color } from 'lib';
 import {
     color,
-    Color,
     setWorkerMessageHandler,
     postWorkerMessage,
 } from 'lib';

@@ -1,12 +1,13 @@
+import type { Color, Vec2 } from 'lib';
 import {
-    VertexWriter,
-    parseVertexSchema,
-    WorkerMessenger,
-    Color, color,
     Runtime,
     Primitive,
     Program,
-    Vec2, vec2,
+    VertexWriter,
+    parseVertexSchema,
+    WorkerMessenger,
+    color,
+    vec2,
 } from 'lib';
 import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import vertShader from './shaders/shader.vert';

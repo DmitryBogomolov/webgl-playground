@@ -1,9 +1,6 @@
-import {
-    Color, color,
-    Vec2, vec2,
-    EventEmitter,
-} from 'lib';
-import { Vertex } from './vertex';
+import type { Color, Vec2 } from 'lib';
+import type { Vertex } from './vertex';
+import { color, vec2, EventEmitter } from 'lib';
 
 const pickColor = (function () {
     const colorPool: ReadonlyArray<Color> = [

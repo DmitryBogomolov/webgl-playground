@@ -1,4 +1,5 @@
-import { Color, TextureImageData, color2uint, colors } from 'lib';
+import type { Color, TextureImageData } from 'lib';
+import { color2uint, colors } from 'lib';
 
 export const pixels: ReadonlyArray<Color> = [
     colors.BLACK, colors.BLUE, colors.GREEN, colors.CYAN,

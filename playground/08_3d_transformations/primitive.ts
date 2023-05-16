@@ -1,3 +1,4 @@
+import type { Color } from 'lib';
 import {
     Runtime,
     Primitive,
@@ -5,7 +6,7 @@ import {
     parseVertexSchema,
     VertexWriter,
     vec3,
-    Color, color,
+    color,
     generateCube,
 } from 'lib';
 import vertShader from './shaders/shader.vert';

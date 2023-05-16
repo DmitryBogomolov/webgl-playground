@@ -1,5 +1,5 @@
+import type { Runtime } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     parseVertexSchema,

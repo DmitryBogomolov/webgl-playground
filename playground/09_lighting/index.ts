@@ -1,14 +1,15 @@
+import type { Program, UniformValue, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Observable } from 'util/observable';
 import {
     Runtime,
-    Program, UniformValue,
     vec2,
-    Vec3, ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
-    Mat4, Mat4Mut, mat4, perspective4x4, lookAt4x4, identity4x4,
+    ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
+    mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
-    Color, color,
+    color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
-import { observable, computed, Observable } from 'util/observable';
+import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 

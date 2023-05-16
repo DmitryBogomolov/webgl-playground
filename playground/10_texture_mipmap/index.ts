@@ -1,13 +1,15 @@
+import type { Mat4Mut } from 'lib';
+import type { Observable } from 'util/observable';
 import {
     Runtime,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     vec2, mul2,
     vec3,
-    Mat4Mut, mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
+    mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { Observable, observable } from 'util/observable';
+import { observable } from 'util/observable';
 import { createControls } from 'util/controls';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';

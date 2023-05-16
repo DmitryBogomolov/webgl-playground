@@ -1,10 +1,10 @@
+import type { Runtime, VertexData, VertexIndexData } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     parseVertexSchema,
     VertexWriter,
-    VertexIndexData, VertexData, generateCube, generateSphere,
+    generateCube, generateSphere,
     UNIT3, mul3,
 } from 'lib';
 import sceneVertShader from './shaders/scene.vert';

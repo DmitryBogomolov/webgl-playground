@@ -1,9 +1,6 @@
-import {
-    Color,
-    Vec2,
-    Mat3, Mat3Mut, mat3, identity3x3, apply3x3, scaling3x3, mul3x3,
-} from 'lib';
-import { PrimitiveFactory } from './primitive';
+import type { Color, Vec2, Mat3, Mat3Mut } from 'lib';
+import type { PrimitiveFactory } from './primitive';
+import { mat3, identity3x3, apply3x3, scaling3x3, mul3x3 } from 'lib';
 
 export interface FigureRenderer {
     (projection: Mat3, transformation: Mat3): void;

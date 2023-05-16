@@ -1,10 +1,11 @@
+import type { VertexSchema, Color, Vec2 } from 'lib';
 import {
     Runtime,
     Primitive,
     Program,
-    VertexSchema, parseVertexSchema, VertexWriter,
-    Color, color,
-    Vec2, vec2,
+    parseVertexSchema, VertexWriter,
+    color,
+    vec2,
 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';

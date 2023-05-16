@@ -1,11 +1,11 @@
+import type { Runtime, Vec3, Mat4, Mat4Mut } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     parseVertexSchema, VertexWriter,
     generateCube,
-    Vec3, UNIT3,
-    Mat4, Mat4Mut, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
+    UNIT3,
+    identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
 } from 'lib';
 import itemVertShader from './shaders/item.vert';
 import itemFragShader from './shaders/item.frag';

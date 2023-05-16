@@ -1,10 +1,9 @@
+import type { Runtime, Vec3 } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     parseVertexSchema,
     VertexWriter,
-    Vec3,
     generateSphere,
 } from 'lib';
 import directionalVertShader from './shaders/directional.vert';

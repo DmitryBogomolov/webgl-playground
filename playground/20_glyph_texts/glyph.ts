@@ -1,8 +1,8 @@
-import {
-    Vec2, vec2,
-} from 'lib';
+import type { Vec2 } from 'lib';
+import { vec2 } from 'lib';
 
-const ALPHABET = Array('z'.charCodeAt(0) - 'a'.charCodeAt(0) + 1).fill(null)
+const ALPHABET = Array('z'.charCodeAt(0) - 'a'.charCodeAt(0) + 1)
+    .fill(null)
     .map((_, i) => String.fromCharCode(i + 'a'.charCodeAt(0)));
 
 const ATLAS_SIZE = 128;

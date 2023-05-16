@@ -1,6 +1,6 @@
+import type { Line } from './line/line';
 import { Runtime } from 'lib';
 import { State } from './state';
-import { Line } from './line/line';
 import { BevelLine } from './line/bevel';
 import { RoundLine } from './line/round';
 import { SearchTree } from './search-tree';

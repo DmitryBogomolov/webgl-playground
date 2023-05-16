@@ -1,12 +1,12 @@
+import type { Program, Vec2, Mat4Mut, Color } from 'lib';
 import {
     Runtime,
-    Program,
     Framebuffer,
     Camera,
-    Vec2, vec2, ZERO2,
+    vec2, ZERO2,
     vec3, mul3,
-    Mat4Mut, mat4,
-    Color, color, colors,
+    mat4,
+    color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
 import { observable, computed } from 'util/observable';
