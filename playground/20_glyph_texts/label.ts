@@ -1,11 +1,6 @@
+import type { Runtime, Vec2 } from 'lib';
 import type { GlyphAtlas } from './glyph';
-import {
-    Runtime,
-    Primitive,
-    Program,
-    parseVertexSchema,
-    Vec2, vec2,
-} from 'lib';
+import { Primitive, Program, parseVertexSchema, vec2 } from 'lib';
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
 

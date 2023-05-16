@@ -1,10 +1,10 @@
+import type { Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     Runtime,
-    Primitive,
     Camera,
-    Vec3, vec3, mul3,
-    Mat4, Mat4Mut, identity4x4, apply4x4, xrotation4x4, yrotation4x4,
-    Color, color,
+    vec3, mul3,
+    identity4x4, apply4x4, xrotation4x4, yrotation4x4,
+    color,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed, Observable } from 'util/observable';

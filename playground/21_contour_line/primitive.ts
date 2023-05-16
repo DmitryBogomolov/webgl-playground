@@ -1,11 +1,10 @@
+import type { Runtime, Vec2 } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     generateCube,
     parseVertexSchema,
     VertexWriter,
-    Vec2,
     UNIT3, vec3,
     vec4,
 } from 'lib';

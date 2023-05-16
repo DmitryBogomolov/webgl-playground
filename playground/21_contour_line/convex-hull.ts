@@ -1,6 +1,5 @@
-import {
-    Vec2, vec2, dot2, dir2,
-} from 'lib';
+import type { Vec2 } from 'lib';
+import { vec2, dot2, dir2 } from 'lib';
 
 const EPS = 1E-5;
 

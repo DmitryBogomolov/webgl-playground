@@ -1,9 +1,5 @@
-import {
-    Runtime,
-    Primitive,
-    Program,
-    parseVertexSchema,
-} from 'lib';
+import type { Runtime } from 'lib';
+import { Primitive, Program, parseVertexSchema } from 'lib';
 import vertShader from './shaders/texture.vert';
 import fragShader from './shaders/texture.frag';
 

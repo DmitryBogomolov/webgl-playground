@@ -1,11 +1,11 @@
+import type { Program, Vec2, Color } from 'lib';
 import {
     Runtime,
-    Program,
     Framebuffer,
     Camera,
-    Vec2, vec2, ZERO2,
+    vec2, ZERO2,
     vec3, mul3,
-    Color, color, colors,
+    color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
 import { observable, computed } from 'util/observable';

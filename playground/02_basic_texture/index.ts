@@ -1,3 +1,5 @@
+import type { Vec2 } from 'lib';
+import type { Observable } from 'util/observable';
 import {
     Runtime,
     Primitive,
@@ -5,9 +7,9 @@ import {
     Texture,
     parseVertexSchema,
     Tracker,
-    Vec2, vec2, ZERO2, sub2, mul2, inv2,
+    vec2, ZERO2, sub2, mul2, inv2,
 } from 'lib';
-import { Observable, observable } from 'util/observable';
+import { observable } from 'util/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';

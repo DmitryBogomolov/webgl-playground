@@ -1,12 +1,5 @@
-import {
-    Runtime,
-    Primitive,
-    Program,
-    generateCube,
-    parseVertexSchema,
-    VertexWriter,
-    UNIT3,
-} from 'lib';
+import type { Runtime } from 'lib';
+import { Primitive, Program, generateCube, parseVertexSchema, VertexWriter, UNIT3 } from 'lib';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 

@@ -1,12 +1,11 @@
+import type { Primitive, Texture, Vec3, Mat4, Color } from 'lib';
 import {
     Runtime,
-    Primitive,
-    Texture,
     Camera,
     divc2,
-    Vec3, vec3, add3, mul3,
-    Mat4, translation4x4,
-    Color, color, colors,
+    vec3, add3, mul3,
+    translation4x4,
+    color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';

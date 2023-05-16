@@ -1,8 +1,5 @@
-import {
-    Runtime,
-    TextureCube, TextureCubeImageData,
-    loadImage,
-} from 'lib';
+import type { Runtime } from 'lib';
+import { TextureCube, TextureCubeImageData, loadImage } from 'lib';
 
 export function makeTexture(runtime: Runtime): TextureCube {
     const texture = new TextureCube(runtime);

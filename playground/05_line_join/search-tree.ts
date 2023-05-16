@@ -1,8 +1,6 @@
-import {
-    Vec2,
-    KDTree, KDTreeAxisFuncList, KDTreeDistanceFunc,
-} from 'lib';
-import { State } from './state';
+import type { Vec2 } from 'lib';
+import type { State } from './state';
+import { KDTree, KDTreeAxisFuncList, KDTreeDistanceFunc } from 'lib';
 
 export class SearchTree {
     private readonly _axisFuncList: KDTreeAxisFuncList<Vec2> = [(v) => v.x, (v) => v.y];

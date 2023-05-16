@@ -1,7 +1,5 @@
-import {
-    Vec2, vec2, mul2,
-    Mat3Mut, identity3x3, apply3x3, rotation3x3, translation3x3,
-} from 'lib';
+import type { Vec2, Mat3Mut } from 'lib';
+import { vec2, mul2, identity3x3, apply3x3, rotation3x3, translation3x3 } from 'lib';
 
 const PI2 = Math.PI * 2;
 

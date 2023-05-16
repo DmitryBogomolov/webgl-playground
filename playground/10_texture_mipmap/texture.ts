@@ -1,8 +1,5 @@
-import {
-    Runtime,
-    Texture,
-    loadImage,
-} from 'lib';
+import type { Runtime } from 'lib';
+import { Texture, loadImage } from 'lib';
 
 export function makeTexture(runtime: Runtime, onReady: () => void): Texture {
     const texture = new Texture(runtime);

@@ -1,15 +1,13 @@
+import type { Runtime, VertexData, VertexIndexData, VertexSchema, Vec3, Mat4, Color } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     generateCube, generateSphere, generatePlaneX, generatePlaneY, generatePlaneZ,
-    VertexIndexData, VertexData,
-    parseVertexSchema, VertexSchema,
+    parseVertexSchema,
     VertexWriter,
     vec2,
-    Vec3, norm3, add3,
-    Mat4, translation4x4,
-    Color,
+    norm3, add3,
+    translation4x4,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';

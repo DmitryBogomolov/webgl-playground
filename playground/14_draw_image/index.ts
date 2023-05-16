@@ -1,9 +1,5 @@
-import {
-    Runtime,
-    ImageRenderer, ImageRendererRawImageData,
-    Vec2,
-    color, colors, color2uint,
-} from 'lib';
+import type { ImageRendererRawImageData, Vec2 } from 'lib';
+import { Runtime, ImageRenderer, color, colors, color2uint } from 'lib';
 
 /**
  * Draw image util.

@@ -1,18 +1,19 @@
+import type { Program, Vec2, Mat4Mut, Color } from 'lib';
+import type { Observable } from 'util/observable';
+import type { Model } from './primitive';
 import {
     Runtime,
-    Program,
     Camera,
     Framebuffer,
-    Vec2,
     vec3, mul3,
-    Mat4Mut, mat4,
-    Color, color, colors,
+    mat4,
+    color, colors,
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
-import { Observable, observable, computed } from 'util/observable';
+import { observable, computed } from 'util/observable';
 import { createControls } from 'util/controls';
-import { Model, makeModels } from './primitive';
+import { makeModels } from './primitive';
 
 /**
  * Outline and stencil.
