@@ -1,5 +1,5 @@
 import type { Vec2 } from '../geometry/vec2.types';
-import type { Mat4 } from '../geometry/mat4.types';
+import type { Mat4Mut } from '../geometry/mat4.types';
 import type { Camera } from '../gl/camera';
 import { clone4x4, apply4x4, frustum4x4 } from '../geometry/mat4';
 
@@ -10,7 +10,7 @@ import { clone4x4, apply4x4, frustum4x4 } from '../geometry/mat4';
  * Default perspective projection matrix is replaced with frustum projection matrix that
  * "covers" only one required pixel
  */
-export function makePixelViewProjMat(camera: Camera, pixel: Vec2, mat: Mat4): void {
+export function makePixelViewProjMat(camera: Camera, pixel: Vec2, mat: Mat4Mut): void {
     // Calculate frustum from perspective parameters.
     // |top| = |bottom| = zNear * tan(fov / 2)
     // |left| = |right| = aspect * |top|

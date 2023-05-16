@@ -1,10 +1,9 @@
-import type { Vec4 } from './vec4.types';
+import type { Vec4, Vec4Mut } from './vec4.types';
 
-export function upd4(out: Vec4, x: number, y: number, z: number, w: number): Vec4 {
-    type V4 = { x: number; y: number; z: number; w: number; };
-    (out as V4).x = x;
-    (out as V4).y = y;
-    (out as V4).z = z;
-    (out as V4).w = w;
+export function upd4(out: Vec4Mut, x: number, y: number, z: number, w: number): Vec4 {
+    out.x = x;
+    out.y = y;
+    out.z = z;
+    out.w = w;
     return out;
 }

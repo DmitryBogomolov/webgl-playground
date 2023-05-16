@@ -1,4 +1,4 @@
-import type { Vec3 } from './vec3.types';
+import type { Vec3, Vec3Mut } from './vec3.types';
 import { upd3 } from './vec3.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
@@ -42,11 +42,11 @@ export function isUnit3(v: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
     return eq(sqrlen3(v), 1, eps);
 }
 
-function v3(): Vec3 {
-    return vec3(0, 0, 0);
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
 }
 
-export function clone3(v: Vec3, out: Vec3 = v3()): Vec3 {
+export function clone3(v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, v.x, v.y, v.z);
 }
 
@@ -54,19 +54,19 @@ export function dot3(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-export function mul3(v: Vec3, k: number, out: Vec3 = v3()): Vec3 {
+export function mul3(v: Vec3, k: number, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, v.x * k, v.y * k, v.z * k);
 }
 
-export function div3(v: Vec3, k: number, out: Vec3 = v3()): Vec3 {
+export function div3(v: Vec3, k: number, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, v.x / k, v.y / k, v.z / k);
 }
 
-export function mulc3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function mulc3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, a.x * b.x, a.y * b.y, a.z * b.z);
 }
 
-export function divc3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function divc3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, a.x / b.x, a.y / b.y, a.z / b.z);
 }
 
@@ -78,15 +78,15 @@ export function sqrlen3(v: Vec3): number {
     return dot3(v, v);
 }
 
-export function neg3(v: Vec3, out: Vec3 = v3()): Vec3 {
+export function neg3(v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, -v.x, -v.y, -v.z);
 }
 
-export function inv3(v: Vec3, out: Vec3 = v3()): Vec3 {
+export function inv3(v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, 1 / v.x, 1 / v.y, 1 / v.z);
 }
 
-export function norm3(v: Vec3, out: Vec3 = v3()): Vec3 {
+export function norm3(v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return mul3(v, 1 / len3(v), out);
 }
 
@@ -95,7 +95,7 @@ export function dist3(a: Vec3, b: Vec3): number {
     return len3(sub3(a, b, _dist3_aux));
 }
 
-export function dir3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function dir3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return norm3(sub3(b, a, out), out);
 }
 
@@ -104,15 +104,15 @@ export function sqrdist3(a: Vec3, b: Vec3): number {
     return sqrlen3(sub3(a, b, _sqrdist3_aux));
 }
 
-export function add3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function add3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
-export function sub3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function sub3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-export function cross3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
+export function cross3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out,
         a.y * b.z - a.z * b.y,
         -a.x * b.z + a.z * b.x,
@@ -120,7 +120,7 @@ export function cross3(a: Vec3, b: Vec3, out: Vec3 = v3()): Vec3 {
     );
 }
 
-export function rotate3(v: Vec3, axis: Vec3, rotation: number, out: Vec3 = v3()): Vec3 {
+export function rotate3(v: Vec3, axis: Vec3, rotation: number, out: Vec3Mut = v3()): Vec3 {
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
     const t = 1 - c;
@@ -141,7 +141,7 @@ export function orthogonal3(a: Vec3, b: Vec3, eps: number = FLOAT_EQ_EPS): boole
     return eq(dot3(a, b), 0, eps);
 }
 
-export function project3(v: Vec3, axis: Vec3, out: Vec3 = v3()): Vec3 {
+export function project3(v: Vec3, axis: Vec3, out: Vec3Mut = v3()): Vec3 {
     const n = norm3(axis, out);
     const len = dot3(v, n);
     return mul3(n, len, out);

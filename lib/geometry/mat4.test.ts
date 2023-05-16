@@ -48,15 +48,8 @@ describe('mat4', () => {
     });
 
     it('zero4x4', () => {
-        const mat = make([
-            1, 2, 3, 4,
-            0, 1, 0, 1,
-            1, 2, 1, 0,
-            0, 1, 1, 1,
-        ]);
-
         expect(
-            zero4x4(mat),
+            zero4x4(),
         ).toBeMat4([
             0, 0, 0, 0,
             0, 0, 0, 0,
@@ -66,15 +59,8 @@ describe('mat4', () => {
     });
 
     it('identity4x4', () => {
-        const mat = make([
-            1, 2, -3, 4,
-            0, 1, 0, 1,
-            1, -2, 1, 0,
-            0, 1, 1, 1,
-        ]);
-
         expect(
-            identity4x4(mat),
+            identity4x4(),
         ).toBeMat4([
             1, 0, 0, 0,
             0, 1, 0, 0,

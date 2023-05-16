@@ -1,8 +1,7 @@
-import type { Vec2 } from './vec2.types';
+import type { Vec2, Vec2Mut } from './vec2.types';
 
-export function upd2(out: Vec2, x: number, y: number): Vec2 {
-    type V2 = { x: number; y: number; };
-    (out as V2).x = x;
-    (out as V2).y = y;
+export function upd2(out: Vec2Mut, x: number, y: number): Vec2 {
+    out.x = x;
+    out.y = y;
     return out;
 }

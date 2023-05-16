@@ -5,7 +5,7 @@ import {
     Camera,
     Vec2, vec2, ZERO2,
     vec3, mul3,
-    mat4,
+    Mat4Mut, mat4,
     Color, color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
@@ -103,7 +103,7 @@ function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pi
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
-    const transformMat = _transformMat;
+    const transformMat = _transformMat as Mat4Mut;
     makePixelViewProjMat(camera, pixelCoord, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, modelMat, id } of objects) {

@@ -2,7 +2,7 @@ import {
     Runtime,
     color,
     ZERO3, YUNIT3, vec3,
-    mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
+    Mat4Mut, mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
@@ -38,13 +38,13 @@ function main(): void {
         0.7, vec3(0, 0, 1), 5, +0.19 * PI2 / 1000,
     );
 
-    const proj = mat4();
+    const proj = mat4() as Mat4Mut;
     const view = lookAt4x4({
         eye: vec3(0, CAMERA_HEIGHT, CAMERA_DISTANCE),
         center: ZERO3,
         up: YUNIT3,
     });
-    const viewProj = mat4();
+    const viewProj = mat4() as Mat4Mut;
     const unit = identity4x4();
 
     runtime.frameRendered().on((delta) => {

@@ -4,7 +4,7 @@ import {
     Primitive,
     Camera,
     Vec3, vec3, YUNIT3, norm3, rotate3,
-    Mat4, mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
+    Mat4, Mat4Mut, mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
     Color, color,
     deg2rad,
 } from 'lib';
@@ -61,11 +61,11 @@ function main(): void {
 
     const _targetModel = mat4();
     const targetModel = computed(([xRotation, yRotation]) => {
-        const mat = _targetModel;
+        const mat = _targetModel as Mat4Mut;
         identity4x4(mat);
         apply4x4(mat, xrotation4x4, deg2rad(xRotation));
         apply4x4(mat, yrotation4x4, deg2rad(yRotation));
-        return mat;
+        return mat as Mat4;
     }, [xRotation, yRotation]);
 
     const framebuffer = new Framebuffer(runtime, {

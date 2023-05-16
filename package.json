@@ -4,7 +4,7 @@
   "description": "WebGL playground",
   "private": true,
   "scripts": {
-    "check": "tsc -p tsconfig.check.json",
+    "tscheck": "tsc -p tsconfig.check.json",
     "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig.devserver.json webpack serve",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint -- --fix",

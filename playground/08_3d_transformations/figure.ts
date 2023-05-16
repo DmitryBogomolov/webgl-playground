@@ -1,7 +1,7 @@
 import {
     Primitive,
     Vec3, ZERO3, UNIT3, YUNIT3, ZUNIT3, eq3, mul3, cross3, norm3,
-    Mat4, mat4, targetTo4x4, identity4x4, scaling4x4, mul4x4, apply4x4, rotation4x4, yrotation4x4,
+    Mat4, Mat4Mut, mat4, targetTo4x4, identity4x4, scaling4x4, mul4x4, apply4x4, rotation4x4, yrotation4x4,
 } from 'lib';
 
 export interface FigureRenderer {
@@ -14,9 +14,9 @@ export function makeFigureRenderer(
     primitive: Primitive, size: number, axis: Vec3, distance: number, speed: number,
 ): FigureRenderer {
     const selfSpeed = -speed * 4;
-    const model = getInitialModel(axis, distance);
-    const selfModel = getInitialSelfModel(size);
-    const transform = mat4();
+    const model = getInitialModel(axis, distance) as Mat4Mut;
+    const selfModel = getInitialSelfModel(size) as Mat4Mut;
+    const transform = mat4() as Mat4Mut;
     return {
         update(viewProj, parentModel, delta) {
             apply4x4(selfModel, yrotation4x4, selfSpeed * delta);

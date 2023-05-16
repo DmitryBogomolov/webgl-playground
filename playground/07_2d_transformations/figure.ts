@@ -1,7 +1,7 @@
 import {
     Color,
     Vec2,
-    Mat3, mat3, identity3x3, apply3x3, scaling3x3, mul3x3,
+    Mat3, Mat3Mut, mat3, identity3x3, apply3x3, scaling3x3, mul3x3,
 } from 'lib';
 import { PrimitiveFactory } from './primitive';
 
@@ -11,7 +11,7 @@ export interface FigureRenderer {
 
 export function makeFigureRenderer(makePrimitive: PrimitiveFactory, clr: Color, size: Vec2): FigureRenderer {
     const primitive = makePrimitive(clr);
-    const mat = mat3();
+    const mat = mat3() as Mat3Mut;
     return (projection, transformation) => {
         identity3x3(mat);
         apply3x3(mat, scaling3x3, size);

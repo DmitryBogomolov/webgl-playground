@@ -3,7 +3,7 @@ import {
     Program, UniformValue,
     vec2,
     Vec3, ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
-    Mat4, mat4, perspective4x4, lookAt4x4, identity4x4,
+    Mat4, Mat4Mut, mat4, perspective4x4, lookAt4x4, identity4x4,
     apply4x4, yrotation4x4, translation4x4, mul4x4, inversetranspose4x4,
     Color, color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
@@ -62,7 +62,7 @@ function main(): void {
     const _model = mat4();
     const model = computed(
         ([rotation, position]) => {
-            const mat = _model;
+            const mat = _model as Mat4Mut;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(rotation));
             apply4x4(mat, translation4x4, vec3(position, 0, 0));
@@ -74,12 +74,12 @@ function main(): void {
     const _modelViewProj = mat4();
     const modelViewProj = computed(
         ([model, view, proj]) => {
-            const mat = _modelViewProj;
+            const mat = _modelViewProj as Mat4Mut;
             identity4x4(mat);
             mul4x4(model, mat, mat);
             mul4x4(view, mat, mat);
             mul4x4(proj, mat, mat);
-            return mat;
+            return mat as Mat4;
         },
         [model, view, proj],
     );
@@ -87,9 +87,9 @@ function main(): void {
     const _modelInvTrs = mat4();
     const modelInvTrs = computed(
         ([model]) => {
-            const mat = _modelInvTrs;
+            const mat = _modelInvTrs as Mat4Mut;
             inversetranspose4x4(model, mat);
-            return mat;
+            return mat as Mat4;
         },
         [model],
     );
@@ -133,7 +133,7 @@ function main(): void {
             yFov: YFOV,
             zNear: 0.01,
             zFar: 100,
-        }, _proj);
+        }, _proj as Mat4Mut);
         proj(_proj);
     });
 

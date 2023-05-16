@@ -5,7 +5,7 @@ import {
     color,
     vec2,
     vec3, mul3,
-    mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
+    Mat4, Mat4Mut, mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { observable, computed } from 'util/observable';
@@ -69,11 +69,11 @@ function main(): void {
     const _model = mat4();
     const model = computed(
         ([rotation, position]) => {
-            const mat = _model;
+            const mat = _model as Mat4Mut;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(rotation));
             apply4x4(mat, translation4x4, vec3(position, 0, 0));
-            return mat;
+            return mat as Mat4;
         },
         [rotation, position],
     );
