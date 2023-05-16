@@ -42,7 +42,6 @@ function v2(): Vec2Mut {
 }
 
 export function clone2(v: Vec2, out: Vec2Mut = v2()): Vec2 {
-    v = out;
     return upd2(out, v.x, v.y);
 }
 
