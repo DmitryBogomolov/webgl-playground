@@ -1,7 +1,7 @@
 import type { CAMERA_PROJECTION } from './camera.types';
-import type { Vec2 } from '../geometry/vec2.types';
-import type { Vec3 } from '../geometry/vec3.types';
-import type { Mat4 } from '../geometry/mat4.types';
+import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
+import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
+import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from '../utils/event-emitter.types';
 import type { Logger } from '../utils/logger.types';
 import { BaseWrapper } from './base-wrapper';
@@ -153,7 +153,7 @@ export class Camera extends BaseWrapper {
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
             throw this._logger.error('bad "upDir" value: {0}', value);
         }
-        const upDir = norm3(value, _v3_scratch);
+        const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
             this._upDir = clone3(upDir);
             this._markViewDirty();
@@ -189,7 +189,7 @@ export class Camera extends BaseWrapper {
     }
 
     private _buildProjMat(): void {
-        this._projImpl.buildMat(this._zNear, this._zFar, this._yFov, this._viewportSize, this._projMat);
+        this._projImpl.buildMat(this._zNear, this._zFar, this._yFov, this._viewportSize, this._projMat as Mat4Mut);
     }
 
     getProjMat(): Mat4 {
@@ -205,7 +205,7 @@ export class Camera extends BaseWrapper {
             eye: this._eyePos,
             center: this._centerPos,
             up: this._upDir,
-        }, this._viewMat);
+        }, this._viewMat as Mat4Mut);
     }
 
     getViewMat(): Mat4 {
@@ -217,7 +217,7 @@ export class Camera extends BaseWrapper {
     }
 
     private _buildTransformMat(): void {
-        mul4x4(this.getProjMat(), this.getViewMat(), this._transformMat);
+        mul4x4(this.getProjMat(), this.getViewMat(), this._transformMat as Mat4Mut);
     }
 
     /**
@@ -232,7 +232,7 @@ export class Camera extends BaseWrapper {
     }
 
     private _buildInvtransformMat(): void {
-        inverse4x4(this.getTransformMat(), this._invtransformMat);
+        inverse4x4(this.getTransformMat(), this._invtransformMat as Mat4Mut);
     }
 
     /**
@@ -270,7 +270,7 @@ export class Camera extends BaseWrapper {
 
 interface ProjImpl {
     type: CAMERA_PROJECTION;
-    buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4): void;
+    buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4Mut): void;
     getXViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
     getYViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
 }
@@ -303,7 +303,7 @@ const orthographicImpl: ProjImpl = {
     type: 'orthographic',
 
     buildMat(zNear, zFar, _yFov, viewportSize, mat) {
-        const { x, y } = mul2(viewportSize, 0.5, _v2_scratch);
+        const { x, y } = mul2(viewportSize, 0.5, _v2_scratch as Vec2Mut);
         orthographic4x4({
             zNear,
             zFar,
