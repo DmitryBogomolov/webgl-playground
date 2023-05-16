@@ -41,7 +41,7 @@ function m4(): Mat4Mut {
 }
 
 export function zero4x4(out: Mat4Mut = m4()): Mat4 {
-    out.fill(0);
+    (out as unknown as number[]).fill(0);
     return out;
 }
 

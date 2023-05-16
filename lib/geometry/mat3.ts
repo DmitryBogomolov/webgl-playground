@@ -41,7 +41,7 @@ function m3(): Mat3Mut {
 }
 
 export function zero3x3(out: Mat3Mut = m3()): Mat3 {
-    out.fill(0);
+    (out as unknown as number[]).fill(0);
     return out;
 }
 
@@ -179,7 +179,7 @@ export function inverse3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
     }
     adjugate3x3(mat, aux);
     for (let i = 0; i < MAT_SIZE; ++i) {
-        (aux as number[])[i] = aux[i] * k;
+        aux[i] = aux[i] * k;
     }
     return clone3x3(aux, out);
 }

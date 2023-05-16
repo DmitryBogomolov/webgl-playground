@@ -1,8 +1,8 @@
-export interface Mat2 extends ReadonlyArray<number> {
+export interface Mat2 extends Iterable<number> {
     readonly [i: number]: number;
 }
 
-export interface Mat2Mut extends Array<number> {
+export interface Mat2Mut extends Iterable<number> {
     [i: number]: number;
     readonly _NO_CAST: null;
 }

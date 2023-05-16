@@ -32,7 +32,7 @@ function m2(): Mat2Mut {
 }
 
 export function zero2x2(out: Mat2Mut = m2()): Mat2 {
-    out.fill(0);
+    (out as unknown as number[]).fill(0);
     return out;
 }
 
