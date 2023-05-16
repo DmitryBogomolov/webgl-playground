@@ -2,7 +2,7 @@ import {
     Runtime,
     color, colors,
     vec2, mul2,
-    mat3, projection3x3, mul3x3,
+    Mat3Mut, mat3, projection3x3, mul3x3,
 } from 'lib';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
@@ -28,11 +28,11 @@ function main(): void {
     const animate1 = makeAnimation(vec2(800, 320), Math.PI / 6);
     const animate2 = makeAnimation(vec2(400, 160), -Math.PI / 2);
     const animate3 = makeAnimation(vec2(320, 200), +Math.PI / 3);
-    const transformation1 = mat3();
-    const transformation2 = mat3();
-    const transformation3 = mat3();
+    const transformation1 = mat3() as Mat3Mut;
+    const transformation2 = mat3() as Mat3Mut;
+    const transformation3 = mat3() as Mat3Mut;
 
-    const projection = mat3();
+    const projection = mat3() as Mat3Mut;
     runtime.sizeChanged().on(() => {
         const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);

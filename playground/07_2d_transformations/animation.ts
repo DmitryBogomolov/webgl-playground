@@ -1,12 +1,12 @@
 import {
     Vec2, vec2, mul2,
-    Mat3, identity3x3, apply3x3, rotation3x3, translation3x3,
+    Mat3Mut, identity3x3, apply3x3, rotation3x3, translation3x3,
 } from 'lib';
 
 const PI2 = Math.PI * 2;
 
 export interface Animation {
-    (delta: number, mat: Mat3): void;
+    (delta: number, mat: Mat3Mut): void;
 }
 
 export function makeAnimation(size: Vec2, speed: number): Animation {
