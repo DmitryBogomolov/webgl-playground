@@ -3,7 +3,7 @@ import type {
     ImageRendererRegion, ImageRendererLocation,
 } from './image-renderer.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import type { Mat4 } from '../geometry/mat4.types';
+import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { TextureImageData } from '../gl/texture-2d.types';
 import type { Runtime } from '../gl/runtime';
 import { eq2 } from '../geometry/vec2';
@@ -176,11 +176,11 @@ export class ImageRenderer extends BaseWrapper {
     private _updateMatrix(): void {
         if (this._matDirty) {
             this._updateLocationMatrix(
-                this._mat, this._renderTargetSize, this._texture.size(), this._location, this._region);
+                this._mat as Mat4Mut, this._renderTargetSize, this._texture.size(), this._location, this._region);
             this._matDirty = false;
         }
         if (this._texmatDirty) {
-            this._updateRegionMatrix(this._texmat, this._texture.size(), this._region);
+            this._updateRegionMatrix(this._texmat as Mat4Mut, this._texture.size(), this._region);
             this._texmatDirty = false;
         }
     }
@@ -225,7 +225,7 @@ function compareUpdateLocationMatrixArgs(
 }
 
 function updateLocationMatrix(
-    mat: Mat4, viewportSize: Vec2, textureSize: Vec2,
+    mat: Mat4Mut, viewportSize: Vec2, textureSize: Vec2,
     location: ImageRendererLocation, region: ImageRendererRegion,
 ): void {
     // Because of "region" options actual texture size may be less than original texture.
@@ -267,7 +267,7 @@ function compareUpdateRegionMatrixArgs(
 }
 
 function updateRegionMatrix(
-    mat: Mat4, textureSize: Vec2, region: ImageRendererRegion,
+    mat: Mat4Mut, textureSize: Vec2, region: ImageRendererRegion,
 ): void {
     // Texture part boundaries in "[0, 1] * [0, 1]" space.
     const x1 = (region.x1 || 0) / textureSize.x;
