@@ -6,5 +6,5 @@ export interface Vec2 {
 export interface Vec2Mut {
     x: number;
     y: number;
-    readonly _NO_CAST: null;
+    readonly _NO_IMPLICIT_VEC2_CAST: null;
 }

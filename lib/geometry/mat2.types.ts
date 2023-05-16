@@ -4,5 +4,5 @@ export interface Mat2 extends Iterable<number> {
 
 export interface Mat2Mut extends Iterable<number> {
     [i: number]: number;
-    readonly _NO_CAST: null;
+    readonly _NO_IMPLICIT_MAT2_CAST: null;
 }

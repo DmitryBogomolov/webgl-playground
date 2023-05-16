@@ -8,5 +8,5 @@ export interface Vec3Mut {
     x: number;
     y: number;
     z: number;
-    readonly _NO_CAST: null;
+    readonly _NO_IMPLICIT_VEC3_CAST: null;
 }

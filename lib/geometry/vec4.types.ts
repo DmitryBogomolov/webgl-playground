@@ -10,5 +10,5 @@ export interface Vec4Mut {
     y: number;
     z: number;
     w: number;
-    readonly _NO_CAST: null;
+    readonly _NO_IMPLICIT_VEC4_CAST: null;
 }
