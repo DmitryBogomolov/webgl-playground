@@ -4,7 +4,7 @@ import {
     TextureCube,
     Camera,
     mul3,
-    Mat4, mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
+    Mat4, Mat4Mut, mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
 import { Observable, observable, computed } from 'util/observable';
@@ -61,16 +61,16 @@ function main(): void {
     const modelLat = observable(0);
     const _modelMat = mat4();
     const modelMat = computed(([modelLon, modelLat]) => {
-        const mat = _modelMat;
+        const mat = _modelMat as Mat4Mut;
         identity4x4(mat);
         apply4x4(mat, yrotation4x4, deg2rad(modelLon));
         apply4x4(mat, xrotation4x4, deg2rad(modelLat));
-        return mat;
+        return mat as Mat4;
     }, [modelLon, modelLat]);
 
     const _normalMat = mat4();
     const normalMat = computed(([modelMat]) => {
-        return inversetranspose4x4(modelMat, _normalMat);
+        return inversetranspose4x4(modelMat, _normalMat as Mat4Mut);
     }, [modelMat]);
 
     const isCubeShown = observable(true);

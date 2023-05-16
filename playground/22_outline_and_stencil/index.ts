@@ -5,7 +5,7 @@ import {
     Framebuffer,
     Vec2,
     vec3, mul3,
-    mat4,
+    Mat4Mut, mat4,
     Color, color, colors,
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
@@ -207,7 +207,7 @@ function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State
 
     runtime.setDepthTest(true);
     runtime.setStencilTest(false);
-    const transformMat = _transformMat;
+    const transformMat = _transformMat as Mat4Mut;
     makePixelViewProjMat(camera, coords, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, mat, id } of models) {

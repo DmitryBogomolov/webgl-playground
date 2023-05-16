@@ -3,7 +3,7 @@ import {
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     vec2, mul2,
     vec3,
-    mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
+    Mat4Mut, mat4, perspective4x4, apply4x4, mul4x4, identity4x4, translation4x4, xrotation4x4, yrotation4x4,
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
@@ -36,7 +36,7 @@ function main(): void {
         min_filter: 'nearest',
     });
 
-    const proj = mat4();
+    const proj = mat4() as Mat4Mut;
     const YFOV = Math.PI / 3;
     // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
     const DISTANCE = fovSize2Dist(YFOV, 1);
@@ -73,7 +73,7 @@ function main(): void {
 
     const xRotation = observable(0);
     const yRotation = observable(0);
-    const mat = mat4();
+    const mat = mat4() as Mat4Mut;
 
     const MAG_FILTER_OPTIONS: ReadonlyArray<TEXTURE_MAG_FILTER> = ['nearest', 'linear'];
     const MIN_FILTER_OPTIONS: ReadonlyArray<TEXTURE_MIN_FILTER> = [

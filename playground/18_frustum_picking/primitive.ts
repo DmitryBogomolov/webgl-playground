@@ -5,7 +5,7 @@ import {
     parseVertexSchema, VertexWriter,
     generateCube,
     Vec3, UNIT3,
-    Mat4, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
+    Mat4, Mat4Mut, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
 } from 'lib';
 import itemVertShader from './shaders/item.vert';
 import itemFragShader from './shaders/item.frag';
@@ -61,7 +61,7 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
 
     return {
         make: (id, size, axis, rotation, position) => {
-            const mat = identity4x4();
+            const mat = identity4x4() as Mat4Mut;
             apply4x4(mat, scaling4x4, size);
             apply4x4(mat, rotation4x4, axis, rotation);
             apply4x4(mat, translation4x4, position);
