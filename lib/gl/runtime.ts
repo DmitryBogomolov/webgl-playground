@@ -38,8 +38,7 @@ const GL_STENCIL_TEST = WebGL.STENCIL_TEST;
 const GL_CULL_FACE = WebGL.CULL_FACE;
 const GL_BLEND = WebGL.BLEND;
 
-interface State {
-    viewportSize: Vec2;
+interface RenderState {
     clearColor: Color;
     clearDepth: number;
     clearStencil: number;
@@ -54,6 +53,9 @@ interface State {
     cullFace: CULL_FACE;
     blending: boolean;
     blendFunc: BLEND_FUNC;
+}
+
+interface Bindings {
     currentProgram: WebGLProgram | null;
     vertexArrayObject: WebGLVertexArrayObjectOES | null;
     arrayBuffer: WebGLBuffer | null;
@@ -63,11 +65,13 @@ interface State {
     textureUnit: number;
     boundTextures: { [key: number]: WebGLTexture | null };
     boundCubeTextures: { [key: number]: WebGLTexture | null };
+    framebuffer: WebGLFramebuffer | null;
+    renderbuffer: WebGLRenderbuffer | null;
+}
+
+interface PixelStore {
     pixelStoreUnpackFlipYWebgl: boolean;
     pixelStoreUnpackPremultiplyAlphaWebgl: boolean;
-    framebuffer: WebGLFramebuffer | null;
-    renderTarget: RenderTarget | null;
-    renderbuffer: WebGLRenderbuffer | null;
 }
 
 const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
@@ -170,11 +174,15 @@ export class Runtime extends BaseWrapper {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _defaultRenderTarget;
-    private readonly _state: State;
+    private readonly _bindings: Bindings;
+    private readonly _renderState: RenderState;
+    private readonly _pixelStore: PixelStore;
     private readonly _gl: WebGLRenderingContext;
     private readonly _vaoExt: OES_vertex_array_object;
+    private _viewportSize: Vec2 = ZERO2;
     private _size: Vec2 = ZERO2;
     private _canvasSize: Vec2 = ZERO2;
+    private _renderTarget: RenderTarget | null = null;
 
     private readonly _sizeChanged = new EventEmitter((handler) => {
         // Immediately notify subscriber so that it may perform initial calculation.
@@ -204,7 +212,9 @@ export class Runtime extends BaseWrapper {
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
-        this._state = getDefaultState();
+        this._bindings = getDefaultBindings();
+        this._renderState = getDefaultState();
+        this._pixelStore = getDefaultPixelStore();
         this.adjustViewport();
         if (this._options.trackWindowResize) {
             onWindowResize(this._handleWindowResize);
@@ -270,12 +280,12 @@ export class Runtime extends BaseWrapper {
     }
 
     private _updateViewport(size: Vec2): void {
-        if (eq2(this._state.viewportSize, size)) {
+        if (eq2(this._viewportSize, size)) {
             return;
         }
         this._logger.log('update_viewport({0}, {1})', size.x, size.y);
         this._gl.viewport(0, 0, size.x, size.y);
-        this._state.viewportSize = size;
+        this._viewportSize = clone2(size);
     }
 
     canvas(): HTMLCanvasElement {
@@ -317,7 +327,7 @@ export class Runtime extends BaseWrapper {
         this._canvas.width = this._canvasSize.x;
         this._canvas.height = this._canvasSize.y;
         this._sizeChanged.emit();
-        if (this._state.renderTarget === null) {
+        if (this._renderTarget === null) {
             this._updateViewport(this._canvasSize);
         }
         return true;
@@ -340,63 +350,63 @@ export class Runtime extends BaseWrapper {
     }
 
     getClearColor(): Color {
-        return this._state.clearColor;
+        return this._renderState.clearColor;
     }
 
     setClearColor(clearColor: Color): boolean {
         if (!isColor(clearColor)) {
             throw this._logger.error('set_clear_color({0}): bad value', clearColor);
         }
-        if (colorEq(this._state.clearColor, clearColor)) {
+        if (colorEq(this._renderState.clearColor, clearColor)) {
             return false;
         }
         const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this._gl.clearColor(r, g, b, a);
-        this._state.clearColor = clearColor;
+        this._renderState.clearColor = clearColor;
         return true;
     }
 
     getClearDepth(): number {
-        return this._state.clearDepth;
+        return this._renderState.clearDepth;
     }
 
     setClearDepth(clearDepth: number): boolean {
         if (!(0 <= clearDepth && clearDepth <= 1)) {
             throw this._logger.error('set_clear_depth({0}): bad value', clearDepth);
         }
-        if (this._state.clearDepth === clearDepth) {
+        if (this._renderState.clearDepth === clearDepth) {
             return false;
         }
         this._logger.log('set_clear_depth({0})', clearDepth);
         this._gl.clearDepth(Number(clearDepth));
-        this._state.clearDepth = Number(clearDepth);
+        this._renderState.clearDepth = Number(clearDepth);
         return true;
     }
 
     getClearStencil(): number {
-        return this._state.clearStencil;
+        return this._renderState.clearStencil;
     }
 
     setClearStencil(clearStencil: number): boolean {
         if (!(0 <= clearStencil && clearStencil <= 1)) {
             throw this._logger.error('set_clear_stencil({0}): bad value', clearStencil);
         }
-        if (this._state.clearStencil === clearStencil) {
+        if (this._renderState.clearStencil === clearStencil) {
             return false;
         }
         this._logger.log('set_clear_stencil({0})', clearStencil);
         this._gl.clearStencil(Number(clearStencil));
-        this._state.clearStencil = Number(clearStencil);
+        this._renderState.clearStencil = Number(clearStencil);
         return true;
     }
 
     getDepthTest(): boolean {
-        return this._state.depthTest;
+        return this._renderState.depthTest;
     }
 
     setDepthTest(depthTest: boolean): boolean {
-        if (this._state.depthTest === depthTest) {
+        if (this._renderState.depthTest === depthTest) {
             return false;
         }
         this._logger.log('set_depth_test({0})', depthTest);
@@ -405,26 +415,26 @@ export class Runtime extends BaseWrapper {
         } else {
             this._gl.disable(GL_DEPTH_TEST);
         }
-        this._state.depthTest = Boolean(depthTest);
+        this._renderState.depthTest = Boolean(depthTest);
         return true;
     }
 
     getDepthMask(): boolean {
-        return this._state.depthMask;
+        return this._renderState.depthMask;
     }
 
     setDepthMask(depthMask: boolean): boolean {
-        if (this._state.depthMask === depthMask) {
+        if (this._renderState.depthMask === depthMask) {
             return false;
         }
         this._logger.log('set_depth_mask({0})', depthMask);
         this._gl.depthMask(Boolean(depthMask));
-        this._state.depthMask = Boolean(depthMask);
+        this._renderState.depthMask = Boolean(depthMask);
         return true;
     }
 
     getDepthFunc(): DEPTH_FUNC {
-        return this._state.depthFunc;
+        return this._renderState.depthFunc;
     }
 
     setDepthFunc(depthFunc: DEPTH_FUNC): boolean {
@@ -432,21 +442,21 @@ export class Runtime extends BaseWrapper {
         if (!value) {
             throw this._logger.error('set_depth_func({0}): bad value', depthFunc);
         }
-        if (this._state.depthFunc === depthFunc) {
+        if (this._renderState.depthFunc === depthFunc) {
             return false;
         }
         this._logger.log('set_depth_func({0})', depthFunc);
         this._gl.depthFunc(value);
-        this._state.depthFunc = depthFunc;
+        this._renderState.depthFunc = depthFunc;
         return true;
     }
 
     getStencilTest(): boolean {
-        return this._state.stencilTest;
+        return this._renderState.stencilTest;
     }
 
     setStencilTest(stencilTest: boolean): boolean {
-        if (this._state.stencilTest === stencilTest) {
+        if (this._renderState.stencilTest === stencilTest) {
             return false;
         }
         this._logger.log('set_stencil_test({0})', stencilTest);
@@ -455,26 +465,26 @@ export class Runtime extends BaseWrapper {
         } else {
             this._gl.disable(GL_STENCIL_TEST);
         }
-        this._state.stencilTest = Boolean(stencilTest);
+        this._renderState.stencilTest = Boolean(stencilTest);
         return true;
     }
 
     getStencilMask(): number {
-        return this._state.stencilMask;
+        return this._renderState.stencilMask;
     }
 
     setStencilMask(stencilMask: number): boolean {
-        if (this._state.stencilMask === stencilMask) {
+        if (this._renderState.stencilMask === stencilMask) {
             return false;
         }
         this._logger.log('set_stencil_mask({0})', stencilMask);
         this._gl.stencilMask(Number(stencilMask));
-        this._state.stencilMask = Number(stencilMask);
+        this._renderState.stencilMask = Number(stencilMask);
         return true;
     }
 
     getStencilFunc(): StencilFuncState {
-        return this._state.stencilFunc;
+        return this._renderState.stencilFunc;
     }
 
     setStencilFunc(stencilFunc: StencilFuncState): boolean {
@@ -488,18 +498,18 @@ export class Runtime extends BaseWrapper {
             throw this._logger.error('set_stencil_func(func={0}, ref={1}, mask={2}): bad value',
                 stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
         }
-        if (compareStencilFunc(this._state.stencilFunc, stencilFunc)) {
+        if (compareStencilFunc(this._renderState.stencilFunc, stencilFunc)) {
             return false;
         }
         this._logger.log('set_stencil_func(func={0}, ref={1}, mask={2})',
             stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
         this._gl.stencilFunc(func, ref, mask);
-        this._state.stencilFunc = { ...stencilFunc };
+        this._renderState.stencilFunc = { ...stencilFunc };
         return true;
     }
 
     getStencilOp(): StencilOpState {
-        return this._state.stencilOp;
+        return this._renderState.stencilOp;
     }
 
     setStencilOp(stencilOp: StencilOpState): boolean {
@@ -513,22 +523,22 @@ export class Runtime extends BaseWrapper {
             throw this._logger.error('set_stencil_op(fail={0}, zfail={1}, zpass={2}): bad value',
                 stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
         }
-        if (compareStencilOp(this._state.stencilOp, stencilOp)) {
+        if (compareStencilOp(this._renderState.stencilOp, stencilOp)) {
             return false;
         }
         this._logger.log('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
             stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
         this._gl.stencilOp(fail, zfail, zpass);
-        this._state.stencilOp = { ...stencilOp };
+        this._renderState.stencilOp = { ...stencilOp };
         return true;
     }
 
     getCulling(): boolean {
-        return this._state.culling;
+        return this._renderState.culling;
     }
 
     setCulling(culling: boolean): boolean {
-        if (this._state.culling === culling) {
+        if (this._renderState.culling === culling) {
             return false;
         }
         this._logger.log('set_culling({0})', culling);
@@ -537,12 +547,12 @@ export class Runtime extends BaseWrapper {
         } else {
             this._gl.disable(GL_CULL_FACE);
         }
-        this._state.culling = Boolean(culling);
+        this._renderState.culling = Boolean(culling);
         return true;
     }
 
     getCullFace(): CULL_FACE {
-        return this._state.cullFace;
+        return this._renderState.cullFace;
     }
 
     setCullFace(cullFace: CULL_FACE): boolean {
@@ -550,21 +560,21 @@ export class Runtime extends BaseWrapper {
         if (!value) {
             throw this._logger.error('set_cull_face({0}): bad value', cullFace);
         }
-        if (this._state.cullFace === cullFace) {
+        if (this._renderState.cullFace === cullFace) {
             return false;
         }
         this._logger.log('set_cull_face({0})', cullFace);
         this._gl.cullFace(value);
-        this._state.cullFace = cullFace;
+        this._renderState.cullFace = cullFace;
         return true;
     }
 
     getBlending(): boolean {
-        return this._state.blending;
+        return this._renderState.blending;
     }
 
     setBlending(blending: boolean): boolean {
-        if (this._state.blending === blending) {
+        if (this._renderState.blending === blending) {
             return false;
         }
         this._logger.log('set_blending({0})', blending);
@@ -573,12 +583,12 @@ export class Runtime extends BaseWrapper {
         } else {
             this._gl.disable(GL_BLEND);
         }
-        this._state.blending = Boolean(blending);
+        this._renderState.blending = Boolean(blending);
         return true;
     }
 
     getBlendFunc(): BLEND_FUNC {
-        return this._state.blendFunc;
+        return this._renderState.blendFunc;
     }
 
     setBlendFunc(blendFunc: BLEND_FUNC): boolean {
@@ -586,12 +596,12 @@ export class Runtime extends BaseWrapper {
         if (!value) {
             throw this._logger.error('set_blend_func({0}): bad value', blendFunc);
         }
-        if (this._state.blendFunc === blendFunc) {
+        if (this._renderState.blendFunc === blendFunc) {
             return false;
         }
         this._logger.log('set_blend_func({0})', blendFunc);
         this._gl.blendFunc(value, BLEND_FUNC_MAP_DST[blendFunc]);
-        this._state.blendFunc = blendFunc;
+        this._renderState.blendFunc = blendFunc;
         return true;
     }
 
@@ -609,126 +619,126 @@ export class Runtime extends BaseWrapper {
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
         const handle = unwrapGLHandle(program);
-        if (this._state.currentProgram === handle) {
+        if (this._bindings.currentProgram === handle) {
             return;
         }
         this._logger.log('use_program({0})', program ? program.id() : null);
         this._gl.useProgram(handle);
-        this._state.currentProgram = handle;
+        this._bindings.currentProgram = handle;
     }
 
     bindVertexArrayObject(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
         const handle = unwrapGLHandle(vertexArrayObject);
-        if (this._state.vertexArrayObject === handle) {
+        if (this._bindings.vertexArrayObject === handle) {
             return;
         }
         this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? vertexArrayObject.id() : null);
         this._vaoExt.bindVertexArrayOES(handle);
-        this._state.vertexArrayObject = handle;
+        this._bindings.vertexArrayObject = handle;
     }
 
     bindArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
         const handle = unwrapGLHandle(buffer);
-        if (this._state.arrayBuffer === buffer) {
+        if (this._bindings.arrayBuffer === buffer) {
             return;
         }
         this._logger.log('bind_array_buffer({0})', buffer ? buffer.id() : null);
         this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
-        this._state.arrayBuffer = handle;
+        this._bindings.arrayBuffer = handle;
     }
 
     bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
         const handle = unwrapGLHandle(buffer);
-        if (this._state.elementArrayBuffers[this._state.vertexArrayObject as number] === handle) {
+        if (this._bindings.elementArrayBuffers[this._bindings.vertexArrayObject as number] === handle) {
             return;
         }
         this._logger.log('bind_element_array_buffer({0})', buffer ? buffer.id() : null);
         this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
-        this._state.elementArrayBuffers[this._state.vertexArrayObject as number] = handle;
+        this._bindings.elementArrayBuffers[this._bindings.vertexArrayObject as number] = handle;
     }
 
     bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._state.boundTextures[this._state.textureUnit] || null) === handle) {
+        if ((this._bindings.boundTextures[this._bindings.textureUnit] || null) === handle) {
             return;
         }
         this._logger.log('bind_texture({0})', texture ? texture.id() : null);
         this._gl.bindTexture(GL_TEXTURE_2D, handle);
-        this._state.boundTextures[this._state.textureUnit] = handle;
+        this._bindings.boundTextures[this._bindings.textureUnit] = handle;
     }
 
     bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._state.boundCubeTextures[this._state.textureUnit] || null) === handle) {
+        if ((this._bindings.boundCubeTextures[this._bindings.textureUnit] || null) === handle) {
             return;
         }
         this._logger.log('bind_cube_texture({0})', texture ? texture.id() : null);
         this._gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
-        this._state.boundCubeTextures[this._state.textureUnit] = handle;
+        this._bindings.boundCubeTextures[this._bindings.textureUnit] = handle;
     }
 
     setTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._state.boundTextures[unit] || null) === handle) {
+        if ((this._bindings.boundTextures[unit] || null) === handle) {
             return;
         }
-        if (this._state.textureUnit !== unit) {
+        if (this._bindings.textureUnit !== unit) {
             this._logger.log('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
-            this._state.textureUnit = unit;
+            this._bindings.textureUnit = unit;
         }
         this.bindTexture(texture);
     }
 
     setCubeTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._state.boundCubeTextures[unit] || null) === handle) {
+        if ((this._bindings.boundCubeTextures[unit] || null) === handle) {
             return;
         }
-        if (this._state.textureUnit !== unit) {
+        if (this._bindings.textureUnit !== unit) {
             this._logger.log('set_cube_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
-            this._state.textureUnit = unit;
+            this._bindings.textureUnit = unit;
         }
         this.bindCubeTexture(texture);
     }
 
     getPixelStoreUnpackFlipYWebgl(): boolean {
-        return this._state.pixelStoreUnpackFlipYWebgl;
+        return this._pixelStore.pixelStoreUnpackFlipYWebgl;
     }
 
     setPixelStoreUnpackFlipYWebgl(unpackFlipYWebgl: boolean): boolean {
-        if (this._state.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
+        if (this._pixelStore.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
             return false;
         }
         this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
         this._gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
-        this._state.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
+        this._pixelStore.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
         return true;
     }
 
     getPixelStoreUnpackPremultiplyAlphaWebgl(): boolean {
-        return this._state.pixelStoreUnpackPremultiplyAlphaWebgl;
+        return this._pixelStore.pixelStoreUnpackPremultiplyAlphaWebgl;
     }
 
     setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlphaWebgl: boolean): boolean {
-        if (this._state.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
+        if (this._pixelStore.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
             return false;
         }
         this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
         this._gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
-        this._state.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
+        this._pixelStore.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
         return true;
     }
 
     bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
         const handle = unwrapGLHandle(framebuffer);
-        if (this._state.framebuffer === handle) {
+        if (this._bindings.framebuffer === handle) {
             return;
         }
         this._logger.log('bind_framebuffer({0})', framebuffer ? framebuffer.id() : null);
         this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
-        this._state.framebuffer = handle;
+        this._bindings.framebuffer = handle;
     }
 
     getDefaultRenderTarget(): RenderTarget {
@@ -736,30 +746,30 @@ export class Runtime extends BaseWrapper {
     }
 
     getRenderTarget(): RenderTarget {
-        return this._state.renderTarget || this._defaultRenderTarget;
+        return this._renderTarget || this._defaultRenderTarget;
     }
 
     setRenderTarget(renderTarget: RenderTarget | null): void {
         if (renderTarget === this._defaultRenderTarget) {
             renderTarget = null;
         }
-        if (this._state.renderTarget === renderTarget) {
+        if (this._renderTarget === renderTarget) {
             return;
         }
         this._logger.log('set_render_target({0})', renderTarget ? renderTarget.id() : null);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this._updateViewport((renderTarget || this._defaultRenderTarget).size());
-        this._state.renderTarget = renderTarget;
+        this._renderTarget = renderTarget;
     }
 
     bindRenderbuffer(renderbuffer: GLHandleWrapper<WebGLRenderbuffer> | null): void {
         const handle = unwrapGLHandle(renderbuffer);
-        if (this._state.renderbuffer === handle) {
+        if (this._bindings.renderbuffer === handle) {
             return;
         }
         this._logger.log('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
         this._gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
-        this._state.renderbuffer = handle;
+        this._bindings.renderbuffer = handle;
     }
 
     readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
@@ -784,9 +794,8 @@ const CANVAS_TAG = Symbol('CanvasTag');
 
 // Initial state is formed according to specification.
 // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
-function getDefaultState(): State {
+function getDefaultState(): RenderState {
     return {
-        viewportSize: ZERO2,
         clearColor: color(0, 0, 0, 0),
         clearDepth: 1,
         clearStencil: 0,
@@ -801,6 +810,18 @@ function getDefaultState(): State {
         cullFace: 'back',
         blending: false,
         blendFunc: 'one|zero',
+    };
+}
+
+function getDefaultPixelStore(): PixelStore {
+    return {
+        pixelStoreUnpackFlipYWebgl: false,
+        pixelStoreUnpackPremultiplyAlphaWebgl: false,
+    };
+}
+
+function getDefaultBindings(): Bindings {
+    return {
         currentProgram: null,
         vertexArrayObject: null,
         arrayBuffer: null,
@@ -810,10 +831,7 @@ function getDefaultState(): State {
         textureUnit: 0,
         boundTextures: {},
         boundCubeTextures: {},
-        pixelStoreUnpackFlipYWebgl: false,
-        pixelStoreUnpackPremultiplyAlphaWebgl: false,
         framebuffer: null,
-        renderTarget: null,
         renderbuffer: null,
     };
 }
