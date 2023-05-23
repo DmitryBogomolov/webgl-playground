@@ -310,7 +310,7 @@ export class Runtime extends BaseWrapper {
         const { r, g, b, a } = clearColor;
         this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this._gl.clearColor(r, g, b, a);
-        this._clearState.clearColor = clearColor;
+        this._clearState.clearColor = color(r, g, b, a);
         return true;
     }
 

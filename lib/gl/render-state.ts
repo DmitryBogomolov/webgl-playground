@@ -272,15 +272,13 @@ const RENDER_STATE = Symbol('RenderState');
 type Changes = Partial<Record<keyof RenderState, RenderState[keyof RenderState]>>;
 
 export function makeRenderState(state: Partial<RenderState>, logger: Logger): RenderState {
-    const result = getDefaultState();
     const changes: Changes = {};
     for (const [key, val] of Object.entries(state)) {
         const validate = RENDER_STATE_VALIDATORS[key as keyof RenderState];
         const value = validate(val as never, logger);
         changes[key as keyof RenderState] = value;
     }
-    Object.assign(result, changes);
-    return result;
+    return Object.assign(getDefaultRenderState(), changes);
 }
 
 export function isRenderState(state: RenderState): boolean {
@@ -290,6 +288,9 @@ export function isRenderState(state: RenderState): boolean {
 export function applyRenderState(
     currentState: RenderState, appliedState: RenderState, gl: WebGLRenderingContext, logger: Logger,
 ): void {
+    if (currentState === appliedState) {
+        return;
+    }
     const keys: (keyof RenderState)[] = [];
     for (const [key, compare] of Object.entries(RENDER_STATE_COMPARERS)) {
         const current = currentState[key as keyof RenderState];
@@ -310,7 +311,7 @@ export function applyRenderState(
 
 // Initial state is formed according to specification.
 // These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
-function getDefaultState(): RenderState {
+function getDefaultRenderState(): RenderState {
     return {
         depthTest: false,
         depthMask: true,
