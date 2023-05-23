@@ -101,8 +101,6 @@ function main(): void {
 const primitiveRenderState = createRenderState({
     depthTest: true,
     blendFunc: 'one|one_minus_src_alpha',
-    depthMask: true,
-    blending: false,
 });
 const labelRenderState = createRenderState({
     depthTest: true,

@@ -118,10 +118,8 @@ function main(): void {
 
 const objectRenderState = createRenderState({
     depthTest: true,
-    depthMask: true,
 });
 const contourRenderState = createRenderState({
-    depthTest: false,
     depthMask: false,
 });
 
