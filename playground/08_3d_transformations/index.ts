@@ -1,6 +1,6 @@
 import type { Mat4Mut } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     color,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
@@ -25,7 +25,9 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setClearColor(color(0.4, 0.4, 0.4));
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const figure1 = makeFigureRenderer(
         makePrimitive(runtime),
         2, vec3(1, 8, 0), 3, +0.11 * PI2 / 1000,

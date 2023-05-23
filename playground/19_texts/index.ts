@@ -1,6 +1,6 @@
 import type { Primitive, Texture, Vec3, Mat4, Color } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Camera,
     divc2,
     vec3, add3, mul3,
@@ -48,9 +48,7 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    runtime.setBlendFunc('one|one_minus_src_alpha');
     const camera = new Camera();
 
     const cameraLon = observable(0);
@@ -90,6 +88,19 @@ function main(): void {
     ]);
 }
 
+const primitiveRenderState = createRenderState({
+    depthTest: true,
+    blendFunc: 'one|one_minus_src_alpha',
+    depthMask: true,
+    blending: false,
+});
+const labelRenderState = createRenderState({
+    depthTest: true,
+    blendFunc: 'one|one_minus_src_alpha',
+    depthMask: false,
+    blending: true,
+});
+
 function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
@@ -97,8 +108,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
 
-    runtime.setDepthMask(true);
-    runtime.setBlending(false);
+    runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
@@ -107,8 +117,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
         primitive.render();
     }
 
-    runtime.setDepthMask(false);
-    runtime.setBlending(true);
+    runtime.setRenderState(labelRenderState);
     for (const { labels } of objects) {
         for (const label of labels) {
             runtime.setTextureUnit(5, label.texture);

@@ -1,6 +1,6 @@
 import type { Primitive, Program, Vec3, Mat4, Color } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Framebuffer,
     Camera,
     vec3, mul3,
@@ -54,7 +54,9 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container, { extensions: ['depth_texture'] });
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
 
     const viewLon = observable(0);
     const lightLon = observable(-60);

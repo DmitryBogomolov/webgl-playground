@@ -1,7 +1,7 @@
 import type { Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
 import type { Observable } from 'util/observable';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Camera,
     mul3,
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
@@ -40,7 +40,6 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);
@@ -95,6 +94,17 @@ function main(): void {
     ]);
 }
 
+const defaultRenderState = createRenderState({
+    depthTest: true,
+});
+
+const quadRenderState = createRenderState({
+    depthTest: true,
+    // Depth buffer is cleared (by default) with "1" values. Quad depth is also "1". Depth test must be passed.
+    // Default depth func is "LESS" and 1 < 1 == false. So depth func is changed.
+    depthFunc: 'lequal',
+});
+
 function renderFrame({
     runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture,
 }: State): void {
@@ -104,7 +114,7 @@ function renderFrame({
 
     if (isCubeShown()) {
         // Depth func is reset to default value (because it is changed for quad).
-        runtime.setDepthFunc('less');
+        runtime.setRenderState(defaultRenderState);
         cube.program().setUniform('u_texture', 4);
         cube.program().setUniform('u_view_proj', camera.getTransformMat());
         cube.program().setUniform('u_model', modelMat());
@@ -113,9 +123,7 @@ function renderFrame({
         cube.render();
     }
 
-    // Depth buffer is cleared (by default) with "1" values. Quad depth is also "1". Depth test must be passed.
-    // Default depth func is "LESS" and 1 < 1 == false. So depth func is changed.
-    runtime.setDepthFunc('lequal');
+    runtime.setRenderState(quadRenderState);
     quad.program().setUniform('u_texture', 4);
     quad.program().setUniform('u_view_proj_inv', camera.getInvtransformMat());
     quad.render();

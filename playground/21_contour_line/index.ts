@@ -1,6 +1,6 @@
 import type { Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Camera,
     vec3, mul3,
     identity4x4, apply4x4, xrotation4x4, yrotation4x4,
@@ -38,7 +38,6 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
 
@@ -117,6 +116,15 @@ function main(): void {
     ]);
 }
 
+const objectRenderState = createRenderState({
+    depthTest: true,
+    depthMask: true,
+});
+const contourRenderState = createRenderState({
+    depthTest: false,
+    depthMask: false,
+});
+
 function renderScene({
     runtime,
     camera, primitive, contourPrimitive, modelMat, modelClr,
@@ -124,16 +132,14 @@ function renderScene({
 }: State): void {
     runtime.clearBuffer('color|depth');
 
-    runtime.setDepthTest(true);
-    runtime.setDepthMask(true);
+    runtime.setRenderState(objectRenderState);
     primitive.program().setUniform('u_view_proj', camera.getTransformMat());
     primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
 
     if (contourEnabled()) {
-        runtime.setDepthTest(false);
-        runtime.setDepthMask(false);
+        runtime.setRenderState(contourRenderState);
         contourPrimitive.program().setUniform('u_canvas_size', runtime.canvasSize());
         contourPrimitive.program().setUniform('u_thickness', contourThickness());
         contourPrimitive.render();

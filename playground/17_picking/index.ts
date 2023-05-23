@@ -1,6 +1,6 @@
 import type { Program, Vec2, Color } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Framebuffer,
     Camera,
     vec2, ZERO2,
@@ -41,7 +41,9 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const framebuffer = new Framebuffer(runtime, {
         attachment: 'color|depth',
         // Zero values make framebuffer incomplete.

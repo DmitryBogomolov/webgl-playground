@@ -1,6 +1,6 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Camera,
     color,
     vec2,
@@ -36,7 +36,9 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setClearColor(color(0.7, 0.7, 0.7));
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const program = makeProgram(runtime);
     const primitives: ReadonlyArray<PrimitiveData> = [
         { primitive: makeSphere(runtime, program), offset: -1.5 },

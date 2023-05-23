@@ -1,5 +1,5 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
-import { Runtime, ImageRenderer, color, colors, color2uint } from 'lib';
+import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
 
 /**
  * Draw image util.
@@ -14,8 +14,10 @@ main();
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
     runtime.setClearColor(color(0.7, 0.7, 0.7));
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
 
     const imageCells = new ImageRenderer(runtime, 'image/cells');
     imageCells.setTextureUnit(3);
