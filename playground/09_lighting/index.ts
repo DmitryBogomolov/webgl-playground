@@ -1,7 +1,7 @@
 import type { Program, UniformValue, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'util/observable';
 import {
-    Runtime,
+    Runtime, createRenderState,
     vec2,
     ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
@@ -26,7 +26,9 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setClearColor(color(0.4, 0.4, 0.4));
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const directionalProgram = makeDirectionalProgram(runtime);
     const pointProgram = makePointProgram(runtime);
     const spotProgram = makeSpotProgram(runtime);

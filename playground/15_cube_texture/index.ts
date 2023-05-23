@@ -1,5 +1,5 @@
 import {
-    Runtime,
+    Runtime, createRenderState,
     Primitive,
     Program,
     TextureCube,
@@ -27,7 +27,9 @@ main();
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const camera = new Camera();
     camera.changed().on(() => runtime.requestFrameRender());
 

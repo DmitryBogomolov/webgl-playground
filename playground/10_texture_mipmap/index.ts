@@ -1,7 +1,7 @@
 import type { Mat4Mut } from 'lib';
 import type { Observable } from 'util/observable';
 import {
-    Runtime,
+    Runtime, createRenderState,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     vec2, mul2,
     vec3,
@@ -28,7 +28,9 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     runtime.setClearColor(color(0.7, 0.7, 0.7));
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime, () => {
         runtime.requestFrameRender();

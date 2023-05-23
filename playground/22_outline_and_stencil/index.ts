@@ -2,7 +2,7 @@ import type { Program, Vec2, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'util/observable';
 import type { Model } from './primitive';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Camera,
     Framebuffer,
     vec3, mul3,
@@ -46,7 +46,6 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container, { contextAttributes: { stencil: true } });
-    runtime.setDepthTest(true);
     const camera = new Camera();
     const framebuffer = new Framebuffer(runtime, {
         attachment: 'color|depth',
@@ -147,13 +146,34 @@ function renderScene(state: State): void {
     renderOutline(state);
 }
 
+const objectRenderState = createRenderState({
+    depthTest: true,
+});
+const selectedObjectRenderState = createRenderState({
+    depthTest: true,
+    stencilTest: true,
+    stencilMask: 0xFF,
+    stencilFunc: { func: 'always', ref: 1, mask: 0xFF },
+    stencilOp: { fail: 'keep', zfail: 'replace', zpass: 'replace' },
+});
+const outlineRenderState = createRenderState({
+    depthTest: true,
+    depthMask: false,
+    stencilTest: true,
+    stencilMask: 0,
+    stencilFunc: { func: 'notequal', ref: 1, mask: 0xFF },
+    stencilOp: { fail: 'keep', zfail: 'replace', zpass: 'replace' },
+});
+const colorIdRenderState = createRenderState({
+    depthTest: true,
+});
+
 function renderObjects({
     runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
+    runtime.setRenderState(objectRenderState);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth|stencil');
-    runtime.setDepthTest(true);
-    runtime.setDepthMask(true);
 
     for (const { primitive, mat, color, id } of models) {
         if (!selectedObjects.has(id)) {
@@ -165,10 +185,7 @@ function renderObjects({
         }
     }
 
-    runtime.setStencilTest(true);
-    runtime.setStencilMask(0xFF);
-    runtime.setStencilFunc({ func: 'always', ref: 1, mask: 0xFF });
-    runtime.setStencilOp({ fail: 'keep', zfail: 'replace', zpass: 'replace' });
+    runtime.setRenderState(selectedObjectRenderState);
     for (const { primitive, mat, color, id } of models) {
         if (selectedObjects.has(id)) {
             objectProgram.setUniform('u_view_proj', camera.getTransformMat());
@@ -183,10 +200,7 @@ function renderObjects({
 function renderOutline({
     runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
 }: State): void {
-    runtime.setDepthTest(true);
-    runtime.setDepthMask(false);
-    runtime.setStencilMask(0);
-    runtime.setStencilFunc({ func: 'notequal', ref: 1, mask: 0xFF });
+    runtime.setRenderState(outlineRenderState);
     for (const { primitive, mat, id } of models) {
         if (selectedObjects.has(id)) {
             outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
@@ -203,11 +217,10 @@ function renderOutline({
 const _transformMat = mat4();
 function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
+    runtime.setRenderState(colorIdRenderState);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
 
-    runtime.setDepthTest(true);
-    runtime.setStencilTest(false);
     const transformMat = _transformMat as Mat4Mut;
     makePixelViewProjMat(camera, coords, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);

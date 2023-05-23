@@ -1,6 +1,6 @@
 import type { Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Framebuffer,
     Camera,
     vec3, YUNIT3, norm3, rotate3,
@@ -45,7 +45,9 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
+    runtime.setRenderState(createRenderState({
+        depthTest: true,
+    }));
 
     const animationFlag = observable(true);
     const xRotation = observable(0);
@@ -74,7 +76,7 @@ function main(): void {
     });
     textureCamera.setViewportSize(framebuffer.size());
 
-    const state = {
+    const state: State = {
         runtime,
         backgroundColor: color(0.4, 0.4, 0.4),
         textureBackgroundColor: color(0.7, 0.7, 0.7),
@@ -137,7 +139,6 @@ function renderToTexture({
     runtime, framebuffer, textureBackgroundColor, object, objects, textureCamera, lightDir,
 }: State): void {
     runtime.setRenderTarget(framebuffer);
-
     runtime.setClearColor(textureBackgroundColor);
     runtime.clearBuffer('color|depth');
 
@@ -155,7 +156,6 @@ function renderScene({
     runtime, backgroundColor, framebuffer, texturePlane, camera, targetModel,
 }: State): void {
     runtime.setRenderTarget(null);
-
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
 

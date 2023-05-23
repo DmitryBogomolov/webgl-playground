@@ -1,7 +1,7 @@
 import type { Primitive, Vec2, Vec3, Mat4, Color } from 'lib';
 import type { GlyphAtlas } from './glyph';
 import {
-    Runtime,
+    Runtime, createRenderState,
     Texture,
     Camera,
     divc2,
@@ -52,9 +52,7 @@ interface State {
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
-    runtime.setDepthTest(true);
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    runtime.setBlendFunc('one|one_minus_src_alpha');
 
     const atlas = makeGlyphAtlas(FONT_SIZE);
     const texture = new Texture(runtime);
@@ -100,6 +98,17 @@ function main(): void {
     // container.parentElement!.appendChild(atlas.canvas);
 }
 
+const primitiveRenderState = createRenderState({
+    depthTest: true,
+    blendFunc: 'one|one_minus_src_alpha',
+});
+const labelRenderState = createRenderState({
+    depthTest: true,
+    blendFunc: 'one|one_minus_src_alpha',
+    depthMask: false,
+    blending: true,
+});
+
 function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
@@ -107,8 +116,7 @@ function renderScene({ runtime, camera, primitive, atlasTexture, objects }: Stat
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
 
-    runtime.setDepthMask(true);
-    runtime.setBlending(false);
+    runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {
         const program = primitive.program();
         program.setUniform('u_view_proj', viewProjMat);
@@ -117,8 +125,7 @@ function renderScene({ runtime, camera, primitive, atlasTexture, objects }: Stat
         primitive.render();
     }
 
-    runtime.setDepthMask(false);
-    runtime.setBlending(true);
+    runtime.setRenderState(labelRenderState);
     runtime.setTextureUnit(5, atlasTexture);
     for (const { labels } of objects) {
         for (const label of labels) {
