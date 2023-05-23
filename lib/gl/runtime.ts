@@ -289,11 +289,11 @@ export class Runtime extends BaseWrapper {
         this._gl.clear(value);
     }
 
-    setRenderState(state: Readonly<RenderState>): void {
+    setRenderState(state: Readonly<RenderState>): boolean {
         if (!isRenderState(state)) {
             throw this._logger.error('set_render_state(...): bad value');
         }
-        applyRenderState(this._renderState, state, this._gl, this._logger);
+        return applyRenderState(this._renderState, state, this._gl, this._logger);
     }
 
     getClearColor(): Color {

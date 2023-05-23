@@ -86,6 +86,11 @@ module.exports = {
 
                 GL_FRAMEBUFFER: 301,
                 GL_COLOR_ATTACHMENT0: 302,
+
+                UNPACK_FLIP_Y_WEBGL: 'TEST_UNPACK_FLIP_Y_WEBGL',
+                DEPTH_TEST: 'TEST_DEPTH_TEST',
+                CULL_FACE: 'TEST_CULL_FACE',
+                BLEND: 'TEST_BLEND',
             },
         },
         'ts-jest': {

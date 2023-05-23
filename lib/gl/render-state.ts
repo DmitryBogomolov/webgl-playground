@@ -287,9 +287,9 @@ export function isRenderState(state: RenderState): boolean {
 
 export function applyRenderState(
     currentState: RenderState, appliedState: RenderState, gl: WebGLRenderingContext, logger: Logger,
-): void {
+): boolean {
     if (currentState === appliedState) {
-        return;
+        return false;
     }
     const keys: (keyof RenderState)[] = [];
     for (const [key, compare] of Object.entries(RENDER_STATE_COMPARERS)) {
@@ -299,6 +299,9 @@ export function applyRenderState(
             keys.push(key as keyof RenderState);
         }
     }
+    if (keys.length === 0) {
+        return false;
+    }
     const changes: Changes = {};
     for (const key of keys) {
         const val = appliedState[key];
@@ -307,6 +310,7 @@ export function applyRenderState(
         changes[key] = val;
     }
     Object.assign(currentState, changes);
+    return true;
 }
 
 // Initial state is formed according to specification.
