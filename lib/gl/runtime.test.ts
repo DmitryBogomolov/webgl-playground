@@ -82,7 +82,6 @@ describe('runtime', () => {
                 devicePixelRatio = 2;
                 const runtime = new Runtime(container);
 
-                expect(runtime.canvas()).toEqual(canvas);
                 expect(runtime.size()).toEqual({ x: 640, y: 480 });
                 expect(runtime.canvasSize()).toEqual({ x: 1280, y: 960 });
                 expect(canvas.width).toEqual(1280);
@@ -116,7 +115,6 @@ describe('runtime', () => {
 
             expect(runtime.setSize({ x: 800, y: 600 })).toEqual(true);
 
-            expect(runtime.canvas()).toEqual(canvas);
             expect(runtime.size()).toEqual({ x: 800, y: 600 });
             expect(runtime.canvasSize()).toEqual({ x: 800, y: 600 });
             expect(canvas.width).toEqual(800);
@@ -150,7 +148,6 @@ describe('runtime', () => {
 
             runtime.adjustViewport();
 
-            expect(runtime.canvas()).toEqual(canvas);
             expect(runtime.size()).toEqual({ x: 200, y: 100 });
             expect(runtime.canvasSize()).toEqual({ x: 200, y: 100 });
             expect(canvas.width).toEqual(200);
@@ -275,17 +272,6 @@ describe('runtime', () => {
                 [DEPTH_BUFFER_BIT | STENCIL_BUFFER_BIT],
                 [COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT | STENCIL_BUFFER_BIT],
             ]);
-        });
-
-        it('convert ndc to px', () => {
-            const runtime = new Runtime(container);
-
-            expect(runtime.ndc2px({ x: 0, y: 0 })).toBeVec2({ x: 320, y: 240 });
-            expect(runtime.px2ndc({ x: 320, y: 240 })).toBeVec2({ x: 0, y: 0 });
-            expect(runtime.ndc2px({ x: -1, y: 1 })).toBeVec2({ x: 0, y: 0 });
-            expect(runtime.px2ndc({ x: 0, y: 0 })).toBeVec2({ x: -1, y: 1 });
-            expect(runtime.ndc2px({ x: 1, y: -1 })).toBeVec2({ x: 640, y: 480 });
-            expect(runtime.px2ndc({ x: 640, y: 480 })).toBeVec2({ x: 1, y: -1 });
         });
     });
 });

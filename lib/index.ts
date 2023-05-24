@@ -12,6 +12,7 @@ export * from './utils/event-emitter';
 export * from './utils/image-loader';
 export * from './utils/uint-bytes';
 export * from './utils/deg-rad';
+export * from './utils/ndc-px';
 export * from './utils/fov';
 export * from './utils/linear-mapping';
 export * from './utils/canvas-snapshot';

@@ -11,7 +11,7 @@ import type {
     BLEND_FUNC,
     RenderState,
 } from './render-state.types';
-import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
+import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from './color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
@@ -24,7 +24,7 @@ import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
-import { ZERO2, vec2, isVec2, eq2, clone2, mul2, mulc2, divc2, add2, sub2 } from '../geometry/vec2';
+import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from './color';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -230,24 +230,6 @@ export class Runtime extends BaseWrapper {
 
     canvas(): HTMLCanvasElement {
         return this._canvas;
-    }
-
-    ndc2px(ndc: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
-        // x' = (+x + 1) / 2 * size_x
-        // y' = (-y + 1) / 2 * size_y
-        mulc2(ndc, NDC_PX_MUL, out);
-        add2(out, NDC_PX_ADD, out);
-        mul2(out, 0.5, out);
-        return mulc2(out, this._size, out);
-    }
-
-    px2ndc(px: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
-        // x' = 2 * +x / size_x - 1
-        // y' = 2 * -y / size_y + 1
-        divc2(px, this._size, out);
-        mul2(out, 2, out);
-        sub2(out, NDC_PX_ADD, out);
-        return mulc2(out, NDC_PX_MUL, out);
     }
 
     size(): Vec2 {
@@ -659,9 +641,6 @@ function getReadPixelsRange(
         height: Math.abs(y1 - y2) + 1,
     };
 }
-
-const NDC_PX_ADD = vec2(1, 1);
-const NDC_PX_MUL = vec2(+1, -1);
 
 const defaultRenderStateLogger = new LoggerImpl('RenderState');
 
