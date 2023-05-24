@@ -1,6 +1,6 @@
 import type { Runtime, VertexSchema } from 'lib';
+import type { Vertex } from '../vertex';
 import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
-import { Vertex } from '../vertex';
 
 export interface LineParams {
     readonly schema: VertexSchema;

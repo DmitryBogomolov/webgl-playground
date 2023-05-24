@@ -1,10 +1,7 @@
-import {
-    Runtime,
-    Tracker,
-    Vec2, dist2,
-} from 'lib';
-import { SearchTree } from './search-tree';
-import { State } from './state';
+import type { Runtime, Vec2, Vec2Mut } from 'lib';
+import type { SearchTree } from './search-tree';
+import type { State } from './state';
+import { Tracker, vec2, clone2, dist2 } from 'lib';
 
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
@@ -18,12 +15,14 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     let thicknessVertexIdx: number = -1;
 
     function ndc2px(ndc: Vec2): Vec2 {
-        return runtime.ndc2px(ndc);
+        return runtime.ndc2px(ndc, _v2_scratch);
     }
 
     function px2ndc(px: Vec2): Vec2 {
-        return runtime.px2ndc(px);
+        return runtime.px2ndc(px, _v2_scratch);
     }
+
+    const _v2_scratch = vec2(0, 0) as Vec2Mut;
 
     const canvas = runtime.canvas();
 
@@ -38,7 +37,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
                 }
                 state.removeVertex(vertexIdx);
             } else {
-                state.addVertex(state.vertices.length, px2ndc(coords));
+                state.addVertex(state.vertices.length, clone2(px2ndc(coords)));
             }
         },
         onStart({ coords }) {

@@ -1,4 +1,4 @@
-import { Vec2, Color } from 'lib';
+import type { Vec2, Color } from 'lib';
 
 export interface Vertex {
     position: Vec2;

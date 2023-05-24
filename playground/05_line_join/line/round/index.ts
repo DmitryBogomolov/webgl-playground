@@ -1,6 +1,7 @@
 import type { Runtime, Vec2, Vec4 } from 'lib';
+import type { LineParams } from '../line';
 import { parseVertexSchema, vec4 } from 'lib';
-import { Line, LineParams, writeSegmentIndexes } from '../line';
+import { Line, writeSegmentIndexes } from '../line';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
 
