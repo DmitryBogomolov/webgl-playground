@@ -1,10 +1,7 @@
-import {
-    Runtime,
-    Tracker,
-    Vec2, dist2,
-} from 'lib';
-import { SearchTree } from './search-tree';
-import { State } from './state';
+import type { Runtime, Vec2, Vec2Mut } from 'lib';
+import type { SearchTree } from './search-tree';
+import type { State } from './state';
+import { Tracker, vec2, clone2, dist2, ndc2px, px2ndc } from 'lib';
 
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
@@ -17,20 +14,22 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     let motionVertexIdx: number = -1;
     let thicknessVertexIdx: number = -1;
 
-    function ndc2px(ndc: Vec2): Vec2 {
-        return runtime.ndc2px(ndc);
+    function getPxCoords(ndc: Vec2): Vec2 {
+        return ndc2px(ndc, runtime.size(), _v2_scratch);
     }
 
-    function px2ndc(px: Vec2): Vec2 {
-        return runtime.px2ndc(px);
+    function getNdcCoords(px: Vec2): Vec2 {
+        return px2ndc(px, runtime.size(), _v2_scratch);
     }
+
+    const _v2_scratch = vec2(0, 0) as Vec2Mut;
 
     const canvas = runtime.canvas();
 
     const tracker = new Tracker(canvas, {
         onDblClick({ coords }) {
-            const vertexIdx = tree.findNearest(px2ndc(coords))!;
-            const vertexCoords = ndc2px(state.vertices[vertexIdx].position);
+            const vertexIdx = tree.findNearest(getNdcCoords(coords))!;
+            const vertexCoords = getPxCoords(state.vertices[vertexIdx].position);
             const dist = dist2(vertexCoords, coords);
             if (dist <= VERTEX_THRESHOLD) {
                 if (state.vertices.length <= 2) {
@@ -38,12 +37,12 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
                 }
                 state.removeVertex(vertexIdx);
             } else {
-                state.addVertex(state.vertices.length, px2ndc(coords));
+                state.addVertex(state.vertices.length, clone2(getNdcCoords(coords)));
             }
         },
         onStart({ coords }) {
-            const vertexIdx = tree.findNearest(px2ndc(coords))!;
-            const vertexCoords = ndc2px(state.vertices[vertexIdx].position);
+            const vertexIdx = tree.findNearest(getNdcCoords(coords))!;
+            const vertexCoords = getPxCoords(state.vertices[vertexIdx].position);
             const dist = dist2(vertexCoords, coords);
             if (dist <= VERTEX_THRESHOLD) {
                 motionVertexIdx = vertexIdx;
@@ -53,12 +52,12 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         },
         onMove({ coords }) {
             if (motionVertexIdx >= 0) {
-                state.updateVertex(motionVertexIdx, px2ndc({
+                state.updateVertex(motionVertexIdx, getNdcCoords({
                     x: clamp(coords.x, 0, canvas.clientWidth),
                     y: clamp(coords.y, 0, canvas.clientHeight),
                 }));
             } else if (thicknessVertexIdx >= 0) {
-                const dist = dist2(coords, ndc2px(state.vertices[thicknessVertexIdx].position));
+                const dist = dist2(coords, getPxCoords(state.vertices[thicknessVertexIdx].position));
                 state.setThickness(dist * 2 | 0);
             }
         },
