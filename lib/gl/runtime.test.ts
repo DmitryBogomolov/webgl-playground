@@ -280,12 +280,12 @@ describe('runtime', () => {
         it('convert ndc to px', () => {
             const runtime = new Runtime(container);
 
-            expect(runtime.ndc2px({ x: 0, y: 0 })).toEqual({ x: 320, y: 240 });
-            expect(runtime.px2ndc({ x: 320, y: 240 })).toEqual({ x: 0, y: 0 });
-            expect(runtime.ndc2px({ x: -1, y: 1 })).toEqual({ x: 0, y: 0 });
-            expect(runtime.px2ndc({ x: 0, y: 0 })).toEqual({ x: -1, y: 1 });
-            expect(runtime.ndc2px({ x: 1, y: -1 })).toEqual({ x: 640, y: 480 });
-            expect(runtime.px2ndc({ x: 640, y: 480 })).toEqual({ x: 1, y: -1 });
+            expect(runtime.ndc2px({ x: 0, y: 0 })).toBeVec2({ x: 320, y: 240 });
+            expect(runtime.px2ndc({ x: 320, y: 240 })).toBeVec2({ x: 0, y: 0 });
+            expect(runtime.ndc2px({ x: -1, y: 1 })).toBeVec2({ x: 0, y: 0 });
+            expect(runtime.px2ndc({ x: 0, y: 0 })).toBeVec2({ x: -1, y: 1 });
+            expect(runtime.ndc2px({ x: 1, y: -1 })).toBeVec2({ x: 640, y: 480 });
+            expect(runtime.px2ndc({ x: 640, y: 480 })).toBeVec2({ x: 1, y: -1 });
         });
     });
 });
