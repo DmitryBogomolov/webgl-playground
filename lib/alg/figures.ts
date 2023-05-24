@@ -110,7 +110,7 @@ export function generateSphere<T>(
         cosList[i] = Math.cos(i * step);
         sinList[i] = Math.sin(i * step);
     }
-    const { x: rx, y: ry, z: rz } = mul3(size, 0.5);
+    const { x: rx, y: ry, z: rz } = mul3(size, 0.5, _v3_scratch as Vec3Mut);
 
     const vertices: T[] = [];
     const indices: number[] = [];
