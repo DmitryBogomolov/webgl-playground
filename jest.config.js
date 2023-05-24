@@ -87,6 +87,10 @@ module.exports = {
                 GL_FRAMEBUFFER: 301,
                 GL_COLOR_ATTACHMENT0: 302,
 
+                COLOR_BUFFER_BIT: (1 << 5),
+                DEPTH_BUFFER_BIT: (1 << 6),
+                STENCIL_BUFFER_BIT: (1 << 7),
+
                 UNPACK_FLIP_Y_WEBGL: 'TEST_UNPACK_FLIP_Y_WEBGL',
                 DEPTH_TEST: 'TEST_DEPTH_TEST',
                 CULL_FACE: 'TEST_CULL_FACE',
