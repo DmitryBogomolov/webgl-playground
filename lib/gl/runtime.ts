@@ -232,10 +232,6 @@ export class Runtime extends BaseWrapper {
         return this._canvas;
     }
 
-    toCanvasPixels(pixels: number): number {
-        return pixels * devicePixelRatio;
-    }
-
     ndc2px(ndc: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
         // x' = (+x + 1) / 2 * size_x
         // y' = (-y + 1) / 2 * size_y

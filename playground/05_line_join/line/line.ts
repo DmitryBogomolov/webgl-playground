@@ -124,7 +124,7 @@ export class Line {
 
     render(): void {
         this._primitive.program().setUniform('u_canvas_size', this._runtime.canvasSize());
-        this._primitive.program().setUniform('u_thickness', this._runtime.toCanvasPixels(this._thickness));
+        this._primitive.program().setUniform('u_thickness', this._thickness * devicePixelRatio);
         this._primitive.render();
     }
 }
