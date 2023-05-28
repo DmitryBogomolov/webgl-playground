@@ -1,5 +1,9 @@
-import type {  } from 'lib';
-import { Runtime, createRenderState, color } from 'lib';
+import type { } from 'lib';
+import {
+    Runtime, createRenderState,
+    color,
+    GlbRenderer,
+} from 'lib';
 
 /**
  * Glb model.
@@ -7,6 +11,8 @@ import { Runtime, createRenderState, color } from 'lib';
  * TODO...
  */
 export type DESCRIPTION = never;
+
+const MODEL_URL = 'https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/BoxVertexColors/glTF-Binary/BoxVertexColors.glb';
 
 main();
 
@@ -17,6 +23,14 @@ function main(): void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
+
+    const renderer = new GlbRenderer(runtime);
+    renderer.setData({ url: MODEL_URL }).then(
+        () => {
+            runtime.requestFrameRender();
+        },
+        console.error,
+    ),
 
     runtime.frameRendered().on(() => {
         runtime.clearBuffer('color');
