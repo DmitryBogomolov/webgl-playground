@@ -6,7 +6,7 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { TextureImageData } from '../gl/texture-2d.types';
 import type { Runtime } from '../gl/runtime';
-import { eq2 } from '../geometry/vec2';
+import { eq2, isVec2 } from '../geometry/vec2';
 import { vec3 } from '../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
@@ -41,11 +41,13 @@ void main() {
 `;
 
 function isRawData(data: ImageRendererImageData): data is ImageRendererRawImageData {
-    return 'size' in data && 'data' in data;
+    return data
+        && isVec2((data as ImageRendererRawImageData).size)
+        && ArrayBuffer.isView((data as ImageRendererRawImageData).data);
 }
 
 function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageData {
-    return 'url' in data;
+    return data && typeof (data as ImageRendererUrlImageData).url === 'string';
 }
 
 export class ImageRenderer extends BaseWrapper {
