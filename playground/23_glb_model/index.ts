@@ -12,7 +12,7 @@ import {
  */
 export type DESCRIPTION = never;
 
-const MODEL_URL = 'https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/BoxVertexColors/glTF-Binary/BoxVertexColors.glb';
+const MODEL_URL = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoxVertexColors/glTF-Binary/BoxVertexColors.glb';
 
 main();
 
@@ -35,6 +35,6 @@ function main(): void {
     runtime.frameRendered().on(() => {
         runtime.clearBuffer('color');
 
-        runtime.requestFrameRender();
+        // runtime.requestFrameRender();
     });
 }

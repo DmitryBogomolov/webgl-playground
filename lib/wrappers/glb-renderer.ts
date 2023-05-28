@@ -1,7 +1,7 @@
 import type { GlbRendererData, GlbRendererRawData, GlbRendererUrlData } from './glb-renderer.types';
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
-import { parseGlb } from '../alg/glb';
+import { parseGlTF } from '../alg/glb';
 
 function isRawData(data: GlbRendererData): data is GlbRendererRawData {
     return data && ArrayBuffer.isView((data as GlbRendererRawData).data);
@@ -29,7 +29,8 @@ export class GlbRenderer extends BaseWrapper {
             throw this._logger.error('set_data({0}): bad value', data);
         }
         // TODO...
-        parseGlb(source);
+        const asset = parseGlTF(source);
+        debugger
     }
 }
 
