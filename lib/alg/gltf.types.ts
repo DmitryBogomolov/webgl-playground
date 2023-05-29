@@ -1,6 +1,8 @@
-import type { GlTf } from './gltf-schema.types';
+import type * as GlTFSchema from './gltf-schema.types';
+
+export type { GlTFSchema };
 
 export interface GlTFAsset {
-    readonly desc: GlTf;
+    readonly desc: GlTFSchema.GlTf;
     readonly data: ArrayBuffer;
 }

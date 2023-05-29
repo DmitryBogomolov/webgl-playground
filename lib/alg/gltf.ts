@@ -1,5 +1,4 @@
-import type { GlTFAsset } from './gltf.types';
-import type { GlTf } from './gltf-schema.types';
+import type { GlTFAsset, GlTFSchema } from './gltf.types';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
@@ -55,7 +54,7 @@ function readHeader(arr: Uint8Array): number {
     return totalLength;
 }
 
-function decodeJson(data: ArrayBufferView, offset: number, length: number): GlTf {
+function decodeJson(data: ArrayBufferView, offset: number, length: number): GlTFSchema.GlTf {
     const decoder = new TextDecoder();
     const view = new Uint8Array(data.buffer, data.byteOffset + offset, length);
     const str = decoder.decode(view);
