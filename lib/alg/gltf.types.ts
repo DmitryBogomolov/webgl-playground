@@ -1,10 +1,6 @@
-export type GlTFDescriptionItem = string | number | GlTFDescriptionMap;
-
-export interface GlTFDescriptionMap {
-    readonly [key: string]: GlTFDescriptionItem;
-}
+import type { GlTf } from './gltf-schema.types';
 
 export interface GlTFAsset {
-    readonly desc: GlTFDescriptionMap;
+    readonly desc: GlTf;
     readonly data: ArrayBuffer;
 }

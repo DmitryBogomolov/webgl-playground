@@ -1,12 +1,13 @@
-import type { GlTFAsset, GlTFDescriptionMap } from './gltf.types';
+import type { GlTFAsset } from './gltf.types';
+import type { GlTf } from './gltf-schema.types';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
 const CHUNK_BIN = 0x004E4942;
 
-export const GLB_MEDIA_TYPE = 'model/gltf-binary';
-
 const EMPTY_DATA = new Uint8Array(0);
+
+export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
 export function parseGlTF(data: ArrayBufferView): GlTFAsset {
@@ -20,9 +21,9 @@ export function parseGlTF(data: ArrayBufferView): GlTFAsset {
     const jsonChunkLength = readU32(arr, jsonOffset + 0);
     const jsonChunkType = readU32(arr, jsonOffset + 4);
     if (jsonChunkType !== CHUNK_JSON) {
-        return { desc: {}, data: EMPTY_DATA };
+        return { desc: { asset: { version: '' } }, data: EMPTY_DATA };
     }
-    const jsonChunk = decodeJson(data, jsonOffset + 8, jsonChunkLength) as GlTFDescriptionMap;
+    const jsonChunk = decodeJson(data, jsonOffset + 8, jsonChunkLength);
 
     const binaryOffset = jsonOffset + 8 + jsonChunkLength;
     if (binaryOffset >= totalLength) {
@@ -54,7 +55,7 @@ function readHeader(arr: Uint8Array): number {
     return totalLength;
 }
 
-function decodeJson(data: ArrayBufferView, offset: number, length: number): unknown {
+function decodeJson(data: ArrayBufferView, offset: number, length: number): GlTf {
     const decoder = new TextDecoder();
     const view = new Uint8Array(data.buffer, data.byteOffset + offset, length);
     const str = decoder.decode(view);
