@@ -1,4 +1,4 @@
-import type { GlTFAsset, GlTFDescriptionMap } from './glb.types';
+import type { GlTFAsset, GlTFDescriptionMap } from './gltf.types';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
