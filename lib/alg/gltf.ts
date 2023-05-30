@@ -1,4 +1,4 @@
-import type { GlTFAsset, GlTFSchema } from './gltf.types';
+import type { GlTFAsset, GlTFAccessorType, GlTFSchema, GlTFPrimitiveMode } from './gltf.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
 import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
@@ -91,6 +91,98 @@ export function getNodeTransform(node: GlTFSchema.Node): Mat4 | null {
     return null;
 }
 
-export function getAccessorType(accessor: GlTFSchema.Accessor): number {
-    return 0; // TODO...
+const BYTE = 5120;
+const UBYTE = 5121;
+const SHORT = 5122;
+const USHORT = 5123;
+const UINT = 5125;
+const FLOAT = 5126;
+
+// There are also MAT2, MAT3, MAT4. Skip them for now.
+const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTFAccessorType>>> = {
+    'SCALAR': {
+        [BYTE]: 'byte',
+        [UBYTE]: 'ubyte',
+        [SHORT]: 'short',
+        [USHORT]: 'ushort',
+        [UINT]: 'uint',
+        [FLOAT]: 'float',
+    },
+    'VEC2': {
+        [BYTE]: 'byte2',
+        [UBYTE]: 'ubyte2',
+        [SHORT]: 'short2',
+        [USHORT]: 'ushort2',
+        [UINT]: 'uint2',
+        [FLOAT]: 'float2',
+    },
+    'VEC3': {
+        [BYTE]: 'byte3',
+        [UBYTE]: 'ubyte3',
+        [SHORT]: 'short3',
+        [USHORT]: 'ushort3',
+        [UINT]: 'uint3',
+        [FLOAT]: 'float3',
+    },
+    'VEC4': {
+        [BYTE]: 'byte4',
+        [UBYTE]: 'ubyte4',
+        [SHORT]: 'short4',
+        [USHORT]: 'ushort4',
+        [UINT]: 'uint4',
+        [FLOAT]: 'float4',
+    },
+};
+
+const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTFAccessorType, number>> = {
+    'byte': 1,
+    'byte2': 2,
+    'byte3': 3,
+    'byte4': 4,
+    'ubyte': 1,
+    'ubyte2': 2,
+    'ubyte3': 3,
+    'ubyte4': 4,
+    'short': 2,
+    'short2': 4,
+    'short3': 6,
+    'short4': 8,
+    'ushort': 2,
+    'ushort2': 4,
+    'ushort3': 6,
+    'ushort4': 8,
+    'uint': 4,
+    'uint2': 8,
+    'uint3': 12,
+    'uint4': 16,
+    'float': 4,
+    'float2': 8,
+    'float3': 12,
+    'float4': 16,
+};
+
+export function getAccessorType(accessor: GlTFSchema.Accessor): GlTFAccessorType {
+    return ACCESSOR_TYPE_MAPPING[accessor.type][accessor.componentType];
+}
+
+const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTFPrimitiveMode>> = {
+    [0]: 'points',
+    [1]: 'lines',
+    [2]: 'line_loop',
+    [3]: 'line_strip',
+    [4]: 'triangles',
+    [5]: 'triangle_strip',
+    [6]: 'triangle_fan',
+};
+const DEFAULT_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
+
+export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): any {
+    return primitive.mode !== undefined ? PRIMITIVE_MODE_MAPPING[primitive.mode] : DEFAULT_PRIMITIVE_MODE;
+}
+
+export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
+    const bufferView = asset.desc.bufferViews![accessor.bufferView!];
+    const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
+    const byteLength = accessor.count * ACCESSOR_TYPE_SIZES[getAccessorType(accessor)];
+    return new Uint8Array(asset.data, byteOffset, byteLength);
 }
