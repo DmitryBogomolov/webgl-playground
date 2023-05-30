@@ -5,9 +5,8 @@ import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
-import { parseGlTF } from '../alg/gltf';
-import { vec3 } from '../geometry/vec3';
-import { identity4x4, mul4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
+import { parseGlTF, getNodeTransform } from '../alg/gltf';
+import { identity4x4, mul4x4 } from '../geometry/mat4';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -68,7 +67,7 @@ async function load(url: string): Promise<ArrayBufferView> {
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
 function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive[] {
     const { scenes, scene: sceneIdx, nodes } = asset.desc;
-    const scene = scenes && sceneIdx && scenes[sceneIdx];
+    const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     if (!scene) {
         logger.warn('no scene');
         return [];
@@ -87,49 +86,53 @@ function traverseNodes(nodeIdx: number, parentTransform: Mat4, primitives: Primi
     if (!node) {
         throw logger.error('no {0} node', nodeIdx);
     }
-    const nodeTransform = getNodeTransform(node);
-    const currentTransform = nodeTransform
-        ? mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut) : parentTransform;
-    if (node.mesh) {
-        const mesh = asset.desc.meshes?.[node.mesh];
-        if (!mesh) {
-            throw logger.error('no {0} mesh', node.mesh);
-        }
+    const nodeTransform = getNodeTransform(node) || identity4x4();
+    mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut);
+    if (node.mesh !== undefined) {
+        const mesh = getMesh(node.mesh, asset, logger);
         for (const desc of mesh.primitives) {
-            const primitive = createPrimitive(desc, currentTransform, asset, runtime, logger);
-            primitives.push(primitive);
+            const primitive = createPrimitive(desc, nodeTransform, asset, runtime, logger);
+            if (primitive) {
+                primitives.push(primitive);
+            }
         }
     }
     if (node.children) {
         for (const idx of node.children) {
-            traverseNodes(idx, currentTransform, primitives, asset, runtime, logger);
+            traverseNodes(idx, nodeTransform, primitives, asset, runtime, logger);
         }
     }
 }
 
-function createPrimitive(desc: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive {
+function createPrimitive(desc: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive | null {
+    const attrs = desc.attributes;
+    const positionIdx = attrs.POSITION;
+    if (positionIdx === undefined) {
+        logger.warn('no POSITION for primitive');
+        return null;
+    }
+    const positionAccessor = getAccessor(positionIdx, asset, logger);
+    const normalIdx = attrs.NORMAL;
+    if (normalIdx === undefined) {
+
+    }
+
     const primitive = new Primitive(runtime);
     return primitive;
 }
 
-function getNodeTransform(node: GlTFSchema.Node): Mat4 | null {
-    if (node.scale || node.rotation || node.translation) {
-        const transform = identity4x4() as Mat4Mut;
-        if (node.scale) {
-            const scale = vec3(node.scale[0], node.scale[1], node.scale[2]);
-            apply4x4(transform, scaling4x4, scale);
-        }
-        if (node.rotation) {
-            // TODO: Support quaternions.
-        }
-        if (node.translation) {
-            const translate = vec3(node.translation[0], node.translation[1], node.translation[2]);
-            apply4x4(transform, translation4x4, translate);
-        }
-        return transform;
+function getMesh(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Mesh {
+    const mesh = asset.desc.meshes?.[idx];
+    if (!mesh) {
+        throw logger.error('no {0} mesh', idx);
     }
-    if (node.matrix) {
-        return update4x4(node.matrix);
+    return mesh;
+}
+
+function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Accessor {
+    const accessor = asset.desc.accessors?.[idx];
+    if (!accessor) {
+        throw logger.error('no {0} accessor', idx);
     }
-    return null;
+    return accessor;
 }

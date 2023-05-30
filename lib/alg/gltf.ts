@@ -1,4 +1,7 @@
 import type { GlTFAsset, GlTFSchema } from './gltf.types';
+import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
+import { vec3 } from '../geometry/vec3';
+import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
@@ -64,4 +67,30 @@ function decodeJson(data: ArrayBufferView, offset: number, length: number): GlTF
 function extractBinary(data: ArrayBufferView, offset: number, length: number): ArrayBuffer {
     const arr = new Uint8Array(data.buffer, data.byteOffset + offset, length);
     return arr.slice().buffer;
+}
+
+export function getNodeTransform(node: GlTFSchema.Node): Mat4 | null {
+    if (node.scale || node.rotation || node.translation) {
+        const transform = identity4x4() as Mat4Mut;
+        if (node.scale) {
+            const scale = vec3(node.scale[0], node.scale[1], node.scale[2]);
+            apply4x4(transform, scaling4x4, scale);
+        }
+        if (node.rotation) {
+            // TODO: Support quaternions.
+        }
+        if (node.translation) {
+            const translate = vec3(node.translation[0], node.translation[1], node.translation[2]);
+            apply4x4(transform, translation4x4, translate);
+        }
+        return transform;
+    }
+    if (node.matrix) {
+        return update4x4(node.matrix);
+    }
+    return null;
+}
+
+export function getAccessorType(accessor: GlTFSchema.Accessor): number {
+    return 0; // TODO...
 }
