@@ -87,7 +87,7 @@ function main(): void {
         contourThickness,
     };
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderScene(state);
     });
     runtime.sizeChanged().on(() => {

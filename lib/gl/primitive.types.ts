@@ -8,7 +8,7 @@ export type INDEX_TYPE = (
     'u8' | 'u16' | 'u32'
 );
 
-export interface IndexData {
+export interface IndexConfig {
     readonly indexCount: number;
     readonly indexOffset?: number;
     readonly indexType?: INDEX_TYPE;

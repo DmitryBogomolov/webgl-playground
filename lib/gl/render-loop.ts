@@ -27,7 +27,7 @@ export class RenderLoop {
         }
     }
 
-    frameRendered(): EventProxy<[number, number]> {
+    frameRequested(): EventProxy<[number, number]> {
         return this._frameRendered.proxy();
     }
 

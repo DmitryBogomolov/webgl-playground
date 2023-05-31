@@ -50,7 +50,7 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);
@@ -91,7 +91,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,

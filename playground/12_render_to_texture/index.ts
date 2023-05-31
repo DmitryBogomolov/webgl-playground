@@ -114,7 +114,7 @@ function main(): void {
     [animationFlag, targetModel]
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-    runtime.frameRendered().on((delta) => {
+    runtime.frameRequested().on((delta) => {
         if (animationFlag()) {
             textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
             textureCamera.setEyePos(textureCameraPos);

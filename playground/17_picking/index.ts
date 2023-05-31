@@ -99,7 +99,7 @@ function main(): void {
         camera.setViewportSize(canvasSize);
         idCamera.setViewportSize(framebuffer.size());
     });
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderFrame(state);
     });
 

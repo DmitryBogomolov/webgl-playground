@@ -39,7 +39,7 @@ function main(): void {
         scale: 0,
     };
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.program().setUniform('u_scale', state.scale);
         primitive.program().setUniform('u_color', state.clr);
@@ -116,7 +116,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setProgram(program);
 
     return primitive;

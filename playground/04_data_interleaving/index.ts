@@ -89,7 +89,7 @@ function makePrimitive(
     primitive.allocateIndexBuffer(indices.length * 2);
     primitive.updateIndexData(new Uint16Array(indices));
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indices.length });
+    primitive.setIndexConfig({ indexCount: indices.length });
     primitive.setProgram(program);
 
     return primitive;
@@ -98,7 +98,7 @@ function makePrimitive(
 function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Primitive): void {
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });

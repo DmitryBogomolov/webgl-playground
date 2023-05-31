@@ -46,7 +46,7 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader: itemVertShader,

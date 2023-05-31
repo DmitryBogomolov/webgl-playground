@@ -43,7 +43,7 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         primitive.allocateIndexBuffer(indexData.byteLength);
         primitive.updateIndexData(indexData);
         primitive.setVertexSchema(schema);
-        primitive.setIndexData({ indexCount: indexData.length });
+        primitive.setIndexConfig({ indexCount: indexData.length });
         primitive.setProgram(program);
 
         return primitive;

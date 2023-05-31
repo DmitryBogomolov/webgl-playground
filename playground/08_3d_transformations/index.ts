@@ -50,7 +50,7 @@ function main(): void {
     const viewProj = mat4() as Mat4Mut;
     const unit = identity4x4();
 
-    runtime.frameRendered().on((delta) => {
+    runtime.frameRequested().on((delta) => {
         identity4x4(viewProj);
         mul4x4(view, viewProj, viewProj);
         mul4x4(proj, viewProj, viewProj);

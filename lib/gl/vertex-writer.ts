@@ -1,5 +1,5 @@
-import type { AttrValue } from './vertex-writer.types';
-import type { Attribute, AttributeType, VertexSchema, AttributeTypeMap } from './vertex-schema.types';
+import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
+import type { Attribute, RAW_ATTR_TYPE, VertexSchema, AttributeTypeMap } from './vertex-schema.types';
 import type { Logger } from '../utils/logger.types';
 import { LoggerImpl } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
@@ -46,7 +46,7 @@ function buildMap(schema: VertexSchema): AttributesMap {
 
 function buildViews(schema: VertexSchema, target: ArrayBufferView): AttributeTypeMap<TypedArray> {
     // @ts-ignore Delayed construction.
-    const obj: Record<AttributeType, TypedArray> = {};
+    const obj: Record<RAW_ATTR_TYPE, TypedArray> = {};
     for (const attr of schema.attributes) {
         obj[attr.type] = obj[attr.type] || viewMakers[attr.type](target.buffer, target.byteOffset, target.byteLength);
     }
@@ -57,7 +57,7 @@ function wrapBuffer(buffer: ArrayBufferView | ArrayBuffer): ArrayBufferView {
     return ArrayBuffer.isView(buffer) ? buffer : { buffer, byteOffset: 0, byteLength: buffer.byteLength };
 }
 
-type Unwrapper = (value: AttrValue) => number[] | null;
+type Unwrapper = (value: ATTRIBUTE_VALUE) => number[] | null;
 interface UnwrappersMap {
     readonly [key: number]: Unwrapper;
 }
@@ -82,7 +82,7 @@ export class VertexWriter {
         this._logger = logger;
     }
 
-    writeAttribute(vertexIndex: number, attrName: string, attrValue: AttrValue): void {
+    writeAttribute(vertexIndex: number, attrName: string, attrValue: ATTRIBUTE_VALUE): void {
         const attr = this._attrs[attrName];
         if (!attr) {
             throw this._logger.error('attribute "{0}" is unknown', attrName);
@@ -106,7 +106,7 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
 
-function unwrap1(value: AttrValue): number[] | null {
+function unwrap1(value: ATTRIBUTE_VALUE): number[] | null {
     if (typeof value === 'number') {
         return [value];
     }
@@ -116,7 +116,7 @@ function unwrap1(value: AttrValue): number[] | null {
     return null;
 }
 
-function unwrap2(value: AttrValue): number[] | null {
+function unwrap2(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec2(value)) {
         return [value.x, value.y];
     }
@@ -126,7 +126,7 @@ function unwrap2(value: AttrValue): number[] | null {
     return null;
 }
 
-function unwrap3(value: AttrValue): number[] | null {
+function unwrap3(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec3(value)) {
         return [value.x, value.y, value.z];
     }
@@ -139,7 +139,7 @@ function unwrap3(value: AttrValue): number[] | null {
     return null;
 }
 
-function unwrap4(value: AttrValue): number[] | null {
+function unwrap4(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec4(value)) {
         return [value.x, value.y, value.z, value.w];
     }

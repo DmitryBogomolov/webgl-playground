@@ -101,7 +101,7 @@ function main(): void {
     [animationFlag, xRotation, yRotation, magFilter, minFilter]
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
-    runtime.frameRendered().on((delta) => {
+    runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color|depth');
         const program = primitive.program();
 
