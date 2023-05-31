@@ -4,6 +4,7 @@ import type { Logger } from '../utils/logger.types';
 import type { Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
+import type { INDEX_TYPE } from '../gl/primitive.types';
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
@@ -251,7 +252,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     result.updateIndexData(indicesData);
     result.setIndexConfig({
         indexCount: indicesCount,
-        indexType: INDEX_TYPE_TO_TYPE[indicesType as keyof typeof INDEX_TYPE_TO_TYPE],
+        indexType: INDEX_TYPE_TO_TYPE[indicesType as GLTF_INDEX_TYPE],
         primitiveMode: 'triangles',
     });
 
@@ -274,17 +275,20 @@ function generateIndices(count: number): Uint8Array {
     return new Uint8Array(arr.buffer);
 }
 
-const INDEX_TYPE_TO_VIEW = {
+type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
+type IndexViewCtor = Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
+
+const INDEX_TYPE_TO_VIEW: Readonly<Record<GLTF_INDEX_TYPE, IndexViewCtor>> = {
     'ubyte1': Uint8Array,
     'ushort1': Uint16Array,
     'uint1': Uint32Array,
-} as const;
+};
 
-const INDEX_TYPE_TO_TYPE = {
+const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
     'ubyte1': 'u8',
     'ushort1': 'u16',
     'uint1': 'u32',
-} as const;
+};
 
 function generateNormals(
     positionData: Uint8Array, indicesData: Uint8Array, indicesType: GlTF_ACCESSOR_TYPE,
@@ -293,7 +297,7 @@ function generateNormals(
         positionData.buffer, positionData.byteOffset, positionData.byteLength >> 2,
     );
     const normals = new Float32Array(positions.length);
-    const indicesCtor = INDEX_TYPE_TO_VIEW[indicesType as keyof typeof INDEX_TYPE_TO_VIEW];
+    const indicesCtor = INDEX_TYPE_TO_VIEW[indicesType as GLTF_INDEX_TYPE];
     const indices = new indicesCtor(
         indicesData.buffer, indicesData.byteOffset, indicesData.byteLength / indicesCtor.BYTES_PER_ELEMENT,
     );
