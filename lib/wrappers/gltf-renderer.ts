@@ -1,5 +1,5 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type { GlTFAccessorType, GlTFAsset, GlTFPrimitiveMode, GlTFSchema } from '../alg/gltf.types';
+import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema } from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -108,16 +108,16 @@ function traverseNodes(nodeIdx: number, parentTransform: Mat4, primitives: Primi
     }
 }
 
-const SUPPORTED_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
-const VALID_INDEX_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
-    ['ubyte', 'ushort', 'uint'],
+const SUPPORTED_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
+const VALID_INDEX_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
+    ['ubyte1', 'ushort1', 'uint1'],
 );
-const VALID_POSITION_TYPE: GlTFAccessorType = 'float3';
-const VALID_NORMAL_TYPE: GlTFAccessorType = 'float3';
-const VALID_COLOR_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
+const VALID_POSITION_TYPE: GlTF_ACCESSOR_TYPE = 'float3';
+const VALID_NORMAL_TYPE: GlTF_ACCESSOR_TYPE = 'float3';
+const VALID_COLOR_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4'],
 );
-const VALID_TEXCOORD_TYPE: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
+const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['float2', 'ubyte2', 'ushort2'],
 );
 
@@ -143,7 +143,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     }
     const positionData = getBufferSlice(asset, positionAccessor);
 
-    let indicesType: GlTFAccessorType;
+    let indicesType: GlTF_ACCESSOR_TYPE;
     let indicesCount: number;
     let indicesData: Uint8Array;
     if (primitive.indices !== undefined) {
@@ -155,7 +155,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         indicesCount = indicesAccessor.count;
         indicesData = getBufferSlice(asset, indicesAccessor);
     } else {
-        indicesType = 'ushort';
+        indicesType = 'ushort1';
         indicesCount = positionAccessor.count;
         indicesData = generateIndices(positionAccessor.count);
     }
@@ -174,7 +174,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         normalData = generateNormals(positionData, indicesData, indicesType);
     }
 
-    let colorType: GlTFAccessorType | undefined;
+    let colorType: GlTF_ACCESSOR_TYPE | undefined;
     let colorData: Uint8Array | undefined;
     if (colorIdx !== undefined) {
         const colorAccessor = getAccessor(colorIdx, asset, logger);
@@ -188,7 +188,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         colorData = getBufferSlice(asset, colorAccessor);
     }
 
-    let texcoordType: GlTFAccessorType | undefined;
+    let texcoordType: GlTF_ACCESSOR_TYPE | undefined;
     let texcoordData: Uint8Array | undefined;
     if (texcoordIdx !== undefined) {
         const texcoordAccessor = getAccessor(texcoordIdx, asset, logger);
@@ -275,19 +275,19 @@ function generateIndices(count: number): Uint8Array {
 }
 
 const INDEX_TYPE_TO_VIEW = {
-    'ubyte': Uint8Array,
-    'ushort': Uint16Array,
-    'uint': Uint32Array,
+    'ubyte1': Uint8Array,
+    'ushort1': Uint16Array,
+    'uint1': Uint32Array,
 } as const;
 
 const INDEX_TYPE_TO_TYPE = {
-    'ubyte': 'u8',
-    'ushort': 'u16',
-    'uint': 'u32',
+    'ubyte1': 'u8',
+    'ushort1': 'u16',
+    'uint1': 'u32',
 } as const;
 
 function generateNormals(
-    positionData: Uint8Array, indicesData: Uint8Array, indicesType: GlTFAccessorType,
+    positionData: Uint8Array, indicesData: Uint8Array, indicesType: GlTF_ACCESSOR_TYPE,
 ): Uint8Array {
     const positions = new Float32Array(
         positionData.buffer, positionData.byteOffset, positionData.byteLength >> 2,

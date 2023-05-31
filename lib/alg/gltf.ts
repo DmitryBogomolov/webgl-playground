@@ -1,4 +1,4 @@
-import type { GlTFAsset, GlTFAccessorType, GlTFSchema, GlTFPrimitiveMode } from './gltf.types';
+import type { GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE } from './gltf.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
 import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
@@ -99,14 +99,14 @@ const UINT = 5125;
 const FLOAT = 5126;
 
 // There are also MAT2, MAT3, MAT4. Skip them for now.
-const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTFAccessorType>>> = {
+const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTF_ACCESSOR_TYPE>>> = {
     'SCALAR': {
-        [BYTE]: 'byte',
-        [UBYTE]: 'ubyte',
-        [SHORT]: 'short',
-        [USHORT]: 'ushort',
-        [UINT]: 'uint',
-        [FLOAT]: 'float',
+        [BYTE]: 'byte1',
+        [UBYTE]: 'ubyte1',
+        [SHORT]: 'short1',
+        [USHORT]: 'ushort1',
+        [UINT]: 'uint1',
+        [FLOAT]: 'float1',
     },
     'VEC2': {
         [BYTE]: 'byte2',
@@ -134,38 +134,38 @@ const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTFAccessor
     },
 };
 
-const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTFAccessorType, number>> = {
-    'byte': 1,
+const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTF_ACCESSOR_TYPE, number>> = {
+    'byte1': 1,
     'byte2': 2,
     'byte3': 3,
     'byte4': 4,
-    'ubyte': 1,
+    'ubyte1': 1,
     'ubyte2': 2,
     'ubyte3': 3,
     'ubyte4': 4,
-    'short': 2,
+    'short1': 2,
     'short2': 4,
     'short3': 6,
     'short4': 8,
-    'ushort': 2,
+    'ushort1': 2,
     'ushort2': 4,
     'ushort3': 6,
     'ushort4': 8,
-    'uint': 4,
+    'uint1': 4,
     'uint2': 8,
     'uint3': 12,
     'uint4': 16,
-    'float': 4,
+    'float1': 4,
     'float2': 8,
     'float3': 12,
     'float4': 16,
 };
 
-export function getAccessorType(accessor: GlTFSchema.Accessor): GlTFAccessorType {
+export function getAccessorType(accessor: GlTFSchema.Accessor): GlTF_ACCESSOR_TYPE {
     return ACCESSOR_TYPE_MAPPING[accessor.type][accessor.componentType];
 }
 
-const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTFPrimitiveMode>> = {
+const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTF_PRIMITIVE_MODE>> = {
     [0]: 'points',
     [1]: 'lines',
     [2]: 'line_loop',
@@ -174,7 +174,7 @@ const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTFPrimitiveMode>> = {
     [5]: 'triangle_strip',
     [6]: 'triangle_fan',
 };
-const DEFAULT_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
+const DEFAULT_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
 
 export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): any {
     return primitive.mode !== undefined ? PRIMITIVE_MODE_MAPPING[primitive.mode] : DEFAULT_PRIMITIVE_MODE;
