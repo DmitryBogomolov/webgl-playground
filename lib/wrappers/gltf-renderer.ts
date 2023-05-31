@@ -24,19 +24,25 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
     return data && typeof (data as GlTFRendererUrlData).url === 'string';
 }
 
+interface PrimitiveWrapper {
+    readonly primitive: Primitive;
+    readonly matrix: Mat4;
+}
+
 export class GlbRenderer extends BaseWrapper {
     private readonly _runtime: Runtime;
-    private readonly _primitives: Primitive[];
+    private readonly _wrappers: PrimitiveWrapper[];
+    private _viewProjMat: Mat4 = identity4x4();
 
     constructor(runtime: Runtime, tag?: string) {
         super(runtime.logger(), tag);
         this._runtime = runtime;
-        this._primitives = [];
+        this._wrappers = [];
     }
 
     dispose(): void {
-        for (const primitive of this._primitives) {
-            primitive.dispose();
+        for (const wrapper of this._wrappers) {
+            wrapper.primitive.dispose();
         }
     }
 
@@ -57,12 +63,21 @@ export class GlbRenderer extends BaseWrapper {
     }
 
     private _setup(asset: GlTFAsset): void {
-        const primitives = processScene(asset, this._runtime, this._logger);
-        this._primitives.push(...primitives);
+        const wrappers = processScene(asset, this._runtime, this._logger);
+        this._wrappers.push(...wrappers);
+    }
+
+    setViewProj(mat: Mat4): void {
+        this._viewProjMat = mat;
     }
 
     render(): void {
-        // TODO...
+        for (const wrapper of this._wrappers) {
+            const program = wrapper.primitive.program();
+            program.setUniform('u_view_proj', this._viewProjMat);
+            program.setUniform('u_world', wrapper.matrix);
+            wrapper.primitive.render();
+        }
     }
 }
 
@@ -73,7 +88,7 @@ async function load(url: string): Promise<ArrayBufferView> {
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
-function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive[] {
+function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): PrimitiveWrapper[] {
     const { scenes, scene: sceneIdx, nodes } = asset.desc;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
@@ -83,28 +98,25 @@ function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): Primi
     if (!scene.nodes) {
         throw logger.error('no scene nodes');
     }
-    const primitives: Primitive[] = [];
-    traverseNodes(scene.nodes[0], identity4x4(), primitives, asset, runtime, logger);
-    return primitives;
+    const wrappers: PrimitiveWrapper[] = [];
+    traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime, logger);
+    return wrappers;
 }
 
-function traverseNodes(nodeIdx: number, parentTransform: Mat4, primitives: Primitive[], asset: GlTFAsset, runtime: Runtime, logger: Logger): void {
-    const node = asset.desc.nodes?.[nodeIdx];
-    if (!node) {
-        throw logger.error('no {0} node', nodeIdx);
-    }
+function traverseNodes(nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[], asset: GlTFAsset, runtime: Runtime, logger: Logger): void {
+    const node = getNode(nodeIdx, asset, logger);
     const nodeTransform = getNodeTransform(node) || identity4x4();
     mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut);
     if (node.mesh !== undefined) {
         const mesh = getMesh(node.mesh, asset, logger);
         for (const desc of mesh.primitives) {
             const primitive = createPrimitive(desc, nodeTransform, asset, runtime, logger);
-            primitives.push(primitive);
+            wrappers.push({ primitive, matrix: nodeTransform });
         }
     }
     if (node.children) {
         for (const idx of node.children) {
-            traverseNodes(idx, nodeTransform, primitives, asset, runtime, logger);
+            traverseNodes(idx, nodeTransform, wrappers, asset, runtime, logger);
         }
     }
 }
@@ -325,6 +337,14 @@ function generateNormals(
         normals[3 * i3 + 0] = norm.x; normals[3 * i3 + 1] = norm.y; normals[3 * i3 + 2] = norm.z;
     }
     return new Uint8Array(normals.buffer);
+}
+
+function getNode(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Node {
+    const node = asset.desc.nodes?.[idx];
+    if (!node) {
+        throw logger.error('no {0} node', idx);
+    }
+    return node;
 }
 
 function getMesh(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Mesh {
