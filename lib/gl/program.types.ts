@@ -8,7 +8,7 @@ import type { Color } from './color.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { Runtime } from './runtime';
 
-export type UniformValue = (
+export type UNIFORM_TYPE = (
     | boolean
     | number
     | Readonly<[number]>
