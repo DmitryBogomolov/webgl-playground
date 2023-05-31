@@ -33,7 +33,7 @@ function main(): void {
     }, [kernelName]);
     currentKernel.on(() => runtime.requestFrameRender());
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         runtime.setTextureUnit(3, texture);
         const program = primitive.program();

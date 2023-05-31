@@ -140,7 +140,7 @@ function main(): void {
         proj(_proj);
     });
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         // Sphere x-diameter is 3.2. Let offset be a little bigger.

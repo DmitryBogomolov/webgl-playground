@@ -120,7 +120,7 @@ function main(): void {
         }
     });
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderScene(state);
     });
     runtime.sizeChanged().on(() => {

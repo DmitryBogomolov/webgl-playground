@@ -70,7 +70,7 @@ function main(): void {
         objects: makeObjects(runtime),
     };
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderScene(state);
     });
 

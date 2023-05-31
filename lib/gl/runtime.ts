@@ -374,8 +374,8 @@ export class Runtime extends BaseWrapper {
         return this._renderState.blendFunc;
     }
 
-    frameRendered(): EventProxy<[number, number]> {
-        return this._renderLoop.frameRendered();
+    frameRequested(): EventProxy<[number, number]> {
+        return this._renderLoop.frameRequested();
     }
 
     requestFrameRender(): void {

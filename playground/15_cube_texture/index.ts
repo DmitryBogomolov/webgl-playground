@@ -50,7 +50,7 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);

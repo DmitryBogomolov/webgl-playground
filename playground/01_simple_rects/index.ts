@@ -28,7 +28,7 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });

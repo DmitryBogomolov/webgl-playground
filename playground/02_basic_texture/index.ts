@@ -105,7 +105,7 @@ function main(): void {
     texcoord.on(() => runtime.requestFrameRender());
     texcoord.on(doLayout);
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
 
         const ratio = mul2(inv2(runtime.canvasSize()), 2);

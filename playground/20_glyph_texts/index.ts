@@ -78,7 +78,7 @@ function main(): void {
         objects: makeObjects(runtime, atlas),
     };
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderScene(state);
     });
 

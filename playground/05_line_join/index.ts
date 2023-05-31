@@ -41,7 +41,7 @@ function main(): void {
 
 function setupLine<T extends Line>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
     const line = new ctor(runtime);
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         line.render();
     });

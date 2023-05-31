@@ -140,7 +140,7 @@ describe('runtime', () => {
             const handleSizeChanged = jest.fn();
             const handleFrameRendered = jest.fn();
             runtime.sizeChanged().on(handleSizeChanged);
-            runtime.frameRendered().on(handleFrameRendered);
+            runtime.frameRequested().on(handleFrameRendered);
             viewport.mockClear();
             handleSizeChanged.mockClear();
             Object.defineProperty(canvas, 'clientWidth', { value: 200 });

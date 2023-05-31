@@ -39,7 +39,7 @@ function main(): void {
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });
 
-    runtime.frameRendered().on((delta) => {
+    runtime.frameRequested().on((delta) => {
         runtime.clearBuffer();
         animate1(delta, transformation1);
         animate2(delta, transformation2);

@@ -98,7 +98,7 @@ function makePrimitive(
 function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Primitive): void {
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });
