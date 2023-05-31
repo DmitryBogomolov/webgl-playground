@@ -311,6 +311,8 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
             }
             // Is there a way to validate type?
             // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
+            // If size in buffer is greater than size in shader - extra components are ignored.
+            // If size in buffer is less than size in shader - extra components are taken from default (0, 0, 0, 1).
             if (attr.size !== shaderAttr.size) {
                 this._logger.warn(
                     'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,
