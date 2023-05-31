@@ -12,6 +12,8 @@ import { parseVertexSchema } from '../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { identity4x4, mul4x4 } from '../geometry/mat4';
 import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice } from '../alg/gltf';
+import vertShaderSource from './gltf-renderer-shader.vert';
+import fragShaderSource from './gltf-renderer-shader.frag';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -256,12 +258,10 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader: '',
-        fragShader: '',
+        vertShader: vertShaderSource,
+        fragShader: fragShaderSource,
     });
     result.setProgram(program);
-
-    // TODO: Make program
 
     return result;
 }
