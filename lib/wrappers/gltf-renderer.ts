@@ -3,12 +3,14 @@ import type { GlTFAccessorType, GlTFAsset, GlTFPrimitiveMode, GlTFSchema } from 
 import type { Logger } from '../utils/logger.types';
 import type { Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
+import type { AttributeOptions, AttributeTypeOption } from '../gl/vertex-schema.types';
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
 import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice } from '../alg/gltf';
 import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { identity4x4, mul4x4 } from '../geometry/mat4';
+import { parseVertexSchema } from '../gl/vertex-schema';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -103,9 +105,18 @@ function traverseNodes(nodeIdx: number, parentTransform: Mat4, primitives: Primi
     }
 }
 
+const SUPPORTED_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
+const VALID_INDEX_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
+    ['ubyte', 'ushort', 'uint']
+);
 const VALID_POSITION_TYPE: GlTFAccessorType = 'float3';
 const VALID_NORMAL_TYPE: GlTFAccessorType = 'float3';
-const SUPPORTED_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
+const VALID_COLOR_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
+    ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4']
+);
+const VALID_TEXCOORD_TYPE: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
+    ['float2', 'ubyte2', 'ushort2']
+);
 
 function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive {
     const {
@@ -130,13 +141,19 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     const positionData = getBufferSlice(asset, positionAccessor);
 
     let indicesType: GlTFAccessorType;
+    let indicesCount: number;
     let indicesData: Uint8Array;
     if (primitive.indices !== undefined) {
         const indicesAccessor = getAccessor(primitive.indices, asset, logger);
         indicesType = getAccessorType(indicesAccessor);
+        if (!VALID_INDEX_TYPES.has(indicesType)) {
+            throw logger.error('bad index type: {0}', indicesType);
+        }
+        indicesCount = indicesAccessor.count;
         indicesData = getBufferSlice(asset, indicesAccessor);
     } else {
         indicesType = 'ushort';
+        indicesCount = positionAccessor.count;
         indicesData = generateIndices(positionAccessor.count);
     }
 
@@ -151,27 +168,84 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         normalData = generateNormals(positionData, indicesData, indicesType);
     }
 
-    let colorType: GlTFAccessorType;
-    let colorData: Uint8Array | null = null;
+    let colorType: GlTFAccessorType | undefined;
+    let colorData: Uint8Array | undefined;
     if (colorIdx !== undefined) {
         const colorAccessor = getAccessor(colorIdx, asset, logger);
         colorType = getAccessorType(colorAccessor);
+        if (!VALID_COLOR_TYPES.has(colorType)) {
+            throw logger.error('bad COLOR_0 type: {0}', colorType);
+        }
         colorData = getBufferSlice(asset, colorAccessor);
     }
 
-    let texcoordType: GlTFAccessorType;
-    let texcoordData: Uint8Array | null = null;
+    let texcoordType: GlTFAccessorType | undefined;
+    let texcoordData: Uint8Array | undefined;
     if (texcoordIdx !== undefined) {
         const texcoordAccessor = getAccessor(texcoordIdx, asset, logger);
         texcoordType = getAccessorType(texcoordAccessor);
+        if (!VALID_TEXCOORD_TYPE.has(texcoordType)) {
+            throw logger.error('bad TEXCOORD_0 type: {0}', texcoordType);
+        }
         texcoordData = getBufferSlice(asset, texcoordAccessor);
     }
 
-    // TODO: Make schema
-    // TODO: Allocate and update buffer data
-    // TODO: Make program
+
+    let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
+    if (colorData) {
+        totalVertexDataSize += colorData.byteLength;
+    }
+    if (texcoordData) {
+        totalVertexDataSize += texcoordData.byteLength;
+    }
 
     const result = new Primitive(runtime);
+
+    result.allocateVertexBuffer(totalVertexDataSize);
+    const vertexAttributes: AttributeOptions[] = [];
+    let vertexDataOffset = 0;
+
+    result.updateVertexData(positionData, vertexDataOffset);
+    vertexAttributes.push({ name: 'a_position', type: 'float3', offset: vertexDataOffset });
+    vertexDataOffset += positionData.byteLength;
+
+    result.updateVertexData(normalData, vertexDataOffset);
+    vertexAttributes.push({ name: 'a_normal', type: 'float3', offset: vertexDataOffset });
+    vertexDataOffset += normalData.byteLength;
+
+    if (colorData && colorType) {
+        result.updateVertexData(colorData, vertexDataOffset);
+        const attrType = colorType as AttributeTypeOption;
+        const isNormalized = colorType !== 'float3' && colorType !== 'float4';
+        vertexAttributes.push(
+            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset }
+        );
+        vertexDataOffset += colorData.byteLength;
+    }
+
+    if (texcoordData && texcoordType) {
+        result.updateVertexData(texcoordData, vertexDataOffset);
+        const attrType = texcoordType as AttributeTypeOption;
+        const isNormalized = texcoordType !== 'float2';
+        vertexAttributes.push(
+            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset }
+        );
+        vertexDataOffset += texcoordData.byteLength;
+    }
+
+    const schema = parseVertexSchema(vertexAttributes);
+    result.setVertexSchema(schema);
+
+    result.allocateIndexBuffer(indicesData.byteLength);
+    result.updateIndexData(indicesData);
+    result.setIndexData({
+        indexCount: indicesCount,
+        indexType: INDEX_TYPE_TO_TYPE[indicesType as keyof typeof INDEX_TYPE_TO_TYPE],
+        primitiveMode: 'triangles',
+    });
+
+    // TODO: Make program
+
     return result;
 }
 
@@ -187,6 +261,12 @@ const INDEX_TYPE_TO_VIEW = {
     'ubyte': Uint8Array,
     'ushort': Uint16Array,
     'uint': Uint32Array,
+} as const;
+
+const INDEX_TYPE_TO_TYPE = {
+    'ubyte': 'u8',
+    'ushort': 'u16',
+    'uint': 'u32',
 } as const;
 
 function generateNormals(
