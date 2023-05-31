@@ -32,7 +32,7 @@ function main(): void {
         console.error,
     ),
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
 
         // runtime.requestFrameRender();

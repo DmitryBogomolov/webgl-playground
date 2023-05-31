@@ -3,7 +3,7 @@ import type { GlTFAccessorType, GlTFAsset, GlTFPrimitiveMode, GlTFSchema } from 
 import type { Logger } from '../utils/logger.types';
 import type { Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { AttributeOptions, AttributeTypeOption } from '../gl/vertex-schema.types';
+import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
@@ -110,15 +110,15 @@ function traverseNodes(nodeIdx: number, parentTransform: Mat4, primitives: Primi
 
 const SUPPORTED_PRIMITIVE_MODE: GlTFPrimitiveMode = 'triangles';
 const VALID_INDEX_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
-    ['ubyte', 'ushort', 'uint']
+    ['ubyte', 'ushort', 'uint'],
 );
 const VALID_POSITION_TYPE: GlTFAccessorType = 'float3';
 const VALID_NORMAL_TYPE: GlTFAccessorType = 'float3';
 const VALID_COLOR_TYPES: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
-    ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4']
+    ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4'],
 );
 const VALID_TEXCOORD_TYPE: ReadonlySet<GlTFAccessorType> = new Set<GlTFAccessorType>(
-    ['float2', 'ubyte2', 'ushort2']
+    ['float2', 'ubyte2', 'ushort2'],
 );
 
 function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive {
@@ -226,20 +226,20 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
 
     if (colorData && colorType) {
         result.updateVertexData(colorData, vertexDataOffset);
-        const attrType = colorType as AttributeTypeOption;
+        const attrType = colorType as ATTRIBUTE_TYPE;
         const isNormalized = colorType !== 'float3' && colorType !== 'float4';
         vertexAttributes.push(
-            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset }
+            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset },
         );
         vertexDataOffset += colorData.byteLength;
     }
 
     if (texcoordData && texcoordType) {
         result.updateVertexData(texcoordData, vertexDataOffset);
-        const attrType = texcoordType as AttributeTypeOption;
+        const attrType = texcoordType as ATTRIBUTE_TYPE;
         const isNormalized = texcoordType !== 'float2';
         vertexAttributes.push(
-            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset }
+            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset },
         );
         vertexDataOffset += texcoordData.byteLength;
     }
@@ -249,7 +249,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
 
     result.allocateIndexBuffer(indicesData.byteLength);
     result.updateIndexData(indicesData);
-    result.setIndexData({
+    result.setIndexConfig({
         indexCount: indicesCount,
         indexType: INDEX_TYPE_TO_TYPE[indicesType as keyof typeof INDEX_TYPE_TO_TYPE],
         primitiveMode: 'triangles',
