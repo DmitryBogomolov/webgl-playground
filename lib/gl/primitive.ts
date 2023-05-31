@@ -1,4 +1,4 @@
-import type { PRIMITIVE_MODE, INDEX_TYPE, IndexData, PrimitiveRuntime } from './primitive.types';
+import type { PRIMITIVE_MODE, INDEX_TYPE, IndexConfig, PrimitiveRuntime } from './primitive.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
@@ -147,7 +147,8 @@ export class Primitive extends BaseWrapper {
         }
     }
 
-    setIndexData({ indexCount, indexOffset, indexType, primitiveMode }: IndexData): void {
+    setIndexConfig(config: IndexConfig): void {
+        const { indexCount, indexOffset, indexType, primitiveMode } = config;
         this._logger.log('set_index_data(count={0}, offset={1}, type={2}, mode={3})',
             indexCount, indexOffset, indexType, primitiveMode);
         if (indexCount < 0) {

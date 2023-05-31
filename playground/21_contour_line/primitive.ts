@@ -35,7 +35,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,
@@ -106,7 +106,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
 
     primitive.updateVertexData(vertexData);
     primitive.updateIndexData(indexData);
-    primitive.setIndexData({ indexCount: indexData.length, primitiveMode: 'triangles' });
+    primitive.setIndexConfig({ indexCount: indexData.length, primitiveMode: 'triangles' });
 }
 
 function pickIndex(i: number, length: number): number {
