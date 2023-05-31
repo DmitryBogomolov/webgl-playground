@@ -7,10 +7,11 @@ import type { AttributeOptions, AttributeTypeOption } from '../gl/vertex-schema.
 import type { Runtime } from '../gl/runtime';
 import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
-import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice } from '../alg/gltf';
+import { Program } from '../gl/program';
+import { parseVertexSchema } from '../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { identity4x4, mul4x4 } from '../geometry/mat4';
-import { parseVertexSchema } from '../gl/vertex-schema';
+import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice } from '../alg/gltf';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -163,6 +164,9 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         if (getAccessorType(normalAccessor) !== VALID_NORMAL_TYPE) {
             throw logger.error('bad NORMAL type: {0}', getAccessorType(normalAccessor));
         }
+        if (normalAccessor.count !== positionAccessor.count) {
+            throw logger.error('bad NORMAL count: {0}', normalAccessor.count);
+        }
         normalData = getBufferSlice(asset, normalAccessor);
     } else {
         normalData = generateNormals(positionData, indicesData, indicesType);
@@ -176,6 +180,9 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         if (!VALID_COLOR_TYPES.has(colorType)) {
             throw logger.error('bad COLOR_0 type: {0}', colorType);
         }
+        if (colorAccessor.count !== positionAccessor.count) {
+            throw logger.error('bad COLOR_0 count: {0}', colorAccessor.count);
+        }
         colorData = getBufferSlice(asset, colorAccessor);
     }
 
@@ -187,9 +194,11 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         if (!VALID_TEXCOORD_TYPE.has(texcoordType)) {
             throw logger.error('bad TEXCOORD_0 type: {0}', texcoordType);
         }
+        if (texcoordAccessor.count !== positionAccessor.count) {
+            throw logger.error('bad TEXCOORD_0 count: {0}', texcoordAccessor.count);
+        }
         texcoordData = getBufferSlice(asset, texcoordAccessor);
     }
-
 
     let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
     if (colorData) {
@@ -243,6 +252,14 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         indexType: INDEX_TYPE_TO_TYPE[indicesType as keyof typeof INDEX_TYPE_TO_TYPE],
         primitiveMode: 'triangles',
     });
+
+    // TODO: Share program between all primitives (some schema check should be updated?).
+    const program = new Program(runtime, {
+        schema,
+        vertShader: '',
+        fragShader: '',
+    });
+    result.setProgram(program);
 
     // TODO: Make program
 
