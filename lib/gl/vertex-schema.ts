@@ -1,5 +1,5 @@
 import type {
-    AttributeType, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
+    RAW_ATTR_TYPE, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
 } from './vertex-schema.types';
 import type { Logger } from '../utils/logger.types';
 import { LoggerImpl } from '../utils/logger';
@@ -23,12 +23,12 @@ const BYTE_SIZES: AttributeTypeMap<number> = {
     float: 4,
 };
 
-function parseType({ name, type }: AttributeOptions, logger: Logger): AttributeType {
+function parseType({ name, type }: AttributeOptions, logger: Logger): RAW_ATTR_TYPE {
     const ret = type.substring(0, type.length - 1);
     if (!(ret in GL_TYPES)) {
         throw logger.error('item "{0}" type "{1}" name is not valid', name, type);
     }
-    return ret as AttributeType;
+    return ret as RAW_ATTR_TYPE;
 }
 
 function parseSize({ name, type }: AttributeOptions, logger: Logger): number {

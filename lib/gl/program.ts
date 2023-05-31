@@ -1,4 +1,4 @@
-import type { UNIFORM_TYPE, ProgramOptions, ProgramRuntime } from './program.types';
+import type { UNIFORM_VALUE, ProgramOptions, ProgramRuntime } from './program.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Logger } from '../utils/logger.types';
@@ -34,7 +34,7 @@ interface ShaderUniform {
 }
 
 type UniformSetter = (
-    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: UNIFORM_TYPE
+    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: UNIFORM_VALUE
 ) => void;
 
 type ShaderAttrType = 'float' | 'int' | 'bool';
@@ -345,7 +345,7 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         return this._schema;
     }
 
-    setUniform(name: string, value: UNIFORM_TYPE): void {
+    setUniform(name: string, value: UNIFORM_VALUE): void {
         this._logger.log('set_uniform({0}: {1})', name, value);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[name];
