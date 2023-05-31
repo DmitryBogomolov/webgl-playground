@@ -84,7 +84,7 @@ function main(): void {
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
     });
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderFrame(state);
     });
 

@@ -61,7 +61,7 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,

@@ -32,7 +32,7 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setVertexSchema(schema);
     return primitive;
 }
@@ -88,7 +88,7 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indices.length, primitiveMode: 'lines' });
+    primitive.setIndexConfig({ indexCount: indices.length, primitiveMode: 'lines' });
 
     const program = new Program(runtime, {
         vertShader: wireframeVertShader,

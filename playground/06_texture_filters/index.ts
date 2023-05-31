@@ -33,7 +33,7 @@ function main(): void {
     }, [kernelName]);
     currentKernel.on(() => runtime.requestFrameRender());
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         runtime.setTextureUnit(3, texture);
         const program = primitive.program();
@@ -75,7 +75,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indices.length });
+    primitive.setIndexConfig({ indexCount: indices.length });
     primitive.setProgram(program);
     return primitive;
 }

@@ -344,7 +344,7 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indices.length });
+    primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
         vertShader: VERT_SHADER,

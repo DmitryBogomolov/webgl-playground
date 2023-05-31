@@ -37,7 +37,7 @@ function main(): void {
     let step = 0;
     const SPEED = 0.1;
 
-    runtime.frameRendered().on((delta) => {
+    runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color');
         step = (step + SPEED * delta / 1000) % 1;
 

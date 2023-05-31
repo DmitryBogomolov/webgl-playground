@@ -3,7 +3,7 @@ import type { Vec3 } from '../geometry/vec3.types';
 import type { Vec4 } from '../geometry/vec4.types';
 import type { Color } from './color.types';
 
-export type AttrValue = (
+export type ATTRIBUTE_VALUE = (
     | number
     | Readonly<[number]>
     | Readonly<[number, number]>

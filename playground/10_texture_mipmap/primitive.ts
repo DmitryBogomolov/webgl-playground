@@ -25,7 +25,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indices.length });
+    primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
         vertShader,

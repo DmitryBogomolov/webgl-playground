@@ -3,7 +3,7 @@ import type { Runtime } from '../gl/runtime';
 export function takeCanvasSnapshot(runtime: Runtime): Promise<Blob> {
     return new Promise((resolve, reject) => {
         function handleFrame(): void {
-            runtime.frameRendered().off(handleFrame);
+            runtime.frameRequested().off(handleFrame);
             runtime.canvas().toBlob((blob) => {
                 if (blob) {
                     resolve(blob);
@@ -12,7 +12,7 @@ export function takeCanvasSnapshot(runtime: Runtime): Promise<Blob> {
                 }
             });
         }
-        runtime.frameRendered().on(handleFrame);
+        runtime.frameRequested().on(handleFrame);
         runtime.requestFrameRender();
     });
 }

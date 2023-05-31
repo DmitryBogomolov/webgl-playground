@@ -1,4 +1,4 @@
-import type { Program, UniformValue, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Program, UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'util/observable';
 import {
     Runtime, createRenderState,
@@ -140,7 +140,7 @@ function main(): void {
         proj(_proj);
     });
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         // Sphere x-diameter is 3.2. Let offset be a little bigger.
@@ -173,7 +173,7 @@ function main(): void {
 
 function renderPrimitive(
     program: Program, primitive: Primitive,
-    clr: Color, offset: number, uniforms: Record<string, UniformValue>,
+    clr: Color, offset: number, uniforms: Record<string, UNIFORM_VALUE>,
     modelViewProj: Observable<Mat4>, modelInvTrs: Observable<Mat4>,
 ): void {
     program.setUniform('u_offset', offset);

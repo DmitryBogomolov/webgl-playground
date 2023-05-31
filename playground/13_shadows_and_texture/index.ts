@@ -136,7 +136,7 @@ function main(): void {
         wireframe: makeWireframe(runtime),
     };
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         renderDepthData(state);
         renderScene(state);
     });

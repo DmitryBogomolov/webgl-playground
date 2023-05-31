@@ -105,7 +105,7 @@ function main(): void {
     texcoord.on(() => runtime.requestFrameRender());
     texcoord.on(doLayout);
 
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
 
         const ratio = mul2(inv2(runtime.canvasSize()), 2);
@@ -154,7 +154,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,

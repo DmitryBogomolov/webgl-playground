@@ -28,7 +28,7 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime(container);
     const primitive = makePrimitive(runtime);
-    runtime.frameRendered().on(() => {
+    runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });
@@ -90,7 +90,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema(schema);
-    primitive.setIndexData({ indexCount: indexData.length });
+    primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setProgram(program);
 
     return primitive;
