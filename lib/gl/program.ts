@@ -23,7 +23,7 @@ const GL_ACTIVE_UNIFORMS = WebGL.ACTIVE_UNIFORMS;
 interface ShaderAttribute {
     readonly info: WebGLActiveInfo;
     readonly location: number;
-    readonly type: ShaderAttrType;
+    readonly type: SHADER_ATTR_TYPE;
     readonly size: number;
 }
 
@@ -37,10 +37,10 @@ type UniformSetter = (
     logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: UNIFORM_VALUE
 ) => void;
 
-type ShaderAttrType = 'float' | 'int' | 'bool';
+type SHADER_ATTR_TYPE = 'float' | 'int' | 'bool';
 
 interface ShaderAttrTypesMap {
-    readonly [key: number]: { type: ShaderAttrType, size: number };
+    readonly [key: number]: { type: SHADER_ATTR_TYPE, size: number };
 }
 
 interface UniformSettersMap {
@@ -311,9 +311,8 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
             }
             // Is there a way to validate type?
             // There can be normalized ushort4 for vec4 color. So type equality cannot be required.
-            // TODO: Consider allowing cases when attr.size < shaderAttr.size (shader provides default values).
             if (attr.size !== shaderAttr.size) {
-                throw this._logger.error(
+                this._logger.warn(
                     'attribute "{0}" size is {1} but shader size is {2}', attr.name, attr.size, shaderAttr.size,
                 );
             }
