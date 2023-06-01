@@ -1,7 +1,7 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
 import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema } from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
-import type { Vec3Mut } from '../geometry/vec3.types';
+import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../gl/primitive.types';
@@ -325,18 +325,32 @@ function generateNormals(
         const i1 = indices[i + 0];
         const i2 = indices[i + 1];
         const i3 = indices[i + 2];
-        p1.x = positions[3 * i1 + 0]; p1.y = positions[3 * i1 + 1]; p1.z = positions[3 * i1 + 2];
-        p2.x = positions[3 * i2 + 0]; p2.y = positions[3 * i2 + 1]; p2.z = positions[3 * i2 + 2];
-        p3.x = positions[3 * i3 + 0]; p3.y = positions[3 * i3 + 1]; p3.z = positions[3 * i3 + 2];
+        updateVec3(p1, positions, i1);
+        updateVec3(p2, positions, i2);
+        updateVec3(p3, positions, i3);
         sub3(p2, p1, dir1);
         sub3(p3, p1, dir2);
         cross3(dir1, dir2, norm);
         norm3(norm, norm);
-        normals[3 * i1 + 0] = norm.x; normals[3 * i1 + 1] = norm.y; normals[3 * i1 + 2] = norm.z;
-        normals[3 * i2 + 0] = norm.x; normals[3 * i2 + 1] = norm.y; normals[3 * i2 + 2] = norm.z;
-        normals[3 * i3 + 0] = norm.x; normals[3 * i3 + 1] = norm.y; normals[3 * i3 + 2] = norm.z;
+        updateArr(normals, i1, norm);
+        updateArr(normals, i2, norm);
+        updateArr(normals, i3, norm);
     }
     return new Uint8Array(normals.buffer);
+}
+
+function updateVec3(v: Vec3Mut, arr: { readonly [i: number]: number }, idx: number): void {
+    const k = 3 * idx;
+    v.x = arr[k + 0];
+    v.y = arr[k + 1];let a: Iterable<number>;
+    v.z = arr[k + 2];
+}
+
+function updateArr(arr: { [i: number]: number }, idx: number, v: Vec3): void {
+    const k = 3 * idx;
+    arr[k + 0] = v.x;
+    arr[k + 1] = v.y;
+    arr[k + 2] = v.z;
 }
 
 function getNode(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Node {
