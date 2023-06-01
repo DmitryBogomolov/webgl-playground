@@ -12,7 +12,7 @@ import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { identity4x4, mul4x4 } from '../geometry/mat4';
-import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice } from '../alg/gltf';
+import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride } from '../alg/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
 
@@ -155,6 +155,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         throw logger.error('bad POSITION type: {0}', getAccessorType(positionAccessor));
     }
     const positionData = getBufferSlice(asset, positionAccessor);
+    const positionStride = getAccessorStride(asset, positionAccessor);
 
     let indicesType: GlTF_ACCESSOR_TYPE;
     let indicesCount: number;
@@ -174,6 +175,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     }
 
     let normalData: Uint8Array;
+    let normalStride: number;
     if (normalIdx !== undefined) {
         const normalAccessor = getAccessor(normalIdx, asset, logger);
         if (getAccessorType(normalAccessor) !== VALID_NORMAL_TYPE) {
@@ -183,12 +185,15 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
             throw logger.error('bad NORMAL count: {0}', normalAccessor.count);
         }
         normalData = getBufferSlice(asset, normalAccessor);
+        normalStride = getAccessorStride(asset, normalAccessor);
     } else {
         normalData = generateNormals(positionData, indicesData, indicesType);
+        normalStride = 12;
     }
 
     let colorType: GlTF_ACCESSOR_TYPE | undefined;
     let colorData: Uint8Array | undefined;
+    let colorStride: number | undefined;
     if (colorIdx !== undefined) {
         const colorAccessor = getAccessor(colorIdx, asset, logger);
         colorType = getAccessorType(colorAccessor);
@@ -199,10 +204,12 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
             throw logger.error('bad COLOR_0 count: {0}', colorAccessor.count);
         }
         colorData = getBufferSlice(asset, colorAccessor);
+        colorStride = getAccessorStride(asset, colorAccessor);
     }
 
     let texcoordType: GlTF_ACCESSOR_TYPE | undefined;
     let texcoordData: Uint8Array | undefined;
+    let texcoordStride: number | undefined;
     if (texcoordIdx !== undefined) {
         const texcoordAccessor = getAccessor(texcoordIdx, asset, logger);
         texcoordType = getAccessorType(texcoordAccessor);
@@ -213,6 +220,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
             throw logger.error('bad TEXCOORD_0 count: {0}', texcoordAccessor.count);
         }
         texcoordData = getBufferSlice(asset, texcoordAccessor);
+        texcoordStride = getAccessorStride(asset, texcoordAccessor);
     }
 
     let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
@@ -230,29 +238,29 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     let vertexDataOffset = 0;
 
     result.updateVertexData(positionData, vertexDataOffset);
-    vertexAttributes.push({ name: 'a_position', type: 'float3', offset: vertexDataOffset });
+    vertexAttributes.push({ name: 'a_position', type: 'float3', offset: vertexDataOffset, stride: positionStride });
     vertexDataOffset += positionData.byteLength;
 
     result.updateVertexData(normalData, vertexDataOffset);
-    vertexAttributes.push({ name: 'a_normal', type: 'float3', offset: vertexDataOffset });
+    vertexAttributes.push({ name: 'a_normal', type: 'float3', offset: vertexDataOffset, stride: normalStride });
     vertexDataOffset += normalData.byteLength;
 
-    if (colorData && colorType) {
+    if (colorData) {
         result.updateVertexData(colorData, vertexDataOffset);
         const attrType = colorType as ATTRIBUTE_TYPE;
         const isNormalized = colorType !== 'float3' && colorType !== 'float4';
         vertexAttributes.push(
-            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset },
+            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset, stride: colorStride },
         );
         vertexDataOffset += colorData.byteLength;
     }
 
-    if (texcoordData && texcoordType) {
+    if (texcoordData) {
         result.updateVertexData(texcoordData, vertexDataOffset);
         const attrType = texcoordType as ATTRIBUTE_TYPE;
         const isNormalized = texcoordType !== 'float2';
         vertexAttributes.push(
-            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset },
+            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset, stride: texcoordStride },
         );
         vertexDataOffset += texcoordData.byteLength;
     }

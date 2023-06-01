@@ -165,6 +165,14 @@ export function getAccessorType(accessor: GlTFSchema.Accessor): GlTF_ACCESSOR_TY
     return ACCESSOR_TYPE_MAPPING[accessor.type][accessor.componentType];
 }
 
+export function getAccessorStride(asset: GlTFAsset, accessor: GlTFSchema.Accessor): number {
+    const bufferView = asset.desc.bufferViews![accessor.bufferView!];
+    if (bufferView.byteStride !== undefined) {
+        return bufferView.byteStride;
+    }
+    return ACCESSOR_TYPE_SIZES[getAccessorType(accessor)];
+}
+
 const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTF_PRIMITIVE_MODE>> = {
     [0]: 'points',
     [1]: 'lines',
@@ -176,13 +184,14 @@ const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTF_PRIMITIVE_MODE>> = {
 };
 const DEFAULT_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
 
-export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): any {
+export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): GlTF_PRIMITIVE_MODE {
     return primitive.mode !== undefined ? PRIMITIVE_MODE_MAPPING[primitive.mode] : DEFAULT_PRIMITIVE_MODE;
 }
 
 export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
     const bufferView = asset.desc.bufferViews![accessor.bufferView!];
     const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
-    const byteLength = accessor.count * ACCESSOR_TYPE_SIZES[getAccessorType(accessor)];
+    const byteLength = accessor.count * getAccessorStride(asset, accessor);
     return new Uint8Array(asset.data, byteOffset, byteLength);
 }
+
