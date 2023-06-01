@@ -16,7 +16,7 @@ import { createControls } from 'util/controls';
  */
 export type DESCRIPTION = never;
 
-const MODEL_URL = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoxVertexColors/glTF-Binary/BoxVertexColors.glb';
+const MODEL_URL = '/static/gltf-models/BoxVertexColors.glb';
 
 main();
 
