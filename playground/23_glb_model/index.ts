@@ -1,8 +1,9 @@
-import type { } from 'lib';
 import {
     Runtime, createRenderState,
-    color,
+    Camera,
     GlbRenderer,
+    color,
+    vec3,
 } from 'lib';
 
 /**
@@ -24,6 +25,9 @@ function main(): void {
         depthTest: true,
     }));
 
+    const camera = new Camera();
+    camera.setEyePos(vec3(0, 3, 5));
+
     const renderer = new GlbRenderer(runtime);
     renderer.setData({ url: MODEL_URL }).then(
         () => {
@@ -34,6 +38,10 @@ function main(): void {
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
+
+        renderer.setViewProj(camera.getTransformMat());
+
+        renderer.render();
 
         // runtime.requestFrameRender();
     });
