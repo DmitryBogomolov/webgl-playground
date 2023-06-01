@@ -3,8 +3,11 @@ import {
     Camera,
     GlbRenderer,
     color,
-    vec3,
+    vec3, mul3,
+    spherical2zxy, deg2rad,
 } from 'lib';
+import { observable, computed } from 'util/observable';
+import { createControls } from 'util/controls';
 
 /**
  * Glb model.
@@ -26,7 +29,20 @@ function main(): void {
     }));
 
     const camera = new Camera();
+    camera.setViewportSize
     camera.setEyePos(vec3(0, 3, 5));
+
+    camera.changed().on(() => runtime.requestFrameRender());
+
+    const cameraLon = observable(0);
+    const cameraLat = observable(30);
+    const cameraPos = computed(([cameraLon, cameraLat]) => {
+        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
+        return mul3(dir, 5);
+    }, [cameraLon, cameraLat]);
+    cameraPos.on((cameraPos) => {
+        camera.setEyePos(cameraPos);
+    });
 
     const renderer = new GlbRenderer(runtime);
     renderer.setData({ url: MODEL_URL }).then(
@@ -34,7 +50,11 @@ function main(): void {
             runtime.requestFrameRender();
         },
         console.error,
-    ),
+    );
+
+    runtime.sizeChanged().on(() => {
+        camera.setViewportSize(runtime.canvasSize());
+    });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
@@ -42,7 +62,10 @@ function main(): void {
         renderer.setViewProj(camera.getTransformMat());
 
         renderer.render();
-
-        // runtime.requestFrameRender();
     });
+
+    createControls(container, [
+        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
+        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
+    ]);
 }

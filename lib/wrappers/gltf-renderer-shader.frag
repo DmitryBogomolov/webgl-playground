@@ -8,5 +8,5 @@ uniform sampler2D u_texture;
 
 void main() {
     vec3 normal = normalize(v_normal);
-    gl_FragColor = vec4(0, 0, 0, 1);
+    gl_FragColor = v_color;
 }
