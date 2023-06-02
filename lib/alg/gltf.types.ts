@@ -3,8 +3,8 @@ import type * as GlTFSchema from './gltf-schema.types';
 export type { GlTFSchema };
 
 export interface GlTFAsset {
-    readonly desc: GlTFSchema.GlTf;
-    readonly data: ArrayBuffer;
+    readonly gltf: GlTFSchema.GlTf;
+    readonly buffers: ReadonlyArray<ArrayBuffer>;
 }
 
 export type GlTF_ACCESSOR_TYPE = (

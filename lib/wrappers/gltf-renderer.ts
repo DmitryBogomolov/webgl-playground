@@ -89,7 +89,7 @@ async function load(url: string): Promise<ArrayBufferView> {
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
 function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): PrimitiveWrapper[] {
-    const { scenes, scene: sceneIdx, nodes } = asset.desc;
+    const { scenes, scene: sceneIdx, nodes } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
     if (!scene) {
@@ -362,7 +362,7 @@ function updateArr(arr: { [i: number]: number }, idx: number, v: Vec3): void {
 }
 
 function getNode(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Node {
-    const node = asset.desc.nodes?.[idx];
+    const node = asset.gltf.nodes?.[idx];
     if (!node) {
         throw logger.error('no {0} node', idx);
     }
@@ -370,7 +370,7 @@ function getNode(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Node
 }
 
 function getMesh(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Mesh {
-    const mesh = asset.desc.meshes?.[idx];
+    const mesh = asset.gltf.meshes?.[idx];
     if (!mesh) {
         throw logger.error('no {0} mesh', idx);
     }
@@ -378,7 +378,7 @@ function getMesh(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Mesh
 }
 
 function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Accessor {
-    const accessor = asset.desc.accessors?.[idx];
+    const accessor = asset.gltf.accessors?.[idx];
     if (!accessor) {
         throw logger.error('no {0} accessor', idx);
     }

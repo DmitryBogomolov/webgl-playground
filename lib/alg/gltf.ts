@@ -7,8 +7,6 @@ const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
 const CHUNK_BIN = 0x004E4942;
 
-const EMPTY_DATA = new Uint8Array(0);
-
 export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
@@ -23,24 +21,24 @@ export function parseGlTF(data: ArrayBufferView): GlTFAsset {
     const jsonChunkLength = readU32(arr, jsonOffset + 0);
     const jsonChunkType = readU32(arr, jsonOffset + 4);
     if (jsonChunkType !== CHUNK_JSON) {
-        return { desc: { asset: { version: '' } }, data: EMPTY_DATA };
+        return { gltf: { asset: { version: '' } }, buffers: [] };
     }
     const jsonChunk = decodeJson(data, jsonOffset + 8, jsonChunkLength);
 
     const binaryOffset = jsonOffset + 8 + jsonChunkLength;
     if (binaryOffset >= totalLength) {
         checkNoBuffers(jsonChunk);
-        return { desc: jsonChunk, data: EMPTY_DATA };
+        return { gltf: jsonChunk, buffers: [] };
     }
     const binaryChunkLength = readU32(arr, binaryOffset + 0);
     const binaryChunkType = readU32(arr, binaryOffset + 4);
     if (binaryChunkType !== CHUNK_BIN) {
         checkNoBuffers(jsonChunk);
-        return { desc: jsonChunk, data: EMPTY_DATA };
+        return { gltf: jsonChunk, buffers: [] };
     }
     const binaryChunk = extractBinary(data, binaryOffset + 8, binaryChunkLength);
     checkSingleBuffer(jsonChunk, binaryChunk);
-    return { desc: jsonChunk, data: binaryChunk };
+    return { gltf: jsonChunk, buffers: [binaryChunk] };
 }
 
 function checkNoBuffers(gltf: GlTFSchema.GlTf): void {
@@ -185,7 +183,7 @@ export function getAccessorType(accessor: GlTFSchema.Accessor): GlTF_ACCESSOR_TY
 }
 
 export function getAccessorStride(asset: GlTFAsset, accessor: GlTFSchema.Accessor): number {
-    const bufferView = asset.desc.bufferViews![accessor.bufferView!];
+    const bufferView = asset.gltf.bufferViews![accessor.bufferView!];
     if (bufferView.byteStride !== undefined) {
         return bufferView.byteStride;
     }
@@ -208,9 +206,10 @@ export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): GlTF_PRIM
 }
 
 export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
-    const bufferView = asset.desc.bufferViews![accessor.bufferView!];
+    const bufferView = asset.gltf.bufferViews![accessor.bufferView!];
+    const buffer = asset.buffers[bufferView.buffer];
     const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
     const byteLength = accessor.count * getAccessorStride(asset, accessor);
-    return new Uint8Array(asset.data, byteOffset, byteLength);
+    return new Uint8Array(buffer, byteOffset, byteLength);
 }
 
