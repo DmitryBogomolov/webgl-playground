@@ -1,4 +1,4 @@
-import type { GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE } from './gltf.types';
+import type { GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE, ResolveUriFunc } from './gltf.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
 import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
@@ -7,10 +7,35 @@ const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
 const CHUNK_BIN = 0x004E4942;
 
+export const GLTF_MEDIA_TYPE = 'model/gltf+json';
 export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
-export function parseGlTF(data: ArrayBufferView): GlTFAsset {
+export function parseGlTF(data: ArrayBufferView, resolveUri?: ResolveUriFunc): Promise<GlTFAsset> {
+    const asset = tryParseJson(data) || parseGlb(data);
+    return resolveReferences(asset, resolveUri || defaultResolveUri);
+}
+
+const defaultResolveUri: ResolveUriFunc = (uri) => {
+    return Promise.reject(new Error(`cannot resolve ${uri}`));
+};
+
+function tryParseJson(data: ArrayBufferView): GlTFAsset | null {
+    const view = new Uint8Array(data.buffer, data.byteOffset, 1);
+    const first = view[0];
+    // Lightweight guess that it is JSON content.
+    if (first !== '\n'.charCodeAt(0) && first !== '{'.charCodeAt(0)) {
+        return null;
+    }
+    try {
+        const gltf = decodeJson(data, 0, data.byteLength);
+        return { gltf, buffers: [], images: [] };
+    } catch {
+        return null;
+    }
+}
+
+function parseGlb(data: ArrayBufferView): GlTFAsset {
     const arr = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     const totalLength = readHeader(arr);
     if (totalLength !== arr.length) {
@@ -21,24 +46,24 @@ export function parseGlTF(data: ArrayBufferView): GlTFAsset {
     const jsonChunkLength = readU32(arr, jsonOffset + 0);
     const jsonChunkType = readU32(arr, jsonOffset + 4);
     if (jsonChunkType !== CHUNK_JSON) {
-        return { gltf: { asset: { version: '' } }, buffers: [] };
+        return { gltf: { asset: { version: '' } }, buffers: [], images: [] };
     }
     const jsonChunk = decodeJson(data, jsonOffset + 8, jsonChunkLength);
 
     const binaryOffset = jsonOffset + 8 + jsonChunkLength;
     if (binaryOffset >= totalLength) {
         checkNoBuffers(jsonChunk);
-        return { gltf: jsonChunk, buffers: [] };
+        return { gltf: jsonChunk, buffers: [], images: [] };
     }
     const binaryChunkLength = readU32(arr, binaryOffset + 0);
     const binaryChunkType = readU32(arr, binaryOffset + 4);
     if (binaryChunkType !== CHUNK_BIN) {
         checkNoBuffers(jsonChunk);
-        return { gltf: jsonChunk, buffers: [] };
+        return { gltf: jsonChunk, buffers: [], images: [] };
     }
     const binaryChunk = extractBinary(data, binaryOffset + 8, binaryChunkLength);
     checkSingleBuffer(jsonChunk, binaryChunk);
-    return { gltf: jsonChunk, buffers: [binaryChunk] };
+    return { gltf: jsonChunk, buffers: [binaryChunk], images: [] };
 }
 
 function checkNoBuffers(gltf: GlTFSchema.GlTf): void {
@@ -55,6 +80,52 @@ function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
     if (buffers[0].byteLength !== buffer.byteLength) {
         throw new Error('binary chunk length does not match buffer');
     }
+}
+
+function resolveReferences(asset: GlTFAsset, resolveUri: ResolveUriFunc): Promise<GlTFAsset> {
+    const assetBuffers = asset.buffers.slice();
+    const assetImages = asset.images.slice();
+    const errors: Error[] = [];
+    const { buffers, images } = asset.gltf;
+    const tasks: Promise<void>[] = [];
+    if (buffers) {
+        for (let i = 0; i < buffers.length; ++i) {
+            const { uri } = buffers[i];
+            if (uri) {
+                tasks.push(resolveReference(uri, i, assetBuffers, errors, resolveUri));
+            }
+        }
+    }
+    if (images) {
+        for (let i = 0; i < images.length; ++i) {
+            const { uri } = images[i];
+            if (uri) {
+                tasks.push(resolveReference(uri, i, assetImages, errors, resolveUri));
+            }
+        }
+    }
+    return Promise.all(tasks).then(() => {
+        if (errors.length > 0) {
+            const msg = errors.map((err) => err.message).join('; ');
+            return Promise.reject(new Error(msg));
+        }
+        return { gltf: asset.gltf, buffers: assetBuffers, images: assetImages };
+
+    });
+}
+
+function resolveReference(
+    uri: string, idx: number, buffers: ArrayBuffer[], errors: Error[], resolveUri: ResolveUriFunc,
+): Promise<void> {
+    return resolveUri(uri).then(
+        (data) => {
+            const buf = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice().buffer;
+            buffers[idx] = buf;
+        },
+        (err) => {
+            errors.push(err);
+        },
+    );
 }
 
 function readU32(arr: Uint8Array, offset: number): number {

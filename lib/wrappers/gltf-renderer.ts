@@ -1,5 +1,5 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema } from '../alg/gltf.types';
+import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, ResolveUriFunc } from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -51,18 +51,31 @@ export class GlbRenderer extends BaseWrapper {
             throw this._logger.error('set_data: null');
         }
         let source: ArrayBufferView;
+        let resolveUri: ResolveUriFunc;
         if (isRawData(data)) {
             source = data.data;
+            resolveUri = async (uri) => {
+                const content = data.additionalData?.[uri];
+                if (content) {
+                    return content;
+                }
+                throw new Error(`${uri} is not provided`);
+            };
         } else if (isUrlData(data)) {
             source = await load(data.url);
+            const baseUrl = data.url.substring(0, data.url.lastIndexOf('/') + 1);
+            resolveUri = async (uri) => {
+                return load(baseUrl + uri);
+            };
         } else {
             throw this._logger.error('set_data({0}): bad value', data);
         }
-        const asset = parseGlTF(source);
+        const asset = await parseGlTF(source, resolveUri);
         this._setup(asset);
     }
 
     private _setup(asset: GlTFAsset): void {
+        // TODO: Remove existing wrappers (if any).
         const wrappers = processScene(asset, this._runtime, this._logger);
         this._wrappers.push(...wrappers);
     }

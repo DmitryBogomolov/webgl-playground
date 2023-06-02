@@ -16,7 +16,7 @@ import { createControls } from 'util/controls';
  */
 export type DESCRIPTION = never;
 
-const MODEL_URL = '/static/gltf-models/BoxVertexColors.glb';
+const MODEL_URL = '/static/gltf-models/BoxInterleaved.gltf';
 
 main();
 

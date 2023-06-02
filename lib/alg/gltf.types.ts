@@ -2,9 +2,12 @@ import type * as GlTFSchema from './gltf-schema.types';
 
 export type { GlTFSchema };
 
+export type ResolveUriFunc = (uri: string) => Promise<ArrayBufferView>;
+
 export interface GlTFAsset {
     readonly gltf: GlTFSchema.GlTf;
     readonly buffers: ReadonlyArray<ArrayBuffer>;
+    readonly images: ReadonlyArray<ArrayBuffer>;
 }
 
 export type GlTF_ACCESSOR_TYPE = (
