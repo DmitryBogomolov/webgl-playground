@@ -29,15 +29,34 @@ export function parseGlTF(data: ArrayBufferView): GlTFAsset {
 
     const binaryOffset = jsonOffset + 8 + jsonChunkLength;
     if (binaryOffset >= totalLength) {
+        checkNoBuffers(jsonChunk);
         return { desc: jsonChunk, data: EMPTY_DATA };
     }
     const binaryChunkLength = readU32(arr, binaryOffset + 0);
     const binaryChunkType = readU32(arr, binaryOffset + 4);
     if (binaryChunkType !== CHUNK_BIN) {
+        checkNoBuffers(jsonChunk);
         return { desc: jsonChunk, data: EMPTY_DATA };
     }
     const binaryChunk = extractBinary(data, binaryOffset + 8, binaryChunkLength);
+    checkSingleBuffer(jsonChunk, binaryChunk);
     return { desc: jsonChunk, data: binaryChunk };
+}
+
+function checkNoBuffers(gltf: GlTFSchema.GlTf): void {
+    if (gltf.buffers && gltf.buffers.length > 0) {
+        throw new Error('buffers should not be defined');
+    }
+}
+
+function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
+    const { buffers } = gltf;
+    if (!(buffers && buffers.length === 1)) {
+        throw new Error('buffers should have single item');
+    }
+    if (buffers[0].byteLength !== buffer.byteLength) {
+        throw new Error('binary chunk length does not match buffer');
+    }
 }
 
 function readU32(arr: Uint8Array, offset: number): number {
