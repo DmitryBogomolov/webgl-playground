@@ -1,8 +1,9 @@
 import type * as GlTFSchema from './gltf-schema.types';
+import type { Color } from '../gl/color.types';
 
 export type { GlTFSchema };
 
-export type ResolveUriFunc = (uri: string) => Promise<ArrayBufferView>;
+export type GlTFResolveUriFunc = (uri: string) => Promise<ArrayBufferView>;
 
 export interface GlTFAsset {
     readonly gltf: GlTFSchema.GlTf;
@@ -22,3 +23,14 @@ export type GlTF_ACCESSOR_TYPE = (
 export type GlTF_PRIMITIVE_MODE = (
     | 'points' | 'lines' | 'line_loop' | 'line_strip' | 'triangles' | 'triangle_strip' | 'triangle_fan'
 );
+
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#metallic-roughness-material
+export interface GlTFMaterial {
+    readonly baseColorFactor: Color;
+    readonly metallicFactor: number;
+    readonly roughnessFactor: number;
+    // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_basecolortexture
+    readonly baseColorTexture: unknown;
+    // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_metallicroughnesstexture
+    readonly metallicRoughnessTexture: unknown;
+}

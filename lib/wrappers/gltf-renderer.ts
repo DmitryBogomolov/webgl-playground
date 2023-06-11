@@ -1,5 +1,5 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, ResolveUriFunc } from '../alg/gltf.types';
+import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc } from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -12,7 +12,7 @@ import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { identity4x4, mul4x4 } from '../geometry/mat4';
-import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride } from '../alg/gltf';
+import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride, getPrimitiveMaterial } from '../alg/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
 
@@ -51,7 +51,7 @@ export class GlbRenderer extends BaseWrapper {
             throw this._logger.error('set_data: null');
         }
         let source: ArrayBufferView;
-        let resolveUri: ResolveUriFunc;
+        let resolveUri: GlTFResolveUriFunc;
         if (isRawData(data)) {
             source = data.data;
             resolveUri = async (uri) => {
@@ -288,6 +288,8 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         indexType: INDEX_TYPE_TO_TYPE[indicesType as GLTF_INDEX_TYPE],
         primitiveMode: 'triangles',
     });
+
+    const material = getPrimitiveMaterial(asset, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {

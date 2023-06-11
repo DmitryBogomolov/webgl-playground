@@ -1,7 +1,10 @@
-import type { GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE, ResolveUriFunc } from './gltf.types';
+import type {
+    GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE, GlTFResolveUriFunc, GlTFMaterial,
+} from './gltf.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
 import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
+import { color } from '../gl/color';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
@@ -11,12 +14,12 @@ export const GLTF_MEDIA_TYPE = 'model/gltf+json';
 export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
-export function parseGlTF(data: ArrayBufferView, resolveUri?: ResolveUriFunc): Promise<GlTFAsset> {
+export function parseGlTF(data: ArrayBufferView, resolveUri?: GlTFResolveUriFunc): Promise<GlTFAsset> {
     const asset = tryParseJson(data) || parseGlb(data);
     return resolveReferences(asset, resolveUri || defaultResolveUri);
 }
 
-const defaultResolveUri: ResolveUriFunc = (uri) => {
+const defaultResolveUri: GlTFResolveUriFunc = (uri) => {
     return Promise.reject(new Error(`cannot resolve ${uri}`));
 };
 
@@ -82,7 +85,7 @@ function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
     }
 }
 
-function resolveReferences(asset: GlTFAsset, resolveUri: ResolveUriFunc): Promise<GlTFAsset> {
+function resolveReferences(asset: GlTFAsset, resolveUri: GlTFResolveUriFunc): Promise<GlTFAsset> {
     const assetBuffers = asset.buffers.slice();
     const assetImages = asset.images.slice();
     const errors: Error[] = [];
@@ -115,7 +118,7 @@ function resolveReferences(asset: GlTFAsset, resolveUri: ResolveUriFunc): Promis
 }
 
 function resolveReference(
-    uri: string, idx: number, buffers: ArrayBuffer[], errors: Error[], resolveUri: ResolveUriFunc,
+    uri: string, idx: number, buffers: ArrayBuffer[], errors: Error[], resolveUri: GlTFResolveUriFunc,
 ): Promise<void> {
     return resolveUri(uri).then(
         (data) => {
@@ -282,5 +285,42 @@ export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor):
     const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
     const byteLength = accessor.count * getAccessorStride(asset, accessor);
     return new Uint8Array(buffer, byteOffset, byteLength);
+}
+
+const DEFAULT_MATERIAL: GlTFMaterial = {
+    baseColorFactor: color(1, 1, 1, 1),
+    metallicFactor: 1,
+    roughnessFactor: 1,
+    baseColorTexture: null,
+    metallicRoughnessTexture: null,
+};
+
+export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.MeshPrimitive): GlTFMaterial {
+    if (primitive.material === undefined) {
+        return DEFAULT_MATERIAL;
+    }
+    const {pbrMetallicRoughness} = asset.gltf.materials![primitive.material];
+    if (!pbrMetallicRoughness) {
+        return DEFAULT_MATERIAL;
+    }
+    const baseColorFactor = pbrMetallicRoughness.baseColorFactor !== undefined
+        ? color(
+            pbrMetallicRoughness.baseColorFactor[0],
+            pbrMetallicRoughness.baseColorFactor[1],
+            pbrMetallicRoughness.baseColorFactor[2],
+            pbrMetallicRoughness.baseColorFactor[3]
+        )
+        : DEFAULT_MATERIAL.baseColorFactor;
+    const metallicFactor = pbrMetallicRoughness.metallicFactor !== undefined
+        ? pbrMetallicRoughness.metallicFactor : DEFAULT_MATERIAL.metallicFactor;
+    const roughnessFactor = pbrMetallicRoughness.roughnessFactor !== undefined
+        ? pbrMetallicRoughness.roughnessFactor : DEFAULT_MATERIAL.roughnessFactor;
+    return {
+        baseColorFactor,
+        metallicFactor,
+        roughnessFactor,
+        baseColorTexture: null,
+        metallicRoughnessTexture: null,
+    };
 }
 
