@@ -1,5 +1,5 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc } from '../alg/gltf.types';
+import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial } from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -10,8 +10,8 @@ import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
-import { vec3, sub3, cross3, norm3 } from '../geometry/vec3';
-import { identity4x4, mul4x4 } from '../geometry/mat4';
+import { vec3, clone3, ZERO3, sub3, cross3, norm3 } from '../geometry/vec3';
+import { identity4x4, clone4x4, mul4x4 } from '../geometry/mat4';
 import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride, getPrimitiveMaterial } from '../alg/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
@@ -27,12 +27,15 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
 interface PrimitiveWrapper {
     readonly primitive: Primitive;
     readonly matrix: Mat4;
+    readonly material: GlTFMaterial;
 }
 
 export class GlbRenderer extends BaseWrapper {
     private readonly _runtime: Runtime;
     private readonly _wrappers: PrimitiveWrapper[];
     private _viewProjMat: Mat4 = identity4x4();
+    private _eyePosition: Vec3 = clone3(ZERO3);
+    private _lightDirection: Vec3 = vec3(0, 0, -1);
 
     constructor(runtime: Runtime, tag?: string) {
         super(runtime.logger(), tag);
@@ -80,17 +83,31 @@ export class GlbRenderer extends BaseWrapper {
         this._wrappers.push(...wrappers);
     }
 
-    setViewProj(mat: Mat4): void {
-        this._viewProjMat = mat;
+    setViewProj(mat: Mat4, eyePosition: Vec3): void {
+        this._viewProjMat = clone4x4(mat);
+        this._eyePosition = clone3(eyePosition);
+    }
+
+    setLightDirection(lightDirection: Vec3): void {
+        this._lightDirection = clone3(lightDirection);
     }
 
     render(): void {
         for (const wrapper of this._wrappers) {
-            const program = wrapper.primitive.program();
-            program.setUniform('u_view_proj', this._viewProjMat);
-            program.setUniform('u_world', wrapper.matrix);
-            wrapper.primitive.render();
+            this._renderPrimitive(wrapper);
         }
+    }
+
+    private _renderPrimitive(wrapper: PrimitiveWrapper): void {
+        const program = wrapper.primitive.program();
+        program.setUniform('u_view_proj', this._viewProjMat);
+        program.setUniform('u_world', wrapper.matrix);
+        program.setUniform('u_eye_position', this._eyePosition);
+        program.setUniform('u_light_direction', this._lightDirection);
+        program.setUniform('u_material_base_color', wrapper.material.baseColorFactor);
+        program.setUniform('u_material_roughness', wrapper.material.roughnessFactor);
+        program.setUniform('u_material_metallic', wrapper.material.metallicFactor);
+        wrapper.primitive.render();
     }
 }
 
@@ -123,8 +140,8 @@ function traverseNodes(nodeIdx: number, parentTransform: Mat4, wrappers: Primiti
     if (node.mesh !== undefined) {
         const mesh = getMesh(node.mesh, asset, logger);
         for (const desc of mesh.primitives) {
-            const primitive = createPrimitive(desc, nodeTransform, asset, runtime, logger);
-            wrappers.push({ primitive, matrix: nodeTransform });
+            const [primitive, material] = createPrimitive(desc, nodeTransform, asset, runtime, logger);
+            wrappers.push({ primitive, material, matrix: nodeTransform });
         }
     }
     if (node.children) {
@@ -147,7 +164,7 @@ const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESS
     ['float2', 'ubyte2', 'ushort2'],
 );
 
-function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): Primitive {
+function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): [Primitive, GlTFMaterial] {
     const {
         POSITION: positionIdx,
         NORMAL: normalIdx,
@@ -299,7 +316,7 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     });
     result.setProgram(program);
 
-    return result;
+    return [result, material];
 }
 
 function generateIndices(count: number): Uint8Array {
