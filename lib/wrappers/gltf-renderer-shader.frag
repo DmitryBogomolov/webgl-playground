@@ -12,7 +12,7 @@ uniform float u_material_metallic;
 uniform vec4 u_material_base_color;
 uniform sampler2D u_texture;
 
-const float I_PI = 1 / acos(-1.0);
+const float I_PI = 1.0 / acos(-1.0);
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#diffuse-brdf
 vec3 diffuse_brdf(vec3 color) {
@@ -42,14 +42,14 @@ vec3 specular_brdf(float a, float n_h, float h_l, float n_l, float h_v, float n_
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#fresnel
 vec3 fresnel_mix(vec3 base, vec3 layer, float ior, float v_h) {
     float f0 = (1.0 - ior) / (1.0 + ior);
-    f0 = f0 * f0;`
+    f0 = f0 * f0;
     float fr = f0 + (1.0 - f0) * pow(1.0 - abs(v_h), 5.0);
     return mix(base, layer, fr);
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#fresnel
 vec3 conductor_fresnel(vec3 brdf, vec3 f0, float v_h) {
-    return brdf * (f0 + (1.0 - f0) * pow(1.0 - abs(v_h), 5.0));
+    return brdf * (f0 + (vec3(1.0) - f0) * pow(1.0 - abs(v_h), 5.0));
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#metal-brdf-and-dielectric-brdf
@@ -75,9 +75,15 @@ void main() {
     vec3 normal = normalize(v_normal);
     vec3 to_light = -u_light_direction;
     vec3 to_eye = normalize(u_eye_position - v_position);
+    float roughness = u_material_roughness;
+    float metallic = u_material_metallic;
+    roughness = 0.0;
+    metallic = 0.0;
     vec3 color = brdf(
-        u_material_base_color.rgb, u_material_roughness, u_material_metallic,
+        u_material_base_color.rgb, roughness, metallic,
         normal, to_light, to_eye
     );
     gl_FragColor = vec4(color, u_material_base_color.a);
+    // float t = max(0.0, dot(normal, to_light));
+    // gl_FragColor = vec4(vec3(t), 1);
 }

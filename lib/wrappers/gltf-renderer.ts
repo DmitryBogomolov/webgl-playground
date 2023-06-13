@@ -10,8 +10,8 @@ import { BaseWrapper } from '../gl/base-wrapper';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
-import { vec3, clone3, ZERO3, sub3, cross3, norm3 } from '../geometry/vec3';
-import { identity4x4, clone4x4, mul4x4 } from '../geometry/mat4';
+import { vec3, clone3, sub3, cross3, norm3 } from '../geometry/vec3';
+import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride, getPrimitiveMaterial } from '../alg/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
@@ -33,8 +33,9 @@ interface PrimitiveWrapper {
 export class GlbRenderer extends BaseWrapper {
     private readonly _runtime: Runtime;
     private readonly _wrappers: PrimitiveWrapper[];
-    private _viewProjMat: Mat4 = identity4x4();
-    private _eyePosition: Vec3 = clone3(ZERO3);
+    private _projMat: Mat4 = identity4x4();
+    private _viewMat: Mat4 = identity4x4();
+    private _eyePosition: Vec3 = vec3(0, 0, 0);
     private _lightDirection: Vec3 = vec3(0, 0, -1);
 
     constructor(runtime: Runtime, tag?: string) {
@@ -83,9 +84,14 @@ export class GlbRenderer extends BaseWrapper {
         this._wrappers.push(...wrappers);
     }
 
-    setViewProj(mat: Mat4, eyePosition: Vec3): void {
-        this._viewProjMat = clone4x4(mat);
-        this._eyePosition = clone3(eyePosition);
+    setProjMat(mat: Mat4): void {
+        this._projMat = clone4x4(mat);
+    }
+
+    setViewMat(mat: Mat4): void {
+        this._viewMat = clone4x4(mat);
+        const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
+        this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
@@ -100,8 +106,9 @@ export class GlbRenderer extends BaseWrapper {
 
     private _renderPrimitive(wrapper: PrimitiveWrapper): void {
         const program = wrapper.primitive.program();
-        program.setUniform('u_view_proj', this._viewProjMat);
-        program.setUniform('u_world', wrapper.matrix);
+        program.setUniform('u_proj_mat', this._projMat);
+        program.setUniform('u_view_mat', this._viewMat);
+        program.setUniform('u_world_mat', wrapper.matrix);
         program.setUniform('u_eye_position', this._eyePosition);
         program.setUniform('u_light_direction', this._lightDirection);
         program.setUniform('u_material_base_color', wrapper.material.baseColorFactor);
@@ -110,6 +117,8 @@ export class GlbRenderer extends BaseWrapper {
         wrapper.primitive.render();
     }
 }
+
+const _m4_scratch = mat4();
 
 async function load(url: string): Promise<ArrayBufferView> {
     const response = await fetch(url);

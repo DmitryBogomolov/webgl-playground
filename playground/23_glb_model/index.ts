@@ -59,7 +59,8 @@ function main(): void {
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
 
-        renderer.setViewProj(camera.getTransformMat(), camera.getEyePos());
+        renderer.setProjMat(camera.getProjMat());
+        renderer.setViewMat(camera.getViewMat());
 
         renderer.render();
     });
