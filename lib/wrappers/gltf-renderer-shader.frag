@@ -71,6 +71,13 @@ vec3 brdf(vec3 base_color, float roughness, float metallic, vec3 normal, vec3 to
     return mix(dielectric, metal, metallic);
 }
 
+// LIST
+// https://learnopengl.com/code_viewer_gh.php?code=src/6.pbr/1.1.lighting/lighting.cpp
+// https://learnopengl.com/code_viewer_gh.php?code=src/6.pbr/1.1.lighting/1.1.pbr.fs
+// https://gist.github.com/soma-arc/5d53816885e64628869ed54bfb95e31d
+// https://www.khronos.org/assets/uploads/developers/library/2017-gtc/glTF-2.0-and-PBR-GTC_May17.pdf
+// https://gist.github.com/galek/53557375251e1a942dfa
+
 void main() {
     vec3 normal = normalize(v_normal);
     vec3 to_light = -u_light_direction;
