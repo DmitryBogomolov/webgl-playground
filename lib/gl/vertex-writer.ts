@@ -5,7 +5,7 @@ import { LoggerImpl } from '../utils/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
-import { isColor } from './color';
+import { isColor } from '../common/color';
 
 type Normalizer = (value: number) => number;
 

@@ -9,7 +9,7 @@ import { isVec4 } from '../geometry/vec4';
 import { isMat2 } from '../geometry/mat2';
 import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
-import { isColor } from './color';
+import { isColor } from '../common/color';
 import { formatStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;

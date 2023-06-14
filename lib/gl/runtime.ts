@@ -12,7 +12,7 @@ import type {
     RenderState,
 } from './render-state.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import type { Color } from './color.types';
+import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
@@ -25,7 +25,7 @@ import { EventEmitter } from '../utils/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
-import { color, isColor, colorEq } from './color';
+import { color, isColor, colorEq } from '../common/color';
 
 const WebGL = WebGLRenderingContext.prototype;
 

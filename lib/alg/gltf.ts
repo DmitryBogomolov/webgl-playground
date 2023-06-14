@@ -4,7 +4,7 @@ import type {
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
 import { identity4x4, update4x4, apply4x4, scaling4x4, translation4x4 } from '../geometry/mat4';
-import { color } from '../gl/color';
+import { color } from '../common/color';
 
 const MAGIC = 0x46546C67;
 const CHUNK_JSON = 0x4E4F534A;
