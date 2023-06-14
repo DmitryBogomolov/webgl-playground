@@ -289,7 +289,9 @@ export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor):
 
 const DEFAULT_MATERIAL: GlTFMaterial = {
     baseColorFactor: color(1, 1, 1, 1),
-    metallicFactor: 1,
+    // Specification states that default material metallic factor is 1.
+    // Actually such material looks too dark. For better visual effect default metallic is changed to 0.
+    metallicFactor: 0,
     roughnessFactor: 1,
     baseColorTexture: null,
     metallicRoughnessTexture: null,
