@@ -125,7 +125,7 @@ function resolveReference(
             const buf = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice().buffer;
             buffers[idx] = buf;
         },
-        (err) => {
+        (err: Error) => {
             errors.push(err);
         },
     );
@@ -152,7 +152,7 @@ function decodeJson(data: ArrayBufferView, offset: number, length: number): GlTF
     const decoder = new TextDecoder();
     const view = new Uint8Array(data.buffer, data.byteOffset + offset, length);
     const str = decoder.decode(view);
-    return JSON.parse(str);
+    return JSON.parse(str) as GlTFSchema.GlTf;
 }
 
 function extractBinary(data: ArrayBufferView, offset: number, length: number): ArrayBuffer {
@@ -253,7 +253,7 @@ const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTF_ACCESSOR_TYPE, number>> = {
 };
 
 export function getAccessorType(accessor: GlTFSchema.Accessor): GlTF_ACCESSOR_TYPE {
-    return ACCESSOR_TYPE_MAPPING[accessor.type][accessor.componentType];
+    return ACCESSOR_TYPE_MAPPING[accessor.type as string][accessor.componentType];
 }
 
 export function getAccessorStride(asset: GlTFAsset, accessor: GlTFSchema.Accessor): number {
@@ -301,7 +301,7 @@ export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.Mes
     if (primitive.material === undefined) {
         return DEFAULT_MATERIAL;
     }
-    const {pbrMetallicRoughness} = asset.gltf.materials![primitive.material];
+    const { pbrMetallicRoughness } = asset.gltf.materials![primitive.material];
     if (!pbrMetallicRoughness) {
         return DEFAULT_MATERIAL;
     }
@@ -310,7 +310,7 @@ export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.Mes
             pbrMetallicRoughness.baseColorFactor[0],
             pbrMetallicRoughness.baseColorFactor[1],
             pbrMetallicRoughness.baseColorFactor[2],
-            pbrMetallicRoughness.baseColorFactor[3]
+            pbrMetallicRoughness.baseColorFactor[3],
         )
         : DEFAULT_MATERIAL.baseColorFactor;
     const metallicFactor = pbrMetallicRoughness.metallicFactor !== undefined

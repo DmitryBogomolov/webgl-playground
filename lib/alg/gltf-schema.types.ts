@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Generated with gltf-typescript-generator.
 // gltf-typescript-generator ./gltf-schema.types.ts https://rawgit.com/KhronosGroup/glTF/2.0/specification/2.0/schema/glTF.schema.json
 

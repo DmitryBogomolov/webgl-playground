@@ -1,5 +1,7 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type { GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial } from '../alg/gltf.types';
+import type {
+    GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial,
+} from '../alg/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -12,7 +14,10 @@ import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { vec3, clone3, sub3, cross3, norm3 } from '../geometry/vec3';
 import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
-import { parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode, getBufferSlice, getAccessorStride, getPrimitiveMaterial } from '../alg/gltf';
+import {
+    parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
+    getBufferSlice, getAccessorStride, getPrimitiveMaterial,
+} from '../alg/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
 
@@ -58,6 +63,7 @@ export class GlbRenderer extends BaseWrapper {
         let resolveUri: GlTFResolveUriFunc;
         if (isRawData(data)) {
             source = data.data;
+            // eslint-disable-next-line @typescript-eslint/require-await
             resolveUri = async (uri) => {
                 const content = data.additionalData?.[uri];
                 if (content) {
@@ -128,7 +134,7 @@ async function load(url: string): Promise<ArrayBufferView> {
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
 function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): PrimitiveWrapper[] {
-    const { scenes, scene: sceneIdx, nodes } = asset.gltf;
+    const { scenes, scene: sceneIdx } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
     if (!scene) {
@@ -142,15 +148,18 @@ function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): Primi
     return wrappers;
 }
 
-function traverseNodes(nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[], asset: GlTFAsset, runtime: Runtime, logger: Logger): void {
+function traverseNodes(
+    nodeIdx: number, parentTransform: Mat4,
+    wrappers: PrimitiveWrapper[], asset: GlTFAsset, runtime: Runtime, logger: Logger,
+): void {
     const node = getNode(nodeIdx, asset, logger);
     const nodeTransform = getNodeTransform(node) || identity4x4();
     mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut);
     if (node.mesh !== undefined) {
         const mesh = getMesh(node.mesh, asset, logger);
         for (const desc of mesh.primitives) {
-            const [primitive, material] = createPrimitive(desc, nodeTransform, asset, runtime, logger);
-            wrappers.push({ primitive, material, matrix: nodeTransform });
+            const wrapper = createPrimitive(desc, nodeTransform, asset, runtime, logger);
+            wrappers.push(wrapper);
         }
     }
     if (node.children) {
@@ -173,7 +182,10 @@ const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESS
     ['float2', 'ubyte2', 'ushort2'],
 );
 
-function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, asset: GlTFAsset, runtime: Runtime, logger: Logger): [Primitive, GlTFMaterial] {
+function createPrimitive(
+    primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
+    asset: GlTFAsset, runtime: Runtime, logger: Logger,
+): PrimitiveWrapper {
     const {
         POSITION: positionIdx,
         NORMAL: normalIdx,
@@ -277,11 +289,15 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     let vertexDataOffset = 0;
 
     result.updateVertexData(positionData, vertexDataOffset);
-    vertexAttributes.push({ name: 'a_position', type: 'float3', offset: vertexDataOffset, stride: positionStride });
+    vertexAttributes.push(
+        { name: 'a_position', type: 'float3', offset: vertexDataOffset, stride: positionStride },
+    );
     vertexDataOffset += positionData.byteLength;
 
     result.updateVertexData(normalData, vertexDataOffset);
-    vertexAttributes.push({ name: 'a_normal', type: 'float3', offset: vertexDataOffset, stride: normalStride });
+    vertexAttributes.push(
+        { name: 'a_normal', type: 'float3', offset: vertexDataOffset, stride: normalStride },
+    );
     vertexDataOffset += normalData.byteLength;
 
     if (colorData) {
@@ -289,7 +305,10 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         const attrType = colorType as ATTRIBUTE_TYPE;
         const isNormalized = colorType !== 'float3' && colorType !== 'float4';
         vertexAttributes.push(
-            { name: 'a_color', type: attrType, normalized: isNormalized, offset: vertexDataOffset, stride: colorStride },
+            {
+                name: 'a_color', type: attrType, normalized: isNormalized,
+                offset: vertexDataOffset, stride: colorStride,
+            },
         );
         vertexDataOffset += colorData.byteLength;
     }
@@ -299,7 +318,10 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
         const attrType = texcoordType as ATTRIBUTE_TYPE;
         const isNormalized = texcoordType !== 'float2';
         vertexAttributes.push(
-            { name: 'a_texcoord', type: attrType, normalized: isNormalized, offset: vertexDataOffset, stride: texcoordStride },
+            {
+                name: 'a_texcoord', type: attrType, normalized: isNormalized,
+                offset: vertexDataOffset, stride: texcoordStride,
+            },
         );
         vertexDataOffset += texcoordData.byteLength;
     }
@@ -325,7 +347,11 @@ function createPrimitive(primitive: GlTFSchema.MeshPrimitive, transform: Mat4, a
     });
     result.setProgram(program);
 
-    return [result, material];
+    return {
+        primitive: result,
+        matrix: transform,
+        material,
+    };
 }
 
 function generateIndices(count: number): Uint8Array {
@@ -391,7 +417,7 @@ function generateNormals(
 function updateVec3(v: Vec3Mut, arr: { readonly [i: number]: number }, idx: number): void {
     const k = 3 * idx;
     v.x = arr[k + 0];
-    v.y = arr[k + 1];let a: Iterable<number>;
+    v.y = arr[k + 1];
     v.z = arr[k + 2];
 }
 

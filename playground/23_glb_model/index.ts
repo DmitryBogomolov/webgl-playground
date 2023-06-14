@@ -29,7 +29,6 @@ function main(): void {
     }));
 
     const camera = new Camera();
-    camera.setViewportSize
     camera.setEyePos(vec3(0, 3, 5));
 
     camera.changed().on(() => runtime.requestFrameRender());
