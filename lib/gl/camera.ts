@@ -4,7 +4,7 @@ import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from '../utils/event-emitter.types';
 import type { Logger } from '../common/logger.types';
-import { BaseWrapper } from './base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';

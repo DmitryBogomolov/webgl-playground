@@ -18,7 +18,7 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../utils/event-emitter.types';
-import { BaseWrapper } from './base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../utils/event-emitter';

@@ -2,7 +2,7 @@ import type { PRIMITIVE_MODE, INDEX_TYPE, IndexConfig, PrimitiveRuntime } from '
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
-import { BaseWrapper } from './base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { wrap } from './gl-handle-wrapper';
 
 const WebGL = WebGLRenderingContext.prototype;

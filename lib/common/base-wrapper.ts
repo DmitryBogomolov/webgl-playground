@@ -1,5 +1,5 @@
-import type { Logger } from '../common/logger.types';
-import { LoggerImpl } from '../common/logger';
+import type { Logger } from './logger.types';
+import { LoggerImpl } from './logger';
 
 let nextId = 1;
 

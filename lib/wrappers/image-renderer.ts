@@ -11,7 +11,7 @@ import { vec3 } from '../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
 } from '../geometry/mat4';
-import { BaseWrapper } from '../gl/base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { Texture } from '../gl/texture-2d';

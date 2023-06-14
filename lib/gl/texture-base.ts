@@ -5,7 +5,7 @@ import type {
 import type { Vec2 } from '../geometry/vec2.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import { BaseWrapper } from './base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { vec2, clone2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;

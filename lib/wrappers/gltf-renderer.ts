@@ -8,7 +8,7 @@ import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../gl/primitive.types';
 import type { Runtime } from '../gl/runtime';
-import { BaseWrapper } from '../gl/base-wrapper';
+import { BaseWrapper } from '../common/base-wrapper';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
