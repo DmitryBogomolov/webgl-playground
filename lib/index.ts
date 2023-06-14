@@ -62,3 +62,5 @@ export * from './wrappers/worker.types';
 export * from './wrappers/worker';
 export * from './wrappers/image-renderer.types';
 export * from './wrappers/image-renderer';
+export * from './wrappers/gltf-renderer.types';
+export * from './wrappers/gltf-renderer';
