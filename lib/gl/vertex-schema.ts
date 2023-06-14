@@ -4,7 +4,6 @@ import type {
 import type { Logger } from '../common/logger.types';
 import { LoggerImpl } from '../common/logger';
 
-
 const WebGL = WebGLRenderingContext.prototype;
 
 const GL_TYPES: AttributeTypeMap<number> = {
