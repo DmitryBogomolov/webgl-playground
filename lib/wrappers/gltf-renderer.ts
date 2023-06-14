@@ -2,7 +2,7 @@ import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from 
 import type {
     GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial,
 } from '../gltf/gltf.types';
-import type { Logger } from '../utils/logger.types';
+import type { Logger } from '../common/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';

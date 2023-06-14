@@ -1,5 +1,5 @@
 import type { Logger, LoggerDriver } from './logger.types';
-import { formatStr } from './string-formatter';
+import { formatStr } from '../utils/string-formatter';
 
 const DUMMY_DRIVER: LoggerDriver = {
     log() { /* empty */ },
