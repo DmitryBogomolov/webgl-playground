@@ -71,6 +71,19 @@ vec3 brdf(vec3 base_color, float roughness, float metallic, vec3 normal, vec3 to
     return mix(dielectric, metal, metallic);
 }
 
+float ggx_delta(float a2, float n_x) {
+    return (-1.0 + sqrt(1.0 + a2 * (1.0 / (n_x * n_x) - 1.0))) / 2.0;
+}
+
+float smith_joint_g(float a2, float n_l, float n_v) {
+    return 1.0 / (1.0 + ggx_delta(a2, n_l) + ggx_delta(a2, n_v));
+}
+
+float ggx_d(float a2, float n_h) {
+    float c = (n_h * n_h * (a2 - 1.0) + 1.0);
+    return a2 / (c * c) * I_PI;
+}
+
 // LIST
 // https://learnopengl.com/code_viewer_gh.php?code=src/6.pbr/1.1.lighting/lighting.cpp
 // https://learnopengl.com/code_viewer_gh.php?code=src/6.pbr/1.1.lighting/1.1.pbr.fs
@@ -78,19 +91,39 @@ vec3 brdf(vec3 base_color, float roughness, float metallic, vec3 normal, vec3 to
 // https://www.khronos.org/assets/uploads/developers/library/2017-gtc/glTF-2.0-and-PBR-GTC_May17.pdf
 // https://gist.github.com/galek/53557375251e1a942dfa
 
+const float DIELECTRIC_SPECULAR = 0.04;
+
 void main() {
     vec3 normal = normalize(v_normal);
     vec3 to_light = -u_light_direction;
     vec3 to_eye = normalize(u_eye_position - v_position);
     float roughness = u_material_roughness;
     float metallic = u_material_metallic;
-    roughness = 0.0;
-    metallic = 0.0;
-    vec3 color = brdf(
-        u_material_base_color.rgb, roughness, metallic,
-        normal, to_light, to_eye
-    );
-    gl_FragColor = vec4(color, u_material_base_color.a);
-    // float t = max(0.0, dot(normal, to_light));
-    // gl_FragColor = vec4(vec3(t), 1);
+
+    metallic = 0.1;
+    roughness = 0.9;
+
+    float a = roughness * roughness;
+    float a2 = a * a;
+
+    vec3 h = normalize(to_light + to_eye);
+    float n_h = dot(normal, h);
+    float n_l = dot(normal, to_light);
+    float n_v = dot(normal, to_eye);
+    float h_l = dot(h, to_light);
+    float h_v = dot(h, to_eye);
+
+    vec3 f0 = mix(vec3(DIELECTRIC_SPECULAR), u_material_base_color.rgb, metallic);
+    vec3 c_diff = mix(u_material_base_color.rgb * (1.0 - DIELECTRIC_SPECULAR), vec3(0.0), metallic);
+
+    vec3 f = f0 + (vec3(1.0) - f0) * pow(1.0 - h_v, 5.0);
+
+    vec3 diffuse = (vec3(1.0) - f) * c_diff * I_PI;
+
+    float g = smith_joint_g(a2, n_l, n_v);
+    float d = ggx_d(a2, n_h);
+
+    vec3 specular = (f * g * d) / (4.0 * n_l * n_v);
+
+    gl_FragColor = vec4(diffuse + specular, 1.0);
 }
