@@ -3,7 +3,7 @@ export * from './utils/pointer-event.types';
 export * from './utils/pointer-event';
 export * from './utils/compare';
 export * from './utils/memoizer';
-export * from './utils/image-loader';
+export * from './utils/image-maker';
 export * from './utils/uint-bytes';
 export * from './utils/deg-rad';
 export * from './utils/ndc-px';

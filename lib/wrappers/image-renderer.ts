@@ -18,7 +18,7 @@ import { Texture } from '../gl/texture-2d';
 import { parseVertexSchema } from '../gl/vertex-schema';
 import { compareObjects } from '../utils/compare';
 import { memoize } from '../utils/memoizer';
-import { loadImage } from '../utils/image-loader';
+import { makeImage } from '../utils/image-maker';
 
 const VERT_SHADER = `
 attribute vec2 a_position;
@@ -110,7 +110,7 @@ export class ImageRenderer extends BaseWrapper {
             unpackFlipY = true;
         } else if (isUrlData(data)) {
             log = `url(${data.url})`;
-            const img = await loadImage(data.url);
+            const img = await makeImage({ url: data.url });
             imageData = img;
             unpackFlipY = true;
         } else {
