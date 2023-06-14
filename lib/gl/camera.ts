@@ -8,12 +8,8 @@ import { BaseWrapper } from '../common/base-wrapper';
 import { EventEmitter } from '../utils/event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
-import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, clone3, norm3, dist3, vec3 } from '../geometry/vec3';
-import {
-    mat4,
-    perspective4x4, orthographic4x4, lookAt4x4,
-    mul4x4, inverse4x4,
-} from '../geometry/mat4';
+import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
+import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
 export class Camera extends BaseWrapper {
     private readonly _changed = new EventEmitter();
@@ -30,9 +26,9 @@ export class Camera extends BaseWrapper {
     private _zFar: number = 100;
     private _viewportSize: Vec2 = vec2(2, 2);
     private _yFov: number = Math.PI / 3;
-    private _upDir: Vec3 = YUNIT3;
-    private _centerPos: Vec3 = ZERO3;
-    private _eyePos: Vec3 = ZUNIT3;
+    private _upDir: Vec3 = clone3(YUNIT3);
+    private _centerPos: Vec3 = clone3(ZERO3);
+    private _eyePos: Vec3 = clone3(ZUNIT3);
 
     constructor(rootLogger?: Logger, tag?: string) {
         super(rootLogger || null, tag);
