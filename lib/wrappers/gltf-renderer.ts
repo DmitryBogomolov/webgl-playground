@@ -1,7 +1,7 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
 import type {
     GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial,
-} from '../alg/gltf.types';
+} from '../gltf/gltf.types';
 import type { Logger } from '../utils/logger.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -17,7 +17,7 @@ import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../geometry/mat
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getBufferSlice, getAccessorStride, getPrimitiveMaterial,
-} from '../alg/gltf';
+} from '../gltf/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
 
