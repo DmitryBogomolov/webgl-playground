@@ -124,9 +124,14 @@ const config: Configuration = {
             },
             {
                 test: /\.(vert|frag|glsl)$/,
-                use: ['raw-loader'],
+                use: 'raw-loader',
             },
         ],
+    },
+    resolveLoader: {
+        alias: {
+            'shader-loader': path.resolve(__dirname, 'webpack.shader-loader.ts'),
+        },
     },
     plugins: [
         new CleanWebpackPlugin(),
