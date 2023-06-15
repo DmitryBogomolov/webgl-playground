@@ -19,26 +19,8 @@ import { parseVertexSchema } from '../../gl/vertex-schema';
 import { compareObjects } from '../../utils/compare';
 import { memoize } from '../../utils/memoizer';
 import { makeImage } from '../../utils/image-maker';
-
-const VERT_SHADER = `
-attribute vec2 a_position;
-uniform mat4 u_mat;
-uniform mat4 u_texmat;
-varying vec2 v_texcoord;
-void main() {
-    gl_Position = u_mat * vec4(a_position, 0.0, 1.0);
-    vec2 texcoord = (a_position + vec2(1.0)) / 2.0;
-    v_texcoord = (u_texmat * vec4(texcoord, 0.0, 1.0)).xy;
-}
-`;
-const FRAG_SHADER = `
-precision mediump float;
-varying vec2 v_texcoord;
-uniform sampler2D u_texture;
-void main() {
-    gl_FragColor = texture2D(u_texture, v_texcoord);
-}
-`;
+import vertShader from './shader.vert';
+import fragShader from './shader.frag';
 
 function isRawData(data: ImageRendererImageData): data is ImageRendererRawImageData {
     return data
@@ -350,8 +332,8 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
     primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
-        vertShader: VERT_SHADER,
-        fragShader: FRAG_SHADER,
+        vertShader,
+        fragShader,
         schema,
     }, tag);
     primitive.setProgram(program);

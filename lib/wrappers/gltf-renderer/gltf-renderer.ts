@@ -18,8 +18,8 @@ import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getBufferSlice, getAccessorStride, getPrimitiveMaterial,
 } from '../../gltf/gltf';
-import vertShaderSource from './gltf-renderer-shader.vert';
-import fragShaderSource from './gltf-renderer-shader.frag';
+import vertShader from './shader.vert';
+import fragShader from './shader.frag';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -343,8 +343,8 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader: vertShaderSource,
-        fragShader: fragShaderSource,
+        vertShader,
+        fragShader,
     });
     result.setProgram(program);
 
