@@ -1,23 +1,23 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
 import type {
     GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial,
-} from '../gltf/gltf.types';
-import type { Logger } from '../common/logger.types';
-import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
-import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
-import type { INDEX_TYPE } from '../gl/primitive.types';
-import type { Runtime } from '../gl/runtime';
-import { BaseDisposable } from '../common/base-disposable';
-import { Primitive } from '../gl/primitive';
-import { Program } from '../gl/program';
-import { parseVertexSchema } from '../gl/vertex-schema';
-import { vec3, clone3, sub3, cross3, norm3 } from '../geometry/vec3';
-import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
+} from '../../gltf/gltf.types';
+import type { Logger } from '../../common/logger.types';
+import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
+import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
+import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
+import type { INDEX_TYPE } from '../../gl/primitive.types';
+import type { Runtime } from '../../gl/runtime';
+import { BaseDisposable } from '../../common/base-disposable';
+import { Primitive } from '../../gl/primitive';
+import { Program } from '../../gl/program';
+import { parseVertexSchema } from '../../gl/vertex-schema';
+import { vec3, clone3, sub3, cross3, norm3 } from '../../geometry/vec3';
+import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../../geometry/mat4';
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getBufferSlice, getAccessorStride, getPrimitiveMaterial,
-} from '../gltf/gltf';
+} from '../../gltf/gltf';
 import vertShaderSource from './gltf-renderer-shader.vert';
 import fragShaderSource from './gltf-renderer-shader.frag';
 

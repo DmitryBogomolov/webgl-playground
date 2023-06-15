@@ -2,23 +2,23 @@ import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
 } from './image-renderer.types';
-import type { Vec2 } from '../geometry/vec2.types';
-import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { TextureImageData } from '../gl/texture-2d.types';
-import type { Runtime } from '../gl/runtime';
-import { eq2, isVec2 } from '../geometry/vec2';
-import { vec3 } from '../geometry/vec3';
+import type { Vec2 } from '../../geometry/vec2.types';
+import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
+import type { TextureImageData } from '../../gl/texture-2d.types';
+import type { Runtime } from '../../gl/runtime';
+import { eq2, isVec2 } from '../../geometry/vec2';
+import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
-} from '../geometry/mat4';
-import { BaseDisposable } from '../common/base-disposable';
-import { Primitive } from '../gl/primitive';
-import { Program } from '../gl/program';
-import { Texture } from '../gl/texture-2d';
-import { parseVertexSchema } from '../gl/vertex-schema';
-import { compareObjects } from '../utils/compare';
-import { memoize } from '../utils/memoizer';
-import { makeImage } from '../utils/image-maker';
+} from '../../geometry/mat4';
+import { BaseDisposable } from '../../common/base-disposable';
+import { Primitive } from '../../gl/primitive';
+import { Program } from '../../gl/program';
+import { Texture } from '../../gl/texture-2d';
+import { parseVertexSchema } from '../../gl/vertex-schema';
+import { compareObjects } from '../../utils/compare';
+import { memoize } from '../../utils/memoizer';
+import { makeImage } from '../../utils/image-maker';
 
 const VERT_SHADER = `
 attribute vec2 a_position;
