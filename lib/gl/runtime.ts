@@ -18,7 +18,7 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
-import { BaseWrapper } from '../common/base-wrapper';
+import { BaseIdentity } from '../common/base-identity';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../common/event-emitter';
@@ -108,7 +108,7 @@ const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
-export class Runtime extends BaseWrapper {
+export class Runtime extends BaseIdentity {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -614,7 +614,7 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
+class DefaultRenderTarget extends BaseIdentity implements RenderTarget {
     private readonly _runtime: Runtime;
 
     constructor(runtime: Runtime, tag?: string) {

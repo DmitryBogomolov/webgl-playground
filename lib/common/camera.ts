@@ -4,14 +4,14 @@ import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from './event-emitter.types';
 import type { Logger } from '../common/logger.types';
-import { BaseWrapper } from '../common/base-wrapper';
+import { BaseIdentity } from './base-identity';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-export class Camera extends BaseWrapper {
+export class Camera extends BaseIdentity {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();

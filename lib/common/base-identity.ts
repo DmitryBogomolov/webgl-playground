@@ -3,7 +3,7 @@ import { LoggerImpl } from './logger';
 
 let nextId = 1;
 
-export abstract class BaseWrapper {
+export abstract class BaseIdentity {
     protected readonly _id: string;
     protected readonly _logger: Logger;
 

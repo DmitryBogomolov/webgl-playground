@@ -2,7 +2,7 @@ import type { PRIMITIVE_MODE, INDEX_TYPE, IndexConfig, PrimitiveRuntime } from '
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
-import { BaseWrapper } from '../common/base-wrapper';
+import { BaseIdentity } from '../common/base-identity';
 import { wrap } from './gl-handle-wrapper';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -42,7 +42,7 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
 
-export class Primitive extends BaseWrapper {
+export class Primitive extends BaseIdentity {
     private readonly _runtime: PrimitiveRuntime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;

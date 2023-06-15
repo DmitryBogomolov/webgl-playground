@@ -8,7 +8,7 @@ import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../gl/primitive.types';
 import type { Runtime } from '../gl/runtime';
-import { BaseWrapper } from '../common/base-wrapper';
+import { BaseIdentity } from '../common/base-identity';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
@@ -35,7 +35,7 @@ interface PrimitiveWrapper {
     readonly material: GlTFMaterial;
 }
 
-export class GlbRenderer extends BaseWrapper {
+export class GlbRenderer extends BaseIdentity {
     private readonly _runtime: Runtime;
     private readonly _wrappers: PrimitiveWrapper[];
     private _projMat: Mat4 = identity4x4();
