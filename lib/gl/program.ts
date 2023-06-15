@@ -2,7 +2,7 @@ import type { UNIFORM_VALUE, ProgramOptions, ProgramRuntime } from './program.ty
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Logger } from '../common/logger.types';
-import { BaseIdentity } from '../common/base-identity';
+import { BaseDisposable } from '../common/base-disposable';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -187,7 +187,7 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
-export class Program extends BaseIdentity implements GLHandleWrapper<WebGLProgram> {
+export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
@@ -224,10 +224,11 @@ export class Program extends BaseIdentity implements GLHandleWrapper<WebGLProgra
         return this._program;
     }
 
-    private _dispose(): void {
+    protected _dispose(): void {
         this._deleteShader(this._vertShader);
         this._deleteShader(this._fragShader);
         this._runtime.gl().deleteProgram(this._program);
+        super._dispose();
     }
 
     private _createProgram(): WebGLProgram {

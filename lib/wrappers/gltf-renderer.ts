@@ -8,7 +8,7 @@ import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../gl/primitive.types';
 import type { Runtime } from '../gl/runtime';
-import { BaseIdentity } from '../common/base-identity';
+import { BaseDisposable } from '../common/base-disposable';
 import { Primitive } from '../gl/primitive';
 import { Program } from '../gl/program';
 import { parseVertexSchema } from '../gl/vertex-schema';
@@ -35,7 +35,7 @@ interface PrimitiveWrapper {
     readonly material: GlTFMaterial;
 }
 
-export class GlbRenderer extends BaseIdentity {
+export class GlbRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
     private readonly _wrappers: PrimitiveWrapper[];
     private _projMat: Mat4 = identity4x4();
@@ -53,6 +53,7 @@ export class GlbRenderer extends BaseIdentity {
         for (const wrapper of this._wrappers) {
             wrapper.primitive.dispose();
         }
+        this._dispose();
     }
 
     async setData(data: GlTFRendererData): Promise<void> {

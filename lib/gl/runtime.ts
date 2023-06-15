@@ -19,6 +19,7 @@ import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseIdentity } from '../common/base-identity';
+import { BaseDisposable } from '../common/base-disposable';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../common/event-emitter';
@@ -108,7 +109,7 @@ const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
-export class Runtime extends BaseIdentity {
+export class Runtime extends BaseDisposable {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -175,6 +176,7 @@ export class Runtime extends BaseIdentity {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
+        this._dispose();
     }
 
     gl(): WebGLRenderingContext {

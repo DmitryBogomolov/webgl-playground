@@ -5,7 +5,7 @@ import type {
 import type { Vec2 } from '../geometry/vec2.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import { BaseIdentity } from '../common/base-identity';
+import { BaseDisposable } from '../common/base-disposable';
 import { vec2, clone2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -70,7 +70,7 @@ const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {
     'min_filter': MIN_FILTER_MAP,
 };
 
-export abstract class TextureBase extends BaseIdentity implements GLHandleWrapper<WebGLTexture> {
+export abstract class TextureBase extends BaseDisposable implements GLHandleWrapper<WebGLTexture> {
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
@@ -95,6 +95,7 @@ export abstract class TextureBase extends BaseIdentity implements GLHandleWrappe
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl().deleteTexture(this._texture);
+        this._dispose();
     }
 
     glHandle(): WebGLTexture {
