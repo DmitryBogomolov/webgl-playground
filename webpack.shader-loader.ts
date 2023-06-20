@@ -2,7 +2,15 @@ import type {LoaderDefinitionFunction} from 'webpack';
 import path from 'path';
 import fs from 'fs/promises';
 
+export interface IncludeInfo {
+    readonly line: number;
+    readonly path: string;
+    readonly start: number;
+    readonly end: number;
+}
+
 export interface SourceInfo {
+    readonly id: number;
     readonly path: string;
     readonly source: string;
     readonly includes: ReadonlyArray<IncludeInfo>;
@@ -18,13 +26,6 @@ export default <LoaderDefinitionFunction> async function (source: string): Promi
     const combinedSource = buildCombinedSource(rootPath, sources);
     console.log(combinedSource);
     return `export default ${JSON.stringify(combinedSource)}`;
-}
-
-export interface IncludeInfo {
-    readonly line: number;
-    readonly path: string;
-    readonly start: number;
-    readonly end: number;
 }
 
 const INCLUDE_PREFIX = '//#include ';
@@ -71,6 +72,7 @@ export async function traverseSource(
         };
     });
     sources.set(filePath, {
+        id: sources.size,
         path: filePath,
         source: normalizeLastNewline(source),
         includes,
@@ -85,18 +87,32 @@ export async function traverseSource(
     await Promise.all(itemTasks);
 }
 
-export function buildCombinedSource(filePath: string, sources: ReadonlyMap<string, SourceInfo>): string {
-    const { source, includes } = sources.get(filePath)!;
-    if (includes.length === 0) {
-        return source;
+function buildSourceItem(itemPath: string, sources: ReadonlyMap<string, SourceInfo>, mapping: SourceInfo[]): string {
+    const info = sources.get(itemPath)!;
+    if (mapping.indexOf(info) === -1) {
+        mapping.push(info);
     }
-    const parts: string[] = [];
+    const parts: string[] = [`#line 1 ${info.id}\n`];
     let cursor = 0;
-    for (const include of includes) {
-        parts.push(source.substring(cursor, include.start));
-        parts.push(buildCombinedSource(include.path, sources));
+    for (const include of info.includes) {
+        parts.push(info.source.substring(cursor, include.start));
+        parts.push(buildSourceItem(include.path, sources, mapping));
+        parts.push(`#line ${include.line + 2} ${info.id}\n`);
         cursor = include.end + 1;
     }
-    parts.push(source.substring(cursor));
-    return normalizeLastNewline(parts.join(''));
+    parts.push(info.source.substring(cursor));
+    return parts.join('');
+}
+
+export function buildCombinedSource(filePath: string, sources: ReadonlyMap<string, SourceInfo>): string {
+    const mapping: SourceInfo[] = [];
+    const source = buildSourceItem(filePath, sources, mapping);
+    if (mapping.length < 2) {
+        return source;
+    }
+    const parts = [source, '\n// SOURCES_MAPPING\n'];
+    for (const item of mapping) {
+        parts.push(`// ${item.id} ${item.path}\n`);
+    }
+    return parts.join('');
 }

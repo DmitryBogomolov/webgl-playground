@@ -41,7 +41,7 @@ describe('shader-loader', () => {
             expect(result).toEqual(new Map<string, SourceInfo>([
                 [
                     '/some/dir/file-1.txt',
-                    { path: '/some/dir/file-1.txt', source: 'Hello\n', includes: [] },
+                    { id: 0, path: '/some/dir/file-1.txt', source: 'Hello\n', includes: [] },
                 ]
             ]));
         }
@@ -52,7 +52,7 @@ describe('shader-loader', () => {
             expect(result).toEqual(new Map<string, SourceInfo>([
                 [
                     '/some/dir/file-1.txt',
-                    { path: '/some/dir/file-1.txt', source: 'Hello World\n', includes: [] },
+                    { id: 0, path: '/some/dir/file-1.txt', source: 'Hello World\n', includes: [] },
                 ]
             ]));
         }
@@ -79,7 +79,7 @@ describe('shader-loader', () => {
             expect(result).toEqual(new Map<string, SourceInfo>([
                 [
                     path3,
-                    { path: path3, source: source3, includes: [] },
+                    { id: 0, path: path3, source: source3, includes: [] },
                 ]
             ]));
         }
@@ -89,7 +89,7 @@ describe('shader-loader', () => {
             expect(result).toEqual(new Map<string, SourceInfo>([
                 [
                     path4,
-                    { path: path4, source: source4, includes: [] },
+                    { id: 0, path: path4, source: source4, includes: [] },
                 ]
             ]));
         }
@@ -100,7 +100,7 @@ describe('shader-loader', () => {
                 [
                     path2,
                     {
-                        path: path2, source: source2,
+                        id: 0, path: path2, source: source2,
                         includes: [
                             { line: 1, path: path3, start: 7, end: 34 },
                             { line: 2, path: path4, start: 35, end: 62 },
@@ -109,11 +109,11 @@ describe('shader-loader', () => {
                 ],
                 [
                     path3,
-                    { path: path3, source: source3, includes: [] },
+                    { id: 1, path: path3, source: source3, includes: [] },
                 ],
                 [
                     path4,
-                    { path: path4, source: source4, includes: [] },
+                    { id: 2, path: path4, source: source4, includes: [] },
                 ]
             ]));
         }
@@ -124,7 +124,7 @@ describe('shader-loader', () => {
                 [
                     path1,
                     {
-                        path: path1, source: source1,
+                        id: 0, path: path1, source: source1,
                         includes: [
                             { line: 2, path: path2, start: 8, end: 31 },
                         ]
@@ -133,7 +133,7 @@ describe('shader-loader', () => {
                 [
                     path2,
                     {
-                        path: path2, source: source2,
+                        id: 1, path: path2, source: source2,
                         includes: [
                             { line: 1, path: path3, start: 7, end: 34 },
                             { line: 2, path: path4, start: 35, end: 62 },
@@ -142,11 +142,11 @@ describe('shader-loader', () => {
                 ],
                 [
                     path3,
-                    { path: path3, source: source3, includes: [] },
+                    { id: 2, path: path3, source: source3, includes: [] },
                 ],
                 [
                     path4,
-                    { path: path4, source: source4, includes: [] },
+                    { id: 3, path: path4, source: source4, includes: [] },
                 ]
             ]));
         }
@@ -166,14 +166,14 @@ describe('shader-loader', () => {
             [
                 path1,
                 {
-                    path: path1, source: source1,
+                    id: 0, path: path1, source: source1,
                     includes: [{ line: 2, path: path2, start: 8, end: 31 }]
                 }
             ],
             [
                 path2,
                 {
-                    path: path2, source: source2,
+                    id: 1, path: path2, source: source2,
                     includes: [
                         { line: 1, path: path3, start: 7, end: 34 },
                         { line: 2, path: path4, start: 35, end: 62 },
@@ -181,36 +181,59 @@ describe('shader-loader', () => {
                 }
             ],
             [   path3,
-                { path: path3, source: source3, includes: [] }
+                { id: 2, path: path3, source: source3, includes: [] }
             ],
             [
                 path4,
-                { path: path4, source: source4, includes: [] }
+                { id: 3, path: path4, source: source4, includes: [] }
             ],
         ]);
 
-        expect(buildCombinedSource(path3, sources)).toEqual(source3);
-        expect(buildCombinedSource(path4, sources)).toEqual(source4);
+        expect(buildCombinedSource(path3, sources)).toEqual('#line 1 2\n' + source3);
+        expect(buildCombinedSource(path4, sources)).toEqual('#line 1 3\n' + source4);
         expect(buildCombinedSource(path2, sources)).toEqual([
+            '#line 1 1',
             'File 2',
+            '#line 1 2',
             'File 3',
             'Hello World 3',
+            '#line 3 1',
+            '#line 1 3',
             'File 4',
             'Hello World 4',
+            '#line 4 1',
             'Hello World 2',
+            '',
+            '// SOURCES_MAPPING',
+            '// 1 /some/dir/file-2.txt',
+            '// 2 /some/dir/sub/file-3.txt',
+            '// 3 /some/dir/sub/file-4.txt',
             '',
         ].join('\n'));
         expect(buildCombinedSource(path1, sources)).toEqual([
+            '#line 1 0',
             'File 1',
             '',
+            '#line 1 1',
             'File 2',
+            '#line 1 2',
             'File 3',
             'Hello World 3',
+            '#line 3 1',
+            '#line 1 3',
             'File 4',
             'Hello World 4',
+            '#line 4 1',
             'Hello World 2',
+            '#line 4 0',
             '',
             'Hello World 1',
+            '',
+            '// SOURCES_MAPPING',
+            '// 0 /some/dir/file-1.txt',
+            '// 1 /some/dir/file-2.txt',
+            '// 2 /some/dir/sub/file-3.txt',
+            '// 3 /some/dir/sub/file-4.txt',
             '',
         ].join('\n'));
     });
