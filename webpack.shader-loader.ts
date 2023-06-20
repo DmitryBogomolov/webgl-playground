@@ -24,7 +24,6 @@ export default <LoaderDefinitionFunction> async function (source: string): Promi
         this.addDependency(src.path);
     }
     const combinedSource = buildCombinedSource(rootPath, sources);
-    console.log(combinedSource);
     return `export default ${JSON.stringify(combinedSource)}`;
 }
 
