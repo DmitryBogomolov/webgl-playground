@@ -12,36 +12,12 @@ export default <LoaderDefinitionFunction> async function (source: string): Promi
     const rootPath = this.resourcePath;
     const sources = new Map<string, SourceInfo>();
     await traverseSource(source, rootPath, sources);
+    for (const src of sources.values()) {
+        this.addDependency(src.path);
+    }
     const combinedSource = buildCombinedSource(rootPath, sources);
-    return `export default ${JSON.stringify(source || combinedSource)}`;
-}
-
-function findLineStarts(source: string): number[] {
-    let k = 0;
-    const lines: number[] = [0];
-    while (true) {
-        const i = source.indexOf('\n', k);
-        if (i < 0) {
-            break;
-        }
-        k = i + 1;
-        lines.push(k);
-    }
-    return lines;
-}
-
-function findLineIndex(idx: number, lineStarts: ReadonlyArray<number>): number {
-    let start = 0;
-    let end = lineStarts.length - 1;
-    while (end - start > 1) {
-        const middle = (start + end) >> 1;
-        if (idx >= lineStarts[middle]) {
-            start = middle;
-        } else {
-            end = middle;
-        }
-    }
-    return start;
+    console.log(combinedSource);
+    return `export default ${JSON.stringify(combinedSource)}`;
 }
 
 export interface IncludeInfo {
@@ -53,21 +29,25 @@ export interface IncludeInfo {
 
 const INCLUDE_PREFIX = '//#include ';
 
+function checkPattern(value: string, idx: number, pattern: string): boolean {
+    return value.substring(idx, idx + pattern.length) === pattern;
+}
+
 export function findIncludes(source: string): IncludeInfo[] {
-    const lineStarts = findLineStarts(source);
+    let lineCount = 0;
+    let cursor = 0;
     const result: IncludeInfo[] = [];
-    let k = 0;
-    while (k < source.length) {
-        const i = source.indexOf(INCLUDE_PREFIX, k);
-        if (i < 0) {
-            break;
+    while (cursor < source.length) {
+        let end = source.indexOf('\n', cursor);
+        if (end === -1) {
+            end = source.length;
         }
-        const startIdx = i;
-        const lineIdx = findLineIndex(i, lineStarts);
-        const endIdx = lineIdx + 1 < lineStarts.length ? lineStarts[lineIdx + 1] : source.length;
-        const part = source.substring(i + INCLUDE_PREFIX.length, endIdx);
-        k = endIdx;
-        result.push({ line: lineIdx, path: part.trim().split(' ')[0], start: startIdx, end: endIdx });
+        if (checkPattern(source, cursor, INCLUDE_PREFIX)) {
+            const ref = source.substring(cursor + INCLUDE_PREFIX.length, end).trim();
+            result.push({ line: lineCount, path: ref, start: cursor, end });
+        }
+        cursor = end + 1;
+        ++lineCount;
     }
     return result;
 }
@@ -111,12 +91,12 @@ export function buildCombinedSource(filePath: string, sources: ReadonlyMap<strin
         return source;
     }
     const parts: string[] = [];
-    let k = 0;
+    let cursor = 0;
     for (const include of includes) {
-        parts.push(source.substring(k, include.start));
+        parts.push(source.substring(cursor, include.start));
         parts.push(buildCombinedSource(include.path, sources));
-        k = include.end + 1;
+        cursor = include.end + 1;
     }
-    parts.push(source.substring(k));
+    parts.push(source.substring(cursor));
     return normalizeLastNewline(parts.join(''));
 }
