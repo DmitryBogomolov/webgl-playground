@@ -25,6 +25,7 @@ export interface ProgramOptions {
     readonly vertShader: string;
     readonly fragShader: string;
     readonly schema: VertexSchema;
+    readonly defines?: Readonly<Record<string, string>>;
 }
 
 export type ProgramRuntime = Pick<

@@ -203,14 +203,15 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         this._schema = options.schema;
         try {
             this._program = this._createProgram();
-            this._vertShader = this._createShader(GL_VERTEX_SHADER, options.vertShader);
-            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, options.fragShader);
+            const prefix = buildSourcePrefix(options.defines);
+            this._vertShader = this._createShader(GL_VERTEX_SHADER, combineSource(options.vertShader, prefix));
+            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix));
             this._bindAttributes();
             this._linkProgram();
             /* this._attributes = */this._collectAttributes();
             this._uniforms = this._collectUniforms();
         } catch (err) {
-            this._dispose();
+            this._disposeObjects();
             throw err;
         }
     }
@@ -225,10 +226,14 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     }
 
     protected _dispose(): void {
+        this._disposeObjects();
+        super._dispose();
+    }
+
+    private _disposeObjects(): void {
         this._deleteShader(this._vertShader);
         this._deleteShader(this._fragShader);
         this._runtime.gl().deleteProgram(this._program);
-        super._dispose();
     }
 
     private _createProgram(): WebGLProgram {
@@ -364,4 +369,21 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         this._runtime.useProgram(this);
         setter(this._logger, gl, uniform, value);
     }
+}
+
+function buildSourcePrefix(defines: Readonly<Record<string, string>> | undefined): string {
+    const lines: string[] = [];
+    if (defines) {
+        for (const [key, val] of Object.entries(defines)) {
+            lines.push(`#define ${key} ${val}`);
+        }
+    }
+    return lines.join('\n');
+}
+
+function combineSource(source: string, prefix: string): string {
+    if (!prefix) {
+        return source;
+    }
+    return `${prefix}\n#line 1 0\n${source}`;
 }
