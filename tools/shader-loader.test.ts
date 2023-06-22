@@ -1,4 +1,4 @@
-import {findIncludes, traverseSource, buildCombinedSource, SourceInfo, IncludeInfo} from './shader-loader';
+import { findIncludes, traverseSource, buildCombinedSource, SourceInfo, IncludeInfo } from './shader-loader';
 import fs from 'fs/promises';
 
 jest.mock('fs/promises');
@@ -22,7 +22,6 @@ describe('shader-loader', () => {
         expect(findIncludes('//#include test.txt\n')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 19 }]);
         expect(findIncludes('//#include test.txt  ')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 21 }]);
         expect(findIncludes('//#include test.txt  \n')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 21 }]);
-        // expect(findIncludes('//#include test.txt  // comment ')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 32 }]);
 
         expect(findIncludes('Hello\n\n//#include test.txt\n')).toEqual<IncludeInfo[]>([
             { line: 2, path: 'test.txt', start: 7, end: 26 },
@@ -42,7 +41,7 @@ describe('shader-loader', () => {
                 [
                     '/some/dir/file-1.txt',
                     { id: 0, path: '/some/dir/file-1.txt', source: 'Hello\n', includes: [] },
-                ]
+                ],
             ]));
         }
         {
@@ -53,7 +52,7 @@ describe('shader-loader', () => {
                 [
                     '/some/dir/file-1.txt',
                     { id: 0, path: '/some/dir/file-1.txt', source: 'Hello World\n', includes: [] },
-                ]
+                ],
             ]));
         }
     });
@@ -80,7 +79,7 @@ describe('shader-loader', () => {
                 [
                     path3,
                     { id: 0, path: path3, source: source3, includes: [] },
-                ]
+                ],
             ]));
         }
         {
@@ -90,7 +89,7 @@ describe('shader-loader', () => {
                 [
                     path4,
                     { id: 0, path: path4, source: source4, includes: [] },
-                ]
+                ],
             ]));
         }
         {
@@ -104,7 +103,7 @@ describe('shader-loader', () => {
                         includes: [
                             { line: 1, path: path3, start: 7, end: 34 },
                             { line: 2, path: path4, start: 35, end: 62 },
-                        ]
+                        ],
                     },
                 ],
                 [
@@ -114,7 +113,7 @@ describe('shader-loader', () => {
                 [
                     path4,
                     { id: 2, path: path4, source: source4, includes: [] },
-                ]
+                ],
             ]));
         }
         {
@@ -127,8 +126,8 @@ describe('shader-loader', () => {
                         id: 0, path: path1, source: source1,
                         includes: [
                             { line: 2, path: path2, start: 8, end: 31 },
-                        ]
-                    }
+                        ],
+                    },
                 ],
                 [
                     path2,
@@ -137,7 +136,7 @@ describe('shader-loader', () => {
                         includes: [
                             { line: 1, path: path3, start: 7, end: 34 },
                             { line: 2, path: path4, start: 35, end: 62 },
-                        ]
+                        ],
                     },
                 ],
                 [
@@ -147,7 +146,7 @@ describe('shader-loader', () => {
                 [
                     path4,
                     { id: 3, path: path4, source: source4, includes: [] },
-                ]
+                ],
             ]));
         }
     });
@@ -167,8 +166,8 @@ describe('shader-loader', () => {
                 path1,
                 {
                     id: 0, path: path1, source: source1,
-                    includes: [{ line: 2, path: path2, start: 8, end: 31 }]
-                }
+                    includes: [{ line: 2, path: path2, start: 8, end: 31 }],
+                },
             ],
             [
                 path2,
@@ -177,15 +176,16 @@ describe('shader-loader', () => {
                     includes: [
                         { line: 1, path: path3, start: 7, end: 34 },
                         { line: 2, path: path4, start: 35, end: 62 },
-                    ]
-                }
+                    ],
+                },
             ],
-            [   path3,
-                { id: 2, path: path3, source: source3, includes: [] }
+            [
+                path3,
+                { id: 2, path: path3, source: source3, includes: [] },
             ],
             [
                 path4,
-                { id: 3, path: path4, source: source4, includes: [] }
+                { id: 3, path: path4, source: source4, includes: [] },
             ],
         ]);
 

@@ -1,4 +1,4 @@
-import type {LoaderDefinitionFunction} from 'webpack';
+import type { LoaderDefinitionFunction } from 'webpack';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -25,7 +25,7 @@ export default <LoaderDefinitionFunction> async function (source: string): Promi
     }
     const combinedSource = buildCombinedSource(rootPath, sources);
     return `export default ${JSON.stringify(combinedSource)}`;
-}
+};
 
 const INCLUDE_PREFIX = '//#include ';
 
