@@ -46,8 +46,8 @@ describe('shader-loader', () => {
         const path2 = '/some/dir/file-2.txt';
         const path3 = '/some/dir/sub/file-3.txt';
         const path4 = '/some/dir/sub/file-4.txt';
-        const source1 = 'File 1\n\n//#include ./file-2.txt\n\nHello World 1\n';
-        const source2 = 'File 2\n//#include ./sub/file-3.txt\n//#include ./sub/file-4.txt\nHello World 2\n';
+        const source1 = 'File 1\n\n#include ./file-2.txt\n\nHello World 1\n';
+        const source2 = 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello World 2\n';
         const source3 = 'File 3\nHello World 3\n';
         const source4 = 'File 4\nHello World 4\n';
         setDebugSources({
@@ -85,8 +85,8 @@ describe('shader-loader', () => {
                     {
                         id: 0, path: path2, source: source2,
                         includes: [
-                            { line: 1, path: path3, start: 7, end: 34 },
-                            { line: 2, path: path4, start: 35, end: 62 },
+                            { line: 1, path: path3, start: 7, end: 32 },
+                            { line: 2, path: path4, start: 33, end: 58 },
                         ],
                     },
                 ],
@@ -109,7 +109,7 @@ describe('shader-loader', () => {
                     {
                         id: 0, path: path1, source: source1,
                         includes: [
-                            { line: 2, path: path2, start: 8, end: 31 },
+                            { line: 2, path: path2, start: 8, end: 29 },
                         ],
                     },
                 ],
@@ -118,8 +118,8 @@ describe('shader-loader', () => {
                     {
                         id: 1, path: path2, source: source2,
                         includes: [
-                            { line: 1, path: path3, start: 7, end: 34 },
-                            { line: 2, path: path4, start: 35, end: 62 },
+                            { line: 1, path: path3, start: 7, end: 32 },
+                            { line: 2, path: path4, start: 33, end: 58 },
                         ],
                     },
                 ],
@@ -140,8 +140,8 @@ describe('shader-loader', () => {
         const path2 = '/some/dir/file-2.txt';
         const path3 = '/some/dir/sub/file-3.txt';
         const path4 = '/some/dir/sub/file-4.txt';
-        const source1 = 'File 1\n\n//#include ./file-2.txt\n\nHello World 1\n';
-        const source2 = 'File 2\n//#include ./sub/file-3.txt\n//#include ./sub/file-4.txt\nHello World 2\n';
+        const source1 = 'File 1\n\n#include ./file-2.txt\n\nHello World 1\n';
+        const source2 = 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello World 2\n';
         const source3 = 'File 3\nHello World 3\n';
         const source4 = 'File 4\nHello World 4\n';
 
@@ -150,7 +150,7 @@ describe('shader-loader', () => {
                 path1,
                 {
                     id: 0, path: path1, source: source1,
-                    includes: [{ line: 2, path: path2, start: 8, end: 31 }],
+                    includes: [{ line: 2, path: path2, start: 8, end: 29 }],
                 },
             ],
             [
@@ -158,8 +158,8 @@ describe('shader-loader', () => {
                 {
                     id: 1, path: path2, source: source2,
                     includes: [
-                        { line: 1, path: path3, start: 7, end: 34 },
-                        { line: 2, path: path4, start: 35, end: 62 },
+                        { line: 1, path: path3, start: 7, end: 32 },
+                        { line: 2, path: path4, start: 33, end: 58 },
                     ],
                 },
             ],

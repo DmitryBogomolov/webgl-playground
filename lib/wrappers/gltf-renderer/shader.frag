@@ -15,7 +15,7 @@ uniform sampler2D u_texture;
 const float I_PI = 1.0 / acos(-1.0);
 const float DIELECTRIC_SPECULAR = 0.04;
 
-//#include ./brdf.glsl
+#include ./brdf.glsl
 
 void main() {
     vec3 normal = normalize(v_normal);

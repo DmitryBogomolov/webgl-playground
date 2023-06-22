@@ -27,7 +27,7 @@ export default <LoaderDefinitionFunction> async function (source: string): Promi
     return `export default ${JSON.stringify(combinedSource)}`;
 };
 
-const INCLUDE_PREFIX = '//#include ';
+const INCLUDE_PREFIX = '#include ';
 
 function checkPattern(value: string, idx: number, pattern: string): boolean {
     return value.substring(idx, idx + pattern.length) === pattern;
