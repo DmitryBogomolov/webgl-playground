@@ -1,4 +1,4 @@
-import {findIncludes, traverseSource, buildCombinedSource, SourceInfo, IncludeInfo} from './webpack.shader-loader';
+import {findIncludes, traverseSource, buildCombinedSource, SourceInfo, IncludeInfo} from './shader-loader';
 import fs from 'fs/promises';
 
 jest.mock('fs/promises');
