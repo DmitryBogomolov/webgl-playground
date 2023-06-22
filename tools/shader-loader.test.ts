@@ -1,4 +1,5 @@
-import { findIncludes, traverseSource, buildCombinedSource, SourceInfo, IncludeInfo } from './shader-loader';
+import type { SourceInfo } from './shader-loader';
+import { traverseSource, buildCombinedSource } from './shader-loader';
 import fs from 'fs/promises';
 
 jest.mock('fs/promises');
@@ -14,23 +15,6 @@ describe('shader-loader', () => {
             return source ? Promise.resolve(source) : Promise.reject(new Error(`not found: ${name}`));
         });
     }
-
-    it('find includes', () => {
-        expect(findIncludes('')).toEqual([]);
-        expect(findIncludes('Hello')).toEqual([]);
-        expect(findIncludes('//#include test.txt')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 19 }]);
-        expect(findIncludes('//#include test.txt\n')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 19 }]);
-        expect(findIncludes('//#include test.txt  ')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 21 }]);
-        expect(findIncludes('//#include test.txt  \n')).toEqual([{ line: 0, path: 'test.txt', start: 0, end: 21 }]);
-
-        expect(findIncludes('Hello\n\n//#include test.txt\n')).toEqual<IncludeInfo[]>([
-            { line: 2, path: 'test.txt', start: 7, end: 26 },
-        ]);
-        expect(findIncludes('Hello\n//#include test-1.txt\n//#include test-2.txt\nWorld')).toEqual<IncludeInfo[]>([
-            { line: 1, path: 'test-1.txt', start: 6, end: 27 },
-            { line: 2, path: 'test-2.txt', start: 28, end: 49 },
-        ]);
-    });
 
     it('traverseSource', async () => {
         {
@@ -57,7 +41,7 @@ describe('shader-loader', () => {
         }
     });
 
-    it('traverseSource complex', async () => {
+    it('traverseSource / complex', async () => {
         const path1 = '/some/dir/file-1.txt';
         const path2 = '/some/dir/file-2.txt';
         const path3 = '/some/dir/sub/file-3.txt';

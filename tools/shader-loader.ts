@@ -33,7 +33,7 @@ function checkPattern(value: string, idx: number, pattern: string): boolean {
     return value.substring(idx, idx + pattern.length) === pattern;
 }
 
-export function findIncludes(source: string): IncludeInfo[] {
+function findIncludes(source: string): IncludeInfo[] {
     let lineCount = 0;
     let cursor = 0;
     const result: IncludeInfo[] = [];
