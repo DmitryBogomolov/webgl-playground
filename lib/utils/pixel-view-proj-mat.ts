@@ -1,6 +1,6 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
-import type { Camera } from '../gl/camera';
+import type { Camera } from '../common/camera';
 import { clone4x4, apply4x4, frustum4x4 } from '../geometry/mat4';
 
 /**

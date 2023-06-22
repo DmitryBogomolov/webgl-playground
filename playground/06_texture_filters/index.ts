@@ -4,10 +4,10 @@ import {
     Program,
     Texture,
     parseVertexSchema,
-    loadImage,
+    makeImage,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
 import { convolutionKernels } from './convolution_kernels';
@@ -87,7 +87,7 @@ function makeTexture(runtime: Runtime): Texture {
         mag_filter: 'nearest',
     });
 
-    loadImage('/static/leaves.jpg').then(
+    makeImage({ url: '/static/leaves.jpg' }).then(
         (image) => {
             texture.setImageData(image, { unpackFlipY: true });
             runtime.requestFrameRender();

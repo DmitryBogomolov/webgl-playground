@@ -1,11 +1,11 @@
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Attribute, RAW_ATTR_TYPE, VertexSchema, AttributeTypeMap } from './vertex-schema.types';
-import type { Logger } from '../utils/logger.types';
-import { LoggerImpl } from '../utils/logger';
+import type { Logger } from '../common/logger.types';
+import { LoggerImpl } from '../common/logger';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
-import { isColor } from './color';
+import { isColor } from '../common/color';
 
 type Normalizer = (value: number) => number;
 

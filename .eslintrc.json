@@ -38,6 +38,7 @@
         "arrow-spacing": "error",
         "arrow-parens": ["error"],
         "space-in-parens": ["error"],
+        "no-multiple-empty-lines": ["error", { "max": 1 }],
 
         "semi": "off",
         "@typescript-eslint/semi": ["error", "always"],

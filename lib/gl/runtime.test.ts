@@ -1,6 +1,6 @@
 import { Runtime, createRenderState } from './runtime';
 
-jest.mock('../utils/logger');
+jest.mock('../common/logger');
 
 describe('runtime', () => {
     describe('Runtime', () => {

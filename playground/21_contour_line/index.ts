@@ -7,8 +7,8 @@ import {
     color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed, Observable } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed, Observable } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeControurPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
 

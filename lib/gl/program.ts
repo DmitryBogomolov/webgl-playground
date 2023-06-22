@@ -1,15 +1,15 @@
 import type { UNIFORM_VALUE, ProgramOptions, ProgramRuntime } from './program.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import type { Logger } from '../utils/logger.types';
-import { BaseWrapper } from './base-wrapper';
+import type { Logger } from '../common/logger.types';
+import { BaseDisposable } from '../common/base-disposable';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
 import { isMat2 } from '../geometry/mat2';
 import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
-import { isColor } from './color';
+import { isColor } from '../common/color';
 import { formatStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -187,7 +187,7 @@ interface UniformsMap {
     readonly [key: string]: ShaderUniform;
 }
 
-export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram> {
+export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
@@ -203,14 +203,15 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         this._schema = options.schema;
         try {
             this._program = this._createProgram();
-            this._vertShader = this._createShader(GL_VERTEX_SHADER, options.vertShader);
-            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, options.fragShader);
+            const prefix = buildSourcePrefix(options.defines);
+            this._vertShader = this._createShader(GL_VERTEX_SHADER, combineSource(options.vertShader, prefix));
+            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix));
             this._bindAttributes();
             this._linkProgram();
             /* this._attributes = */this._collectAttributes();
             this._uniforms = this._collectUniforms();
         } catch (err) {
-            this._dispose();
+            this._disposeObjects();
             throw err;
         }
     }
@@ -224,7 +225,12 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         return this._program;
     }
 
-    private _dispose(): void {
+    protected _dispose(): void {
+        this._disposeObjects();
+        super._dispose();
+    }
+
+    private _disposeObjects(): void {
         this._deleteShader(this._vertShader);
         this._deleteShader(this._fragShader);
         this._runtime.gl().deleteProgram(this._program);
@@ -363,4 +369,21 @@ export class Program extends BaseWrapper implements GLHandleWrapper<WebGLProgram
         this._runtime.useProgram(this);
         setter(this._logger, gl, uniform, value);
     }
+}
+
+function buildSourcePrefix(defines: Readonly<Record<string, string>> | undefined): string {
+    const lines: string[] = [];
+    if (defines) {
+        for (const [key, val] of Object.entries(defines)) {
+            lines.push(`#define ${key} ${val}`);
+        }
+    }
+    return lines.join('\n');
+}
+
+function combineSource(source: string, prefix: string): string {
+    if (!prefix) {
+        return source;
+    }
+    return `${prefix}\n#line 1 0\n${source}`;
 }

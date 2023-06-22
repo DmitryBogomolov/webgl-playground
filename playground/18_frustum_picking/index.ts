@@ -9,8 +9,8 @@ import {
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
 /**

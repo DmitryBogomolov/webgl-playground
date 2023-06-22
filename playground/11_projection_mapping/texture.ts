@@ -1,5 +1,5 @@
 import type { Runtime } from 'lib';
-import { Texture, loadImage } from 'lib';
+import { Texture, makeImage } from 'lib';
 
 export function makeColorTexture(runtime: Runtime): Texture {
     const texture = new Texture(runtime);
@@ -29,7 +29,7 @@ export function makeMappingTexture(runtime: Runtime, onReady: () => void): Textu
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });
-    loadImage('/static/f-letter.png').then(
+    makeImage({ url: '/static/f-letter.png' }).then(
         (image) => {
             texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
             onReady();

@@ -169,7 +169,7 @@ module.exports = {
 
     // A list of paths to modules that run some code to configure or set up the testing framework before each test
     setupFilesAfterEnv: [
-        './jest-setup.ts',
+        '<rootDir>/tools/jest-setup.ts',
     ],
 
     // A list of paths to snapshot serializer modules Jest should use for snapshot testing
@@ -213,7 +213,11 @@ module.exports = {
 
     // A map from regular expressions to paths to transformers
     transform: {
-        '\.vert$|\.frag$|\.glsl$': '<rootDir>/jest-transform.js',
+        '\.vert$|\.frag$|\.glsl$': '<rootDir>/tools/jest-transform.js',
+    },
+
+    moduleNameMapper: {
+        '^!!shader-loader?.*!(.*)$': '$1',
     },
 
     // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation

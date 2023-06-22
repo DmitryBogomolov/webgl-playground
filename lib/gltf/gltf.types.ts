@@ -1,5 +1,5 @@
 import type * as GlTFSchema from './gltf-schema.types';
-import type { Color } from '../gl/color.types';
+import type { Color } from '../common/color.types';
 
 export type { GlTFSchema };
 

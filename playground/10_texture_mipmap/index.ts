@@ -1,5 +1,5 @@
 import type { Mat4Mut } from 'lib';
-import type { Observable } from 'util/observable';
+import type { Observable } from 'playground-utils/observable';
 import {
     Runtime, createRenderState,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
@@ -9,8 +9,8 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { observable } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
 

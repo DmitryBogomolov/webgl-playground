@@ -91,7 +91,7 @@ const config: Configuration = {
         extensions: ['.ts', '.js'],
         alias: {
             lib: path.join(__dirname, './lib/index.ts'),
-            util: path.join(__dirname, './util'),
+            'playground-utils': path.join(__dirname, './playground-utils'),
         },
     },
     module: {
@@ -124,9 +124,14 @@ const config: Configuration = {
             },
             {
                 test: /\.(vert|frag|glsl)$/,
-                use: ['raw-loader'],
+                use: 'raw-loader',
             },
         ],
+    },
+    resolveLoader: {
+        alias: {
+            'shader-loader': path.resolve(__dirname, 'tools/shader-loader.ts'),
+        },
     },
     plugins: [
         new CleanWebpackPlugin(),

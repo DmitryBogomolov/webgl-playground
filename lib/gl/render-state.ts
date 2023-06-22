@@ -5,7 +5,7 @@ import type {
     CULL_FACE,
     BLEND_FUNC,
 } from './render-state.types';
-import type { Logger } from '../utils/logger.types';
+import type { Logger } from '../common/logger.types';
 import type { GLValuesMap } from './gl-values-map.types';
 
 type RenderStateValidator<T extends keyof RenderState> = (

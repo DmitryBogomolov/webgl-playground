@@ -12,20 +12,21 @@ import type {
     RenderState,
 } from './render-state.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import type { Color } from './color.types';
+import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
-import type { Logger } from '../utils/logger.types';
-import type { EventProxy } from '../utils/event-emitter.types';
-import { BaseWrapper } from './base-wrapper';
-import { LoggerImpl, RootLogger } from '../utils/logger';
+import type { Logger } from '../common/logger.types';
+import type { EventProxy } from '../common/event-emitter.types';
+import { BaseIdentity } from '../common/base-identity';
+import { BaseDisposable } from '../common/base-disposable';
+import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
-import { EventEmitter } from '../utils/event-emitter';
+import { EventEmitter } from '../common/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
-import { color, isColor, colorEq } from './color';
+import { color, isColor, colorEq } from '../common/color';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -108,7 +109,7 @@ const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
-export class Runtime extends BaseWrapper {
+export class Runtime extends BaseDisposable {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -175,6 +176,7 @@ export class Runtime extends BaseWrapper {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
+        this._dispose();
     }
 
     gl(): WebGLRenderingContext {
@@ -614,7 +616,7 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget extends BaseWrapper implements RenderTarget {
+class DefaultRenderTarget extends BaseIdentity implements RenderTarget {
     private readonly _runtime: Runtime;
 
     constructor(runtime: Runtime, tag?: string) {

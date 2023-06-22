@@ -1,4 +1,4 @@
-import { EventEmitter } from './event-emitter';
+import { EventEmitter } from '../common/event-emitter';
 import { throttle } from './throttler';
 
 const emitter = new EventEmitter();

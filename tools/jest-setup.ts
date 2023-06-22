@@ -1,10 +1,10 @@
-import type { Vec2 } from './lib/geometry/vec2.types';
-import type { Vec3 } from './lib/geometry/vec3.types';
-import type { Vec4 } from './lib/geometry/vec4.types';
-import type { Mat2 } from './lib/geometry/mat2.types';
-import type { Mat3 } from './lib/geometry/mat3.types';
-import type { Mat4 } from './lib/geometry/mat4.types';
-import type { Spherical } from './lib/geometry/spherical.types';
+import type { Vec2 } from '../lib/geometry/vec2.types';
+import type { Vec3 } from '../lib/geometry/vec3.types';
+import type { Vec4 } from '../lib/geometry/vec4.types';
+import type { Mat2 } from '../lib/geometry/mat2.types';
+import type { Mat3 } from '../lib/geometry/mat3.types';
+import type { Mat4 } from '../lib/geometry/mat4.types';
+import type { Spherical } from '../lib/geometry/spherical.types';
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace

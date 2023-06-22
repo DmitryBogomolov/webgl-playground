@@ -2,43 +2,25 @@ import type {
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
 } from './image-renderer.types';
-import type { Vec2 } from '../geometry/vec2.types';
-import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { TextureImageData } from '../gl/texture-2d.types';
-import type { Runtime } from '../gl/runtime';
-import { eq2, isVec2 } from '../geometry/vec2';
-import { vec3 } from '../geometry/vec3';
+import type { Vec2 } from '../../geometry/vec2.types';
+import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
+import type { TextureImageData } from '../../gl/texture-2d.types';
+import type { Runtime } from '../../gl/runtime';
+import { eq2, isVec2 } from '../../geometry/vec2';
+import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
-} from '../geometry/mat4';
-import { BaseWrapper } from '../gl/base-wrapper';
-import { Primitive } from '../gl/primitive';
-import { Program } from '../gl/program';
-import { Texture } from '../gl/texture-2d';
-import { parseVertexSchema } from '../gl/vertex-schema';
-import { compareObjects } from '../utils/compare';
-import { memoize } from '../utils/memoizer';
-import { loadImage } from '../utils/image-loader';
-
-const VERT_SHADER = `
-attribute vec2 a_position;
-uniform mat4 u_mat;
-uniform mat4 u_texmat;
-varying vec2 v_texcoord;
-void main() {
-    gl_Position = u_mat * vec4(a_position, 0.0, 1.0);
-    vec2 texcoord = (a_position + vec2(1.0)) / 2.0;
-    v_texcoord = (u_texmat * vec4(texcoord, 0.0, 1.0)).xy;
-}
-`;
-const FRAG_SHADER = `
-precision mediump float;
-varying vec2 v_texcoord;
-uniform sampler2D u_texture;
-void main() {
-    gl_FragColor = texture2D(u_texture, v_texcoord);
-}
-`;
+} from '../../geometry/mat4';
+import { BaseDisposable } from '../../common/base-disposable';
+import { Primitive } from '../../gl/primitive';
+import { Program } from '../../gl/program';
+import { Texture } from '../../gl/texture-2d';
+import { parseVertexSchema } from '../../gl/vertex-schema';
+import { compareObjects } from '../../utils/compare';
+import { memoize } from '../../utils/memoizer';
+import { makeImage } from '../../utils/image-maker';
+import vertShader from './shader.vert';
+import fragShader from './shader.frag';
 
 function isRawData(data: ImageRendererImageData): data is ImageRendererRawImageData {
     return data
@@ -50,7 +32,7 @@ function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageD
     return data && typeof (data as ImageRendererUrlImageData).url === 'string';
 }
 
-export class ImageRenderer extends BaseWrapper {
+export class ImageRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
@@ -74,6 +56,7 @@ export class ImageRenderer extends BaseWrapper {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
+        this._dispose();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
@@ -110,7 +93,7 @@ export class ImageRenderer extends BaseWrapper {
             unpackFlipY = true;
         } else if (isUrlData(data)) {
             log = `url(${data.url})`;
-            const img = await loadImage(data.url);
+            const img = await makeImage({ url: data.url });
             imageData = img;
             unpackFlipY = true;
         } else {
@@ -349,8 +332,8 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
     primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
-        vertShader: VERT_SHADER,
-        fragShader: FRAG_SHADER,
+        vertShader,
+        fragShader,
         schema,
     }, tag);
     primitive.setProgram(program);

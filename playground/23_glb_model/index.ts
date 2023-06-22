@@ -6,8 +6,8 @@ import {
     vec3, mul3,
     spherical2zxy, deg2rad,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 
 /**
  * Glb model.

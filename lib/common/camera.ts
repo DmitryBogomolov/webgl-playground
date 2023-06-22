@@ -2,20 +2,16 @@ import type { CAMERA_PROJECTION } from './camera.types';
 import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { EventProxy } from '../utils/event-emitter.types';
-import type { Logger } from '../utils/logger.types';
-import { BaseWrapper } from './base-wrapper';
-import { EventEmitter } from '../utils/event-emitter';
+import type { EventProxy } from './event-emitter.types';
+import type { Logger } from '../common/logger.types';
+import { BaseIdentity } from './base-identity';
+import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
-import { ZERO3, YUNIT3, ZUNIT3, isVec3, eq3, clone3, norm3, dist3, vec3 } from '../geometry/vec3';
-import {
-    mat4,
-    perspective4x4, orthographic4x4, lookAt4x4,
-    mul4x4, inverse4x4,
-} from '../geometry/mat4';
+import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
+import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-export class Camera extends BaseWrapper {
+export class Camera extends BaseIdentity {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
@@ -30,9 +26,9 @@ export class Camera extends BaseWrapper {
     private _zFar: number = 100;
     private _viewportSize: Vec2 = vec2(2, 2);
     private _yFov: number = Math.PI / 3;
-    private _upDir: Vec3 = YUNIT3;
-    private _centerPos: Vec3 = ZERO3;
-    private _eyePos: Vec3 = ZUNIT3;
+    private _upDir: Vec3 = clone3(YUNIT3);
+    private _centerPos: Vec3 = clone3(ZERO3);
+    private _eyePos: Vec3 = clone3(ZUNIT3);
 
     constructor(rootLogger?: Logger, tag?: string) {
         super(rootLogger || null, tag);

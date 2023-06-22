@@ -10,8 +10,8 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
 import { makeStringPrimitive, getNextLabel } from './label';
 import { makeGlyphAtlas } from './glyph';

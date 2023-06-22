@@ -13,7 +13,6 @@ import fragShader from './shaders/object.frag';
 import contourVertShader from './shaders/contour.vert';
 import contourFragShader from './shaders/contour.frag';
 
-
 export function makePrimitive(runtime: Runtime): Primitive {
     const schema = parseVertexSchema([
         { name: 'a_position', type: 'float3' },

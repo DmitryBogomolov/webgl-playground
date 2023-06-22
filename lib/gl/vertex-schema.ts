@@ -1,9 +1,8 @@
 import type {
     RAW_ATTR_TYPE, AttributeTypeMap, Attribute, AttributeOptions, VertexSchema,
 } from './vertex-schema.types';
-import type { Logger } from '../utils/logger.types';
-import { LoggerImpl } from '../utils/logger';
-
+import type { Logger } from '../common/logger.types';
+import { LoggerImpl } from '../common/logger';
 
 const WebGL = WebGLRenderingContext.prototype;
 

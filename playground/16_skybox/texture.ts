@@ -1,5 +1,5 @@
 import type { Runtime } from 'lib';
-import { TextureCube, TextureCubeImageData, loadImage } from 'lib';
+import { TextureCube, TextureCubeImageData, makeImage } from 'lib';
 
 export function makeTexture(runtime: Runtime): TextureCube {
     const texture = new TextureCube(runtime);
@@ -12,7 +12,7 @@ export function makeTexture(runtime: Runtime): TextureCube {
         { key: 'zPos', url: '/static/computer-history-museum/z-pos.jpg' },
     ];
     const loadings = schema.map(({ key, url }) =>
-        loadImage(url).then((image) => ({ key, image })),
+        makeImage({ url }).then((image) => ({ key, image })),
     );
     Promise.all(loadings).then((items) => {
         const imageData: Record<string, HTMLImageElement> = {};
