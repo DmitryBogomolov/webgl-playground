@@ -130,7 +130,7 @@ const config: Configuration = {
     },
     resolveLoader: {
         alias: {
-            'shader-loader': path.resolve(__dirname, 'webpack.shader-loader.ts'),
+            'shader-loader': path.resolve(__dirname, 'tools/webpack.shader-loader.ts'),
         },
     },
     plugins: [

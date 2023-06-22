@@ -84,6 +84,7 @@
         "./playground/**/*.ts",
         "./playground-utils/**/*.ts",
         "./templates/**/*.ts",
+        "./tools/**/*.ts",
         "./*.ts"
     ],
     "exclude": [
