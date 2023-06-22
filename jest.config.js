@@ -216,6 +216,10 @@ module.exports = {
         '\.vert$|\.frag$|\.glsl$': '<rootDir>/jest-transform.js',
     },
 
+    moduleNameMapper: {
+        '^!!shader-loader?.*!(.*)$': '$1',
+    },
+
     // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
     // transformIgnorePatterns: [
     //   "/node_modules/"
