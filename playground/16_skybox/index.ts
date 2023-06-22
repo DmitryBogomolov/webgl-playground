@@ -1,5 +1,5 @@
 import type { Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
-import type { Observable } from 'util/observable';
+import type { Observable } from 'playground-utils/observable';
 import {
     Runtime, createRenderState,
     Camera,
@@ -7,8 +7,8 @@ import {
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';
 

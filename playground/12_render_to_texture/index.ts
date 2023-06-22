@@ -8,8 +8,8 @@ import {
     color,
     deg2rad,
 } from 'lib';
-import { observable, computed, Observable } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed, Observable } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makeObject, makeTexturePlane } from './primitive';
 
 /**

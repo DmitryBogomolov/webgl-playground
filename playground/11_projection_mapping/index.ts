@@ -8,8 +8,8 @@ import {
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeColorTexture, makeMappingTexture } from './texture';
 

@@ -1,5 +1,5 @@
 import type { Program, Vec2, Mat4Mut, Color } from 'lib';
-import type { Observable } from 'util/observable';
+import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
     Runtime, createRenderState,
@@ -11,8 +11,8 @@ import {
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
 
 /**

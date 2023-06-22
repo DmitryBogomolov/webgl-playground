@@ -50,7 +50,7 @@
         // "paths": {},                                 /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
         "paths": {
             "lib": ["./lib"],
-            "util": ["./util"]
+            "playground-utils": ["./playground-utils"]
         },
         // "rootDirs": [],                              /* List of root folders whose combined content represents the structure of the project at runtime. */
         // "typeRoots": [],                             /* List of folders to include type definitions from. */
@@ -81,8 +81,8 @@
     "include": [
         "./lib/**/*.ts",
         "./types/*.ts",
-        "./util/**/*.ts",
         "./playground/**/*.ts",
+        "./playground-utils/**/*.ts",
         "./templates/**/*.ts",
         "./*.ts"
     ],

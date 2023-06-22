@@ -1,5 +1,5 @@
 import type { Program, UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
-import type { Observable } from 'util/observable';
+import type { Observable } from 'playground-utils/observable';
 import {
     Runtime, createRenderState,
     vec2,
@@ -9,8 +9,8 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 
 /**

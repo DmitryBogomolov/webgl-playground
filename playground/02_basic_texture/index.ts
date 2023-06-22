@@ -1,5 +1,5 @@
 import type { Vec2 } from 'lib';
-import type { Observable } from 'util/observable';
+import type { Observable } from 'playground-utils/observable';
 import {
     Runtime,
     Primitive,
@@ -9,7 +9,7 @@ import {
     Tracker,
     vec2, ZERO2, sub2, mul2, inv2,
 } from 'lib';
-import { observable } from 'util/observable';
+import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';

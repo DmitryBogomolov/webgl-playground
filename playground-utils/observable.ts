@@ -1,6 +1,5 @@
-import {
-    EventEmitter, EventProxy,
-} from 'lib';
+import type { EventProxy } from 'lib';
+import { EventEmitter } from 'lib';
 
 export interface ChangeHandler<T> {
     (value: T): void;

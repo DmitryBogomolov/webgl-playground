@@ -9,8 +9,8 @@ import {
     UNIT3, mul3,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { observable, computed } from 'util/observable';
-import { createControls } from 'util/controls';
+import { observable, computed } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 
