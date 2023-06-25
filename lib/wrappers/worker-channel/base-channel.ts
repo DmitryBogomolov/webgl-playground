@@ -108,13 +108,14 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
 
     private _requestFlush(): void {
         if (this._flushTimeout === 0) {
-            this._flushTimeout = window.setTimeout(this._flush, this._flushDelay);
+            // @ts-ignore
+            this._flushTimeout = setTimeout(this._flush, this._flushDelay);
         }
     }
 
     private _cancelFlush(): void {
         if (this._flushTimeout !== 0) {
-            window.clearTimeout(this._flushTimeout);
+            clearTimeout(this._flushTimeout);
             this._flushTimeout = 0;
         }
     }

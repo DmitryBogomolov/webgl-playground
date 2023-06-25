@@ -8,13 +8,12 @@ export class BackgroundChannel<SendT, RecvT> extends BaseChannel<SendT, RecvT> {
 }
 
 function wrapWorkerContext(): MessagePort {
-    return {
-        ...self,
+    return Object.assign(self, {
         start() {
             // Does nothing.
         },
         close() {
             // Does nothing.
         },
-    } as MessagePort;
+    }) as MessagePort;
 }
