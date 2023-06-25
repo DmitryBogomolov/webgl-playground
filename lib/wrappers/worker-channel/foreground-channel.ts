@@ -7,14 +7,15 @@ export class ForegroundChannel<SendT, RecvT> extends BaseChannel<SendT, RecvT> {
     }
 }
 
-function wrapWorker(worker: Worker): MessagePort {
+function wrapWorker(worker: Worker | string): MessagePort {
+    const instance = worker instanceof Worker ? worker : new Worker(worker);
     return {
-        ...worker,
+        ...instance,
         start() {
             // Does nothing.
         },
         close() {
-            worker.terminate();
+            instance.terminate();
         },
     } as MessagePort;
 }
