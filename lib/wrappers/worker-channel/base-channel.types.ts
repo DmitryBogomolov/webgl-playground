@@ -1,8 +1,14 @@
 import type { Logger } from '../../common/logger.types';
 
-export interface BaseChannelOptions {
-    readonly carrier: MessagePort;
-    readonly id: number;
+export type BaseChannelHandler<T> = (message: T) => void;
+
+export interface BaseChannelOptions<T> {
     readonly rootLogger?: Logger;
     readonly tag?: string;
+    readonly carrier: MessagePort;
+    readonly connectionId: number;
+    readonly handler: BaseChannelHandler<T>;
+    readonly sendBufferLimit?: number;
+    readonly recvBufferLimit?: number;
+    readonly flushDelay?: number;
 }
