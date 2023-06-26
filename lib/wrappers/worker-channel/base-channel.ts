@@ -4,11 +4,11 @@ import { BaseDisposable } from '../../common/base-disposable';
 interface MessageBatch<T> {
     readonly connectionId: number;
     readonly orderId: number;
-    readonly items: ReadonlyArray<T>;
+    readonly messages: ReadonlyArray<T>;
 }
 
-const DEFAULT_SEND_BUFFER_LIMIT = 4;
-const DEFAULT_RECV_BUFFER_LIMIT = 16;
+const DEFAULT_SEND_BUFFER_SIZE = 64;
+const DEFAULT_RECV_QUEUE_SIZE = 16;
 const DEFAULT_FLUSH_DELAY = 500;
 
 export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
@@ -16,10 +16,10 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
     private readonly _connectionId: number;
     private readonly _handler: BaseChannelMessageHandler<RecvT>;
     private readonly _sendBuffer: SendT[] = [];
-    private readonly _sendBufferLimit: number;
+    private readonly _sendBufferSize: number;
     private readonly _sendTransferables: Transferable[] = [];
-    private readonly _recvBuffer: (ReadonlyArray<RecvT> | undefined)[] = [];
-    private readonly _recvBufferLimit: number;
+    private readonly _recvQueue: (ReadonlyArray<RecvT> | undefined)[] = [];
+    private readonly _recvQueueSize: number;
     private readonly _flushDelay: number;
     private _sendOrderId: number = 1;
     private _recvOrderId: number = 1;
@@ -40,8 +40,8 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         this._carrier = options.carrier;
         this._connectionId = options.connectionId;
         this._handler = options.handler;
-        this._sendBufferLimit = pickValue(options.sendBufferLimit, DEFAULT_SEND_BUFFER_LIMIT);
-        this._recvBufferLimit = pickValue(options.recvBufferLimit, DEFAULT_RECV_BUFFER_LIMIT);
+        this._sendBufferSize = pickValue(options.sendBufferSize, DEFAULT_SEND_BUFFER_SIZE);
+        this._recvQueueSize = pickValue(options.recvQueueSize, DEFAULT_RECV_QUEUE_SIZE);
         this._flushDelay = pickValue(options.flushDelay, DEFAULT_FLUSH_DELAY);
         this._carrier.addEventListener('message', this._handleMessage);
         this._carrier.start();
@@ -52,25 +52,25 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         if (!batch || batch.connectionId !== this._connectionId) {
             return;
         }
-        if (!batch.orderId || !Array.isArray(batch.items)) {
+        if (!batch.orderId || !Array.isArray(batch.messages)) {
             throw this._logger.error('recv: bad message content', batch);
         }
         const orderOffset = getOrderOffset(this._recvOrderId, batch.orderId);
         if (isReversedOrderOffset(orderOffset)) {
             throw this._logger.error(
-                'recv: order id mismatch: {0} / >= {1}', batch.orderId, this._recvOrderId);
+                'recv: duplicate order id: {0}', batch.orderId, this._recvOrderId);
         }
         if (orderOffset > 0) {
-            if (orderOffset >= this._recvBufferLimit) {
-                throw this._logger.error('recv: queue is full');
+            if (orderOffset > this._recvQueueSize) {
+                throw this._logger.error('recv: queue is too long');
             }
-            this._recvBuffer[orderOffset - 1] = batch.items;
+            if (this._recvQueue[orderOffset - 1]) {
+                throw this._logger.error('recv: duplicate order id: {0}', batch.orderId);
+            }
+            this._recvQueue[orderOffset - 1] = batch.messages;
             return;
         }
-        this._notify(batch.items);
-        while (this._recvBuffer.length > 0 && this._recvBuffer[0]) {
-            this._notify(this._recvBuffer.shift()!);
-        }
+        this._notify(batch.messages);
     };
 
     private readonly _flush = (): void => {
@@ -83,6 +83,12 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
             this._handler(message);
         }
         this._recvOrderId = advanceOrderId(this._recvOrderId);
+        if (this._recvQueue.length > 0) {
+            const next = this._recvQueue.shift()!;
+            if (next) {
+                this._notify(next);
+            }
+        }
     }
 
     dispose(): void {
@@ -101,7 +107,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         if (options && Array.isArray(options.transferables)) {
             this._sendTransferables.push(...options.transferables as Transferable[]);
         }
-        if ((options && options.immediate) || this._sendBuffer.length > this._sendBufferLimit) {
+        if ((options && options.immediate) || this._sendBuffer.length > this._sendBufferSize) {
             this.flush();
         } else {
             this._requestFlush();
@@ -130,9 +136,9 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         const batch: MessageBatch<SendT> = {
             connectionId: this._connectionId,
             orderId: this._sendOrderId,
-            items: this._sendBuffer,
+            messages: [...this._sendBuffer],
         };
-        this._carrier.postMessage(batch, this._sendTransferables);
+        this._carrier.postMessage(batch, [...this._sendTransferables]);
         this._sendOrderId = advanceOrderId(this._sendOrderId);
         this._sendBuffer.length = 0;
         this._sendTransferables.length = 0;

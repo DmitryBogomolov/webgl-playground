@@ -13,7 +13,7 @@ export interface BaseChannelOptions<T> {
     readonly carrier: MessagePort;
     readonly connectionId: number;
     readonly handler: BaseChannelMessageHandler<T>;
-    readonly sendBufferLimit?: number;
-    readonly recvBufferLimit?: number;
+    readonly sendBufferSize?: number;
+    readonly recvQueueSize?: number;
     readonly flushDelay?: number;
 }
