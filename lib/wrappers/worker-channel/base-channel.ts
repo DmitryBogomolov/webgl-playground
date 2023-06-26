@@ -108,8 +108,8 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
 
     private _requestFlush(): void {
         if (this._flushTimeout === 0) {
-            // @ts-ignore
-            this._flushTimeout = setTimeout(this._flush, this._flushDelay);
+            // eslint-disable-next-line @typescript-eslint/no-implied-eval
+            this._flushTimeout = setTimeout(this._flush as TimerHandler, this._flushDelay);
         }
     }
 

@@ -16,7 +16,8 @@ export function throttle<T extends (...args: readonly unknown[]) => void>(func: 
             func(...args);
             return;
         }
-        timeout = timeout || window.setTimeout(handler, duration - timespan);
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval
+        timeout = timeout || setTimeout(handler as TimerHandler, duration - timespan);
         pendingArgs = args;
     }
     return throttledFunc as T;
