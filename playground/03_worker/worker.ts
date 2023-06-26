@@ -39,16 +39,14 @@ const channel = new BackgroundChannel<WorkerMessage, MainThreadMessage>({
     flushDelay: 5,
     handler: (message) => {
         switch (message.type) {
-        case 'main:update-scale': {
+        case 'main:update-scale':
             updateScale(message.scale);
             channel.send({ type: 'worker:set-scale', scale: buildScale(currentScale) }, []);
             break;
-        }
-        case 'main:update-color': {
+        case 'main:update-color':
             updateColor(message.color);
             channel.send({ type: 'worker:set-color', color: buildColor(currentColor) }, []);
             break;
-        }
         }
     },
 });
