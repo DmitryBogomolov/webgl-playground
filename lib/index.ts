@@ -58,8 +58,6 @@ export * from './gl/primitive.types';
 export * from './gl/primitive';
 export * from './gl/framebuffer.types';
 export * from './gl/framebuffer';
-export * from './wrappers/worker/worker.types';
-export * from './wrappers/worker/worker';
 export * from './wrappers/worker-channel/foreground-channel.types';
 export * from './wrappers/worker-channel/foreground-channel';
 export * from './wrappers/worker-channel/background-channel.types';
