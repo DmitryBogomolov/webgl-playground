@@ -8,13 +8,16 @@ export class ForegroundChannel<SendT, RecvT> extends BaseChannel<SendT, RecvT> {
 }
 
 function wrapWorker(worker: Worker | string): MessagePort {
-    const instance = worker instanceof Worker ? worker : new Worker(worker);
+    const isOwnWorker = !(worker instanceof Worker);
+    const instance = isOwnWorker ? new Worker(worker) : worker;
     return Object.assign(instance, {
         start() {
             // Does nothing.
         },
         close() {
-            (this as unknown as Worker).terminate();
+            if (isOwnWorker) {
+                (this as unknown as Worker).terminate();
+            }
         },
     }) as MessagePort;
 }
