@@ -6,12 +6,10 @@ import {
     Program,
     VertexWriter,
     parseVertexSchema,
-    // WorkerMessenger,
     color,
     vec2,
     ForegroundChannel,
 } from 'lib';
-// import { TYPE_SCALE, TYPE_COLOR } from './message-types';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -55,32 +53,22 @@ function runWorker(runtime: Runtime, state: State): void {
     const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
     const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
-    // const messenger = new WorkerMessenger(new Worker(), {
-    //     [TYPE_SCALE](payload) {
-    //         state.scale = payload as number;
-    //         runtime.requestFrameRender();
-    //     },
-    //     [TYPE_COLOR](payload) {
-    //         state.clr = payload as Color;
-    //         runtime.requestFrameRender();
-    //     },
-    // });
-
     const channel = new ForegroundChannel<MainThreadMessage, WorkerMessage>({
         worker: new Worker(),
         connectionId: CONNECTION_ID,
+        flushDelay: 5,
         handler: (message) => {
             switch (message.type) {
-                case 'set-scale': {
-                    state.scale = message.scale;
-                    runtime.requestFrameRender();
-                    break;
-                }
-                case 'set-color': {
-                    state.clr = message.color;
-                    runtime.requestFrameRender();
-                    break;
-                }
+            case 'worker:set-scale': {
+                state.scale = message.scale;
+                runtime.requestFrameRender();
+                break;
+            }
+            case 'worker:set-color': {
+                state.clr = message.color;
+                runtime.requestFrameRender();
+                break;
+            }
             }
         },
     });
@@ -97,13 +85,11 @@ function runWorker(runtime: Runtime, state: State): void {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            // messenger.post(TYPE_SCALE, scaleDelta / 1000);
-            channel.send({ type: 'update-scale', scale: scaleDelta / 1000 }, []);
+            channel.send({ type: 'main:update-scale', scale: scaleDelta / 1000 }, []);
             scaleDelta = 0;
         }
         if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            // messenger.post(TYPE_COLOR, colorDelta / 1000);
-            channel.send({ type: 'update-color', color: colorDelta / 1000 }, []);
+            channel.send({ type: 'main:update-color', color: colorDelta / 1000 }, []);
             colorDelta = 0;
         }
     }, 25);
