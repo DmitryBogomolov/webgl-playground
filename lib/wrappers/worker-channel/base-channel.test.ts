@@ -1,50 +1,58 @@
 import { BaseChannel } from './base-channel';
 
 describe('base-channel', () => {
-    class TestChannel<S = unknown, R = unknown> extends BaseChannel<S, R> { }
+    function noop(): void { /* empty */ }
 
-    function stubPort() {
-        return {
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            start: jest.fn(),
-            close: jest.fn(),
-            postMessage: jest.fn(),
-        };
+    class TestChannel<S, R> extends BaseChannel<S, R> { }
+
+    class StubMessagePort {
+        listener!: (arg: unknown) => void;
+        addEventListener(_name: string, listener: () => void): void {
+            this.listener = listener;
+        }
+        removeEventListener(): void { /* empty */ }
+        start(): void { /* empty */ }
+        close(): void { /* empty */ }
+        postMessage = jest.fn();
     }
 
     describe('BaseChannel', () => {
         it('add and remove event listeners', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
+            const addEventListener = jest.spyOn(port, 'addEventListener');
+            const removeEventListener = jest.spyOn(port, 'removeEventListener');
+            const start = jest.spyOn(port, 'start');
+            const close = jest.spyOn(port, 'close');
+
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
             });
 
-            expect(port.addEventListener.mock.calls).toEqual([
+            expect(addEventListener.mock.calls).toEqual([
                 ['message', expect.any(Function)],
             ]);
-            expect(port.start.mock.calls).toEqual([
+            expect(start.mock.calls).toEqual([
                 [],
             ]);
 
             channel.dispose();
 
-            expect(port.removeEventListener.mock.calls).toEqual([
-                ['message', port.addEventListener.mock.calls[0][1]],
+            expect(removeEventListener.mock.calls).toEqual([
+                ['message', expect.any(Function)],
             ]);
-            expect(port.close.mock.calls).toEqual([
+            expect(close.mock.calls).toEqual([
                 [],
             ]);
         });
 
         it('send messages after flush', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
             });
 
             channel.send({ text: 'Hello World', i: 1 });
@@ -70,12 +78,12 @@ describe('base-channel', () => {
         });
 
         it('send messages when buffer is full', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
                 sendBufferSize: 3,
-                handler: () => { },
+                handler: noop,
             });
 
             channel.send({ text: 'Hello World', i: 1 });
@@ -102,11 +110,11 @@ describe('base-channel', () => {
         });
 
         it('send messages immediately', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
             });
 
             channel.send({ text: 'Hello World', i: 1 }, { immediate: true });
@@ -126,12 +134,12 @@ describe('base-channel', () => {
 
         it('send messages after delay', () => {
             jest.useFakeTimers();
-            const port = stubPort();
+            const port = new StubMessagePort();
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
                 flushDelay: 25,
-                handler: () => { },
+                handler: noop,
             });
 
             channel.send({ text: 'Hello World', i: 1 });
@@ -163,11 +171,11 @@ describe('base-channel', () => {
         });
 
         it('send transferrables', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const channel = new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
             });
             const aBuffer = new ArrayBuffer(1);
             const bBuffer = new ArrayBuffer(1);
@@ -193,17 +201,19 @@ describe('base-channel', () => {
             ]);
         });
 
-        function emulateMessage<T>(port: ReturnType<typeof stubPort>, connectionId: number, orderId: number, messages: ReadonlyArray<T>): void {
+        function emulateMessage<T>(
+            port: StubMessagePort, connectionId: number, orderId: number, messages: ReadonlyArray<T>,
+        ): void {
             const batch = {
                 connectionId,
                 orderId,
                 messages,
             };
-            port.addEventListener.mock.calls[0][1]({ data: batch });
+            port.listener({ data: batch });
         }
 
         it('receive message', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const handle = jest.fn();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
@@ -223,7 +233,7 @@ describe('base-channel', () => {
         });
 
         it('ignore unknown messages', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const handle = jest.fn();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
@@ -235,13 +245,13 @@ describe('base-channel', () => {
                 { text: 'Hello World', i: 1 },
                 { text: 'Hello World', i: 2 },
             ]);
-            port.addEventListener.mock.calls[0][1]({ tag: 'test' });
+            port.listener({ tag: 'test' });
 
             expect(handle.mock.calls).toEqual([]);
         });
 
         it('throw error on bad messages', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const handle = jest.fn();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
@@ -250,18 +260,18 @@ describe('base-channel', () => {
             });
 
             expect(() => {
-                port.addEventListener.mock.calls[0][1]({ data: { connectionId: 102 } });
+                port.listener({ data: { connectionId: 102 } });
             }).toThrow(/recv: bad message content$/);
             expect(() => {
-                port.addEventListener.mock.calls[0][1]({ data: { connectionId: 102, items: [] } });
+                port.listener({ data: { connectionId: 102, items: [] } });
             }).toThrow(/recv: bad message content$/);
             expect(() => {
-                port.addEventListener.mock.calls[0][1]({ data: { connectionId: 102, orderId: 1 } });
+                port.listener({ data: { connectionId: 102, orderId: 1 } });
             }).toThrow(/recv: bad message content$/);
         });
 
         it('enforce order of received messages', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             const handle = jest.fn();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
@@ -305,11 +315,11 @@ describe('base-channel', () => {
         });
 
         it('throw error if order id is duplicated', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
                 recvQueueSize: 2,
             });
 
@@ -330,11 +340,11 @@ describe('base-channel', () => {
         });
 
         it('throw error if too many unordered messages', () => {
-            const port = stubPort();
+            const port = new StubMessagePort();
             new TestChannel({
                 carrier: port as unknown as MessagePort,
                 connectionId: 102,
-                handler: () => { },
+                handler: noop,
                 recvQueueSize: 2,
             });
 
