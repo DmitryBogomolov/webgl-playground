@@ -1,4 +1,4 @@
-import type { BaseChannelHandler, BaseChannelOptions } from './base-channel.types';
+import type { BaseChannelMessageHandler, BaseChannelOptions, SendMessageOptions } from './base-channel.types';
 import { BaseDisposable } from '../../common/base-disposable';
 
 interface MessageBatch<T> {
@@ -14,7 +14,7 @@ const DEFAULT_FLUSH_DELAY = 500;
 export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
     private readonly _carrier: MessagePort;
     private readonly _connectionId: number;
-    private readonly _handler: BaseChannelHandler<RecvT>;
+    private readonly _handler: BaseChannelMessageHandler<RecvT>;
     private readonly _sendBuffer: SendT[] = [];
     private readonly _sendBufferLimit: number;
     private readonly _sendTransferables: Transferable[] = [];
@@ -93,13 +93,15 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         this._dispose();
     }
 
-    send(message: SendT, transferables: Transferable[], immediate: boolean = false): void {
+    send(message: SendT, options?: SendMessageOptions): void {
         if (!message) {
             throw this._logger.error('send: message is not defined');
         }
         this._sendBuffer.push(message);
-        this._sendTransferables.push(...transferables);
-        if (immediate || this._sendBuffer.length > this._sendBufferLimit) {
+        if (options && Array.isArray(options.transferables)) {
+            this._sendTransferables.push(...options.transferables as Transferable[]);
+        }
+        if ((options && options.immediate) || this._sendBuffer.length > this._sendBufferLimit) {
             this.flush();
         } else {
             this._requestFlush();

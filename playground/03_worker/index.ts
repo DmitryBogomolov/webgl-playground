@@ -83,11 +83,11 @@ function runWorker(runtime: Runtime, state: State): void {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            channel.send({ type: 'main:update-scale', scale: scaleDelta / 1000 }, []);
+            channel.send({ type: 'main:update-scale', scale: scaleDelta / 1000 });
             scaleDelta = 0;
         }
         if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            channel.send({ type: 'main:update-color', color: colorDelta / 1000 }, []);
+            channel.send({ type: 'main:update-color', color: colorDelta / 1000 });
             colorDelta = 0;
         }
     }, 25);

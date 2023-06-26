@@ -41,11 +41,11 @@ const channel = new BackgroundChannel<WorkerMessage, MainThreadMessage>({
         switch (message.type) {
         case 'main:update-scale':
             updateScale(message.scale);
-            channel.send({ type: 'worker:set-scale', scale: buildScale(currentScale) }, []);
+            channel.send({ type: 'worker:set-scale', scale: buildScale(currentScale) });
             break;
         case 'main:update-color':
             updateColor(message.color);
-            channel.send({ type: 'worker:set-color', color: buildColor(currentColor) }, []);
+            channel.send({ type: 'worker:set-color', color: buildColor(currentColor) });
             break;
         }
     },
