@@ -140,5 +140,52 @@ describe('event-emitter', () => {
             emitter.proxy().off(stub);
             emitter.proxy().off(stub);
         });
+
+        it('add another handler in handler', () => {
+            const emitter = new EventEmitter<[number]>();
+            const stub = jest.fn();
+            emitter.on(() => {
+                emitter.on(stub);
+            });
+
+            emitter.emit(1);
+
+            expect(stub.mock.calls).toEqual([]);
+        });
+
+        it('remove another handler in handler', () => {
+            const emitter = new EventEmitter<[number]>();
+            const stub = jest.fn();
+            emitter.on(stub);
+            emitter.on(() => {
+                emitter.off(stub);
+            });
+
+            emitter.emit(1);
+
+            expect(stub.mock.calls).toEqual([
+                [1],
+            ]);
+        });
+
+        it('emit in handler', () => {
+            const emitter = new EventEmitter<[number]>();
+            const stub = jest.fn();
+            emitter.on(stub);
+            emitter.on((x) => {
+                if (x < 4) {
+                    emitter.emit(x + 1);
+                }
+            });
+
+            emitter.emit(1);
+
+            expect(stub.mock.calls).toEqual([
+                [1],
+                [2],
+                [3],
+                [4],
+            ]);
+        });
     });
 });
