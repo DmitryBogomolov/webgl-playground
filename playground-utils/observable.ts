@@ -124,9 +124,10 @@ function patchWithMethods<T>(target: Observable<T>, emitter: EventEmitter<[T]>, 
 }
 
 function scheduleNotify(notify: () => void, delay: number): number {
-    return window.setTimeout(notify, delay);
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    return setTimeout(notify as TimerHandler, delay);
 }
 
 function cancelNotify(id: number): void {
-    window.clearTimeout(id);
+    clearTimeout(id);
 }

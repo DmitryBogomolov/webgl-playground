@@ -1,13 +1,7 @@
 import type { Color } from 'lib';
-import {
-    color,
-    setWorkerMessageHandler,
-    postWorkerMessage,
-} from 'lib';
-import {
-    TYPE_SCALE,
-    TYPE_COLOR,
-} from './message-types';
+import type { MainThreadMessage, WorkerMessage } from './messages';
+import { color, BackgroundChannel } from 'lib';
+import { CONNECTION_ID } from './connection';
 
 const SCALE_CHANGE_SPEED = 0.1;
 const COLOR_CHANGE_SPEED = 4;
@@ -40,13 +34,19 @@ function buildColor(value: number): Color {
     return color(ret[0], ret[1], ret[2]);
 }
 
-setWorkerMessageHandler({
-    [TYPE_SCALE](payload) {
-        updateScale(payload as number);
-        postWorkerMessage(TYPE_SCALE, buildScale(currentScale));
-    },
-    [TYPE_COLOR](payload) {
-        updateColor(payload as number);
-        postWorkerMessage(TYPE_COLOR, buildColor(currentColor));
+const channel = new BackgroundChannel<WorkerMessage, MainThreadMessage>({
+    connectionId: CONNECTION_ID,
+    flushDelay: 5,
+    handler: (message) => {
+        switch (message.type) {
+        case 'main:update-scale':
+            updateScale(message.scale);
+            channel.send({ type: 'worker:set-scale', scale: buildScale(currentScale) });
+            break;
+        case 'main:update-color':
+            updateColor(message.color);
+            channel.send({ type: 'worker:set-color', color: buildColor(currentColor) });
+            break;
+        }
     },
 });
