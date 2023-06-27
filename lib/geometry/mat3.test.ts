@@ -1,5 +1,6 @@
 import type { Mat3 } from './mat3.types';
 import {
+    mat3,
     eq3x3, zero3x3, identity3x3, clone3x3, update3x3, transpose3x3,
     add3x3, sub3x3, mul3x3, mul3v2, mul3v3,
     det3x3, inverse3x3,
@@ -12,7 +13,13 @@ describe('mat3', () => {
     const EPS = 1E-4;
 
     function make(raw: ReadonlyArray<number>): Mat3 {
-        return update3x3(raw);
+        const ret = mat3();
+        for (let i = 0; i < 9; ++i) {
+            const row = (i / 3) | 0;
+            const col = i % 3;
+            (ret as number[])[col * 3 + row] = raw[i];
+        }
+        return ret;
     }
 
     expect.extend({
@@ -106,6 +113,20 @@ describe('mat3', () => {
         expect(
             clone3x3(make(raw)),
         ).toBeMat3(raw);
+    });
+
+    it('update3x3', () => {
+        expect(
+            update3x3([
+                1, -2, 1,
+                0, 0, 1,
+                1, 2, 3,
+            ]),
+        ).toBeMat3([
+            1, 0, 1,
+            -2, 0, 2,
+            1, 1, 3,
+        ]);
     });
 
     it('transpose3x3', () => {

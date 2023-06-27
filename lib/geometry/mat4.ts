@@ -54,13 +54,13 @@ export function identity4x4(out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
-const UPDATE4X4_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
-    return rowcol2idx(col, row);
-});
+// const UPDATE4X4_MAP = range(MAT_SIZE, (idx) => {
+//     const [row, col] = idx2rowcol(idx);
+//     return rowcol2idx(col, row);
+// });
 export function update4x4(values: ReadonlyArray<number>, out: Mat4Mut = m4()): Mat4 {
     for (let i = 0; i < MAT_SIZE; ++i) {
-        out[i] = values[UPDATE4X4_MAP[i]];
+        out[i] = values[i];
     }
     return out;
 }

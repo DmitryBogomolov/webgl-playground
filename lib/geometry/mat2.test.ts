@@ -1,5 +1,6 @@
 import type { Mat2 } from './mat2.types';
 import {
+    mat2,
     eq2x2, zero2x2, identity2x2, clone2x2, update2x2, transpose2x2,
     add2x2, sub2x2, mul2x2, mul2v2,
     det2x2, inverse2x2,
@@ -7,7 +8,13 @@ import {
 
 describe('mat2', () => {
     function make(raw: ReadonlyArray<number>): Mat2 {
-        return update2x2(raw);
+        const ret = mat2();
+        for (let i = 0; i < 4; ++i) {
+            const row = (i / 2) | 0;
+            const col = i % 2;
+            (ret as number[])[col * 2 + row] = raw[i];
+        }
+        return ret;
     }
 
     it('eq2x2', () => {
@@ -63,6 +70,18 @@ describe('mat2', () => {
         expect(
             clone2x2(make(raw)),
         ).toBeMat2(raw);
+    });
+
+    it('update2x2', () => {
+        expect(
+            update2x2([
+                1, -2,
+                0, 0,
+            ]),
+        ).toBeMat2([
+            1, 0,
+            -2, 0,
+        ]);
     });
 
     it('transpose2x2', () => {

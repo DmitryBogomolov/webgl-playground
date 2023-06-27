@@ -1,5 +1,6 @@
 import type { Mat4 } from './mat4.types';
 import {
+    mat4,
     eq4x4, zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
     add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
     det4x4, inverse4x4, inversetranspose4x4,
@@ -9,7 +10,13 @@ import {
 
 describe('mat4', () => {
     function make(raw: ReadonlyArray<number>): Mat4 {
-        return update4x4(raw);
+        const ret = mat4();
+        for (let i = 0; i < 16; ++i) {
+            const row = (i / 4) | 0;
+            const col = i % 4;
+            (ret as number[])[col * 4 + row] = raw[i];
+        }
+        return ret;
     }
 
     it('eq4x4', () => {
@@ -79,6 +86,22 @@ describe('mat4', () => {
         expect(
             clone4x4(make(raw)),
         ).toBeMat4(raw);
+    });
+
+    it('update4x4', () => {
+        expect(
+            update4x4([
+                1, -2, 1, -1,
+                0, 0, 1, 1,
+                1, 2, 3, 4,
+                1, 2, 1, 3,
+            ]),
+        ).toBeMat4([
+            1, 0, 1, 1,
+            -2, 0, 2, 2,
+            1, 1, 3, 1,
+            -1, 1, 4, 3,
+        ]);
     });
 
     it('transpose4x4', () => {
