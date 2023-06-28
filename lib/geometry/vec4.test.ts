@@ -6,12 +6,12 @@ import {
 
 describe('vec4', () => {
     it('constants', () => {
-        expect(eq4(ZERO4, { x: 0, y: 0, z: 0, w: 0 })).toEqual(true);
-        expect(eq4(UNIT4, { x: 1, y: 1, z: 1, w: 1 })).toEqual(true);
-        expect(eq4(XUNIT4, { x: 1, y: 0, z: 0, w: 0 })).toEqual(true);
-        expect(eq4(YUNIT4, { x: 0, y: 1, z: 0, w: 0 })).toEqual(true);
-        expect(eq4(ZUNIT4, { x: 0, y: 0, z: 1, w: 0 })).toEqual(true);
-        expect(eq4(WUNIT4, { x: 0, y: 0, z: 0, w: 1 })).toEqual(true);
+        expect(ZERO4).toBeVec4({ x: 0, y: 0, z: 0, w: 0 });
+        expect(UNIT4).toBeVec4({ x: 1, y: 1, z: 1, w: 1 });
+        expect(XUNIT4).toBeVec4({ x: 1, y: 0, z: 0, w: 0 });
+        expect(YUNIT4).toBeVec4({ x: 0, y: 1, z: 0, w: 0 });
+        expect(ZUNIT4).toBeVec4({ x: 0, y: 0, z: 1, w: 0 });
+        expect(WUNIT4).toBeVec4({ x: 0, y: 0, z: 0, w: 1 });
     });
 
     it('eq4', () => {

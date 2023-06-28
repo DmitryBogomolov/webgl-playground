@@ -7,11 +7,11 @@ import {
 
 describe('vec3', () => {
     it('constants', () => {
-        expect(eq3(ZERO3, { x: 0, y: 0, z: 0 })).toEqual(true);
-        expect(eq3(UNIT3, { x: 1, y: 1, z: 1 })).toEqual(true);
-        expect(eq3(XUNIT3, { x: 1, y: 0, z: 0 })).toEqual(true);
-        expect(eq3(YUNIT3, { x: 0, y: 1, z: 0 })).toEqual(true);
-        expect(eq3(ZUNIT3, { x: 0, y: 0, z: 1 })).toEqual(true);
+        expect(ZERO3).toBeVec3({ x: 0, y: 0, z: 0 });
+        expect(UNIT3).toBeVec3({ x: 1, y: 1, z: 1 });
+        expect(XUNIT3).toBeVec3({ x: 1, y: 0, z: 0 });
+        expect(YUNIT3).toBeVec3({ x: 0, y: 1, z: 0 });
+        expect(ZUNIT3).toBeVec3({ x: 0, y: 0, z: 1 });
     });
 
     it('eq3', () => {

@@ -6,10 +6,10 @@ import {
 
 describe('vec2', () => {
     it('constants', () => {
-        expect(eq2(ZERO2, { x: 0, y: 0 })).toEqual(true);
-        expect(eq2(UNIT2, { x: 1, y: 1 })).toEqual(true);
-        expect(eq2(XUNIT2, { x: 1, y: 0 })).toEqual(true);
-        expect(eq2(YUNIT2, { x: 0, y: 1 })).toEqual(true);
+        expect(ZERO2).toBeVec2({ x: 0, y: 0 });
+        expect(UNIT2).toBeVec2({ x: 1, y: 1 });
+        expect(XUNIT2).toBeVec2({ x: 1, y: 0 });
+        expect(YUNIT2).toBeVec2({ x: 0, y: 1 });
     });
 
     it('eq2', () => {
