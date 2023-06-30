@@ -31,8 +31,8 @@ export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = v3()): Vec3 {
     const iz = qw * z + qx * y - qy * x;
     const iw = - qx * x - qy * y - qz * z;
     out.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-	out.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-	out.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+    out.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+    out.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
     return out;
 }
 
@@ -58,7 +58,6 @@ export function quat4inv(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     quat4conj(q, out);
     return norm4(out, out);
 }
-
 
 // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
 export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Vec4 {
@@ -116,9 +115,9 @@ export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 export function quat4fromMat(mat: Mat4, out: Vec4Mut = v4()): Vec4 {
     const [
-        m11, m21, m31, _m41,
-        m12, m22, m32, _m42,
-        m13, m23, m33, _m43,
+        m11, m21, m31, ,
+        m12, m22, m32, ,
+        m13, m23, m33, ,
     ] = mat;
     const trace = m11 + m22 + m33;
     if (trace > 0) {
