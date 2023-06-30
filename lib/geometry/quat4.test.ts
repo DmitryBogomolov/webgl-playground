@@ -5,6 +5,7 @@ import {
     quat4fromAxisAngle, quat4toAxisAngle,
     quat4fromMat, quat4toMat,
     quat4toEuler, quat4fromEuler,
+    quat4fromVecs,
 } from './quat4';
 import { rotation4x4, transpose4x4 } from './mat4';
 
@@ -220,5 +221,29 @@ describe('quat4', () => {
         expect(
             quat4toEuler({ x: Math.SQRT1_2, y: 0, z: Math.SQRT1_2, w: 0 })
         ).toBeVec3({ x: 0, y: -Math.PI / 2, z: 0 });
+    });
+
+    it('quat4fromVecs', () => {
+        expect(
+            quat4fromVecs({ x: 3, y: 0, z: 0 }, { x: 2, y: 0, z: 0 })
+        ).toBeVec4({ x: 0, y: 0, z: 0, w: 1 });
+        expect(
+            quat4fromVecs({ x: 3, y: 0, z: 0 }, { x: 0, y: 2, z: 0 })
+        ).toBeVec4({ x: 0, y: 0, z: s_PI4, w: c_PI4 });
+        expect(
+            quat4fromVecs({ x: 0, y: 0, z: 1 }, { x: 0, y: 2, z: 0 })
+        ).toBeVec4({ x: -s_PI4, y: 0, z: 0, w: c_PI4 });
+        expect(
+            quat4fromVecs({ x: 3, y: 0, z: 0 }, { x: 0, y: 2, z: 0 })
+        ).toBeVec4({ x: 0, y: 0, z: s_PI4, w: c_PI4 });
+        expect(
+            quat4fromVecs({ x: 0, y: 2, z: 0 }, { x: 0, y: -2, z: 0 })
+        ).toBeVec4({ x: 0, y: 0, z: 1, w: 0 });
+        expect(
+            quat4fromVecs({ x: 1, y: 1, z: 0 }, { x: -1, y: -1, z: 0 })
+        ).toBeVec4({ x: -Math.SQRT1_2, y: Math.SQRT1_2, z: 0, w: 0 });
+        expect(
+            quat4fromVecs({ x: 1, y: 2, z: 2 }, { x: -1, y: -2, z: -2 })
+        ).toBeVec4({ x: 0, y: -Math.SQRT1_2, z: Math.SQRT1_2, w: 0 });
     });
 });

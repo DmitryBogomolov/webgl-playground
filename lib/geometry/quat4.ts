@@ -191,25 +191,29 @@ export function quat4toEuler(q: Vec4, out: Vec3Mut = v3()): Vec3 {
     return out;
 }
 
-export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4()): Vec4 {
-    const k = dot3(from, to);
-    if (k <= -1 + DOT_EPS) {
-        if (Math.abs(from.x) > Math.abs(from.z)) {
-            out.x = -from.y;
-            out.y = +from.x;
+const _quat4fromVecs_aux_a = vec3(0, 0, 0);
+const _quat4fromVecs_aux_b = vec3(0, 0, 0);
+export function quat4fromVecs(a: Vec3, b: Vec3, out: Vec4Mut = v4()): Vec4 {
+    const na = norm3(a, _quat4fromVecs_aux_a as Vec3Mut);
+    const nb = norm3(b, _quat4fromVecs_aux_b as Vec3Mut);
+    const k = dot3(na, nb);
+    if (eq(k, -1, DOT_EPS)) {
+        if (Math.abs(a.x) > Math.abs(a.z)) {
+            out.x = -a.y;
+            out.y = +a.x;
             out.z = 0;
         } else {
             out.x = 0;
-            out.y = -from.z;
-            out.z = +from.y;
+            out.y = -a.z;
+            out.z = +a.y;
         }
         norm3(out, out as unknown as Vec3Mut);
         out.w = 0;
         return out;
-    } else if (k >= +1 - DOT_EPS) {
+    } else if (eq(k, +1, DOT_EPS)) {
         return clone4(QUAT4_UNIT, out);
     } else {
-        cross3(from, to, out as unknown as Vec3Mut);
+        cross3(na, nb, out as unknown as Vec3Mut);
         out.w = k + 1;
         return norm4(out, out);
     }
