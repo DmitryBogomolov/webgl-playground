@@ -1,11 +1,13 @@
 import type { Vec4, Vec4Mut } from './vec4.types';
 import type { Vec3, Vec3Mut } from './vec3.types';
-import type { Mat3 } from './mat3.types';
+import type { Mat4, Mat4Mut } from './mat4.types';
 import { vec4, clone4, norm4, dot4 } from './vec4';
 import { vec3, clone3, mul3, dot3, cross3, norm3 } from './vec3';
+import { mat4, update4x4 } from './mat4';
 import { floatEq as eq } from './float-eq';
 
 // https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
+// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
 export const QUAT4_UNIT = vec4(0, 0, 0, 1);
 
@@ -34,7 +36,6 @@ export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return out;
 }
 
-// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 export function quat4mul(a: Vec4, b: Vec4, out: Vec4Mut = v4()): Vec4 {
     const { x: ax, y: ay, z: az, w: aw } = a;
     const { x: bx, y: by, z: bz, w: bw } = b;
@@ -45,7 +46,6 @@ export function quat4mul(a: Vec4, b: Vec4, out: Vec4Mut = v4()): Vec4 {
     return out;
 }
 
-// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 export function quat4conj(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     out.x = -q.x;
     out.y = -q.y;
@@ -95,7 +95,8 @@ export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Ve
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
 export function quat4fromAxisAngle(axis: Vec3, angle: number, out: Vec4Mut = v4()): Vec4 {
     const t = angle / 2;
-    mul3(axis, Math.sin(t), out as unknown as Vec3Mut);
+    norm3(axis, out as unknown as Vec3Mut);
+    mul3(out, Math.sin(t), out as unknown as Vec3Mut);
     out.w = Math.cos(t);
     return out;
 }
@@ -113,13 +114,11 @@ export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
 }
 
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-export function quat4fromMat3(mat: Mat3, out: Vec4Mut = v4()): Vec4 {
-// TOOD: Add version for Mat4. Provide extract3x3 function for Mat3.
-// TODO: quat4toMat3, quat4toMat4
+export function quat4fromMat(mat: Mat4, out: Vec4Mut = v4()): Vec4 {
     const [
-        m11, m21, m31,
-        m12, m22, m32,
-        m13, m23, m33,
+        m11, m21, m31, _m41,
+        m12, m22, m32, _m42,
+        m13, m23, m33, _m43,
     ] = mat;
     const trace = m11 + m22 + m33;
     if (trace > 0) {
@@ -135,19 +134,38 @@ export function quat4fromMat3(mat: Mat3, out: Vec4Mut = v4()): Vec4 {
         out.y = (m12 + m21) / s;
         out.z = (m13 + m31) / s;
     } else if (m22 > m33) {
-        const s = 2 * Math.sqrt(1 + m22 - m11 - m33);
+        const s = 2 * Math.sqrt(1 - m11 + m22 - m33);
         out.w = (m13 - m31) / s;
         out.x = (m12 + m21) / s;
         out.y = 0.25 * s;
         out.z = (m23 + m32) / s;
     } else {
-        const s = 2.0 * Math.sqrt(1 + m33 - m11 - m22);
+        const s = 2.0 * Math.sqrt(1 - m11 - m22 + m33);
         out.w = (m21 - m12) / s;
         out.x = (m13 + m31) / s;
         out.y = (m23 + m32) / s;
         out.z = 0.25 * s;
     }
     return out;
+}
+
+export function quat4toMat(q: Vec4, out: Mat4Mut = mat4() as Mat4Mut): Mat4 {
+    const { x, y, z, w } = q;
+    const m11 = 1 - 2 * y * y - 2 * z * z;
+    const m12 = 2 * x * y - 2 * w * z;
+    const m13 = 2 * x * z + 2 * w * y;
+    const m21 = 2 * x * y + 2 * w * z;
+    const m22 = 1 - 2 * x * x - 2 * z * z;
+    const m23 = 2 * y * z - 2 * w * x;
+    const m31 = 2 * x * z - 2 * w * y;
+    const m32 = 2 * y * z + 2 * w * x;
+    const m33 = 1 - 2 * x * x - 2 * y * y;
+    return update4x4([
+        m11, m21, m31, 0,
+        m12, m22, m32, 0,
+        m13, m23, m33, 0,
+        0, 0, 0, 1,
+    ], out);
 }
 
 export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4()): Vec4 {
