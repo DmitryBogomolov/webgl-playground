@@ -54,13 +54,13 @@ export function identity3x3(out: Mat3Mut = m3()): Mat3 {
     return out;
 }
 
-const UPDATE3X3_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
-    return rowcol2idx(col, row);
-});
+// const UPDATE3X3_MAP = range(MAT_SIZE, (idx) => {
+//     const [row, col] = idx2rowcol(idx);
+//     return rowcol2idx(col, row);
+// });
 export function update3x3(values: ReadonlyArray<number>, out: Mat3Mut = m3()): Mat3 {
     for (let i = 0; i < MAT_SIZE; ++i) {
-        out[i] = values[UPDATE3X3_MAP[i]];
+        out[i] = values[i];
     }
     return out;
 }

@@ -4,6 +4,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
     private readonly _handlers: EventHandler<T>[] = [];
     private readonly _proxy = new EventProxyImpl<T>(this);
     private readonly _handlerAdded: (handler: EventHandler<T>) => void;
+    private _emitHandlers: EventHandler<T>[] | null = null;
 
     constructor(handlerAdded?: (handler: EventHandler<T>) => void) {
         this._handlerAdded = handlerAdded || (() => { /* nothing */ });
@@ -15,6 +16,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
 
     on(handler: EventHandler<T>): this {
         this._handlers.push(handler);
+        this._emitHandlers = null;
         this._handlerAdded(handler);
         return this;
     }
@@ -23,12 +25,16 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
         const i = this._handlers.indexOf(handler);
         if (i >= 0) {
             this._handlers.splice(i, 1);
+            this._emitHandlers = null;
         }
         return this;
     }
 
     emit(...args: T): this {
-        for (const handler of this._handlers) {
+        if (!this._emitHandlers) {
+            this._emitHandlers = this._handlers.slice();
+        }
+        for (const handler of this._emitHandlers) {
             handler(...args);
         }
         return this;
@@ -40,6 +46,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
 
     clear(): this {
         this._handlers.length = 0;
+        this._emitHandlers = null;
         return this;
     }
 }

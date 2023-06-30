@@ -6,5 +6,5 @@ export interface Spherical {
 export interface SphericalMut {
     azimuth: number;
     elevation: number;
-    readonly _NO_CAST: null;
+    readonly _NO_IMPLICIT_SPHERICAL_CAST: null;
 }

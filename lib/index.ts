@@ -23,6 +23,7 @@ export * from './geometry/mat3.types';
 export * from './geometry/mat3';
 export * from './geometry/mat4.types';
 export * from './geometry/mat4';
+export * from './geometry/quat4';
 export * from './geometry/spherical.types';
 export * from './geometry/spherical';
 export * from './common/color.types';

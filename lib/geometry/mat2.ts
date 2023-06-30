@@ -46,8 +46,8 @@ export function identity2x2(out: Mat2Mut = m2()): Mat2 {
 
 export function update2x2(values: ReadonlyArray<number>, out: Mat2Mut = m2()): Mat2 {
     out[0] = values[0];
-    out[1] = values[2];
-    out[2] = values[1];
+    out[1] = values[1];
+    out[2] = values[2];
     out[3] = values[3];
     return out;
 }
