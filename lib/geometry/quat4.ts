@@ -45,17 +45,6 @@ export function quat4mul(a: Vec4, b: Vec4, out: Vec4Mut = v4()): Vec4 {
     return out;
 }
 
-export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
-    const angle = 2 * Math.acos(q.w);
-    out.w = angle;
-    if (eq(angle, 0, ANGLE_EPS)) {
-        clone3(DEFAULT_AXIS, out as unknown as Vec3Mut);
-    }
-    const k = 1 / Math.sin(angle / 2);
-    mul3(q, k, out as unknown as Vec3Mut);
-    return out;
-}
-
 // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 export function quat4conj(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     out.x = -q.x;
@@ -70,11 +59,56 @@ export function quat4inv(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     return norm4(out, out);
 }
 
+
+// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
+export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Vec4 {
+    if (t <= 0) {
+        return clone4(a, out);
+    }
+    if (t >= 1) {
+        return clone4(b, out);
+    }
+    let k = dot4(a, b);
+    let sign = 1;
+    if (k < 0) {
+        k = -k;
+        sign = -1;
+    }
+    let ta = 0;
+    let tb = 0;
+    if (eq(k, 1, DOT_EPS)) {
+        ta = 1 - t;
+        tb = t;
+    } else {
+        const angle = Math.acos(k);
+        const s = Math.sin(angle);
+        ta = Math.sin((1 - t) * angle) / s;
+        tb = Math.sin(t * angle) / s;
+    }
+    out.x = a.x * ta + b.x * tb * sign;
+    out.y = a.y * ta + b.y * tb * sign;
+    out.z = a.z * ta + b.z * tb * sign;
+    out.w = a.w * ta + b.w * tb * sign;
+    return out;
+}
+
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
 export function quat4fromAxisAngle(axis: Vec3, angle: number, out: Vec4Mut = v4()): Vec4 {
     const t = angle / 2;
     mul3(axis, Math.sin(t), out as unknown as Vec3Mut);
     out.w = Math.cos(t);
+    return out;
+}
+
+export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
+    const angle = 2 * Math.acos(q.w);
+    out.w = angle;
+    if (eq(angle, 0, ANGLE_EPS)) {
+        clone3(DEFAULT_AXIS, out as unknown as Vec3Mut);
+        return out;
+    }
+    const k = 1 / Math.sin(angle / 2);
+    mul3(q, k, out as unknown as Vec3Mut);
     return out;
 }
 
@@ -138,36 +172,4 @@ export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4()): Vec4 {
         out.w = k + 1;
         return norm4(out, out);
     }
-}
-
-// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
-export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Vec4 {
-    if (t <= 0) {
-        return clone4(a, out);
-    }
-    if (t >= 1) {
-        return clone4(b, out);
-    }
-    let k = dot4(a, b);
-    let sign = 1;
-    if (k < 0) {
-        k = -k;
-        sign = -1;
-    }
-    let ta = 0;
-    let tb = 0;
-    if (eq(k, 1, DOT_EPS)) {
-        ta = 1 - t;
-        tb = t;
-    } else {
-        const angle = Math.acos(k);
-        const s = Math.sin(angle);
-        ta = Math.sin((1 - t) * angle) / s;
-        tb = Math.sin(t * angle) / s;
-    }
-    out.x = a.x * ta + b.x * tb * sign;
-    out.y = a.y * ta + b.y * tb * sign;
-    out.z = a.z * ta + b.z * tb * sign;
-    out.w = a.w * ta + b.w * tb * sign;
-    return out;
 }
