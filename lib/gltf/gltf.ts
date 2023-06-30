@@ -167,11 +167,11 @@ export function getNodeTransform(node: GlTFSchema.Node): Mat4 | null {
     if (node.scale || node.rotation || node.translation) {
         const transform = identity4x4() as Mat4Mut;
         if (node.scale) {
-            const scale = vec3(node.scale[0], node.scale[1], node.scale[2]);
+            const scale = vec3(...node.scale as [number, number, number]);
             apply4x4(transform, scaling4x4, scale);
         }
         if (node.rotation) {
-            const rotation = vec4(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+            const rotation = vec4(...node.rotation as [number, number, number, number]);
             quat4toAxisAngle(rotation, rotation as Vec4Mut);
             apply4x4(transform, rotation4x4, rotation, rotation.w);
         }
