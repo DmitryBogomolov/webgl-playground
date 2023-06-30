@@ -124,7 +124,7 @@ const config: Configuration = {
             },
             {
                 test: /\.(vert|frag|glsl)$/,
-                use: 'raw-loader',
+                use: 'shader-loader',
             },
         ],
     },
