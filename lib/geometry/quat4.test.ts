@@ -4,6 +4,7 @@ import {
     quat4apply, quat4mul, quat4slerp, quat4conj, quat4inv,
     quat4fromAxisAngle, quat4toAxisAngle,
     quat4fromMat, quat4toMat,
+    quat4toEuler, quat4fromEuler,
 } from './quat4';
 import { rotation4x4, transpose4x4 } from './mat4';
 
@@ -183,5 +184,41 @@ describe('quat4', () => {
         expect(
             quat4toMat(quat4fromAxisAngle(axis, a))
         ).toBeMat4(transpose4x4(rotation4x4(axis, a)));
+    });
+
+    it('quat4fromEuler', () => {
+        expect(
+            quat4fromEuler({ x: 0, y: 0, z: 0 })
+        ).toBeVec4({ x: 0, y: 0, z: 0, w: 1 });
+        expect(
+            quat4fromEuler({ x: Math.PI / 2, y: 0, z: 0 })
+        ).toBeVec4({ x: s_PI4, y: 0, z: 0, w: c_PI4 });
+        expect(
+            quat4fromEuler({ x: 0, y: -Math.PI / 2, z: 0 })
+        ).toBeVec4({ x: 0, y: -s_PI4, z: 0, w: c_PI4 });
+        expect(
+            quat4fromEuler({ x: 0, y: 0, z: Math.PI / 2 })
+        ).toBeVec4({ x: 0, y: 0, z: s_PI4, w: c_PI4 });
+        expect(
+            quat4fromEuler({ x: Math.PI / 2, y: -Math.PI / 2, z: Math.PI / 2 })
+        ).toBeVec4({ x: Math.SQRT1_2, y: 0, z: Math.SQRT1_2, w: 0 });
+    });
+
+    it('quat4toEuler', () => {
+        expect(
+            quat4toEuler({ x: 0, y: 0, z: 0, w: 1 })
+        ).toBeVec3({ x: 0, y: 0, z: 0 });
+        expect(
+            quat4toEuler({ x: s_PI4, y: 0, z: 0, w: c_PI4 })
+        ).toBeVec3({ x: Math.PI / 2, y: 0, z: 0 });
+        expect(
+            quat4toEuler({ x: 0, y: -s_PI4, z: 0, w: c_PI4 })
+        ).toBeVec3({ x: 0, y: -Math.PI / 2, z: 0 });
+        expect(
+            quat4toEuler({ x: 0, y: 0, z: s_PI4, w: c_PI4 })
+        ).toBeVec3({ x: 0, y: 0, z: Math.PI / 2 });
+        expect(
+            quat4toEuler({ x: Math.SQRT1_2, y: 0, z: Math.SQRT1_2, w: 0 })
+        ).toBeVec3({ x: 0, y: -Math.PI / 2, z: 0 });
     });
 });

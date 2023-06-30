@@ -168,6 +168,29 @@ export function quat4toMat(q: Vec4, out: Mat4Mut = mat4() as Mat4Mut): Mat4 {
     ], out);
 }
 
+export function quat4fromEuler(euler: Vec3, out: Vec4Mut = v4()): Vec4 {
+    const { x, y, z } = euler;
+    const cx = Math.cos(x / 2);
+    const cy = Math.cos(y / 2);
+    const cz = Math.cos(z / 2);
+    const sx = Math.sin(x / 2);
+    const sy = Math.sin(y / 2);
+    const sz = Math.sin(z / 2);
+    out.w = cx * cy * cz + sx * sy * sz;
+    out.x = sx * cy * cz - cx * sy * sz;
+    out.y = cx * sy * cz + sx * cy * sz;
+    out.z = cx * cy * sz - sx * sy * cz;
+    return out;
+}
+
+export function quat4toEuler(q: Vec4, out: Vec3Mut = v3()): Vec3 {
+    const { x, y, z, w } = q;
+    out.x = Math.atan2(2 * (w * x + y * z), w * w - x * x - y * y + z * z);
+    out.y = Math.asin(Math.max(-1, Math.min(1, 2 * (w * y - x * z))));
+    out.z = Math.atan2(2 * (w * z + x * y), w * w + x * x - y * y - z * z);
+    return out;
+}
+
 export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4()): Vec4 {
     const k = dot3(from, to);
     if (k <= -1 + DOT_EPS) {
