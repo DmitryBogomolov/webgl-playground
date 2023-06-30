@@ -2,16 +2,26 @@ import type { Vec4, Vec4Mut } from './vec4.types';
 import type { Vec3, Vec3Mut } from './vec3.types';
 import type { Mat3 } from './mat3.types';
 import { vec4, clone4, norm4, dot4 } from './vec4';
-import { ZERO3, vec3, clone3, mul3, dot3, cross3, norm3 } from './vec3';
-import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
+import { vec3, clone3, mul3, dot3, cross3, norm3 } from './vec3';
+import { floatEq as eq } from './float-eq';
+
+// https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
 
 export const QUAT4_UNIT = vec4(0, 0, 0, 1);
+
+const ANGLE_EPS = Math.PI / 180 / 1000;
+const DOT_EPS = 1 - Math.cos(ANGLE_EPS);
+const DEFAULT_AXIS = norm3(vec3(1, 1, 1));
+
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
+}
 
 function v4(): Vec4Mut {
     return vec4(0, 0, 0, 0) as Vec4Mut;
 }
 
-export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = vec3(0, 0, 0) as Vec3Mut): Vec3 {
+export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = v3()): Vec3 {
     const { x, y, z } = v;
     const { x: qx, y: qy, z: qz, w: qw } = q;
     const ix = qw * x + qy * z - qz * y;
@@ -28,24 +38,21 @@ export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = vec3(0, 0, 0) as Vec
 export function quat4mul(a: Vec4, b: Vec4, out: Vec4Mut = v4()): Vec4 {
     const { x: ax, y: ay, z: az, w: aw } = a;
     const { x: bx, y: by, z: bz, w: bw } = b;
-    out.x = ax * bw + aw * bx + ay * bz - az * by;
-    out.y = ay * bw + aw * by + az * bx - ax * bz;
-    out.z = az * bw + aw * bz + ax * by - ay * bx;
+    out.x = aw * bx + ax * bw + ay * bz - az * by;
+    out.y = aw * by - ax * bz + ay * bw + az * bx;
+    out.z = aw * bz + ax * by - ay * bx + az * bw;
     out.w = aw * bw - ax * bx - ay * by - az * bz;
     return out;
 }
 
-export function quat4Angle(q: Vec4): number {
-    return Math.acos(q.w) * 2;
-}
-
-export function quat4Axis(q: Vec4, out: Vec3Mut = vec3(0, 0, 0) as Vec3Mut, eps: number = FLOAT_EQ_EPS): Vec3 {
-    const t = Math.sin(quat4Angle(q) / 2);
-    if (eq(t, 0, eps)) {
-        clone3(ZERO3, out);
-    } else {
-        mul3(q, 1 / t, out);
+export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
+    const angle = 2 * Math.acos(q.w);
+    out.w = angle;
+    if (eq(angle, 0, ANGLE_EPS)) {
+        clone3(DEFAULT_AXIS, out as unknown as Vec3Mut);
     }
+    const k = 1 / Math.sin(angle / 2);
+    mul3(q, k, out as unknown as Vec3Mut);
     return out;
 }
 
@@ -74,6 +81,7 @@ export function quat4fromAxisAngle(axis: Vec3, angle: number, out: Vec4Mut = v4(
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 export function quat4fromMat3(mat: Mat3, out: Vec4Mut = v4()): Vec4 {
 // TOOD: Add version for Mat4. Provide extract3x3 function for Mat3.
+// TODO: quat4toMat3, quat4toMat4
     const [
         m11, m21, m31,
         m12, m22, m32,
@@ -108,9 +116,9 @@ export function quat4fromMat3(mat: Mat3, out: Vec4Mut = v4()): Vec4 {
     return out;
 }
 
-export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4(), eps: number = FLOAT_EQ_EPS): Vec4 {
+export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4()): Vec4 {
     const k = dot3(from, to);
-    if (k <= -1 + eps) {
+    if (k <= -1 + DOT_EPS) {
         if (Math.abs(from.x) > Math.abs(from.z)) {
             out.x = -from.y;
             out.y = +from.x;
@@ -123,7 +131,7 @@ export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4(), eps: nu
         norm3(out, out as unknown as Vec3Mut);
         out.w = 0;
         return out;
-    } else if (k >= +1 - eps) {
+    } else if (k >= +1 - DOT_EPS) {
         return clone4(QUAT4_UNIT, out);
     } else {
         cross3(from, to, out as unknown as Vec3Mut);
@@ -133,7 +141,7 @@ export function quat4fromVecs(from: Vec3, to: Vec3, out: Vec4Mut = v4(), eps: nu
 }
 
 // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
-export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4(), eps: number = FLOAT_EQ_EPS): Vec4 {
+export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Vec4 {
     if (t <= 0) {
         return clone4(a, out);
     }
@@ -148,7 +156,7 @@ export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4(), eps
     }
     let ta = 0;
     let tb = 0;
-    if (eq(k, 1, eps)) {
+    if (eq(k, 1, DOT_EPS)) {
         ta = 1 - t;
         tb = t;
     } else {

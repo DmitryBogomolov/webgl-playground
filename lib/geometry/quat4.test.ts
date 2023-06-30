@@ -76,8 +76,4 @@ describe('quat4', () => {
     // it('quat4Axis', () => {
 
     // });
-
-    // it('quat4mul', () => {
-
-    // });
 });
