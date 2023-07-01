@@ -16,7 +16,6 @@ import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
-import { compareObjects } from '../../utils/compare';
 import { memoize } from '../../utils/memoizer';
 import { makeImage } from '../../utils/image-maker';
 import vertShader from './shader.vert';
@@ -39,7 +38,7 @@ export class ImageRenderer extends BaseDisposable {
     private _textureUnit: number = 0;
     private _renderTargetSize: Vec2;
     private _region: ImageRendererRegion = {};
-    private _location: ImageRendererLocation = {};
+    private _location: ImageRendererLocation = { x1: 0, y1: 0 };
     private readonly _mat: Mat4 = mat4();
     private _matDirty: boolean = true;
     private readonly _texmat: Mat4 = mat4();
@@ -66,7 +65,7 @@ export class ImageRenderer extends BaseDisposable {
         return lockPrimitive(this._runtime);
     }
 
-    private _createTexture(tag?: string): Texture {
+    private _createTexture(tag: string | undefined): Texture {
         const texture = new Texture(this._runtime, tag);
         texture.setParameters({
             mag_filter: 'nearest',
@@ -126,9 +125,9 @@ export class ImageRenderer extends BaseDisposable {
 
     setRegion(region: ImageRendererRegion): void {
         if (!region) {
-            throw this._logger.error('set_region: null');
+            throw this._logger.error('set_region: not defined');
         }
-        if (compareObjects(this._region, region)) {
+        if (compareRegions(this._region, region)) {
             return;
         }
         this._logger.log('set_region({0})', region);
@@ -142,15 +141,15 @@ export class ImageRenderer extends BaseDisposable {
 
     setLocation(location: ImageRendererLocation): void {
         if (!location) {
-            throw this._logger.error('set_location: null');
+            throw this._logger.error('set_location: not defined');
         }
         if (
             (location.x1 === undefined && location.x2 === undefined) ||
             (location.y1 === undefined && location.y2 === undefined)
         ) {
-            throw this._logger.error('set_location: not enough data');
+            throw this._logger.error('set_location: not enough data {0}', location);
         }
-        if (compareObjects(this._location, location)) {
+        if (compareLocations(this._location, location)) {
             return;
         }
         this._logger.log('set_location({0})', location);
@@ -183,6 +182,15 @@ export class ImageRenderer extends BaseDisposable {
         program.setUniform('u_texture', this._textureUnit);
         this._primitive.render();
     }
+}
+
+function compareRegions(lhs: ImageRendererRegion, rhs: ImageRendererRegion): boolean {
+    return lhs.x1 === rhs.x1 && lhs.x2 === rhs.x2 && lhs.y1 === rhs.y1 && lhs.y2 === rhs.y2
+        && lhs.rotation === rhs.rotation;
+}
+
+function compareLocations(lhs: ImageRendererLocation, rhs: ImageRendererLocation): boolean {
+    return compareRegions(lhs, rhs) && lhs.width === rhs.width && lhs.height === rhs.height;
 }
 
 function getRange(
