@@ -117,14 +117,16 @@ const config: Configuration = {
         {
             apply(compiler: Compiler): void {
                 compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-                    getTemplatePaths().forEach(({ path }) => {
-                        compilation.fileDependencies.add(path);
-                    });
+                    compilation.fileDependencies.addAll(getWatchDependencies());
                 });
             },
         },
     ],
 };
+
+function getWatchDependencies(): string[] {
+    return getTemplatePaths().map(({ path }) => path);
+}
 
 const devServer: DevServerConfiguration = {
     port: PORT,
@@ -136,45 +138,49 @@ const devServer: DevServerConfiguration = {
         publicPath: `${CONTENT_PATH}/`,
     },
     onBeforeSetupMiddleware: ({ app }) => {
-        let rootPageCache = '';
-        const playgroundPagesCache = new Map<string, string>();
-
-        watchTemplates((name) => {
-            if (name === ROOT_TEMPLATE_NAME) {
-                rootPageCache = '';
-            } else if (name === PLAYGROUND_TEMPLATE_NAME) {
-                playgroundPagesCache.clear();
-            } else {
-                playgroundPagesCache.delete(name);
-            }
-        });
-
-        function getRootPage(): string {
-            if (!rootPageCache) {
-                rootPageCache = renderRootPage();
-            }
-            return rootPageCache;
-        }
-
-        function getPlaygroundPage(name: string): string {
-            let content = playgroundPagesCache.get(name);
-            if (!content) {
-                content = renderPlaygroundPage(name);
-                playgroundPagesCache.set(name, content);
-            }
-            return content;
-        }
-
-        app!.get('/', (_req, res) => {
-            res.send(getRootPage());
-        });
-        playgrounds.forEach(({ name }) => {
-            app!.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
-                res.send(getPlaygroundPage(name));
-            });
-        });
+        setupHandlers(app);
     },
 };
+
+function setupHandlers(app: Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']): void {
+    let rootPageCache = '';
+    const playgroundPagesCache = new Map<string, string>();
+
+    watchTemplates((name) => {
+        if (name === ROOT_TEMPLATE_NAME) {
+            rootPageCache = '';
+        } else if (name === PLAYGROUND_TEMPLATE_NAME) {
+            playgroundPagesCache.clear();
+        } else {
+            playgroundPagesCache.delete(name);
+        }
+    });
+
+    function getRootPage(): string {
+        if (!rootPageCache) {
+            rootPageCache = renderRootPage();
+        }
+        return rootPageCache;
+    }
+
+    function getPlaygroundPage(name: string): string {
+        let content = playgroundPagesCache.get(name);
+        if (!content) {
+            content = renderPlaygroundPage(name);
+            playgroundPagesCache.set(name, content);
+        }
+        return content;
+    }
+
+    app!.get('/', (_req, res) => {
+        res.send(getRootPage());
+    });
+    playgrounds.forEach(({ name }) => {
+        app!.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
+            res.send(getPlaygroundPage(name));
+        });
+    });
+}
 
 // There is no "devServer" field in "Configuration" type.
 Object.assign(config, { devServer });
