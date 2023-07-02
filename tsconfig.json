@@ -79,13 +79,7 @@
         "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
     },
     "include": [
-        "./lib/**/*.ts",
-        "./types/*.ts",
-        "./playground/**/*.ts",
-        "./playground-utils/**/*.ts",
-        "./templates/**/*.ts",
-        "./tools/**/*.ts",
-        "./*.ts"
+        "./**/*.ts"
     ],
     "exclude": [
         "node_modules",
