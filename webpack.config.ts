@@ -6,18 +6,17 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import Mustache from 'mustache';
-
-interface Playground {
-    readonly name: string;
-    readonly title: string;
-    readonly hasWorker: boolean;
-    readonly hasMarkup: boolean;
-}
+import type { Playground } from './tools/playground.types';
+// @ts-ignore Raw content.
+import playgroundRegistry from './tools/playground-registry.json';
 
 interface Template {
     readonly path: string;
     content: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const playgrounds: Playground[] = playgroundRegistry;
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const PLAYGROUND_DIR = path.join(__dirname, 'playground');
@@ -36,29 +35,12 @@ const templates: Record<string, Template> = {};
 templates[ROOT_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' };
 templates[PLAYGROUND_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'playground.html'), content: '' };
 
-function capitalizeWord(word: string): string {
-    return word[0].toUpperCase() + word.slice(1);
-}
-
-function capitalizeName(name: string): string {
-    return name.replace(/_/g, ' ').replace(/\w\S*/g, capitalizeWord);
-}
-
-const playgrounds: Record<string, Playground> = {};
-fs.readdirSync(PLAYGROUND_DIR).forEach((dirName) => {
-    const currentDir = path.join(PLAYGROUND_DIR, dirName);
-    if (fs.existsSync(path.join(currentDir, 'index.ts'))) {
-        const markupPath = path.join(currentDir, 'markup.html');
-        const hasMarkup = fs.existsSync(markupPath);
-        playgrounds[dirName] = {
-            name: dirName,
-            title: capitalizeName(dirName),
-            hasWorker: fs.existsSync(path.join(currentDir, 'worker.ts')),
-            hasMarkup,
+playgrounds.forEach((playground) => {
+    if (playground.markup) {
+        templates[playground.name] = {
+            path: path.join(PLAYGROUND_DIR, playground.name, playground.markup),
+            content: '',
         };
-        if (hasMarkup) {
-            templates[dirName] = { path: markupPath, content: '' };
-        }
     }
 });
 
@@ -66,12 +48,13 @@ const entry: EntryObject = {
     'index': path.join(TEMPLATES_DIR, 'index.ts'),
 };
 
-Object.entries(playgrounds).forEach(([name, playground]) => {
+playgrounds.forEach((playground) => {
+    const { name } = playground;
     entry[name] = [
         path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
         path.join(PLAYGROUND_DIR, name, 'index.ts'),
     ];
-    if (playground.hasWorker) {
+    if (playground.worker) {
         entry[name + '_worker'] = path.join(PLAYGROUND_DIR, name, 'worker.ts');
     }
 });
@@ -194,7 +177,7 @@ const devServer: DevServerConfiguration = {
         app!.get('/', (_req, res) => {
             res.send(getRootPage());
         });
-        Object.keys(playgrounds).forEach((name) => {
+        playgrounds.forEach(({ name }) => {
             app!.get(`${PLAYGROUND_PATH}/${name}/`, (_req, res) => {
                 res.send(getPlaygroundPage(name));
             });
@@ -211,22 +194,22 @@ function renderRootPage(): string {
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/index.js`,
         styles_url: `${ASSETS_PATH}/index.css`,
-        playgrounds: Object.entries(playgrounds).map(
-            ([name, { title }]) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
+        playgrounds: playgrounds.map(
+            ({ name, title }) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
         ),
     });
 }
 
 function renderPlaygroundPage(name: string): string {
-    const playground = playgrounds[name]!;
+    const playground = playgrounds.find((playground) => playground.name === name)!;
     return Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
         name: playground.name,
         title: playground.title,
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/${name}.js`,
         styles_url: `${ASSETS_PATH}/${name}.css`,
-        worker_url: playground.hasWorker ? `${ASSETS_PATH}/${name}_worker.js` : null,
-        custom_markup: playground.hasMarkup ? templates[name]!.content : null,
+        worker_url: playground.worker ? `${ASSETS_PATH}/${name}_worker.js` : null,
+        custom_markup: playground.markup ? templates[name]!.content : null,
     });
 }
 
