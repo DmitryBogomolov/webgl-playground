@@ -10,11 +10,6 @@ import type { Playground } from './tools/playground.types';
 // @ts-ignore Raw content.
 import playgroundRegistry from './tools/playground-registry.json';
 
-interface Template {
-    readonly path: string;
-    content: string;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const playgrounds: Playground[] = playgroundRegistry;
 
@@ -31,22 +26,11 @@ const PLAYGROUND_PATH = '/playground';
 
 const PORT = Number(process.env.PORT) || 3001;
 
-const templates: Record<string, Template> = {};
-templates[ROOT_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' };
-templates[PLAYGROUND_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'playground.html'), content: '' };
+const templates = new Map<string, string>();
 
 function getPlaygroundItemPath(playground: string, item: string): string {
     return path.join(PLAYGROUND_DIR, playground, item);
 }
-
-playgrounds.forEach((playground) => {
-    if (playground.markup) {
-        templates[playground.name] = {
-            path: getPlaygroundItemPath(playground.name, playground.markup),
-            content: '',
-        };
-    }
-});
 
 function buildEntry(): EntryObject {
     const entry: EntryObject = {
@@ -133,7 +117,7 @@ const config: Configuration = {
         {
             apply(compiler: Compiler): void {
                 compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-                    Object.values(templates).forEach(({ path }) => {
+                    getTemplatePaths().forEach(({ path }) => {
                         compilation.fileDependencies.add(path);
                     });
                 });
@@ -152,31 +136,31 @@ const devServer: DevServerConfiguration = {
         publicPath: `${CONTENT_PATH}/`,
     },
     onBeforeSetupMiddleware: ({ app }) => {
-        let rootPage = '';
-        const playgroundPages = new Map<string, string>();
+        let rootPageCache = '';
+        const playgroundPagesCache = new Map<string, string>();
 
         watchTemplates((name) => {
             if (name === ROOT_TEMPLATE_NAME) {
-                rootPage = '';
+                rootPageCache = '';
             } else if (name === PLAYGROUND_TEMPLATE_NAME) {
-                playgroundPages.clear();
+                playgroundPagesCache.clear();
             } else {
-                playgroundPages.delete(name);
+                playgroundPagesCache.delete(name);
             }
         });
 
         function getRootPage(): string {
-            if (!rootPage) {
-                rootPage = renderRootPage();
+            if (!rootPageCache) {
+                rootPageCache = renderRootPage();
             }
-            return rootPage;
+            return rootPageCache;
         }
 
         function getPlaygroundPage(name: string): string {
-            let content = playgroundPages.get(name);
+            let content = playgroundPagesCache.get(name);
             if (!content) {
                 content = renderPlaygroundPage(name);
-                playgroundPages.set(name, content);
+                playgroundPagesCache.set(name, content);
             }
             return content;
         }
@@ -196,7 +180,7 @@ const devServer: DevServerConfiguration = {
 Object.assign(config, { devServer });
 
 function renderRootPage(): string {
-    return Mustache.render(templates[ROOT_TEMPLATE_NAME]!.content, {
+    return Mustache.render(templates.get(ROOT_TEMPLATE_NAME)!, {
         title: 'WebGL Playground',
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/index.js`,
@@ -209,22 +193,35 @@ function renderRootPage(): string {
 
 function renderPlaygroundPage(name: string): string {
     const playground = playgrounds.find((playground) => playground.name === name)!;
-    return Mustache.render(templates[PLAYGROUND_TEMPLATE_NAME]!.content, {
+    return Mustache.render(templates.get(PLAYGROUND_TEMPLATE_NAME)!, {
         name: playground.name,
         title: playground.title,
         bootstrap_url: BOOTSTRAP_PATH,
         bundle_url: `${ASSETS_PATH}/${name}.js`,
         styles_url: `${ASSETS_PATH}/${name}.css`,
         worker_url: playground.worker ? `${ASSETS_PATH}/${name}_worker.js` : null,
-        custom_markup: playground.markup ? templates[name]!.content : null,
+        custom_markup: playground.markup ? templates.get(name)! : null,
     });
 }
 
+function getTemplatePaths(): { name: string, path: string }[] {
+    const list: { name: string, path: string }[] = [
+        { name: ROOT_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'index.html') },
+        { name: PLAYGROUND_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'playground.html') },
+    ];
+    playgrounds.forEach((playground) => {
+        if (playground.markup) {
+            list.push({ name: playground.name, path: getPlaygroundItemPath(playground.name, playground.markup) });
+        }
+    });
+    return list;
+}
+
 function watchTemplates(onChange: (name: string) => void): void {
-    Object.entries(templates).forEach(([name, { path }]) => {
+    getTemplatePaths().forEach(({ name, path }) => {
         function readTemplate(): void {
             fs.readFile(path, 'utf8', (_err, data) => {
-                templates[name]!.content = data;
+                templates.set(name, data);
                 onChange(name);
             });
         }
