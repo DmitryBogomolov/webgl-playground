@@ -35,34 +35,41 @@ const templates: Record<string, Template> = {};
 templates[ROOT_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'index.html'), content: '' };
 templates[PLAYGROUND_TEMPLATE_NAME] = { path: path.join(TEMPLATES_DIR, 'playground.html'), content: '' };
 
+function getPlaygroundItemPath(playground: string, item: string): string {
+    return path.join(PLAYGROUND_DIR, playground, item);
+}
+
 playgrounds.forEach((playground) => {
     if (playground.markup) {
         templates[playground.name] = {
-            path: path.join(PLAYGROUND_DIR, playground.name, playground.markup),
+            path: getPlaygroundItemPath(playground.name, playground.markup),
             content: '',
         };
     }
 });
 
-const entry: EntryObject = {
-    'index': path.join(TEMPLATES_DIR, 'index.ts'),
-};
+function buildEntry(): EntryObject {
+    const entry: EntryObject = {
+        'index': path.join(TEMPLATES_DIR, 'index.ts'),
+    };
 
-playgrounds.forEach((playground) => {
-    const { name } = playground;
-    entry[name] = [
-        path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
-        path.join(PLAYGROUND_DIR, name, 'index.ts'),
-    ];
-    if (playground.worker) {
-        entry[name + '_worker'] = path.join(PLAYGROUND_DIR, name, 'worker.ts');
-    }
-});
+    playgrounds.forEach((playground) => {
+        const { name } = playground;
+        entry[name] = [
+            path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
+            getPlaygroundItemPath(name, playground.index),
+        ];
+        if (playground.worker) {
+            entry[name + '_worker'] = getPlaygroundItemPath(name, playground.worker);
+        }
+    });
+    return entry;
+}
 
 const config: Configuration = {
     mode: 'development',
     devtool: 'inline-source-map',
-    entry,
+    entry: buildEntry(),
     output: {
         path: path.join(__dirname, './build'),
         // filename: 'lib.js',
@@ -113,7 +120,7 @@ const config: Configuration = {
     },
     resolveLoader: {
         alias: {
-            'shader-loader': path.resolve(__dirname, 'tools/shader-loader.ts'),
+            'shader-loader': path.resolve(__dirname, './tools/shader-loader.ts'),
         },
     },
     plugins: [
