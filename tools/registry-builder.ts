@@ -26,11 +26,15 @@ async function fileExists(path: string): Promise<boolean> {
     }
 }
 
+const INDEX_NAME = 'index.ts';
+const WORKER_NAME = 'worker.ts';
+const MARKUP_NAME = 'markup.html';
+
 async function checkDir(dirPath: string): Promise<Playground | null> {
     const name = path.basename(dirPath);
-    const indexPath = path.join(dirPath, 'index.ts');
-    const workerPath = path.join(dirPath, 'worker.ts');
-    const markupPath = path.join(dirPath, 'markup.html');
+    const indexPath = path.join(dirPath, INDEX_NAME);
+    const workerPath = path.join(dirPath, WORKER_NAME);
+    const markupPath = path.join(dirPath, MARKUP_NAME);
     const [indexExists, workerExists, markupExists] = await Promise.all([
         fileExists(indexPath), fileExists(workerPath), fileExists(markupPath),
     ]);
@@ -40,9 +44,9 @@ async function checkDir(dirPath: string): Promise<Playground | null> {
     return {
         name,
         title: capitalizeName(name),
-        index: 'index.html',
-        worker: workerExists ? 'worker.ts' : null,
-        markup: markupExists ? 'markup.html' : null,
+        index: INDEX_NAME,
+        worker: workerExists ? WORKER_NAME : null,
+        markup: markupExists ? MARKUP_NAME : null,
     };
 }
 
@@ -50,7 +54,4 @@ async function main(): Promise<void> {
     await buildRegistry(path.join(__dirname, '../playground'), __dirname);
 }
 
-main().then(
-    () => console.log('Done'),
-    (err) => console.error(err),
-);
+main().catch(console.error);
