@@ -5,3 +5,8 @@ export interface Playground {
     readonly worker: string | null;
     readonly markup: string | null;
 }
+
+export interface Template {
+    readonly name: string;
+    readonly path: string;
+}
