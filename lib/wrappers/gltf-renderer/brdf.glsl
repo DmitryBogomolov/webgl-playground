@@ -1,3 +1,5 @@
+const float I_PI = 1.0 / acos(-1.0);
+const float DIELECTRIC_SPECULAR = 0.04;
 
 float pos_dot(vec3 a, vec3 b) {
     return max(dot(a, b), 0.0);
