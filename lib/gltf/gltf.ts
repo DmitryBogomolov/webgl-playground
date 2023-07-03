@@ -292,36 +292,29 @@ export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor):
     return new Uint8Array(buffer, byteOffset, byteLength);
 }
 
-const DEFAULT_MATERIAL: GlTFMaterial = {
-    baseColorFactor: color(1, 1, 1, 1),
-    // Specification states that default material metallic factor is 1.
-    // Actually such material looks too dark. For better visual effect default metallic is changed to 0.
-    metallicFactor: 0,
-    roughnessFactor: 1,
-    baseColorTexture: null,
-    metallicRoughnessTexture: null,
-};
+const DEFAULT_BASE_COLOR_FACTOR = color(1, 1, 1, 1);
+// Specification states that default material metallic factor is 1.
+// Actually such material looks too dark. For better visual effect default metallic is changed to 0.
+const DEFAULT_METALLIC_FACTOR = 0;
+const DEFAULT_ROUGHNESS_FACTOR = 1;
 
-export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.MeshPrimitive): GlTFMaterial {
+export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.MeshPrimitive): GlTFMaterial | null {
     if (primitive.material === undefined) {
-        return DEFAULT_MATERIAL;
+        return null;
     }
     const { pbrMetallicRoughness } = asset.gltf.materials![primitive.material];
     if (!pbrMetallicRoughness) {
-        return DEFAULT_MATERIAL;
+        return null;
     }
     const baseColorFactor = pbrMetallicRoughness.baseColorFactor !== undefined
-        ? color(
-            pbrMetallicRoughness.baseColorFactor[0],
-            pbrMetallicRoughness.baseColorFactor[1],
-            pbrMetallicRoughness.baseColorFactor[2],
-            pbrMetallicRoughness.baseColorFactor[3],
-        )
-        : DEFAULT_MATERIAL.baseColorFactor;
+        ? color(...pbrMetallicRoughness.baseColorFactor as [number, number, number, number])
+        : DEFAULT_BASE_COLOR_FACTOR;
     const metallicFactor = pbrMetallicRoughness.metallicFactor !== undefined
-        ? pbrMetallicRoughness.metallicFactor : DEFAULT_MATERIAL.metallicFactor;
+        ? pbrMetallicRoughness.metallicFactor
+        : DEFAULT_METALLIC_FACTOR;
     const roughnessFactor = pbrMetallicRoughness.roughnessFactor !== undefined
-        ? pbrMetallicRoughness.roughnessFactor : DEFAULT_MATERIAL.roughnessFactor;
+        ? pbrMetallicRoughness.roughnessFactor
+        : DEFAULT_ROUGHNESS_FACTOR;
     return {
         baseColorFactor,
         metallicFactor,

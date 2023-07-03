@@ -32,7 +32,7 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
 interface PrimitiveWrapper {
     readonly primitive: Primitive;
     readonly matrix: Mat4;
-    readonly material: GlTFMaterial;
+    readonly material: GlTFMaterial | null;
 }
 
 export class GlbRenderer extends BaseDisposable {
@@ -116,11 +116,13 @@ export class GlbRenderer extends BaseDisposable {
         program.setUniform('u_proj_mat', this._projMat);
         program.setUniform('u_view_mat', this._viewMat);
         program.setUniform('u_world_mat', wrapper.matrix);
-        program.setUniform('u_eye_position', this._eyePosition);
-        program.setUniform('u_light_direction', this._lightDirection);
-        program.setUniform('u_material_base_color', wrapper.material.baseColorFactor);
-        program.setUniform('u_material_roughness', wrapper.material.roughnessFactor);
-        program.setUniform('u_material_metallic', wrapper.material.metallicFactor);
+        if (wrapper.material) {
+            program.setUniform('u_eye_position', this._eyePosition);
+            program.setUniform('u_light_direction', this._lightDirection);
+            program.setUniform('u_material_base_color', wrapper.material.baseColorFactor);
+            program.setUniform('u_material_roughness', wrapper.material.roughnessFactor);
+            program.setUniform('u_material_metallic', wrapper.material.metallicFactor);
+        }
         wrapper.primitive.render();
     }
 }
@@ -346,8 +348,8 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData),
-        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData),
+        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData, !!material),
+        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData, !!material),
     });
     result.setProgram(program);
 
@@ -456,10 +458,13 @@ function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.
     return accessor;
 }
 
-function makeShaderSource(source: string, hasColor: boolean, hasTexcoord: boolean): string {
+function makeShaderSource(
+    source: string, hasColor: boolean, hasTexcoord: boolean, hasMaterial: boolean,
+): string {
     const lines = [
         `#define HAS_COLOR_ATTR ${Number(hasColor)}`,
         `#define HAS_TEXCOORD_ATTR ${Number(hasTexcoord)}`,
+        `#define HAS_MATERIAL ${Number(hasMaterial)}`,
         '',
         '#line 1 0',
         source,
