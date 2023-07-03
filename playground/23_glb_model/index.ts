@@ -16,7 +16,7 @@ import { createControls } from 'playground-utils/controls';
  */
 export type DESCRIPTION = never;
 
-const MODEL_URL = '/static/gltf-models/BoxInterleaved.gltf';
+const MODEL_URL = '/static/gltf-models/BoxTextured.gltf';
 
 main();
 
