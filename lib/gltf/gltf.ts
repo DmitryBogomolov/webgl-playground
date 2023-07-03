@@ -120,10 +120,19 @@ function resolveReferences(asset: GlTFAsset, resolveUri: GlTFResolveUriFunc): Pr
     });
 }
 
+function resolveDataUri(uri: string): Promise<ArrayBufferView> {
+    return fetch(uri)
+        .then((res) => res.arrayBuffer())
+        .then((buf) => new Uint8Array(buf));
+}
+
+const DATA_URI_PREFIX = 'data:';
+
 function resolveReference(
     uri: string, idx: number, buffers: ArrayBuffer[], errors: Error[], resolveUri: GlTFResolveUriFunc,
 ): Promise<void> {
-    return resolveUri(uri).then(
+    const resolve = uri.startsWith(DATA_URI_PREFIX) ? resolveDataUri : resolveUri;
+    return resolve(uri).then(
         (data) => {
             const buf = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice().buffer;
             buffers[idx] = buf;
