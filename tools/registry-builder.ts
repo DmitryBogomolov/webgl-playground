@@ -5,7 +5,7 @@ import type { Playground } from './playground.types';
 async function buildRegistry(playgroundRoot: string, registryRoot: string): Promise<void> {
     const names = await fs.promises.readdir(playgroundRoot);
     const objects = await Promise.all(names.map((item) => checkDir(path.join(playgroundRoot, item))));
-    const content = JSON.stringify(objects.filter(Boolean), null, 4);
+    const content = JSON.stringify(objects.filter(Boolean), null, 4) + '\n';
     await fs.promises.writeFile(path.join(registryRoot, 'playground-registry.json'), content, 'utf8');
 }
 
