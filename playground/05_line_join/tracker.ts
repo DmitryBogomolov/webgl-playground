@@ -1,7 +1,7 @@
 import type { Runtime, Vec2, Vec2Mut } from 'lib';
 import type { SearchTree } from './search-tree';
 import type { State } from './state';
-import { Tracker, vec2, clone2, dist2, ndc2px, px2ndc } from 'lib';
+import { Tracker, vec2, dist2, ndc2px, px2ndc } from 'lib';
 
 const VERTEX_THRESHOLD = 16;
 const BORDER_THRESHOLD = 8;
@@ -37,7 +37,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
                 }
                 state.removeVertex(vertexIdx);
             } else {
-                state.addVertex(state.vertices.length, clone2(getNdcCoords(coords)));
+                state.addVertex(state.vertices.length, getNdcCoords(coords));
             }
         },
         onStart({ coords }) {

@@ -1,6 +1,6 @@
 import type { Color, Vec2 } from 'lib';
 import type { Vertex } from './vertex';
-import { color, vec2, EventEmitter } from 'lib';
+import { color, vec2, clone2, EventEmitter } from 'lib';
 
 const pickColor = (function () {
     const colorPool: ReadonlyArray<Color> = [
@@ -41,7 +41,7 @@ export class State {
     }
 
     addVertex(idx: number, position: Vec2): void {
-        this.vertices.splice(idx, 0, { position, color: pickColor() });
+        this.vertices.splice(idx, 0, { position: clone2(position), color: pickColor() });
         this.verticesChanged.emit();
     }
 
@@ -51,7 +51,7 @@ export class State {
     }
 
     updateVertex(idx: number, position: Vec2): void {
-        this.vertices[idx].position = position;
+        this.vertices[idx].position = clone2(position);
         this.vertexUpdated.emit(idx);
     }
 

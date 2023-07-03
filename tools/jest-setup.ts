@@ -21,6 +21,10 @@ declare global {
 
             toBeSpherical(expected: Spherical): CustomMatcherResult;
         }
+
+        interface Expect {
+            numArray(expected: ReadonlyArray<number>): ReadonlyArray<number>;
+        }
     }
 }
 
@@ -29,11 +33,17 @@ function equal(lhs: number, rhs: number): boolean {
     return Math.abs(lhs - rhs) < EPS;
 }
 
-function checkVec<T>(actual: T, expected: T, keys: string[]): jest.CustomMatcherResult {
+function vecToStr(v: unknown, keys: ReadonlyArray<string>): string {
+    // @ts-ignore Vector field.
+    const parts = keys.map((key) => `${key}: ${v[key]}`);
+    return `{ ${parts.join(', ')} }`;
+}
+
+function checkVec<T>(actual: T, expected: T, keys: ReadonlyArray<string>): jest.CustomMatcherResult {
     // @ts-ignore Vector field.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const checks = keys.map((key) => equal(actual[key], expected[key]));
-    if (checks.every(Boolean)) {
+    const eq = keys.every((key) => equal(actual[key], expected[key]));
+    if (eq) {
         return {
             pass: true,
             message: () => 'OK',
@@ -42,31 +52,39 @@ function checkVec<T>(actual: T, expected: T, keys: string[]): jest.CustomMatcher
     return {
         pass: false,
         message: () => {
-            const lines: string[] = [];
-            checks.forEach((check, i) => {
-                if (!check) {
-                    const key = keys[i];
-                    // @ts-ignore Vector field.
-                    lines.push(`${key}: ${expected[key]} != ${actual[key]}`);
-                }
-            });
-            return lines.join('\n');
+            const actualStr = vecToStr(actual, keys);
+            const expectedStr = vecToStr(expected, keys);
+            return `${actualStr} != ${expectedStr}`;
         },
     };
 }
 
-function checkMat<T>(actual: T, expected: T, rank: number): jest.CustomMatcherResult {
-    const list: [number, number][] = [];
+function matToStr(v: unknown, rank: number, transpose: boolean): string {
+    const elements = v as ReadonlyArray<number>;
+    const lines: string[] = [];
+    for (let i = 0; i < rank; ++i) {
+        const parts: string[] = [];
+        for (let j = 0; j < rank; ++j) {
+            const idx = transpose ? j * rank + i : i * rank + j;
+            parts.push(String(elements[idx]));
+        }
+        lines.push(parts.join(' '));
+    }
+    return lines.join('\n');
+}
+
+function checkMat<T extends { readonly [i: number]: number }>(
+    actual: T, expected: T, rank: number,
+): jest.CustomMatcherResult {
+    let count = 0;
     for (let i = 0; i < rank; ++i) {
         for (let j = 0; j < rank; ++j) {
-            // @ts-ignore Matrix element.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if (!equal(actual[j * rank + i], expected[i * rank + j])) {
-                list.push([i, j]);
+                ++count;
             }
         }
     }
-    if (list.length === 0) {
+    if (count === 0) {
         return {
             pass: true,
             message: () => 'OK',
@@ -75,50 +93,41 @@ function checkMat<T>(actual: T, expected: T, rank: number): jest.CustomMatcherRe
     return {
         pass: false,
         message: () => {
-            const lines: string[] = [];
-            for (const [i, j] of list) {
-                // @ts-ignore Matrix element.
-                lines.push(`${i},${j}: ${expected[i * rank + j]} != ${actual[j * rank + i]}`);
-            }
-            return lines.join('\n');
+            const actualStr = matToStr(actual, rank, true);
+            const expectedStr = matToStr(expected, rank, false);
+            return `${actualStr}\n!=\n${expectedStr}`;
         },
     };
 }
 
 expect.extend({
-    toBeVec2(actual: Vec2, expected: Vec2) {
+    toBeVec2(actual: Vec2, expected: Vec2): jest.CustomMatcherResult {
         return checkVec(actual, expected, ['x', 'y']);
     },
 
-    toBeVec3(actual: Vec3, expected: Vec3) {
+    toBeVec3(actual: Vec3, expected: Vec3): jest.CustomMatcherResult {
         return checkVec(actual, expected, ['x', 'y', 'z']);
     },
 
-    toBeVec4(actual: Vec4, expected: Vec4) {
+    toBeVec4(actual: Vec4, expected: Vec4): jest.CustomMatcherResult {
         return checkVec(actual, expected, ['x', 'y', 'z', 'w']);
     },
 
-    toBeMat2(actual: Mat2, expected: Mat2) {
+    toBeMat2(actual: Mat2, expected: Mat2): jest.CustomMatcherResult {
         return checkMat(actual, expected, 2);
     },
 
-    toBeMat3(actual: Mat3, expected: Mat3) {
+    toBeMat3(actual: Mat3, expected: Mat3): jest.CustomMatcherResult {
         return checkMat(actual, expected, 3);
     },
 
-    toBeMat4(actual: Mat4, expected: Mat4) {
+    toBeMat4(actual: Mat4, expected: Mat4): jest.CustomMatcherResult {
         return checkMat(actual, expected, 4);
     },
 
-    toBeSpherical(actual: Spherical, expected: Spherical) {
-        const errors: string[] = [];
-        if (!equal(actual.azimuth, expected.azimuth)) {
-            errors.push(`azimuth:   ${expected.azimuth} != ${actual.azimuth}`);
-        }
-        if (!equal(actual.elevation, expected.elevation)) {
-            errors.push(`elevation: ${expected.elevation} != ${actual.elevation}`);
-        }
-        if (errors.length === 0) {
+    toBeSpherical(actual: Spherical, expected: Spherical): jest.CustomMatcherResult {
+        const eq = equal(actual.azimuth, expected.azimuth) && equal(actual.elevation, expected.elevation);
+        if (eq) {
             return {
                 pass: true,
                 message: () => 'OK',
@@ -126,7 +135,25 @@ expect.extend({
         }
         return {
             pass: false,
-            message: () => errors.join('\n'),
+            message: () => {
+                const actualStr = vecToStr(actual, ['azimuth', 'elevation']);
+                const expectedStr = vecToStr(expected, ['azimuth', 'elevation']);
+                return `${actualStr} != ${expectedStr}`;
+            },
+        };
+    },
+
+    numArray(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>): jest.CustomMatcherResult {
+        const eq = actual.length === expected.length && expected.every((exp, i) => equal(exp, actual[i]));
+        if (eq) {
+            return {
+                pass: true,
+                message: () => 'OK',
+            };
+        }
+        return {
+            pass: false,
+            message: () => 'NOT OK',
         };
     },
 });

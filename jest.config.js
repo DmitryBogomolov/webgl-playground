@@ -213,7 +213,7 @@ module.exports = {
 
     // A map from regular expressions to paths to transformers
     transform: {
-        '\.vert$|\.frag$|\.glsl$': '<rootDir>/tools/jest-transform.js',
+        '\.vert$|\.frag$|\.glsl$': '<rootDir>/tools/jest-shader-transform.js',
     },
 
     moduleNameMapper: {
