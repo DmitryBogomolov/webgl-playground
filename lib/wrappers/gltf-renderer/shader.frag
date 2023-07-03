@@ -1,8 +1,12 @@
 precision mediump float;
 
 varying highp vec3 v_normal;
+#if HAS_COLOR_ATTR
 varying vec4 v_color;
+#endif
+#if HAS_TEXCOORD_ATTR
 varying vec2 v_texcoord;
+#endif
 varying vec3 v_position;
 
 uniform vec3 u_eye_position;

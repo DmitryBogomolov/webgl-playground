@@ -343,8 +343,8 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader,
-        fragShader,
+        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData),
+        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData),
     });
     result.setProgram(program);
 
@@ -451,4 +451,15 @@ function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.
         throw logger.error('no {0} accessor', idx);
     }
     return accessor;
+}
+
+function makeShaderSource(source: string, hasColor: boolean, hasTexcoord: boolean): string {
+    const lines = [
+        `#define HAS_COLOR_ATTR ${Number(hasColor)}`,
+        `#define HAS_TEXCOORD_ATTR ${Number(hasTexcoord)}`,
+        '',
+        '#line 1 0',
+        source,
+    ];
+    return lines.join('\n');
 }
