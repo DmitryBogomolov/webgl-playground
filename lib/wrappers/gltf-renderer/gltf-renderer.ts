@@ -129,6 +129,9 @@ const _m4_scratch = mat4();
 
 async function load(url: string): Promise<ArrayBufferView> {
     const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`${url}: ${response.statusText}`);
+    }
     const buffer = await response.arrayBuffer();
     return new Uint8Array(buffer);
 }
