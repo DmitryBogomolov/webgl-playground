@@ -16,7 +16,7 @@ import { vec3, clone3, sub3, cross3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../../geometry/mat4';
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
-    getBufferSlice, getAccessorStride, getPrimitiveMaterial,
+    getAccessorData, getAccessorStride, getPrimitiveMaterial,
 } from '../../gltf/gltf';
 import vertShader from './shader.vert';
 import fragShader from './shader.frag';
@@ -211,7 +211,7 @@ function createPrimitive(
     if (getAccessorType(positionAccessor) !== VALID_POSITION_TYPE) {
         throw logger.error('bad POSITION type: {0}', getAccessorType(positionAccessor));
     }
-    const positionData = getBufferSlice(asset, positionAccessor);
+    const positionData = getAccessorData(asset, positionAccessor);
     const positionStride = getAccessorStride(asset, positionAccessor);
 
     let indicesType: GlTF_ACCESSOR_TYPE;
@@ -224,7 +224,7 @@ function createPrimitive(
             throw logger.error('bad index type: {0}', indicesType);
         }
         indicesCount = indicesAccessor.count;
-        indicesData = getBufferSlice(asset, indicesAccessor);
+        indicesData = getAccessorData(asset, indicesAccessor);
     } else {
         indicesType = 'ushort1';
         indicesCount = positionAccessor.count;
@@ -241,7 +241,7 @@ function createPrimitive(
         if (normalAccessor.count !== positionAccessor.count) {
             throw logger.error('bad NORMAL count: {0}', normalAccessor.count);
         }
-        normalData = getBufferSlice(asset, normalAccessor);
+        normalData = getAccessorData(asset, normalAccessor);
         normalStride = getAccessorStride(asset, normalAccessor);
     } else {
         normalData = generateNormals(positionData, indicesData, indicesType);
@@ -260,7 +260,7 @@ function createPrimitive(
         if (colorAccessor.count !== positionAccessor.count) {
             throw logger.error('bad COLOR_0 count: {0}', colorAccessor.count);
         }
-        colorData = getBufferSlice(asset, colorAccessor);
+        colorData = getAccessorData(asset, colorAccessor);
         colorStride = getAccessorStride(asset, colorAccessor);
     }
 
@@ -276,7 +276,7 @@ function createPrimitive(
         if (texcoordAccessor.count !== positionAccessor.count) {
             throw logger.error('bad TEXCOORD_0 count: {0}', texcoordAccessor.count);
         }
-        texcoordData = getBufferSlice(asset, texcoordAccessor);
+        texcoordData = getAccessorData(asset, texcoordAccessor);
         texcoordStride = getAccessorStride(asset, texcoordAccessor);
     }
 

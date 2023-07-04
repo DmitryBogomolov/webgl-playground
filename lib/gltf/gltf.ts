@@ -1,5 +1,7 @@
 import type {
-    GlTFAsset, GlTF_ACCESSOR_TYPE, GlTFSchema, GlTF_PRIMITIVE_MODE, GlTFResolveUriFunc, GlTFMaterial,
+    GlTFAsset, GlTFResolveUriFunc, GlTFSchema,
+    GlTF_ACCESSOR_TYPE, GlTF_PRIMITIVE_MODE, GlTFMaterial,
+    GlTF_MIN_FILTER, GlTF_MAG_FILTER, GlTF_WRAP, GlTFTexture, GlTFTextureSampler,
 } from './gltf.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import { vec3 } from '../geometry/vec3';
@@ -304,19 +306,25 @@ export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): GlTF_PRIM
     return primitive.mode !== undefined ? PRIMITIVE_MODE_MAPPING[primitive.mode] : DEFAULT_PRIMITIVE_MODE;
 }
 
-export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
-    const bufferView = asset.gltf.bufferViews![accessor.bufferView!];
+function getBufferData(asset: GlTFAsset, idx: number, byteOffset: number, byteLength: number | undefined): Uint8Array {
+    const bufferView = asset.gltf.bufferViews![idx];
     const buffer = asset.gltf.buffers![bufferView.buffer];
-    const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
-    const byteLength = accessor.count * getAccessorStride(asset, accessor);
-    if (byteOffset + byteLength > buffer.byteLength) {
-        throw new Error(`offset ${byteLength} and length ${byteLength} mismatch buffer size ${buffer.byteLength}`);
+    const offset = (bufferView.byteOffset || 0) + byteOffset;
+    const length = byteLength || bufferView.byteLength;
+    if (offset + length > buffer.byteLength) {
+        throw new Error(`offset ${length} and length ${length} mismatch buffer size ${buffer.byteLength}`);
     }
-    if (byteLength > bufferView.byteLength) {
-        throw new Error(`length ${byteLength} mismatch buffer view length ${bufferView.byteLength}`);
+    if (length > bufferView.byteLength) {
+        throw new Error(`length ${length} mismatch buffer view length ${bufferView.byteLength}`);
     }
     const rawBuffer = asset.buffers.get(bufferView.buffer)!;
-    return new Uint8Array(rawBuffer, byteOffset, byteLength);
+    return new Uint8Array(rawBuffer, offset, length);
+}
+
+export function getAccessorData(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
+    const byteOffset = accessor.byteOffset || 0;
+    const byteLength = accessor.count * getAccessorStride(asset, accessor);
+    return getBufferData(asset, accessor.bufferView!, byteOffset, byteLength);
 }
 
 const DEFAULT_BASE_COLOR_FACTOR = color(1, 1, 1, 1);
@@ -348,5 +356,54 @@ export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.Mes
         roughnessFactor,
         baseColorTexture: null,
         metallicRoughnessTexture: null,
+    };
+}
+
+const MIN_FILTER_MAPPING: Readonly<Record<number, GlTF_MIN_FILTER>> = {
+    [9728]: 'nearest',
+    [9729]: 'linear',
+    [9984]: 'nearest_mipmap_nearest',
+    [9985]: 'linear_mipmap_nearest',
+    [9986]: 'nearest_mipmap_linear',
+    [9987]: 'linear_mipmap_linear',
+};
+const MAG_FILTER_MAPPING: Readonly<Record<number, GlTF_MAG_FILTER>> = {
+    [9728]: 'nearest',
+    [9729]: 'linear',
+};
+const WRAP_MAPPING: Readonly<Record<number, GlTF_WRAP>> = {
+    [10497]: 'repeat',
+    [33071]: 'clamp_to_edge',
+    [33648]: 'mirrored_repeat',
+};
+
+const DEFAULT_SAMPLER: GlTFTextureSampler = {
+    wrapS: 'repeat',
+    wrapT: 'repeat',
+};
+
+export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
+    const texture = asset.gltf.textures![idx];
+    const image = asset.gltf.images![texture.source!];
+    let textureData: Uint8Array;
+    if (image.bufferView !== undefined) {
+        textureData = getBufferData(asset, image.bufferView, 0, undefined);
+    } else {
+        const buffer = asset.images.get(texture.source!)!;
+        textureData = new Uint8Array(buffer);
+    }
+    let textureSampler = DEFAULT_SAMPLER;
+    if (texture.sampler !== undefined) {
+        const sampler = asset.gltf.samplers![texture.sampler];
+        textureSampler = {
+            wrapS: sampler.wrapS ? WRAP_MAPPING[sampler.wrapS] : DEFAULT_SAMPLER.wrapS,
+            wrapT: sampler.wrapT ? WRAP_MAPPING[sampler.wrapT] : DEFAULT_SAMPLER.wrapT,
+            minFilter: sampler.minFilter ? MIN_FILTER_MAPPING[sampler.minFilter] : undefined,
+            magFilter: sampler.magFilter ? MAG_FILTER_MAPPING[sampler.magFilter] : undefined,
+        };
+    }
+    return {
+        data: textureData,
+        sampler: textureSampler,
     };
 }
