@@ -18,15 +18,28 @@ export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
 export function parseGlTF(data: ArrayBufferView, resolveUri?: GlTFResolveUriFunc): Promise<GlTFAsset> {
-    const asset = tryParseJson(data) || parseGlb(data);
-    return resolveReferences(asset, resolveUri || defaultResolveUri);
+    let gltf = tryParseJson(data);
+    const buffers = new Map<number, ArrayBuffer>();
+    const images = new Map<number, ArrayBuffer>();
+    if (!gltf) {
+        const parsedGlb = parseGlb(data);
+        gltf = parsedGlb.gltf;
+        if (parsedGlb.buffer) {
+            buffers.set(0, parsedGlb.buffer);
+        }
+    }
+    return resolveReferences(gltf, buffers, images, resolveUri || defaultResolveUri).then(() => ({
+        gltf: gltf!,
+        buffers,
+        images,
+    }));
 }
 
 const defaultResolveUri: GlTFResolveUriFunc = (uri) => {
     return Promise.reject(new Error(`cannot resolve ${uri}`));
 };
 
-function tryParseJson(data: ArrayBufferView): GlTFAsset | null {
+function tryParseJson(data: ArrayBufferView): GlTFSchema.GlTf | null {
     const view = new Uint8Array(data.buffer, data.byteOffset, 1);
     const first = view[0];
     // Lightweight guess that it is JSON content.
@@ -34,14 +47,13 @@ function tryParseJson(data: ArrayBufferView): GlTFAsset | null {
         return null;
     }
     try {
-        const gltf = decodeJson(data, 0, data.byteLength);
-        return { gltf, buffers: [], images: [] };
+        return decodeJson(data, 0, data.byteLength);
     } catch {
         return null;
     }
 }
 
-function parseGlb(data: ArrayBufferView): GlTFAsset {
+function parseGlb(data: ArrayBufferView): { gltf: GlTFSchema.GlTf, buffer: ArrayBuffer | null } {
     const arr = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     const totalLength = readHeader(arr);
     if (totalLength !== arr.length) {
@@ -52,24 +64,24 @@ function parseGlb(data: ArrayBufferView): GlTFAsset {
     const jsonChunkLength = readU32(arr, jsonOffset + 0);
     const jsonChunkType = readU32(arr, jsonOffset + 4);
     if (jsonChunkType !== CHUNK_JSON) {
-        return { gltf: { asset: { version: '' } }, buffers: [], images: [] };
+        return { gltf: { asset: { version: '' } }, buffer: null };
     }
     const jsonChunk = decodeJson(data, jsonOffset + 8, jsonChunkLength);
 
     const binaryOffset = jsonOffset + 8 + jsonChunkLength;
     if (binaryOffset >= totalLength) {
         checkNoBuffers(jsonChunk);
-        return { gltf: jsonChunk, buffers: [], images: [] };
+        return { gltf: jsonChunk, buffer: null };
     }
     const binaryChunkLength = readU32(arr, binaryOffset + 0);
     const binaryChunkType = readU32(arr, binaryOffset + 4);
     if (binaryChunkType !== CHUNK_BIN) {
         checkNoBuffers(jsonChunk);
-        return { gltf: jsonChunk, buffers: [], images: [] };
+        return { gltf: jsonChunk, buffer: null };
     }
     const binaryChunk = extractBinary(data, binaryOffset + 8, binaryChunkLength);
     checkSingleBuffer(jsonChunk, binaryChunk);
-    return { gltf: jsonChunk, buffers: [binaryChunk], images: [] };
+    return { gltf: jsonChunk, buffer: binaryChunk };
 }
 
 function checkNoBuffers(gltf: GlTFSchema.GlTf): void {
@@ -88,17 +100,18 @@ function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
     }
 }
 
-function resolveReferences(asset: GlTFAsset, resolveUri: GlTFResolveUriFunc): Promise<GlTFAsset> {
-    const assetBuffers = asset.buffers.slice();
-    const assetImages = asset.images.slice();
+function resolveReferences(
+    gltf: GlTFSchema.GlTf, resolvedBuffers: Map<number, ArrayBuffer>, resolvedImages: Map<number, ArrayBuffer>,
+    resolveUri: GlTFResolveUriFunc,
+): Promise<void> {
     const errors: Error[] = [];
-    const { buffers, images } = asset.gltf;
+    const { buffers, images } = gltf;
     const tasks: Promise<void>[] = [];
     if (buffers) {
         for (let i = 0; i < buffers.length; ++i) {
             const { uri } = buffers[i];
             if (uri) {
-                tasks.push(resolveReference(uri, i, assetBuffers, errors, resolveUri));
+                tasks.push(resolveReference(uri, i, resolvedBuffers, errors, resolveUri));
             }
         }
     }
@@ -106,17 +119,15 @@ function resolveReferences(asset: GlTFAsset, resolveUri: GlTFResolveUriFunc): Pr
         for (let i = 0; i < images.length; ++i) {
             const { uri } = images[i];
             if (uri) {
-                tasks.push(resolveReference(uri, i, assetImages, errors, resolveUri));
+                tasks.push(resolveReference(uri, i, resolvedImages, errors, resolveUri));
             }
         }
     }
     return Promise.all(tasks).then(() => {
         if (errors.length > 0) {
             const msg = errors.map((err) => err.message).join('; ');
-            return Promise.reject(new Error(msg));
+            throw new Error(msg);
         }
-        return { gltf: asset.gltf, buffers: assetBuffers, images: assetImages };
-
     });
 }
 
@@ -129,13 +140,13 @@ function resolveDataUri(uri: string): Promise<ArrayBufferView> {
 const DATA_URI_PREFIX = 'data:';
 
 function resolveReference(
-    uri: string, idx: number, buffers: ArrayBuffer[], errors: Error[], resolveUri: GlTFResolveUriFunc,
+    uri: string, idx: number, buffers: Map<number, ArrayBuffer>, errors: Error[], resolveUri: GlTFResolveUriFunc,
 ): Promise<void> {
     const resolve = uri.startsWith(DATA_URI_PREFIX) ? resolveDataUri : resolveUri;
     return resolve(uri).then(
         (data) => {
             const buf = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice().buffer;
-            buffers[idx] = buf;
+            buffers.set(idx, buf);
         },
         (err: Error) => {
             errors.push(err);
@@ -295,10 +306,14 @@ export function getPrimitiveMode(primitive: GlTFSchema.MeshPrimitive): GlTF_PRIM
 
 export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
     const bufferView = asset.gltf.bufferViews![accessor.bufferView!];
-    const buffer = asset.buffers[bufferView.buffer];
+    const buffer = asset.gltf.buffers![bufferView.buffer];
     const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
     const byteLength = accessor.count * getAccessorStride(asset, accessor);
-    return new Uint8Array(buffer, byteOffset, byteLength);
+    if (byteOffset + byteLength > buffer.byteLength) {
+        throw new Error(`offset ${byteLength} and length ${byteLength} mismatch buffer ${buffer.byteLength}`);
+    }
+    const rawBuffer = asset.buffers.get(bufferView.buffer)!;
+    return new Uint8Array(rawBuffer, byteOffset, byteLength);
 }
 
 const DEFAULT_BASE_COLOR_FACTOR = color(1, 1, 1, 1);
@@ -332,4 +347,3 @@ export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.Mes
         metallicRoughnessTexture: null,
     };
 }
-

@@ -7,8 +7,8 @@ export type GlTFResolveUriFunc = (uri: string) => Promise<ArrayBufferView>;
 
 export interface GlTFAsset {
     readonly gltf: GlTFSchema.GlTf;
-    readonly buffers: ReadonlyArray<ArrayBuffer>;
-    readonly images: ReadonlyArray<ArrayBuffer>;
+    readonly buffers: ReadonlyMap<number, ArrayBuffer>;
+    readonly images: ReadonlyMap<number, ArrayBuffer>;
 }
 
 export type GlTF_ACCESSOR_TYPE = (
