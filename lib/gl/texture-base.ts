@@ -13,6 +13,7 @@ const WebGL = WebGLRenderingContext.prototype;
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGL.REPEAT,
     'clamp_to_edge': WebGL.CLAMP_TO_EDGE,
+    'mirrored_repeat': WebGL.MIRRORED_REPEAT,
 };
 
 const MAG_FILTER_MAP: GLValuesMap<TEXTURE_MAG_FILTER> = {
