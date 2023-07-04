@@ -310,7 +310,10 @@ export function getBufferSlice(asset: GlTFAsset, accessor: GlTFSchema.Accessor):
     const byteOffset = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
     const byteLength = accessor.count * getAccessorStride(asset, accessor);
     if (byteOffset + byteLength > buffer.byteLength) {
-        throw new Error(`offset ${byteLength} and length ${byteLength} mismatch buffer ${buffer.byteLength}`);
+        throw new Error(`offset ${byteLength} and length ${byteLength} mismatch buffer size ${buffer.byteLength}`);
+    }
+    if (byteLength > bufferView.byteLength) {
+        throw new Error(`length ${byteLength} mismatch buffer view length ${bufferView.byteLength}`);
     }
     const rawBuffer = asset.buffers.get(bufferView.buffer)!;
     return new Uint8Array(rawBuffer, byteOffset, byteLength);
