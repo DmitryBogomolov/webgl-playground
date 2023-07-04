@@ -152,6 +152,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
             this._size = clone2(size);
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
+            // @ts-ignore Properties exist.
             this._size = vec2(imageData.width, imageData.height);
         }
     }
