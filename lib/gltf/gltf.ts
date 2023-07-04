@@ -337,25 +337,31 @@ export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.Mes
     if (primitive.material === undefined) {
         return null;
     }
-    const { pbrMetallicRoughness } = asset.gltf.materials![primitive.material];
-    if (!pbrMetallicRoughness) {
+    const { pbrMetallicRoughness: pbr } = asset.gltf.materials![primitive.material];
+    if (!pbr) {
         return null;
     }
-    const baseColorFactor = pbrMetallicRoughness.baseColorFactor !== undefined
-        ? color(...pbrMetallicRoughness.baseColorFactor as [number, number, number, number])
+    const baseColorFactor = pbr.baseColorFactor !== undefined
+        ? color(...pbr.baseColorFactor as [number, number, number, number])
         : DEFAULT_BASE_COLOR_FACTOR;
-    const metallicFactor = pbrMetallicRoughness.metallicFactor !== undefined
-        ? pbrMetallicRoughness.metallicFactor
+    const metallicFactor = pbr.metallicFactor !== undefined
+        ? pbr.metallicFactor
         : DEFAULT_METALLIC_FACTOR;
-    const roughnessFactor = pbrMetallicRoughness.roughnessFactor !== undefined
-        ? pbrMetallicRoughness.roughnessFactor
+    const roughnessFactor = pbr.roughnessFactor !== undefined
+        ? pbr.roughnessFactor
         : DEFAULT_ROUGHNESS_FACTOR;
+    const baseColorTextureIndex = pbr.baseColorTexture
+        ? pbr.baseColorTexture.index
+        : undefined;
+    const metallicRoughnessTextureIndex = pbr.metallicRoughnessTexture
+        ? pbr.metallicRoughnessTexture.index
+        : undefined;
     return {
         baseColorFactor,
         metallicFactor,
         roughnessFactor,
-        baseColorTexture: null,
-        metallicRoughnessTexture: null,
+        baseColorTextureIndex,
+        metallicRoughnessTextureIndex,
     };
 }
 
@@ -382,6 +388,7 @@ const DEFAULT_SAMPLER: GlTFTextureSampler = {
     wrapT: 'repeat',
 };
 
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#texture-data
 export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
     const texture = asset.gltf.textures![idx];
     const image = asset.gltf.images![texture.source!];
@@ -392,6 +399,7 @@ export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
         const buffer = asset.images.get(texture.source!)!;
         textureData = new Uint8Array(buffer);
     }
+    const mimeType = image.mimeType || detectTextureMimeType(textureData);
     let textureSampler = DEFAULT_SAMPLER;
     if (texture.sampler !== undefined) {
         const sampler = asset.gltf.samplers![texture.sampler];
@@ -404,6 +412,30 @@ export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
     }
     return {
         data: textureData,
+        mimeType,
         sampler: textureSampler,
     };
+}
+
+const PNG_PATTERN: ReadonlyArray<number> = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+const JPEG_PATTERN: ReadonlyArray<number> = [0xFF, 0xD8, 0xFF];
+
+function matchPattern(data: Uint8Array, pattern: ReadonlyArray<number>): boolean {
+    for (let i = 0; i < pattern.length; ++i) {
+        if (pattern[i] !== data[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#images
+function detectTextureMimeType(data: Uint8Array): string {
+    if (matchPattern(data, PNG_PATTERN)) {
+        return 'image/png';
+    }
+    if (matchPattern(data, JPEG_PATTERN)) {
+        return 'image/jpeg';
+    }
+    throw new Error('mime type not detected');
 }

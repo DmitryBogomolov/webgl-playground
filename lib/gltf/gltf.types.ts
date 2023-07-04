@@ -30,9 +30,9 @@ export interface GlTFMaterial {
     readonly metallicFactor: number;
     readonly roughnessFactor: number;
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_basecolortexture
-    readonly baseColorTexture: unknown;
+    readonly baseColorTextureIndex?: number;
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_material_pbrmetallicroughness_metallicroughnesstexture
-    readonly metallicRoughnessTexture: unknown;
+    readonly metallicRoughnessTextureIndex?: number;
 }
 
 export type GlTF_MIN_FILTER = (
@@ -57,5 +57,6 @@ export interface GlTFTextureSampler {
 
 export interface GlTFTexture {
     readonly data: Uint8Array;
+    readonly mimeType: string;
     readonly sampler: GlTFTextureSampler
 }

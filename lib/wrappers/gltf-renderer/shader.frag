@@ -32,6 +32,9 @@ void main() {
 #else
     vec4 base_color = vec4(1.0);
 #endif
+#if HAS_TEXCOORD_ATTR
+    base_color *= texture2D(u_texture, v_texcoord);
+#endif
 #if HAS_MATERIAL
     base_color *= u_material_base_color;
     vec3 normal = normalize(v_normal);
@@ -44,4 +47,7 @@ void main() {
     base_color = vec4(color, base_color.a);
 #endif
     gl_FragColor = base_color;
+    // TODO_DEBUG
+    gl_FragColor = texture2D(u_texture, v_texcoord);
+    // gl_FragColor.a = 1.0;
 }

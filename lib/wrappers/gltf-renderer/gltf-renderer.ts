@@ -1,6 +1,6 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
 import type {
-    GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial,
+    GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial, GlTFTexture,
 } from '../../gltf/gltf.types';
 import type { Logger } from '../../common/logger.types';
 import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
@@ -11,15 +11,17 @@ import type { Runtime } from '../../gl/runtime';
 import { BaseDisposable } from '../../common/base-disposable';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
+import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
 import { vec3, clone3, sub3, cross3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../../geometry/mat4';
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
-    getAccessorData, getAccessorStride, getPrimitiveMaterial,
+    getAccessorData, getAccessorStride, getPrimitiveMaterial, getTextureData,
 } from '../../gltf/gltf';
 import vertShader from './shader.vert';
 import fragShader from './shader.frag';
+import { makeImage } from '../../utils/image-maker';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -37,7 +39,8 @@ interface PrimitiveWrapper {
 
 export class GlbRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
-    private readonly _wrappers: PrimitiveWrapper[];
+    private readonly _wrappers: PrimitiveWrapper[] = [];
+    private readonly _textures: Map<number, Texture> = new Map();
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
@@ -46,12 +49,14 @@ export class GlbRenderer extends BaseDisposable {
     constructor(runtime: Runtime, tag?: string) {
         super(runtime.logger(), tag);
         this._runtime = runtime;
-        this._wrappers = [];
     }
 
     dispose(): void {
         for (const wrapper of this._wrappers) {
             wrapper.primitive.dispose();
+        }
+        for (const texture of this._textures.values()) {
+            texture.dispose();
         }
         this._dispose();
     }
@@ -82,13 +87,32 @@ export class GlbRenderer extends BaseDisposable {
             throw this._logger.error('set_data({0}): bad value', data);
         }
         const asset = await parseGlTF(source, resolveUri);
-        this._setup(asset);
+
+        const wrappers = processScene(asset, this._runtime, this._logger);
+        try {
+            const textures = await createTextures(wrappers, asset, this._runtime);
+            this._setup(wrappers, textures);
+        } catch (err) {
+            for (const wrapper of wrappers) {
+                wrapper.primitive.dispose();
+            }
+            throw err;
+        }
     }
 
-    private _setup(asset: GlTFAsset): void {
-        // TODO: Remove existing wrappers (if any).
-        const wrappers = processScene(asset, this._runtime, this._logger);
+    private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyMap<number, Texture>): void {
+        for (const wrapper of this._wrappers) {
+            wrapper.primitive.dispose();
+        }
+        for (const texture of this._textures.values()) {
+            texture.dispose();
+        }
+        this._wrappers.length = 0;
+        this._textures.clear();
         this._wrappers.push(...wrappers);
+        for (const [idx, texture] of textures) {
+            this._textures.set(idx, texture);
+        }
     }
 
     setProjMat(mat: Mat4): void {
@@ -116,12 +140,18 @@ export class GlbRenderer extends BaseDisposable {
         program.setUniform('u_proj_mat', this._projMat);
         program.setUniform('u_view_mat', this._viewMat);
         program.setUniform('u_world_mat', wrapper.matrix);
-        if (wrapper.material) {
+        const { material } = wrapper;
+        if (material) {
             program.setUniform('u_eye_position', this._eyePosition);
             program.setUniform('u_light_direction', this._lightDirection);
-            program.setUniform('u_material_base_color', wrapper.material.baseColorFactor);
-            program.setUniform('u_material_roughness', wrapper.material.roughnessFactor);
-            program.setUniform('u_material_metallic', wrapper.material.metallicFactor);
+            program.setUniform('u_material_base_color', material.baseColorFactor);
+            program.setUniform('u_material_roughness', material.roughnessFactor);
+            program.setUniform('u_material_metallic', material.metallicFactor);
+            if (material.baseColorTextureIndex !== undefined) {
+                const texture = this._textures.get(material.baseColorTextureIndex)!;
+                this._runtime.setTextureUnit(1, texture);
+                program.setUniform('u_texture', 1);
+            }
         }
         wrapper.primitive.render();
     }
@@ -139,7 +169,9 @@ async function load(url: string): Promise<ArrayBufferView> {
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
-function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): PrimitiveWrapper[] {
+function processScene(
+    asset: GlTFAsset, runtime: Runtime, logger: Logger,
+): PrimitiveWrapper[] {
     const { scenes, scene: sceneIdx } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
@@ -150,13 +182,20 @@ function processScene(asset: GlTFAsset, runtime: Runtime, logger: Logger): Primi
         throw logger.error('no scene nodes');
     }
     const wrappers: PrimitiveWrapper[] = [];
-    traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime, logger);
-    return wrappers;
+    try {
+        traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime, logger);
+        return wrappers;
+    } catch (err) {
+        for (const wrapper of wrappers) {
+            wrapper.primitive.dispose();
+        }
+        throw err;
+    }
 }
 
 function traverseNodes(
-    nodeIdx: number, parentTransform: Mat4,
-    wrappers: PrimitiveWrapper[], asset: GlTFAsset, runtime: Runtime, logger: Logger,
+    nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[],
+    asset: GlTFAsset, runtime: Runtime, logger: Logger,
 ): void {
     const node = getNode(nodeIdx, asset, logger);
     const nodeTransform = getNodeTransform(node) || identity4x4();
@@ -278,6 +317,11 @@ function createPrimitive(
         }
         texcoordData = getAccessorData(asset, texcoordAccessor);
         texcoordStride = getAccessorStride(asset, texcoordAccessor);
+
+        const view = new Float32Array(texcoordData.buffer, texcoordData.byteOffset, texcoordData.byteLength / 4);
+        if (view.length !== texcoordAccessor.count) {
+            // view[0] = 0;
+        }
     }
 
     let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
@@ -348,8 +392,8 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData, !!material),
-        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData, !!material),
+        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined)),
+        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined)),
     });
     result.setProgram(program);
 
@@ -459,15 +503,82 @@ function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.
 }
 
 function makeShaderSource(
-    source: string, hasColor: boolean, hasTexcoord: boolean, hasMaterial: boolean,
+    source: string, hasColor: boolean, hasTexcoord: boolean, hasMaterial: boolean, hasTexture: boolean,
 ): string {
     const lines = [
         `#define HAS_COLOR_ATTR ${Number(hasColor)}`,
-        `#define HAS_TEXCOORD_ATTR ${Number(hasTexcoord)}`,
+        `#define HAS_TEXCOORD_ATTR ${Number(hasTexcoord && hasTexture)}`,
         `#define HAS_MATERIAL ${Number(hasMaterial)}`,
         '',
         '#line 1 0',
         source,
     ];
     return lines.join('\n');
+}
+
+async function createTextures(
+    wrappers: ReadonlyArray<PrimitiveWrapper>, asset: GlTFAsset, runtime: Runtime,
+): Promise<Map<number, Texture>> {
+
+    const image = await makeImage({ url: asset.gltf.images![0].uri! });
+    const texture = new Texture(runtime);
+    texture.setParameters({
+        wrap_s: 'repeat',
+        wrap_t: 'repeat',
+    });
+    texture.setImageData(image);
+    const map = new Map<number, Texture>();
+    map.set(0, texture);
+    return map;
+
+
+    // const dataMap = new Map<number, GlTFTexture>();
+    // for (const { material } of wrappers) {
+    //     if (material && material.baseColorTextureIndex !== undefined) {
+    //         const idx = material.baseColorTextureIndex;
+    //         let textureData = dataMap.get(idx);
+    //         if (!textureData) {
+    //             textureData = getTextureData(asset, idx);
+    //             dataMap.set(idx, textureData);
+    //         }
+    //     }
+    // }
+
+    // const textureMap = new Map<number, Texture>();
+    // const tasks: Promise<void>[] = [];
+    // for (const [idx, data] of dataMap) {
+    //     const k = idx;
+    //     const task = createTexture(data, runtime).then((texture) => {
+    //         textureMap.set(k, texture);
+    //     });
+    //     tasks.push(task);
+    // }
+    // try {
+    //     await Promise.all(tasks);
+    //     return textureMap;
+    // } catch (err) {
+    //     for (const texture of textureMap.values()) {
+    //         texture.dispose();
+    //     }
+    //     throw err;
+    // }
+}
+
+async function createTexture({ data, mimeType, sampler }: GlTFTexture, runtime: Runtime): Promise<Texture> {
+    const blob = new Blob([data], { type: mimeType });
+    const bitmap = await createImageBitmap(blob);
+    const texture = new Texture(runtime);
+    try {
+        texture.setParameters({
+            wrap_s: sampler.wrapS,
+            wrap_t: sampler.wrapT,
+            mag_filter: sampler.magFilter,
+            min_filter: sampler.minFilter,
+        });
+        texture.setImageData(bitmap);
+        return texture;
+    } catch (err) {
+        texture.dispose();
+        throw err;
+    }
 }
