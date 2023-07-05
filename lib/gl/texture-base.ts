@@ -3,6 +3,7 @@ import type {
     TextureRuntimeBase, TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
 } from './texture-base.types';
 import type { Vec2 } from '../geometry/vec2.types';
+import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseDisposable } from '../common/base-disposable';
@@ -75,7 +76,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
-    protected _size: Vec2 = ZERO2;
+    protected _size: Vec2 = clone2(ZERO2);
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
     private _state: State = {
@@ -127,14 +128,17 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         gl.texParameteri(this._target, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
-    protected _beginDataUpdate(options?: TextureImageDataOptions): { format: number, type: number } {
+    protected _beginDataUpdate(options: TextureImageDataOptions | undefined): { format: number, type: number } {
+        // These defaults are implicitly duplicated. Find a way to solve it.
         let unpackFlipY = false;
         let unpackPremultiplyAlpha = false;
+        let unpackColorSpaceConversion: UNPACK_COLORSPACE_CONVERSION = 'browser_default';
         let format = DEFAULT_TEXTURE_FORMAT;
         let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
-            unpackFlipY = !!options.unpackFlipY;
-            unpackPremultiplyAlpha = !!options.unpackPremultiplyAlpha;
+            unpackFlipY = !!(options.unpackFlipY || unpackFlipY);
+            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha || unpackPremultiplyAlpha);
+            unpackColorSpaceConversion = options.unpackColorSpaceConversion || unpackColorSpaceConversion;
             if (options.format) {
                 format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
                 type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
@@ -142,6 +146,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         }
         this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);
+        this._runtime.setPixelStoreUnpackColorSpaceConversionWebgl(unpackColorSpaceConversion);
         this._bind();
         return { format, type };
     }

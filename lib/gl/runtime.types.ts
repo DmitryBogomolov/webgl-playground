@@ -16,6 +16,10 @@ export type READ_PIXELS_FORMAT = (
     'alpha' | 'rgb' | 'rgba'
 );
 
+export type UNPACK_COLORSPACE_CONVERSION = (
+    'none' | 'browser_default'
+);
+
 export interface ReadPixelsOptions {
     readonly p1?: Vec2;
     readonly p2?: Vec2;

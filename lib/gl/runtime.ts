@@ -1,6 +1,7 @@
 import type {
     READ_PIXELS_FORMAT, ReadPixelsOptions,
     EXTENSION,
+    UNPACK_COLORSPACE_CONVERSION,
     RuntimeOptions,
 } from './runtime.types';
 import type {
@@ -39,6 +40,7 @@ const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
 const GL_TEXTURE0 = WebGL.TEXTURE0;
 const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
 const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
+const GL_UNPACK_COLORSPACE_CONVERSION_WEBGL = WebGL.UNPACK_COLORSPACE_CONVERSION_WEBGL;
 
 interface BindingsState {
     currentProgram: WebGLProgram | null;
@@ -63,6 +65,7 @@ interface ClearState {
 interface PixelStoreState {
     pixelStoreUnpackFlipYWebgl: boolean;
     pixelStoreUnpackPremultiplyAlphaWebgl: boolean;
+    pixelStoreUnpackColorSpaceConversionWebgl: UNPACK_COLORSPACE_CONVERSION;
 }
 
 const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
@@ -73,6 +76,11 @@ const BUFFER_MASK_MAP: GLValuesMap<BUFFER_MASK> = {
     'color|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
     'depth|stencil': (WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
     'color|depth|stencil': (WebGL.COLOR_BUFFER_BIT | WebGL.DEPTH_BUFFER_BIT | WebGL.STENCIL_BUFFER_BIT),
+};
+
+const UNPACK_COLORSPACE_CONVERSION_MAP: GLValuesMap<UNPACK_COLORSPACE_CONVERSION> = {
+    'none': WebGL.NONE,
+    'browser_default': WebGL.BROWSER_DEFAULT_WEBGL,
 };
 
 const READ_PIXELS_FORMAT_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
@@ -120,9 +128,9 @@ export class Runtime extends BaseDisposable {
     private readonly _renderState: RenderState;
     private readonly _gl: WebGLRenderingContext;
     private readonly _vaoExt: OES_vertex_array_object;
-    private _viewportSize: Vec2 = ZERO2;
-    private _size: Vec2 = ZERO2;
-    private _canvasSize: Vec2 = ZERO2;
+    private _viewportSize: Vec2 = clone2(ZERO2);
+    private _size: Vec2 = clone2(ZERO2);
+    private _canvasSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
     private readonly _sizeChanged = new EventEmitter((handler) => {
@@ -502,6 +510,23 @@ export class Runtime extends BaseDisposable {
         return true;
     }
 
+    getPixelStoreUnpackColorSpaceConversionWebgl(): UNPACK_COLORSPACE_CONVERSION {
+        return this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl;
+    }
+
+    setPixelStoreUnpackColorSpaceConversionWebgl(
+        unpackColorSpaceConversionWebgl: UNPACK_COLORSPACE_CONVERSION,
+    ): boolean {
+        if (this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl === unpackColorSpaceConversionWebgl) {
+            return false;
+        }
+        this._logger.log('unpack_colorspace_conversion_webgl({0})', unpackColorSpaceConversionWebgl);
+        const value = UNPACK_COLORSPACE_CONVERSION_MAP[unpackColorSpaceConversionWebgl];
+        this._gl.pixelStorei(GL_UNPACK_COLORSPACE_CONVERSION_WEBGL, value);
+        this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl = unpackColorSpaceConversionWebgl;
+        return true;
+    }
+
     bindFramebuffer(framebuffer: GLHandleWrapper<WebGLFramebuffer> | null): void {
         const handle = unwrapGLHandle(framebuffer);
         if (this._bindingsState.framebuffer === handle) {
@@ -591,6 +616,7 @@ function getDefaultPixelStoreState(): PixelStoreState {
     return {
         pixelStoreUnpackFlipYWebgl: false,
         pixelStoreUnpackPremultiplyAlphaWebgl: false,
+        pixelStoreUnpackColorSpaceConversionWebgl: 'browser_default',
     };
 }
 
