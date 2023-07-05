@@ -561,7 +561,6 @@ const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
     unpackFlipY: true,
     unpackColorSpaceConversion: 'none',
     unpackPremultiplyAlpha: false,
-    generateMipmap: true,
 };
 
 async function createTexture({ data, mimeType, sampler }: GlTFTexture, runtime: Runtime): Promise<Texture> {

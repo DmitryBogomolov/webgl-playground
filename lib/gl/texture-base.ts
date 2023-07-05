@@ -7,7 +7,7 @@ import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseDisposable } from '../common/base-disposable';
-import { vec2, clone2, ZERO2 } from '../geometry/vec2';
+import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -77,9 +77,10 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
     protected _size: Vec2 = clone2(ZERO2);
+    private _needMipmap: boolean = false;
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
-    private _state: State = {
+    private readonly _state: State = {
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
         mag_filter: 'linear',
@@ -161,35 +162,55 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
             // @ts-ignore Properties exist.
             this._size = vec2(imageData.width, imageData.height);
         }
+        if (this._needMipmap) {
+            this._generateMipmap();
+        }
     }
 
-    protected _endDataUpdate(options?: TextureImageDataOptions): void {
-        if (options && options.generateMipmap) {
-            this._runtime.gl().generateMipmap(this._target);
-        }
+    private _generateMipmap(): void {
+        this._logger.log('generate_mipmap');
+        this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
-        for (const [key, val] of Object.entries(params)) {
+        if (!params) {
+            throw this._logger.error('set_parameters: not defined');
+        }
+        for (const entry of Object.entries(params)) {
+            const key = entry[0] as keyof State;
+            const val = entry[1] as State[keyof State];
             if (val !== undefined) {
-                const value = GL_MAPS[key as keyof State][val as keyof typeof GL_MAPS];
+                const value = GL_MAPS[key][val];
                 if (!value) {
                     throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
                 }
-                if (this._state[key as keyof State] !== val) {
+                if (this._state[key] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
                     this._bind();
-                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key as keyof State], value);
-                    this._state[key as keyof State] = val as never;
+                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
+                    this._state[key] = val as never;
                 }
+            }
+        }
+        const needMipmap = isMipmapRequired(this._state.min_filter);
+        if (needMipmap && !this._needMipmap) {
+            this._needMipmap = true;
+            if (!eq2(this._size, ZERO2)) {
+                this._generateMipmap();
             }
         }
     }
 }
 
+function isMipmapRequired(minFilter: TEXTURE_MIN_FILTER): boolean {
+    return minFilter !== 'nearest' && minFilter !== 'linear';
+}
+
 function isTextureRawImageData(imageData: TextureImageData): imageData is TextureRawImageData {
-    return 'size' in imageData && 'data' in imageData;
+    return imageData
+        && isVec2((imageData as TextureRawImageData).size)
+        && ('data' in imageData);
 }
 
 export function textureImageDataToStr(imageData: TextureImageData): string {

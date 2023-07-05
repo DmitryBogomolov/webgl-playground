@@ -22,6 +22,9 @@ export class TextureCube extends TextureBase {
     }
 
     setImageData(imageData: TextureCubeImageData, options?: TextureImageDataOptions): void {
+        if (!imageData) {
+            throw this._logger.error('set_image_data: not defined');
+        }
         this._logger.log('set_image_data({0})', imageDataToStr(imageData));
         const { format, type } = this._beginDataUpdate(options);
         this._updateData(imageData.xNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, format, type);
@@ -30,7 +33,6 @@ export class TextureCube extends TextureBase {
         this._updateData(imageData.yPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, format, type);
         this._updateData(imageData.zNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, format, type);
         this._updateData(imageData.zPos, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, format, type);
-        this._endDataUpdate(options);
     }
 }
 

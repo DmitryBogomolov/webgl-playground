@@ -25,7 +25,6 @@ export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly unpackPremultiplyAlpha?: boolean;
     readonly unpackColorSpaceConversion?: UNPACK_COLORSPACE_CONVERSION;
-    readonly generateMipmap?: boolean;
     readonly format?: TEXTURE_FORMAT;
 }
 
