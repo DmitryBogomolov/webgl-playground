@@ -41,7 +41,7 @@ interface PrimitiveWrapper {
 export class GlbRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
     private readonly _wrappers: PrimitiveWrapper[] = [];
-    private readonly _textures: Map<number, Texture> = new Map();
+    private readonly _textures: Texture[] = [];
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
@@ -91,7 +91,7 @@ export class GlbRenderer extends BaseDisposable {
 
         const wrappers = processScene(asset, this._runtime, this._logger);
         try {
-            const textures = await createTextures(wrappers, asset, this._runtime);
+            const textures = await createTextures(asset, this._runtime);
             this._setup(wrappers, textures);
         } catch (err) {
             for (const wrapper of wrappers) {
@@ -101,19 +101,17 @@ export class GlbRenderer extends BaseDisposable {
         }
     }
 
-    private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyMap<number, Texture>): void {
+    private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyArray<Texture>): void {
         for (const wrapper of this._wrappers) {
             wrapper.primitive.dispose();
         }
-        for (const texture of this._textures.values()) {
+        for (const texture of this._textures) {
             texture.dispose();
         }
         this._wrappers.length = 0;
-        this._textures.clear();
+        this._textures.length = 0;
         this._wrappers.push(...wrappers);
-        for (const [idx, texture] of textures) {
-            this._textures.set(idx, texture);
-        }
+        this._textures.push(...textures);
     }
 
     setProjMat(mat: Mat4): void {
@@ -131,6 +129,10 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     render(): void {
+        for (let i = 0; i < this._textures.length; ++i) {
+            const texture = this._textures[i];
+            this._runtime.setTextureUnit(i, texture);
+        }
         for (const wrapper of this._wrappers) {
             this._renderPrimitive(wrapper);
         }
@@ -150,9 +152,7 @@ export class GlbRenderer extends BaseDisposable {
             program.setUniform('u_material_roughness', material.roughnessFactor);
             program.setUniform('u_material_metallic', material.metallicFactor);
             if (material.baseColorTextureIndex !== undefined) {
-                const texture = this._textures.get(material.baseColorTextureIndex)!;
-                this._runtime.setTextureUnit(1, texture);
-                program.setUniform('u_texture', 1);
+                program.setUniform('u_texture', material.baseColorTextureIndex);
             }
         }
         wrapper.primitive.render();
@@ -520,36 +520,26 @@ function makeShaderSource(
     return lines.join('\n');
 }
 
-async function createTextures(
-    wrappers: ReadonlyArray<PrimitiveWrapper>, asset: GlTFAsset, runtime: Runtime,
-): Promise<Map<number, Texture>> {
-    const dataMap = new Map<number, GlTFTexture>();
-    for (const { material } of wrappers) {
-        if (material && material.baseColorTextureIndex !== undefined) {
-            const idx = material.baseColorTextureIndex;
-            let textureData = dataMap.get(idx);
-            if (!textureData) {
-                textureData = getTextureData(asset, idx);
-                dataMap.set(idx, textureData);
-            }
-        }
-    }
-
-    const textureMap = new Map<number, Texture>();
+async function createTextures(asset: GlTFAsset, runtime: Runtime): Promise<Texture[]> {
+    const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
     const tasks: Promise<void>[] = [];
-    for (const [idx, data] of dataMap) {
-        const k = idx;
-        const task = createTexture(data, runtime).then((texture) => {
-            textureMap.set(k, texture);
+    const textures: Texture[] = [];
+    for (let i = 0; i < count; ++i) {
+        const idx = i;
+        const textureData = getTextureData(asset, idx);
+        const task = createTexture(textureData, runtime).then((texture) => {
+            textures[idx] = texture;
         });
         tasks.push(task);
     }
     try {
         await Promise.all(tasks);
-        return textureMap;
+        return textures;
     } catch (err) {
-        for (const texture of textureMap.values()) {
-            texture.dispose();
+        for (const texture of textures) {
+            if (texture) {
+                texture.dispose();
+            }
         }
         throw err;
     }
