@@ -47,7 +47,4 @@ void main() {
     base_color = vec4(color, base_color.a);
 #endif
     gl_FragColor = base_color;
-    // TODO_DEBUG
-    gl_FragColor = texture2D(u_texture, v_texcoord);
-    // gl_FragColor.a = 1.0;
 }
