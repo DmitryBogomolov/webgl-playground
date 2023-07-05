@@ -387,16 +387,15 @@ function createPrimitive(
     const material = getPrimitiveMaterial(asset, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
+    const programDefinitions = {
+        HAS_COLOR_ATTR: colorData ? '1' : '0',
+        HAS_TEXCOORD_ATTR: !!texcoordData && material && material.baseColorTextureIndex !== undefined ? '1' : '0',
+        HAS_MATERIAL: material ? '1' : '0',
+    };
     const program = new Program(runtime, {
         schema,
-        vertShader: makeShaderSource(
-            vertShader,
-            !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined),
-        ),
-        fragShader: makeShaderSource(
-            fragShader,
-            !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined),
-        ),
+        vertShader: makeShaderSource(vertShader, programDefinitions),
+        fragShader: makeShaderSource(fragShader, programDefinitions),
     });
     result.setProgram(program);
 
@@ -506,17 +505,12 @@ function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.
     return accessor;
 }
 
-function makeShaderSource(
-    source: string, hasColor: boolean, hasTexcoord: boolean, hasMaterial: boolean, hasTexture: boolean,
-): string {
-    const lines = [
-        `#define HAS_COLOR_ATTR ${Number(hasColor)}`,
-        `#define HAS_TEXCOORD_ATTR ${Number(hasTexcoord && hasTexture)}`,
-        `#define HAS_MATERIAL ${Number(hasMaterial)}`,
-        '',
-        '#line 1 0',
-        source,
-    ];
+function makeShaderSource(source: string, definitions: Readonly<Record<string, string>>): string {
+    const lines: string[] = [];
+    for (const [key, val] of Object.entries(definitions)) {
+        lines.push(`#define ${key} ${val}`);
+    }
+    lines.push('', '#line 1 0', source);
     return lines.join('\n');
 }
 
