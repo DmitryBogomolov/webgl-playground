@@ -44,7 +44,7 @@ export class GlbRenderer extends BaseDisposable {
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
-    private _lightDirection: Vec3 = vec3(0.2, -0.3, -1);
+    private _lightDirection: Vec3 = vec3(0, -0.4, -1);
 
     constructor(runtime: Runtime, tag?: string) {
         super(runtime.logger(), tag);

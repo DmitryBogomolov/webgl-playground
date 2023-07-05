@@ -328,9 +328,7 @@ export function getAccessorData(asset: GlTFAsset, accessor: GlTFSchema.Accessor)
 }
 
 const DEFAULT_BASE_COLOR_FACTOR = color(1, 1, 1, 1);
-// Specification states that default material metallic factor is 1.
-// Actually such material looks too dark. For better visual effect default metallic is changed to 0.
-const DEFAULT_METALLIC_FACTOR = 0;
+const DEFAULT_METALLIC_FACTOR = 1;
 const DEFAULT_ROUGHNESS_FACTOR = 1;
 
 export function getPrimitiveMaterial(asset: GlTFAsset, primitive: GlTFSchema.MeshPrimitive): GlTFMaterial | null {
