@@ -7,6 +7,7 @@ import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../../gl/primitive.types';
+import type { TextureImageDataOptions } from '../../gl/texture-base.types';
 import type { Runtime } from '../../gl/runtime';
 import { BaseDisposable } from '../../common/base-disposable';
 import { Primitive } from '../../gl/primitive';
@@ -21,7 +22,6 @@ import {
 } from '../../gltf/gltf';
 import vertShader from './shader.vert';
 import fragShader from './shader.frag';
-import { makeImage } from '../../utils/image-maker';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
@@ -392,8 +392,14 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const program = new Program(runtime, {
         schema,
-        vertShader: makeShaderSource(vertShader, !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined)),
-        fragShader: makeShaderSource(fragShader, !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined)),
+        vertShader: makeShaderSource(
+            vertShader,
+            !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined),
+        ),
+        fragShader: makeShaderSource(
+            fragShader,
+            !!colorData, !!texcoordData, !!material, !!(material && material.baseColorTextureIndex !== undefined),
+        ),
     });
     result.setProgram(program);
 
@@ -519,50 +525,44 @@ function makeShaderSource(
 async function createTextures(
     wrappers: ReadonlyArray<PrimitiveWrapper>, asset: GlTFAsset, runtime: Runtime,
 ): Promise<Map<number, Texture>> {
+    const dataMap = new Map<number, GlTFTexture>();
+    for (const { material } of wrappers) {
+        if (material && material.baseColorTextureIndex !== undefined) {
+            const idx = material.baseColorTextureIndex;
+            let textureData = dataMap.get(idx);
+            if (!textureData) {
+                textureData = getTextureData(asset, idx);
+                dataMap.set(idx, textureData);
+            }
+        }
+    }
 
-    const image = await makeImage({ url: asset.gltf.images![0].uri! });
-    const texture = new Texture(runtime);
-    texture.setParameters({
-        wrap_s: 'repeat',
-        wrap_t: 'repeat',
-    });
-    texture.setImageData(image);
-    const map = new Map<number, Texture>();
-    map.set(0, texture);
-    return map;
-
-
-    // const dataMap = new Map<number, GlTFTexture>();
-    // for (const { material } of wrappers) {
-    //     if (material && material.baseColorTextureIndex !== undefined) {
-    //         const idx = material.baseColorTextureIndex;
-    //         let textureData = dataMap.get(idx);
-    //         if (!textureData) {
-    //             textureData = getTextureData(asset, idx);
-    //             dataMap.set(idx, textureData);
-    //         }
-    //     }
-    // }
-
-    // const textureMap = new Map<number, Texture>();
-    // const tasks: Promise<void>[] = [];
-    // for (const [idx, data] of dataMap) {
-    //     const k = idx;
-    //     const task = createTexture(data, runtime).then((texture) => {
-    //         textureMap.set(k, texture);
-    //     });
-    //     tasks.push(task);
-    // }
-    // try {
-    //     await Promise.all(tasks);
-    //     return textureMap;
-    // } catch (err) {
-    //     for (const texture of textureMap.values()) {
-    //         texture.dispose();
-    //     }
-    //     throw err;
-    // }
+    const textureMap = new Map<number, Texture>();
+    const tasks: Promise<void>[] = [];
+    for (const [idx, data] of dataMap) {
+        const k = idx;
+        const task = createTexture(data, runtime).then((texture) => {
+            textureMap.set(k, texture);
+        });
+        tasks.push(task);
+    }
+    try {
+        await Promise.all(tasks);
+        return textureMap;
+    } catch (err) {
+        for (const texture of textureMap.values()) {
+            texture.dispose();
+        }
+        throw err;
+    }
 }
+
+const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
+    unpackFlipY: true,
+    unpackColorSpaceConversion: 'none',
+    unpackPremultiplyAlpha: false,
+    generateMipmap: true,
+};
 
 async function createTexture({ data, mimeType, sampler }: GlTFTexture, runtime: Runtime): Promise<Texture> {
     const blob = new Blob([data], { type: mimeType });
@@ -575,7 +575,7 @@ async function createTexture({ data, mimeType, sampler }: GlTFTexture, runtime: 
             mag_filter: sampler.magFilter,
             min_filter: sampler.minFilter,
         });
-        texture.setImageData(bitmap);
+        texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
         return texture;
     } catch (err) {
         texture.dispose();

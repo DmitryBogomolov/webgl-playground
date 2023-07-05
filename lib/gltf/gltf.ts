@@ -399,7 +399,7 @@ export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
         const buffer = asset.images.get(texture.source!)!;
         textureData = new Uint8Array(buffer);
     }
-    const mimeType = image.mimeType || detectTextureMimeType(textureData);
+    const mimeType = image.mimeType !== undefined ? image.mimeType as string : detectTextureMimeType(textureData);
     let textureSampler = DEFAULT_SAMPLER;
     if (texture.sampler !== undefined) {
         const sampler = asset.gltf.samplers![texture.sampler];
