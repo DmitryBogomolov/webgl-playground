@@ -32,8 +32,8 @@ vec3 brdf(vec3 base_color, float roughness, float metallic, vec3 normal, vec3 to
     float n_v = pos_dot(normal, to_eye);
     float h_v = pos_dot(h, to_eye);
 
-    vec3 f0 = mix(vec3(DIELECTRIC_SPECULAR), base_color.rgb, metallic);
-    vec3 c_diff = mix(base_color.rgb * (1.0 - DIELECTRIC_SPECULAR), vec3(0.0), metallic);
+    vec3 f0 = mix(vec3(DIELECTRIC_SPECULAR), base_color, metallic);
+    vec3 c_diff = mix(base_color * (1.0 - DIELECTRIC_SPECULAR), vec3(0.0), metallic);
     vec3 f = f0 + (vec3(1.0) - f0) * pow(1.0 - h_v, 5.0);
 
     float g = smith_g(a2, n_l, n_v);
