@@ -14,8 +14,8 @@ import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
-import { vec3, clone3, sub3, cross3, norm3 } from '../../geometry/vec3';
-import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4 } from '../../geometry/mat4';
+import { vec3, sub3, cross3, norm3 } from '../../geometry/vec3';
+import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4, inversetranspose4x4 } from '../../geometry/mat4';
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getAccessorData, getAccessorStride, getPrimitiveMaterial, getTextureData,
@@ -34,6 +34,7 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
 interface PrimitiveWrapper {
     readonly primitive: Primitive;
     readonly matrix: Mat4;
+    readonly normalMatrix: Mat4;
     readonly material: GlTFMaterial | null;
 }
 
@@ -44,7 +45,7 @@ export class GlbRenderer extends BaseDisposable {
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
-    private _lightDirection: Vec3 = vec3(0, -0.4, -1);
+    private _lightDirection: Vec3 = norm3(vec3(0, -0.4, -1));
 
     constructor(runtime: Runtime, tag?: string) {
         super(runtime.logger(), tag);
@@ -126,7 +127,7 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     setLightDirection(lightDirection: Vec3): void {
-        this._lightDirection = clone3(lightDirection);
+        this._lightDirection = norm3(lightDirection);
     }
 
     render(): void {
@@ -142,6 +143,7 @@ export class GlbRenderer extends BaseDisposable {
         program.setUniform('u_world_mat', wrapper.matrix);
         const { material } = wrapper;
         if (material) {
+            program.setUniform('u_normal_mat', wrapper.normalMatrix);
             program.setUniform('u_eye_position', this._eyePosition);
             program.setUniform('u_light_direction', this._lightDirection);
             program.setUniform('u_material_base_color', material.baseColorFactor);
@@ -317,11 +319,6 @@ function createPrimitive(
         }
         texcoordData = getAccessorData(asset, texcoordAccessor);
         texcoordStride = getAccessorStride(asset, texcoordAccessor);
-
-        const view = new Float32Array(texcoordData.buffer, texcoordData.byteOffset, texcoordData.byteLength / 4);
-        if (view.length !== texcoordAccessor.count) {
-            // view[0] = 0;
-        }
     }
 
     let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
@@ -406,6 +403,7 @@ function createPrimitive(
     return {
         primitive: result,
         matrix: transform,
+        normalMatrix: inversetranspose4x4(transform),
         material,
     };
 }

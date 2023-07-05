@@ -1,5 +1,7 @@
 attribute vec3 a_position;
+#if HAS_MATERIAL
 attribute vec3 a_normal;
+#endif
 #if HAS_COLOR_ATTR
 attribute vec4 a_color;
 #endif
@@ -10,6 +12,9 @@ attribute vec2 a_texcoord;
 uniform mat4 u_proj_mat;
 uniform mat4 u_view_mat;
 uniform mat4 u_world_mat;
+#if HAS_MATERIAL
+uniform mat4 u_normal_mat;
+#endif
 
 #if HAS_MATERIAL
 varying vec3 v_normal;
@@ -26,8 +31,7 @@ void main() {
     vec4 world_position = u_world_mat * vec4(a_position, 1.0);
     gl_Position = u_proj_mat * u_view_mat * world_position;
 #if HAS_MATERIAL
-    // TODO: Add u_normal_mat.
-    v_normal = mat3(u_world_mat) * a_normal;
+    v_normal = mat3(u_normal_mat) * a_normal;
     v_position = world_position.xyz / world_position.w;
 #endif
 #if HAS_COLOR_ATTR
