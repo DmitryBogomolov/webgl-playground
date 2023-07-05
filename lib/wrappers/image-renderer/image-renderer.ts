@@ -18,8 +18,8 @@ import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { makeImage } from '../../utils/image-maker';
-import vertShader from './shader.vert';
-import fragShader from './shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 function isRawData(data: ImageRendererImageData): data is ImageRendererRawImageData {
     return data
