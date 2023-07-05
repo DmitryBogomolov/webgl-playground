@@ -20,8 +20,8 @@ import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getAccessorData, getAccessorStride, getPrimitiveMaterial, getTextureData,
 } from '../../gltf/gltf';
-import vertShader from './shader.vert';
-import fragShader from './shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
     return data && ArrayBuffer.isView((data as GlTFRendererRawData).data);
