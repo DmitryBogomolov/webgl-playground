@@ -33,7 +33,8 @@ void main() {
     vec4 base_color = vec4(1.0);
 #endif
 #if HAS_TEXCOORD_ATTR
-    base_color *= texture2D(u_texture, v_texcoord);
+    // Pow 2.2 decodes color from sRGB to RGB space.
+    base_color *= pow(texture2D(u_texture, v_texcoord), vec4(2.2));
 #endif
 #if HAS_MATERIAL
     base_color *= u_material_base_color;
