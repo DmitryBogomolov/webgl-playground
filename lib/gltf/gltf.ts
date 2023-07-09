@@ -390,28 +390,30 @@ const DEFAULT_SAMPLER: GlTFTextureSampler = {
 export function getTextureData(asset: GlTFAsset, idx: number): GlTFTexture {
     const texture = asset.gltf.textures![idx];
     const image = asset.gltf.images![texture.source!];
-    let textureData: Uint8Array;
+    let data: Uint8Array;
     if (image.bufferView !== undefined) {
-        textureData = getBufferData(asset, image.bufferView, 0, undefined);
+        data = getBufferData(asset, image.bufferView, 0, undefined);
     } else {
         const buffer = asset.images.get(texture.source!)!;
-        textureData = new Uint8Array(buffer);
+        data = new Uint8Array(buffer);
     }
-    const mimeType = image.mimeType !== undefined ? image.mimeType as string : detectTextureMimeType(textureData);
-    let textureSampler = DEFAULT_SAMPLER;
+    const mimeType = image.mimeType !== undefined ? image.mimeType as string : detectTextureMimeType(data);
+    let sampler: GlTFTextureSampler;
     if (texture.sampler !== undefined) {
-        const sampler = asset.gltf.samplers![texture.sampler];
-        textureSampler = {
-            wrapS: sampler.wrapS ? WRAP_MAPPING[sampler.wrapS] : DEFAULT_SAMPLER.wrapS,
-            wrapT: sampler.wrapT ? WRAP_MAPPING[sampler.wrapT] : DEFAULT_SAMPLER.wrapT,
-            minFilter: sampler.minFilter ? MIN_FILTER_MAPPING[sampler.minFilter] : undefined,
-            magFilter: sampler.magFilter ? MAG_FILTER_MAPPING[sampler.magFilter] : undefined,
+        const { wrapS, wrapT, minFilter, magFilter } = asset.gltf.samplers![texture.sampler];
+        sampler = {
+            wrapS: wrapS !== undefined ? WRAP_MAPPING[wrapS] : DEFAULT_SAMPLER.wrapS,
+            wrapT: wrapT !== undefined ? WRAP_MAPPING[wrapT] : DEFAULT_SAMPLER.wrapT,
+            minFilter: minFilter !== undefined ? MIN_FILTER_MAPPING[minFilter] : undefined,
+            magFilter: magFilter !== undefined ? MAG_FILTER_MAPPING[magFilter] : undefined,
         };
+    } else {
+        sampler = { ...DEFAULT_SAMPLER };
     }
     return {
-        data: textureData,
+        data,
         mimeType,
-        sampler: textureSampler,
+        sampler,
     };
 }
 
