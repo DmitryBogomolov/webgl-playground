@@ -160,7 +160,10 @@ export class GlbRenderer extends BaseDisposable {
             program.setUniform('u_material_roughness', material.roughnessFactor);
             program.setUniform('u_material_metallic', material.metallicFactor);
             if (material.baseColorTextureIndex !== undefined) {
-                program.setUniform('u_texture', material.baseColorTextureIndex);
+                program.setUniform('u_base_color_texture', material.baseColorTextureIndex);
+            }
+            if (material.metallicRoughnessTextureIndex !== undefined) {
+                program.setUniform('u_metallic_roughness_texture', material.metallicRoughnessTextureIndex);
             }
         }
         wrapper.primitive.render();
@@ -395,8 +398,12 @@ function createPrimitive(
     // TODO: Share program between all primitives (some schema check should be updated?).
     const programDefinitions = {
         HAS_COLOR_ATTR: colorData ? '1' : '0',
-        HAS_TEXCOORD_ATTR: !!texcoordData && material && material.baseColorTextureIndex !== undefined ? '1' : '0',
+        HAS_TEXCOORD_ATTR: texcoordData ? '1' : '0',
         HAS_MATERIAL: material ? '1' : '0',
+        HAS_BASE_COLOR_TEXTURE: !!texcoordData
+            && material?.baseColorTextureIndex !== undefined ? '1' : '0',
+        HAS_METALLIC_ROUGHNESS_TEXTURE: !!texcoordData
+            && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
     };
     const program = new Program(runtime, {
         schema,
