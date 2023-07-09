@@ -2,7 +2,6 @@ import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from 
 import type {
     GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial, GlTFTexture,
 } from '../../gltf/gltf.types';
-import type { Logger } from '../../common/logger.types';
 import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
@@ -89,7 +88,12 @@ export class GlbRenderer extends BaseDisposable {
         }
         const asset = await parseGlTF(source, resolveUri);
 
-        const wrappers = processScene(asset, this._runtime, this._logger);
+        let wrappers: PrimitiveWrapper[];
+        try {
+            wrappers = processScene(asset, this._runtime);
+        } catch (err) {
+            throw this._logger.error(err as Error);
+        }
         try {
             const textures = await createTextures(asset, this._runtime);
             this._setup(wrappers, textures);
@@ -171,21 +175,19 @@ async function load(url: string): Promise<ArrayBufferView> {
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
-function processScene(
-    asset: GlTFAsset, runtime: Runtime, logger: Logger,
-): PrimitiveWrapper[] {
+function processScene(asset: GlTFAsset, runtime: Runtime): PrimitiveWrapper[] {
     const { scenes, scene: sceneIdx } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
     if (!scene) {
-        throw logger.error('no scene');
+        throw new Error('no scene');
     }
     if (!scene.nodes) {
-        throw logger.error('no scene nodes');
+        throw new Error('no scene nodes');
     }
     const wrappers: PrimitiveWrapper[] = [];
     try {
-        traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime, logger);
+        traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime);
         return wrappers;
     } catch (err) {
         for (const wrapper of wrappers) {
@@ -197,21 +199,21 @@ function processScene(
 
 function traverseNodes(
     nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[],
-    asset: GlTFAsset, runtime: Runtime, logger: Logger,
+    asset: GlTFAsset, runtime: Runtime,
 ): void {
-    const node = getNode(nodeIdx, asset, logger);
+    const node = getNode(nodeIdx, asset);
     const nodeTransform = getNodeTransform(node) || identity4x4();
     mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut);
     if (node.mesh !== undefined) {
-        const mesh = getMesh(node.mesh, asset, logger);
+        const mesh = getMesh(node.mesh, asset);
         for (const desc of mesh.primitives) {
-            const wrapper = createPrimitive(desc, nodeTransform, asset, runtime, logger);
+            const wrapper = createPrimitive(desc, nodeTransform, asset, runtime);
             wrappers.push(wrapper);
         }
     }
     if (node.children) {
         for (const idx of node.children) {
-            traverseNodes(idx, nodeTransform, wrappers, asset, runtime, logger);
+            traverseNodes(idx, nodeTransform, wrappers, asset, runtime);
         }
     }
 }
@@ -231,7 +233,7 @@ const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESS
 
 function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
-    asset: GlTFAsset, runtime: Runtime, logger: Logger,
+    asset: GlTFAsset, runtime: Runtime,
 ): PrimitiveWrapper {
     const {
         POSITION: positionIdx,
@@ -241,16 +243,16 @@ function createPrimitive(
     } = primitive.attributes;
     // For now let's support only triangles.
     if (getPrimitiveMode(primitive) !== SUPPORTED_PRIMITIVE_MODE) {
-        throw logger.error('not supported primitive mode: {0}', getPrimitiveMode(primitive));
+        throw new Error(`not supported primitive mode: ${getPrimitiveMode(primitive)}`);
     }
 
     // Though specification allows to have no positions there is no sense in accepting such primitives.
     if (positionIdx === undefined) {
-        throw logger.error('no POSITION attribute');
+        throw new Error('no POSITION attribute');
     }
-    const positionAccessor = getAccessor(positionIdx, asset, logger);
+    const positionAccessor = getAccessor(positionIdx, asset);
     if (getAccessorType(positionAccessor) !== VALID_POSITION_TYPE) {
-        throw logger.error('bad POSITION type: {0}', getAccessorType(positionAccessor));
+        throw new Error(`bad POSITION type: ${getAccessorType(positionAccessor)}`);
     }
     const positionData = getAccessorData(asset, positionAccessor);
     const positionStride = getAccessorStride(asset, positionAccessor);
@@ -259,10 +261,10 @@ function createPrimitive(
     let indicesCount: number;
     let indicesData: Uint8Array;
     if (primitive.indices !== undefined) {
-        const indicesAccessor = getAccessor(primitive.indices, asset, logger);
+        const indicesAccessor = getAccessor(primitive.indices, asset);
         indicesType = getAccessorType(indicesAccessor);
         if (!VALID_INDEX_TYPES.has(indicesType)) {
-            throw logger.error('bad index type: {0}', indicesType);
+            throw new Error(`bad index type: ${indicesType}`);
         }
         indicesCount = indicesAccessor.count;
         indicesData = getAccessorData(asset, indicesAccessor);
@@ -275,12 +277,12 @@ function createPrimitive(
     let normalData: Uint8Array;
     let normalStride: number;
     if (normalIdx !== undefined) {
-        const normalAccessor = getAccessor(normalIdx, asset, logger);
+        const normalAccessor = getAccessor(normalIdx, asset);
         if (getAccessorType(normalAccessor) !== VALID_NORMAL_TYPE) {
-            throw logger.error('bad NORMAL type: {0}', getAccessorType(normalAccessor));
+            throw new Error(`bad NORMAL type: ${getAccessorType(normalAccessor)}`);
         }
         if (normalAccessor.count !== positionAccessor.count) {
-            throw logger.error('bad NORMAL count: {0}', normalAccessor.count);
+            throw new Error(`bad NORMAL count: ${normalAccessor.count}`);
         }
         normalData = getAccessorData(asset, normalAccessor);
         normalStride = getAccessorStride(asset, normalAccessor);
@@ -293,13 +295,13 @@ function createPrimitive(
     let colorData: Uint8Array | undefined;
     let colorStride: number | undefined;
     if (colorIdx !== undefined) {
-        const colorAccessor = getAccessor(colorIdx, asset, logger);
+        const colorAccessor = getAccessor(colorIdx, asset);
         colorType = getAccessorType(colorAccessor);
         if (!VALID_COLOR_TYPES.has(colorType)) {
-            throw logger.error('bad COLOR_0 type: {0}', colorType);
+            throw new Error(`bad COLOR_0 type: ${colorType}`);
         }
         if (colorAccessor.count !== positionAccessor.count) {
-            throw logger.error('bad COLOR_0 count: {0}', colorAccessor.count);
+            throw new Error(`bad COLOR_0 count: ${colorAccessor.count}`);
         }
         colorData = getAccessorData(asset, colorAccessor);
         colorStride = getAccessorStride(asset, colorAccessor);
@@ -309,13 +311,13 @@ function createPrimitive(
     let texcoordData: Uint8Array | undefined;
     let texcoordStride: number | undefined;
     if (texcoordIdx !== undefined) {
-        const texcoordAccessor = getAccessor(texcoordIdx, asset, logger);
+        const texcoordAccessor = getAccessor(texcoordIdx, asset);
         texcoordType = getAccessorType(texcoordAccessor);
         if (!VALID_TEXCOORD_TYPE.has(texcoordType)) {
-            throw logger.error('bad TEXCOORD_0 type: {0}', texcoordType);
+            throw new Error(`bad TEXCOORD_0 type: ${texcoordType}`);
         }
         if (texcoordAccessor.count !== positionAccessor.count) {
-            throw logger.error('bad TEXCOORD_0 count: {0}', texcoordAccessor.count);
+            throw new Error(`bad TEXCOORD_0 count: ${texcoordAccessor.count}`);
         }
         texcoordData = getAccessorData(asset, texcoordAccessor);
         texcoordStride = getAccessorStride(asset, texcoordAccessor);
@@ -481,26 +483,26 @@ function updateArr(arr: { [i: number]: number }, idx: number, v: Vec3): void {
     arr[k + 2] = v.z;
 }
 
-function getNode(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Node {
+function getNode(idx: number, asset: GlTFAsset): GlTFSchema.Node {
     const node = asset.gltf.nodes?.[idx];
     if (!node) {
-        throw logger.error('no {0} node', idx);
+        throw new Error(`no ${idx} node`);
     }
     return node;
 }
 
-function getMesh(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Mesh {
+function getMesh(idx: number, asset: GlTFAsset): GlTFSchema.Mesh {
     const mesh = asset.gltf.meshes?.[idx];
     if (!mesh) {
-        throw logger.error('no {0} mesh', idx);
+        throw new Error(`no ${idx} mesh`);
     }
     return mesh;
 }
 
-function getAccessor(idx: number, asset: GlTFAsset, logger: Logger): GlTFSchema.Accessor {
+function getAccessor(idx: number, asset: GlTFAsset): GlTFSchema.Accessor {
     const accessor = asset.gltf.accessors?.[idx];
     if (!accessor) {
-        throw logger.error('no {0} accessor', idx);
+        throw new Error(`no ${idx} accessor`);
     }
     return accessor;
 }
