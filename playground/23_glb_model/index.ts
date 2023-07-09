@@ -16,7 +16,7 @@ import { createControls } from 'playground-utils/controls';
  */
 export type DESCRIPTION = never;
 
-const MODEL_URL = '/static/gltf-models/BoxTextured.gltf';
+const MODEL_URL = '/static/gltf-models/BoxWithSpaces/Box With Spaces.gltf';
 
 main();
 
