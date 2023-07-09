@@ -69,24 +69,28 @@ export class GlbRenderer extends BaseDisposable {
         let resolveUri: GlTFResolveUriFunc;
         if (isRawData(data)) {
             source = data.data;
-            // eslint-disable-next-line @typescript-eslint/require-await
-            resolveUri = async (uri) => {
+            resolveUri = (uri) => {
                 const content = data.additionalData?.[uri];
                 if (content) {
-                    return content;
+                    return Promise.resolve(content);
                 }
-                throw new Error(`${uri} is not provided`);
+                return Promise.reject(new Error(`${uri} is not provided`));
             };
         } else if (isUrlData(data)) {
             source = await load(data.url);
             const baseUrl = data.url.substring(0, data.url.lastIndexOf('/') + 1);
-            resolveUri = async (uri) => {
-                return load(baseUrl + uri);
-            };
+            resolveUri = (uri) => load(baseUrl + uri);
         } else {
             throw this._logger.error('set_data({0}): bad value', data);
         }
-        const asset = await parseGlTF(source, resolveUri);
+
+        // TODO: Add some disposable resources management.
+        let asset: GlTFAsset;
+        try {
+            asset = await parseGlTF(source, resolveUri);
+        } catch (err) {
+            throw this._logger.error(err as Error);
+        }
 
         let wrappers: PrimitiveWrapper[];
         try {
