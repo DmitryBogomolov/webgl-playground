@@ -15,6 +15,7 @@ import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4, inversetranspose4x4 } from '../../geometry/mat4';
+import { DisposableContext } from '../../utils/disposable-context';
 import {
     parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
     getAccessorData, getAccessorStride, getPrimitiveMaterial, getTextureData,
@@ -52,13 +53,18 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     dispose(): void {
+        this._disposeElements();
+        this._dispose();
+    }
+
+    private _disposeElements(): void {
         for (const wrapper of this._wrappers) {
             wrapper.primitive.dispose();
+            wrapper.primitive.program().dispose();
         }
         for (const texture of this._textures.values()) {
             texture.dispose();
         }
-        this._dispose();
     }
 
     async setData(data: GlTFRendererData): Promise<void> {
@@ -84,41 +90,25 @@ export class GlbRenderer extends BaseDisposable {
             throw this._logger.error('set_data({0}): bad value', data);
         }
 
-        // TODO: Add some disposable resources management.
-        let asset: GlTFAsset;
+        const context = new DisposableContext();
         try {
-            asset = await parseGlTF(source, resolveUri);
-        } catch (err) {
-            throw this._logger.error(err as Error);
-        }
-
-        let wrappers: PrimitiveWrapper[];
-        try {
-            wrappers = processScene(asset, this._runtime);
-        } catch (err) {
-            throw this._logger.error(err as Error);
-        }
-        try {
-            const textures = await createTextures(asset, this._runtime);
+            const asset = await parseGlTF(source, resolveUri);
+            const wrappers = processScene(asset, this._runtime, context);
+            const textures = await createTextures(asset, this._runtime, context);
             this._setup(wrappers, textures);
+            context.release();
         } catch (err) {
-            for (const wrapper of wrappers) {
-                wrapper.primitive.dispose();
-            }
-            throw err;
+            throw this._logger.error(err as Error);
+        } finally {
+            context.dispose();
         }
     }
 
     private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyArray<Texture>): void {
-        for (const wrapper of this._wrappers) {
-            wrapper.primitive.dispose();
-        }
-        for (const texture of this._textures) {
-            texture.dispose();
-        }
+        this._disposeElements();
         this._wrappers.length = 0;
-        this._textures.length = 0;
         this._wrappers.push(...wrappers);
+        this._textures.length = 0;
         this._textures.push(...textures);
     }
 
@@ -182,7 +172,7 @@ async function load(url: string): Promise<ArrayBufferView> {
 }
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
-function processScene(asset: GlTFAsset, runtime: Runtime): PrimitiveWrapper[] {
+function processScene(asset: GlTFAsset, runtime: Runtime, context: DisposableContext): PrimitiveWrapper[] {
     const { scenes, scene: sceneIdx } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
@@ -193,20 +183,13 @@ function processScene(asset: GlTFAsset, runtime: Runtime): PrimitiveWrapper[] {
         throw new Error('no scene nodes');
     }
     const wrappers: PrimitiveWrapper[] = [];
-    try {
-        traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime);
-        return wrappers;
-    } catch (err) {
-        for (const wrapper of wrappers) {
-            wrapper.primitive.dispose();
-        }
-        throw err;
-    }
+    traverseNodes(scene.nodes[0], identity4x4(), wrappers, asset, runtime, context);
+    return wrappers;
 }
 
 function traverseNodes(
     nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[],
-    asset: GlTFAsset, runtime: Runtime,
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContext,
 ): void {
     const node = getNode(nodeIdx, asset);
     const nodeTransform = getNodeTransform(node) || identity4x4();
@@ -214,13 +197,13 @@ function traverseNodes(
     if (node.mesh !== undefined) {
         const mesh = getMesh(node.mesh, asset);
         for (const desc of mesh.primitives) {
-            const wrapper = createPrimitive(desc, nodeTransform, asset, runtime);
+            const wrapper = createPrimitive(desc, nodeTransform, asset, runtime, context);
             wrappers.push(wrapper);
         }
     }
     if (node.children) {
         for (const idx of node.children) {
-            traverseNodes(idx, nodeTransform, wrappers, asset, runtime);
+            traverseNodes(idx, nodeTransform, wrappers, asset, runtime, context);
         }
     }
 }
@@ -240,7 +223,7 @@ const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESS
 
 function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
-    asset: GlTFAsset, runtime: Runtime,
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContext,
 ): PrimitiveWrapper {
     const {
         POSITION: positionIdx,
@@ -258,7 +241,7 @@ function createPrimitive(
         throw new Error('no POSITION attribute');
     }
     const positionAccessor = getAccessor(positionIdx, asset);
-    if (getAccessorType(positionAccessor) !== VALID_POSITION_TYPE) {
+    if (getAccessorType(positionAccessor) === VALID_POSITION_TYPE) {
         throw new Error(`bad POSITION type: ${getAccessorType(positionAccessor)}`);
     }
     const positionData = getAccessorData(asset, positionAccessor);
@@ -339,6 +322,7 @@ function createPrimitive(
     }
 
     const result = new Primitive(runtime);
+    context.add(result);
 
     result.allocateVertexBuffer(totalVertexDataSize);
     const vertexAttributes: AttributeOptions[] = [];
@@ -410,6 +394,7 @@ function createPrimitive(
         vertShader: makeShaderSource(vertShader, programDefinitions),
         fragShader: makeShaderSource(fragShader, programDefinitions),
     });
+    context.add(program);
     result.setProgram(program);
 
     return {
@@ -527,29 +512,15 @@ function makeShaderSource(source: string, definitions: Readonly<Record<string, s
     return lines.join('\n');
 }
 
-async function createTextures(asset: GlTFAsset, runtime: Runtime): Promise<Texture[]> {
+function createTextures(asset: GlTFAsset, runtime: Runtime, context: DisposableContext): Promise<Texture[]> {
     const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
-    const tasks: Promise<void>[] = [];
-    const textures: Texture[] = [];
+    const tasks: Promise<Texture>[] = [];
     for (let i = 0; i < count; ++i) {
-        const idx = i;
-        const textureData = getTextureData(asset, idx);
-        const task = createTexture(textureData, runtime).then((texture) => {
-            textures[idx] = texture;
-        });
+        const textureData = getTextureData(asset, i);
+        const task = createTexture(textureData, runtime, context);
         tasks.push(task);
     }
-    try {
-        await Promise.all(tasks);
-        return textures;
-    } catch (err) {
-        for (const texture of textures) {
-            if (texture) {
-                texture.dispose();
-            }
-        }
-        throw err;
-    }
+    return Promise.all(tasks);
 }
 
 const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
@@ -558,21 +529,19 @@ const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
     unpackPremultiplyAlpha: false,
 };
 
-async function createTexture({ data, mimeType, sampler }: GlTFTexture, runtime: Runtime): Promise<Texture> {
+async function createTexture(
+    { data, mimeType, sampler }: GlTFTexture, runtime: Runtime, context: DisposableContext,
+): Promise<Texture> {
     const blob = new Blob([data], { type: mimeType });
     const bitmap = await createImageBitmap(blob);
     const texture = new Texture(runtime);
-    try {
-        texture.setParameters({
-            wrap_s: sampler.wrapS,
-            wrap_t: sampler.wrapT,
-            mag_filter: sampler.magFilter,
-            min_filter: sampler.minFilter,
-        });
-        texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
-        return texture;
-    } catch (err) {
-        texture.dispose();
-        throw err;
-    }
+    context.add(texture);
+    texture.setParameters({
+        wrap_s: sampler.wrapS,
+        wrap_t: sampler.wrapT,
+        mag_filter: sampler.magFilter,
+        min_filter: sampler.minFilter,
+    });
+    texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
+    return texture;
 }

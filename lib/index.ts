@@ -11,6 +11,7 @@ export * from './utils/fov';
 export * from './utils/linear-mapping';
 export * from './utils/canvas-snapshot';
 export * from './utils/pixel-view-proj-mat';
+export * from './utils/disposable-context';
 export * from './geometry/vec2.types';
 export * from './geometry/vec2';
 export * from './geometry/vec3.types';
