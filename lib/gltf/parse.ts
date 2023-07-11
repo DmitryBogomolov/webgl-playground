@@ -124,10 +124,11 @@ async function resolveReferences(
     }
 }
 
-function resolveDataUri(uri: string): Promise<ArrayBufferView> {
-    return fetch(uri)
-        .then((res) => res.arrayBuffer())
-        .then((buf) => new Uint8Array(buf));
+async function resolveDataUri(uri: string): Promise<ArrayBufferView> {
+    // Not an actual network request.
+    const res = await fetch(uri);
+    const buf = await res.arrayBuffer();
+    return new Uint8Array(buf);
 }
 
 const DATA_URI_PREFIX = 'data:';
