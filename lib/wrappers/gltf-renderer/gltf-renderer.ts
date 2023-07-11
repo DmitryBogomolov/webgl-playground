@@ -1,7 +1,10 @@
 import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
-import type {
-    GlTF_ACCESSOR_TYPE, GlTFAsset, GlTF_PRIMITIVE_MODE, GlTFSchema, GlTFResolveUriFunc, GlTFMaterial, GlTFTexture,
-} from '../../gltf/gltf.types';
+import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
+import type { GlTFResolveUriFunc } from '../../gltf/parse.types';
+import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
+import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
+import type { GlTFMaterial } from '../../gltf/material.types';
+import type { GlTFTexture } from '../../gltf/texture.types';
 import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
@@ -16,10 +19,12 @@ import { parseVertexSchema } from '../../gl/vertex-schema';
 import { vec3, sub3, cross3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, mul4x4, inverse4x4, inversetranspose4x4 } from '../../geometry/mat4';
 import { DisposableContext } from '../../utils/disposable-context';
-import {
-    parseGlTF, getNodeTransform, getAccessorType, getPrimitiveMode,
-    getAccessorData, getAccessorStride, getPrimitiveMaterial, getTextureData,
-} from '../../gltf/gltf';
+import { parseGlTF } from '../../gltf/parse';
+import { getNodeTransform } from '../../gltf/node';
+import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
+import { getPrimitiveMode } from '../../gltf/primitive';
+import { getMaterialInfo } from '../../gltf/material';
+import { getTextureInfo } from '../../gltf/texture';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -244,8 +249,8 @@ function createPrimitive(
     if (getAccessorType(positionAccessor) === VALID_POSITION_TYPE) {
         throw new Error(`bad POSITION type: ${getAccessorType(positionAccessor)}`);
     }
-    const positionData = getAccessorData(asset, positionAccessor);
-    const positionStride = getAccessorStride(asset, positionAccessor);
+    const positionData = getAccessorBinaryData(asset, positionAccessor);
+    const positionStride = getAccessorStride(asset.gltf, positionAccessor);
 
     let indicesType: GlTF_ACCESSOR_TYPE;
     let indicesCount: number;
@@ -257,7 +262,7 @@ function createPrimitive(
             throw new Error(`bad index type: ${indicesType}`);
         }
         indicesCount = indicesAccessor.count;
-        indicesData = getAccessorData(asset, indicesAccessor);
+        indicesData = getAccessorBinaryData(asset, indicesAccessor);
     } else {
         indicesType = 'ushort1';
         indicesCount = positionAccessor.count;
@@ -274,8 +279,8 @@ function createPrimitive(
         if (normalAccessor.count !== positionAccessor.count) {
             throw new Error(`bad NORMAL count: ${normalAccessor.count}`);
         }
-        normalData = getAccessorData(asset, normalAccessor);
-        normalStride = getAccessorStride(asset, normalAccessor);
+        normalData = getAccessorBinaryData(asset, normalAccessor);
+        normalStride = getAccessorStride(asset.gltf, normalAccessor);
     } else {
         normalData = generateNormals(positionData, indicesData, indicesType);
         normalStride = 12;
@@ -293,8 +298,8 @@ function createPrimitive(
         if (colorAccessor.count !== positionAccessor.count) {
             throw new Error(`bad COLOR_0 count: ${colorAccessor.count}`);
         }
-        colorData = getAccessorData(asset, colorAccessor);
-        colorStride = getAccessorStride(asset, colorAccessor);
+        colorData = getAccessorBinaryData(asset, colorAccessor);
+        colorStride = getAccessorStride(asset.gltf, colorAccessor);
     }
 
     let texcoordType: GlTF_ACCESSOR_TYPE | undefined;
@@ -309,8 +314,8 @@ function createPrimitive(
         if (texcoordAccessor.count !== positionAccessor.count) {
             throw new Error(`bad TEXCOORD_0 count: ${texcoordAccessor.count}`);
         }
-        texcoordData = getAccessorData(asset, texcoordAccessor);
-        texcoordStride = getAccessorStride(asset, texcoordAccessor);
+        texcoordData = getAccessorBinaryData(asset, texcoordAccessor);
+        texcoordStride = getAccessorStride(asset.gltf, texcoordAccessor);
     }
 
     let totalVertexDataSize = positionData.byteLength + normalData.byteLength;
@@ -377,7 +382,7 @@ function createPrimitive(
         primitiveMode: 'triangles',
     });
 
-    const material = getPrimitiveMaterial(asset, primitive);
+    const material = getMaterialInfo(asset, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
     const programDefinitions = {
@@ -516,7 +521,7 @@ function createTextures(asset: GlTFAsset, runtime: Runtime, context: DisposableC
     const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
     const tasks: Promise<Texture>[] = [];
     for (let i = 0; i < count; ++i) {
-        const textureData = getTextureData(asset, i);
+        const textureData = getTextureInfo(asset, i);
         const task = createTexture(textureData, runtime, context);
         tasks.push(task);
     }
