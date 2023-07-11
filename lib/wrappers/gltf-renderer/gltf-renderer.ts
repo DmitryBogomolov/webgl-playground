@@ -246,7 +246,7 @@ function createPrimitive(
         throw new Error('no POSITION attribute');
     }
     const positionAccessor = getAccessor(positionIdx, asset);
-    if (getAccessorType(positionAccessor) === VALID_POSITION_TYPE) {
+    if (getAccessorType(positionAccessor) !== VALID_POSITION_TYPE) {
         throw new Error(`bad POSITION type: ${getAccessorType(positionAccessor)}`);
     }
     const positionData = getAccessorBinaryData(asset, positionAccessor);
