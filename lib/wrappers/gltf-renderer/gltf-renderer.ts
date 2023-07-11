@@ -12,6 +12,7 @@ import type { INDEX_TYPE } from '../../gl/primitive.types';
 import type { TextureImageDataOptions } from '../../gl/texture-base.types';
 import type { Runtime } from '../../gl/runtime';
 import { BaseDisposable } from '../../common/base-disposable';
+import { Loader } from '../../common/loader';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
@@ -45,6 +46,7 @@ interface PrimitiveWrapper {
 
 export class GlbRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
+    private readonly _loader: Loader = new Loader();
     private readonly _wrappers: PrimitiveWrapper[] = [];
     private readonly _textures: Texture[] = [];
     private _projMat: Mat4 = identity4x4();
@@ -58,6 +60,7 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     dispose(): void {
+        this._loader.dispose();
         this._disposeElements();
         this._dispose();
     }
@@ -70,6 +73,11 @@ export class GlbRenderer extends BaseDisposable {
         for (const texture of this._textures.values()) {
             texture.dispose();
         }
+    }
+
+    private async _load(url: string): Promise<ArrayBufferView> {
+        const buffer = await this._loader.load(url);
+        return new Uint8Array(buffer);
     }
 
     async setData(data: GlTFRendererData): Promise<void> {
@@ -88,9 +96,9 @@ export class GlbRenderer extends BaseDisposable {
                 return Promise.reject(new Error(`${uri} is not provided`));
             };
         } else if (isUrlData(data)) {
-            source = await load(data.url);
+            source = await this._load(data.url);
             const baseUrl = data.url.substring(0, data.url.lastIndexOf('/') + 1);
-            resolveUri = (uri) => load(baseUrl + uri);
+            resolveUri = (uri) => this._load(baseUrl + uri);
         } else {
             throw this._logger.error('set_data({0}): bad value', data);
         }
@@ -166,15 +174,6 @@ export class GlbRenderer extends BaseDisposable {
 }
 
 const _m4_scratch = mat4();
-
-async function load(url: string): Promise<ArrayBufferView> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`${url}: ${response.statusText}`);
-    }
-    const buffer = await response.arrayBuffer();
-    return new Uint8Array(buffer);
-}
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
 function processScene(asset: GlTFAsset, runtime: Runtime, context: DisposableContext): PrimitiveWrapper[] {
