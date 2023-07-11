@@ -3,15 +3,13 @@ import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from './event-emitter.types';
-import type { Logger } from '../common/logger.types';
-import { BaseIdentity } from './base-identity';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-export class Camera extends BaseIdentity {
+export class Camera {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
@@ -29,10 +27,6 @@ export class Camera extends BaseIdentity {
     private _upDir: Vec3 = clone3(YUNIT3);
     private _centerPos: Vec3 = clone3(ZERO3);
     private _eyePos: Vec3 = clone3(ZUNIT3);
-
-    constructor(rootLogger?: Logger, tag?: string) {
-        super(rootLogger || null, tag);
-    }
 
     /**
      * Notifies about every camera change.
@@ -69,7 +63,7 @@ export class Camera extends BaseIdentity {
     setProjType(value: CAMERA_PROJECTION): void {
         const impl = PROJ_TYPE_TO_IMPL_MAP[value];
         if (!impl) {
-            throw this._logger.error('bad "projType" value: {0}', value);
+            throw new Error(`bad "projType" value: ${value}`);
         }
         if (this._projImpl !== impl) {
             this._projImpl = impl;
@@ -83,7 +77,7 @@ export class Camera extends BaseIdentity {
 
     setZNear(value: number): void {
         if (!(value > 0 && value < this._zFar)) {
-            throw this._logger.error('bad "zNear" value: {0}', value);
+            throw new Error(`bad "zNear" value: ${value}`);
         }
         if (this._zNear !== value) {
             this._zNear = value;
@@ -97,7 +91,7 @@ export class Camera extends BaseIdentity {
 
     setZFar(value: number): void {
         if (!(value > 0 && value > this._zNear)) {
-            throw this._logger.error('bad "zFar" value: {0}', value);
+            throw new Error(`bad "zFar" value: ${value}`);
         }
         if (this._zFar !== value) {
             this._zFar = value;
@@ -115,7 +109,7 @@ export class Camera extends BaseIdentity {
 
     setViewportSize(value: Vec2): void {
         if (!(isVec2(value) && value.x > 0 && value.y > 0)) {
-            throw this._logger.error('bad "viewportSize" value: {0}', value);
+            throw new Error(`bad "viewportSize" value: ${value}`);
         }
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
@@ -133,7 +127,7 @@ export class Camera extends BaseIdentity {
 
     setYFov(value: number): void {
         if (!(value > 0)) {
-            throw this._logger.error('bad "yFOV" value: {0}', value);
+            throw new Error(`bad "yFOV" value: ${value}`);
         }
         if (this._yFov !== value) {
             this._yFov = value;
@@ -147,7 +141,7 @@ export class Camera extends BaseIdentity {
 
     setUpDir(value: Vec3): void {
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
-            throw this._logger.error('bad "upDir" value: {0}', value);
+            throw new Error(`bad "upDir" value: ${value}`);
         }
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
@@ -162,7 +156,7 @@ export class Camera extends BaseIdentity {
 
     setCenterPos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw this._logger.error('bad "centerPos" value: {0}', value);
+            throw new Error(`bad "centerPos" value: ${value}`);
         }
         if (!eq3(this._centerPos, value)) {
             this._centerPos = clone3(value);
@@ -176,7 +170,7 @@ export class Camera extends BaseIdentity {
 
     setEyePos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw this._logger.error('bad "eyePos" value: {0}', value);
+            throw new Error(`bad "eyePos" value: ${value}`);
         }
         if (!eq3(this._eyePos, value)) {
             this._eyePos = clone3(value);
