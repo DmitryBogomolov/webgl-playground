@@ -81,28 +81,7 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     async setData(data: GlTFRendererData): Promise<void> {
-        if (!data) {
-            throw this._logger.error('set_data: null');
-        }
-        let source: ArrayBufferView;
-        let resolveUri: GlTFResolveUriFunc;
-        if (isRawData(data)) {
-            source = data.data;
-            resolveUri = (uri) => {
-                const content = data.additionalData?.[uri];
-                if (content) {
-                    return Promise.resolve(content);
-                }
-                return Promise.reject(new Error(`${uri} is not provided`));
-            };
-        } else if (isUrlData(data)) {
-            source = await this._load(data.url);
-            const baseUrl = data.url.substring(0, data.url.lastIndexOf('/') + 1);
-            resolveUri = (uri) => this._load(baseUrl + uri);
-        } else {
-            throw this._logger.error('set_data({0}): bad value', data);
-        }
-
+        const { source, resolveUri } = await this._processData(data);
         const context = new DisposableContext();
         try {
             const asset = await parseGlTF(source, resolveUri);
@@ -117,6 +96,32 @@ export class GlbRenderer extends BaseDisposable {
         }
     }
 
+    private async _processData(
+        data: GlTFRendererData,
+    ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
+        if (!data) {
+            throw this._logger.error('set_data: not defined');
+        }
+        if (isRawData(data)) {
+            const source = data.data;
+            const resolveUri: GlTFResolveUriFunc = (uri) => {
+                const content = data.additionalData?.[uri];
+                if (content) {
+                    return Promise.resolve(content);
+                }
+                return Promise.reject(new Error(`${uri} is not provided`));
+            };
+            return { source, resolveUri };
+        }
+        if (isUrlData(data)) {
+            const source = await this._load(data.url);
+            const baseUrl = data.url.substring(0, data.url.lastIndexOf('/') + 1);
+            const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
+            return { source, resolveUri };
+        }
+        throw this._logger.error('set_data({0}): bad value', data);
+    }
+
     private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyArray<Texture>): void {
         this._disposeElements();
         this._wrappers.length = 0;
@@ -126,23 +131,25 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     setProjMat(mat: Mat4): void {
+        this._logger.log('set_proj_mat({0})', mat);
         this._projMat = clone4x4(mat);
     }
 
     setViewMat(mat: Mat4): void {
+        this._logger.log('set_view_mat({0})', mat);
         this._viewMat = clone4x4(mat);
         const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
         this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
+        this._logger.log('set_light_direction({0})', lightDirection);
         this._lightDirection = norm3(lightDirection);
     }
 
     render(): void {
         for (let i = 0; i < this._textures.length; ++i) {
-            const texture = this._textures[i];
-            this._runtime.setTextureUnit(i, texture);
+            this._runtime.setTextureUnit(i, this._textures[i]);
         }
         for (const wrapper of this._wrappers) {
             this._renderPrimitive(wrapper);

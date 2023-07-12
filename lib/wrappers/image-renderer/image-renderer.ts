@@ -81,7 +81,7 @@ export class ImageRenderer extends BaseDisposable {
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
         if (!data) {
-            throw this._logger.error('set_image_data: null');
+            throw this._logger.error('set_image_data: not defined');
         }
         let imageData: TextureImageData;
         let unpackFlipY = false;
