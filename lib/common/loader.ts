@@ -1,51 +1,142 @@
+import type { LoaderRequestOptions, LOADER_RESPONSE_TYPE } from './loader.types';
+import type { EventProxy } from './event-emitter.types';
+import { EventEmitter } from './event-emitter';
+
 export class Loader {
-    private readonly _pending: Map<string, Promise<ArrayBuffer>> = new Map();
-    private readonly _tasks: Set<Promise<ArrayBuffer>> = new Set();
+    private readonly _requests = new Map<string, Request>();
+    private readonly _tasks = new Map<Promise<unknown>, () => void>();
 
     dispose(): void {
-        for (const task of Array.from(this._tasks)) {
+        for (const request of Array.from(this._requests.values())) {
+            request.dispose();
+        }
+        for (const task of Array.from(this._tasks.keys())) {
             this.cancel(task);
         }
     }
 
-    load(url: string): Promise<ArrayBuffer> {
-        let pending = this._pending.get(url);
-        if (!pending) {
-            pending = execute(url).finally(() => {
-                this._pending.delete(url);
-            });
-            this._pending.set(url, pending);
-        }
-        const task = new Promise<ArrayBuffer>((resolve, reject) => {
-            pending!.then(
-                (res) => {
-                    if (this._tasks.has(task)) {
-                        this._tasks.delete(task);
-                        resolve(res);
-                    }
-                },
-                (err) => {
-                    if (this._tasks.has(task)) {
-                        this._tasks.delete(task);
-                        reject(err);
-                    }
-                },
-            );
-        });
-        this._tasks.add(task);
-        return task;
+    private _createRequest(key: string, url: string, responseType: LOADER_RESPONSE_TYPE): Request {
+        const request = new Request(url, responseType);
+        request.done().on(() => {
+            this._requests.delete(key);
+        })
+        this._requests.set(key, request);
+        return request;
     }
 
-    cancel(task: Promise<ArrayBuffer>): void {
-        this._tasks.delete(task);
+    private _getRequest(url: string, options: LoaderRequestOptions): Request {
+        const responseType = options.responseType || 'binary';
+        const key = `${url}:${responseType}`;
+        return this._requests.get(key) || this._createRequest(key, url, responseType);
+    }
+
+    load<T>(url: string, options: LoaderRequestOptions = {}): Promise<T> {
+        const request = this._getRequest(url, options);
+        let done!: () => void;
+        let clean!: () => void;
+        const task = new Promise<unknown>((resolve, reject) => {
+            done = () => {
+                clean();
+                if (request.error()) {
+                    reject(request.error());
+                } else {
+                    resolve(request.result());
+                }
+            };
+            clean = () => {
+                this._tasks.delete(task);
+                request.done().off(done);
+                request.release();
+            };
+        });
+        request.done().on(done);
+        request.lock();
+        this._tasks.set(task, clean);
+        return task as Promise<T>;
+    }
+
+    cancel(task: Promise<unknown>): void {
+        const clean = this._tasks.get(task);
+        if (clean) {
+            clean();
+        }
     }
 }
 
-async function execute(url: string): Promise<ArrayBuffer> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`${url}: ${response.statusText}`);
+const RESPONSE_READERS: Readonly<Record<LOADER_RESPONSE_TYPE, (response: Response) => unknown>> = {
+    binary: (response) => response.arrayBuffer(),
+    text: (response) => response.text(),
+    json: (response) => response.json(),
+    blob: (response) => response.blob(),
+};
+
+class Request {
+    private readonly _ctrl = new AbortController();
+    private readonly _done = new EventEmitter();
+    private readonly _url: string;
+    private readonly _responseType: LOADER_RESPONSE_TYPE;
+    private _count = 0;
+    private _result: unknown | null = null;
+    private _error: Error | null = null;
+
+    constructor(url: string, responseType: LOADER_RESPONSE_TYPE) {
+        this._url = url;
+        this._responseType = responseType;
     }
-    const buffer = await response.arrayBuffer();
-    return buffer;
+
+    dispose(): void {
+        this._cancel();
+        this._done.clear();
+    }
+
+    done(): EventProxy {
+        return this._done.proxy();
+    }
+
+    result<T = unknown>(): T {
+        return this._result as T;
+    }
+
+    error(): Error | null {
+        return this._error;
+    }
+
+    private _execute(): void {
+        fetch(this._url, { signal: this._ctrl.signal })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`${this._url}: ${response.statusText}`);
+                }
+                return RESPONSE_READERS[this._responseType](response);
+            })
+            .then(
+                (result) => {
+                    this._result = result;
+                },
+                (err) => {
+                    this._error = err;
+                },
+            )
+            .finally(() => {
+                this._done.emit();
+            });
+    }
+
+    private _cancel(): void {
+        this._ctrl.abort();
+    }
+
+    lock(): void {
+        if (this._count === 0) {
+            this._execute();
+        }
+        ++this._count;
+    }
+
+    release(): void {
+        --this._count;
+        if (this._count === 0) {
+            this._cancel();
+        }
+    }
 }

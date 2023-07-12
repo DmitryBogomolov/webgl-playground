@@ -76,7 +76,7 @@ export class GlbRenderer extends BaseDisposable {
     }
 
     private async _load(url: string): Promise<ArrayBufferView> {
-        const buffer = await this._loader.load(url);
+        const buffer = await this._loader.load<ArrayBuffer>(url);
         return new Uint8Array(buffer);
     }
 

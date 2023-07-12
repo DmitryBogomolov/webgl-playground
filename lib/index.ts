@@ -37,6 +37,7 @@ export * from './common/camera.types';
 export * from './common/camera';
 export * from './common/tracker.types';
 export * from './common/tracker';
+export * from './common/loader.types';
 export * from './common/loader';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree.types';
