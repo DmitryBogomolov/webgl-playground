@@ -21,7 +21,8 @@ export class Loader {
         const request = new Request(url, method, responseType);
         request.done().on(() => {
             this._requests.delete(key);
-        })
+            request.dispose();
+        });
         this._requests.set(key, request);
         return request;
     }
@@ -79,6 +80,7 @@ class Request {
     private readonly _url: string;
     private readonly _method: LOADER_REQUEST_METHOD;
     private readonly _responseType: LOADER_RESPONSE_TYPE;
+    private _executed = false;
     private _count = 0;
     private _result: unknown | null = null;
     private _error: Error | null = null;
@@ -109,6 +111,7 @@ class Request {
     private _execute(): void {
         fetch(this._url, { method: this._method, signal: this._ctrl.signal })
             .then((response) => {
+                this._executed = true;
                 if (!response.ok) {
                     throw new Error(`${this._url}: ${response.statusText}`);
                 }
@@ -119,7 +122,7 @@ class Request {
                     this._result = result;
                 },
                 (err) => {
-                    this._error = err;
+                    this._error = err as Error;
                 },
             )
             .finally(() => {
@@ -128,7 +131,9 @@ class Request {
     }
 
     private _cancel(): void {
-        this._ctrl.abort();
+        if (!this._executed) {
+            this._ctrl.abort();
+        }
     }
 
     lock(): void {
