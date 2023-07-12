@@ -2,11 +2,13 @@ import type { GlTFAsset } from '../../gltf/asset.types';
 import type { GlTFTexture } from '../../gltf/texture.types';
 import type { TextureImageDataOptions } from '../../gl/texture-base.types';
 import type { Runtime } from '../../gl/runtime';
-import type { DisposableContext } from '../../utils/disposable-context';
+import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Texture } from '../../gl/texture-2d';
 import { getTextureInfo } from '../../gltf/texture';
 
-export function createTextures(asset: GlTFAsset, runtime: Runtime, context: DisposableContext): Promise<Texture[]> {
+export function createTextures(
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
+): Promise<Texture[]> {
     const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
     const tasks: Promise<Texture>[] = [];
     for (let i = 0; i < count; ++i) {
@@ -24,8 +26,9 @@ const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
 };
 
 async function createTexture(
-    { data, mimeType, sampler }: GlTFTexture, runtime: Runtime, context: DisposableContext,
+    textureInfo: GlTFTexture, runtime: Runtime, context: DisposableContextProxy,
 ): Promise<Texture> {
+    const { data, mimeType, sampler } = textureInfo;
     const blob = new Blob([data], { type: mimeType });
     const bitmap = await createImageBitmap(blob);
     const texture = new Texture(runtime);

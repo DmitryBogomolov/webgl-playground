@@ -1,4 +1,6 @@
-export class DisposableContext {
+import type { DisposableContextProxy } from './disposable-context.types';
+
+export class DisposableContext implements DisposableContextProxy {
     private readonly _targets: { dispose(): void }[] = [];
 
     add(target: { dispose(): void }): void {

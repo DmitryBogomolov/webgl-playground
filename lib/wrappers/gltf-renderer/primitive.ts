@@ -6,7 +6,7 @@ import type { Mat4 } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
-import type { DisposableContext } from '../../utils/disposable-context';
+import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { parseVertexSchema } from '../../gl/vertex-schema';
@@ -41,7 +41,7 @@ export interface PrimitiveWrapper {
 
 export function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
-    asset: GlTFAsset, runtime: Runtime, context: DisposableContext,
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
 ): PrimitiveWrapper {
     const {
         POSITION: positionIdx,

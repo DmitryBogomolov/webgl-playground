@@ -2,13 +2,15 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
 import type { PrimitiveWrapper } from './primitive';
-import type { DisposableContext } from '../../utils/disposable-context';
+import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { identity4x4, mul4x4 } from '../../geometry/mat4';
 import { getNodeTransform } from '../../gltf/node';
 import { createPrimitive } from './primitive';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#concepts
-export function processScene(asset: GlTFAsset, runtime: Runtime, context: DisposableContext): PrimitiveWrapper[] {
+export function processScene(
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
+): PrimitiveWrapper[] {
     const { scenes, scene: sceneIdx } = asset.gltf;
     const scene = scenes && sceneIdx !== undefined && scenes[sceneIdx];
     // Though specification allows to have no scene there is no sense in accepting such assets.
@@ -25,7 +27,7 @@ export function processScene(asset: GlTFAsset, runtime: Runtime, context: Dispos
 
 function traverseNodes(
     nodeIdx: number, parentTransform: Mat4, wrappers: PrimitiveWrapper[],
-    asset: GlTFAsset, runtime: Runtime, context: DisposableContext,
+    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
 ): void {
     const node = getNode(nodeIdx, asset);
     const nodeTransform = getNodeTransform(node) || identity4x4();
