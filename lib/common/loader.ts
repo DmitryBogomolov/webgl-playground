@@ -1,4 +1,4 @@
-import type { LoaderRequestOptions, LOADER_RESPONSE_TYPE } from './loader.types';
+import type { LoaderRequestOptions, LOADER_REQUEST_METHOD, LOADER_RESPONSE_TYPE } from './loader.types';
 import type { EventProxy } from './event-emitter.types';
 import { EventEmitter } from './event-emitter';
 
@@ -15,8 +15,10 @@ export class Loader {
         }
     }
 
-    private _createRequest(key: string, url: string, responseType: LOADER_RESPONSE_TYPE): Request {
-        const request = new Request(url, responseType);
+    private _createRequest(
+        key: string, url: string, method: LOADER_REQUEST_METHOD, responseType: LOADER_RESPONSE_TYPE,
+    ): Request {
+        const request = new Request(url, method, responseType);
         request.done().on(() => {
             this._requests.delete(key);
         })
@@ -25,9 +27,10 @@ export class Loader {
     }
 
     private _getRequest(url: string, options: LoaderRequestOptions): Request {
-        const responseType = options.responseType || 'binary';
-        const key = `${url}:${responseType}`;
-        return this._requests.get(key) || this._createRequest(key, url, responseType);
+        const method: LOADER_REQUEST_METHOD = options.method || 'GET';
+        const responseType: LOADER_RESPONSE_TYPE = options.responseType || 'binary';
+        const key = `${method}:${url}:${responseType}`;
+        return this._requests.get(key) || this._createRequest(key, url, method, responseType);
     }
 
     load<T>(url: string, options: LoaderRequestOptions = {}): Promise<T> {
@@ -74,13 +77,15 @@ class Request {
     private readonly _ctrl = new AbortController();
     private readonly _done = new EventEmitter();
     private readonly _url: string;
+    private readonly _method: LOADER_REQUEST_METHOD;
     private readonly _responseType: LOADER_RESPONSE_TYPE;
     private _count = 0;
     private _result: unknown | null = null;
     private _error: Error | null = null;
 
-    constructor(url: string, responseType: LOADER_RESPONSE_TYPE) {
+    constructor(url: string, method: LOADER_REQUEST_METHOD, responseType: LOADER_RESPONSE_TYPE) {
         this._url = url;
+        this._method = method;
         this._responseType = responseType;
     }
 
@@ -102,7 +107,7 @@ class Request {
     }
 
     private _execute(): void {
-        fetch(this._url, { signal: this._ctrl.signal })
+        fetch(this._url, { method: this._method, signal: this._ctrl.signal })
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`${this._url}: ${response.statusText}`);
