@@ -16,6 +16,7 @@ import { createControls } from 'playground-utils/controls';
  */
 export type DESCRIPTION = never;
 
+// TODO: Add select control.
 const MODEL_URL = '/static/gltf-models/Cube/Cube.gltf';
 
 main();
