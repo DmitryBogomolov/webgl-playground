@@ -1,7 +1,7 @@
 import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
-import type { PrimitiveWrapper } from './primitive';
+import type { PrimitiveWrapper } from './primitive.types';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { identity4x4, mul4x4 } from '../../geometry/mat4';
 import { getNodeTransform } from '../../gltf/node';

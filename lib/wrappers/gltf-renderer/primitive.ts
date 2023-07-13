@@ -1,7 +1,7 @@
+import type { PrimitiveWrapper } from './primitive.types';
 import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
-import type { GlTFMaterial } from '../../gltf/material.types';
 import type { Mat4 } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
 import type { INDEX_TYPE } from '../../gl/primitive.types';
@@ -31,13 +31,6 @@ const VALID_COLOR_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR
 const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['float2', 'ubyte2', 'ushort2'],
 );
-
-export interface PrimitiveWrapper {
-    readonly primitive: Primitive;
-    readonly matrix: Mat4;
-    readonly normalMatrix: Mat4;
-    readonly material: GlTFMaterial | null;
-}
 
 export function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,

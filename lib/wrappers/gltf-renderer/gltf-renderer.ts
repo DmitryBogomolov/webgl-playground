@@ -3,7 +3,7 @@ import type { GlTFResolveUriFunc } from '../../gltf/parse.types';
 import type { Vec3 } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
-import type { PrimitiveWrapper } from './primitive';
+import type { PrimitiveWrapper } from './primitive.types';
 import type { Texture } from '../../gl/texture-2d';
 import { BaseDisposable } from '../../common/base-disposable';
 import { Loader } from '../../common/loader';
