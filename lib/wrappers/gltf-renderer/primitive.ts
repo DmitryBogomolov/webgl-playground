@@ -23,12 +23,16 @@ const SUPPORTED_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
 const VALID_INDEX_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['ubyte1', 'ushort1', 'uint1'],
 );
-const VALID_POSITION_TYPE: GlTF_ACCESSOR_TYPE = 'float3';
-const VALID_NORMAL_TYPE: GlTF_ACCESSOR_TYPE = 'float3';
+const VALID_POSITION_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
+    ['float3'],
+);
+const VALID_NORMAL_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
+    ['float3'],
+);
 const VALID_COLOR_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4'],
 );
-const VALID_TEXCOORD_TYPE: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
+const VALID_TEXCOORD_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
     ['float2', 'ubyte2', 'ushort2'],
 );
 
@@ -51,25 +55,36 @@ export function createPrimitive(
         throw new Error('no POSITION attribute');
     }
 
-    const positionInfo = getAttributeInfo(asset, positionIdx, validatePositionType, noop);
-    const indexInfo = primitive.indices !== undefined
-        ? getAttributeInfo(asset, primitive.indices, validateIndexType, noop)
-        : generateIndexInfo(positionInfo.count);
-    const normalInfo = normalIdx !== undefined
-        ? getAttributeInfo(
-            asset, normalIdx, validateNormalType, makeAccessorCountValidator(positionInfo.count, 'NORMAL'),
-        )
-        : generateNormalInfo(positionInfo, indexInfo);
-    const colorInfo = colorIdx !== undefined
-        ? getAttributeInfo(
-            asset, colorIdx, validateColorType, makeAccessorCountValidator(positionInfo.count, 'COLOR_0'),
-        )
-        : null;
-    const texcoordInfo = texcoordIdx !== undefined
-        ? getAttributeInfo(
-            asset, texcoordIdx, validateTexcoordType, makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
-        )
-        : null;
+    const positionInfo = getAttributeInfo(
+        asset,
+        positionIdx,
+        makeAccessorTypeValidator(VALID_POSITION_TYPES, 'POSITION'),
+        noop,
+    );
+    const indexInfo = primitive.indices !== undefined ? getAttributeInfo(
+        asset,
+        primitive.indices,
+        makeAccessorTypeValidator(VALID_INDEX_TYPES, 'index'),
+        noop,
+    ) : generateIndexInfo(positionInfo.count);
+    const normalInfo = normalIdx !== undefined ? getAttributeInfo(
+        asset,
+        normalIdx,
+        makeAccessorTypeValidator(VALID_NORMAL_TYPES, 'NORMAL'),
+        makeAccessorCountValidator(positionInfo.count, 'NORMAL'),
+    ) : generateNormalInfo(positionInfo, indexInfo);
+    const colorInfo = colorIdx !== undefined ? getAttributeInfo(
+        asset,
+        colorIdx,
+        makeAccessorTypeValidator(VALID_COLOR_TYPES, 'COLOR_0'),
+        makeAccessorCountValidator(positionInfo.count, 'COLOR_0'),
+    ) : null;
+    const texcoordInfo = texcoordIdx !== undefined ? getAttributeInfo(
+        asset,
+        texcoordIdx,
+        makeAccessorTypeValidator(VALID_TEXCOORD_TYPES, 'TEXCOORD_0'),
+        makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
+    ) : null;
 
     const result = new Primitive(runtime);
     context.add(result);
@@ -189,37 +204,19 @@ function noop(): void {
     // Nothing.
 }
 
-function validatePositionType(type: GlTF_ACCESSOR_TYPE): void {
-    if (type !== VALID_POSITION_TYPE) {
-        throw new Error(`bad POSITION type: ${type}`);
-    }
+function makeAccessorTypeValidator(
+    validTypes: ReadonlySet<GlTF_ACCESSOR_TYPE>, name: string,
+): (type: GlTF_ACCESSOR_TYPE) => void {
+    return (type) => {
+        if (!validTypes.has(type)) {
+            throw new Error(`bad ${name} type: ${type}`);
+        }
+    };
 }
 
-function validateIndexType(type: GlTF_ACCESSOR_TYPE): void {
-    if (!VALID_INDEX_TYPES.has(type)) {
-        throw new Error(`bad index type: ${type}`);
-    }
-}
-
-function validateNormalType(type: GlTF_ACCESSOR_TYPE): void {
-    if (type !== VALID_NORMAL_TYPE) {
-        throw new Error(`bad NORMAL type: ${type}`);
-    }
-}
-
-function validateColorType(type: GlTF_ACCESSOR_TYPE): void {
-    if (!VALID_COLOR_TYPES.has(type)) {
-        throw new Error(`bad COLOR_0 type: ${type}`);
-    }
-}
-
-function validateTexcoordType(type: GlTF_ACCESSOR_TYPE): void {
-    if (!VALID_TEXCOORD_TYPE.has(type)) {
-        throw new Error(`bad TEXCOORD_0 type: ${type}`);
-    }
-}
-
-function makeAccessorCountValidator(matchCount: number, name: string): (count: number) => void {
+function makeAccessorCountValidator(
+    matchCount: number, name: string,
+): (count: number) => void {
     return (count) => {
         if (count !== matchCount) {
             throw new Error(`bad ${name} count: ${count}`);
