@@ -57,78 +57,48 @@ export function createPrimitive(
         : generateIndexInfo(positionInfo.count);
     const normalInfo = normalIdx !== undefined
         ? getAttributeInfo(
-            asset, normalIdx,
-            validateNormalType, (count) => validateAccessorCount(count, positionInfo.count, 'NORMAL'),
+            asset, normalIdx, validateNormalType, makeAccessorCountValidator(positionInfo.count, 'NORMAL'),
         )
-        : generateNormalInfo(positionInfo, indexInfo)
+        : generateNormalInfo(positionInfo, indexInfo);
     const colorInfo = colorIdx !== undefined
         ? getAttributeInfo(
-            asset, colorIdx,
-            validateColorType, (count) => validateAccessorCount(count, positionInfo.count, 'COLOR_0'),
+            asset, colorIdx, validateColorType, makeAccessorCountValidator(positionInfo.count, 'COLOR_0'),
         )
         : null;
     const texcoordInfo = texcoordIdx !== undefined
         ? getAttributeInfo(
-            asset, texcoordIdx,
-            validateTexcoordType, (count) => validateAccessorCount(count, positionInfo.count, 'TEXCOORD_0'),
+            asset, texcoordIdx, validateTexcoordType, makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
         )
         : null;
-
-    let totalVertexDataSize = positionInfo.data.byteLength + normalInfo.data.byteLength;
-    if (colorInfo) {
-        totalVertexDataSize += colorInfo.data.byteLength;
-    }
-    if (texcoordInfo) {
-        totalVertexDataSize += texcoordInfo.data.byteLength;
-    }
 
     const result = new Primitive(runtime);
     context.add(result);
 
+    const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);
     const vertexAttributes: AttributeOptions[] = [];
     let vertexDataOffset = 0;
 
-    result.updateVertexData(positionInfo.data, vertexDataOffset);
-    vertexAttributes.push({
-        name: 'a_position',
-        type: positionInfo.type as ATTRIBUTE_TYPE,
-        offset: vertexDataOffset,
-        stride: positionInfo.stride
-    });
-    vertexDataOffset += positionInfo.data.byteLength;
-
-    result.updateVertexData(normalInfo.data, vertexDataOffset);
-    vertexAttributes.push({
-        name: 'a_normal',
-        type: normalInfo.type as ATTRIBUTE_TYPE,
-        offset: vertexDataOffset,
-        stride: normalInfo.stride
-    });
-    vertexDataOffset += normalInfo.data.byteLength;
-
+    vertexDataOffset = setVertexData(
+        positionInfo, result, vertexAttributes, 'a_position', vertexDataOffset, undefined,
+    );
+    vertexDataOffset = setVertexData(
+        normalInfo, result, vertexAttributes, 'a_normal', vertexDataOffset, undefined,
+    );
     if (colorInfo) {
-        result.updateVertexData(colorInfo.data, vertexDataOffset);
-        vertexAttributes.push({
-            name: 'a_color',
-            type: colorInfo.type as ATTRIBUTE_TYPE,
-            normalized: colorInfo.type !== 'float3' && colorInfo.type !== 'float4',
-            offset: vertexDataOffset,
-            stride: colorInfo.stride,
-        });
-        vertexDataOffset += colorInfo.data.byteLength;
+        const normalized = colorInfo.type !== 'float3' && colorInfo.type !== 'float4';
+        vertexDataOffset = setVertexData(
+            colorInfo, result, vertexAttributes, 'a_color', vertexDataOffset, normalized,
+        );
     }
-
     if (texcoordInfo) {
-        result.updateVertexData(texcoordInfo.data, vertexDataOffset);
-        vertexAttributes.push({
-            name: 'a_texcoord',
-            type: texcoordInfo.type as ATTRIBUTE_TYPE,
-            normalized: texcoordInfo.type !== 'float2',
-            offset: vertexDataOffset,
-            stride: texcoordInfo.stride,
-        });
-        vertexDataOffset += texcoordInfo.data.byteLength;
+        const normalized = texcoordInfo.type !== 'float2';
+        vertexDataOffset = setVertexData(
+            texcoordInfo, result, vertexAttributes, 'a_texcoord', vertexDataOffset, normalized,
+        );
+    }
+    if (vertexDataOffset !== totalVertexDataSize) {
+        throw new Error('data offset mismatch');
     }
 
     const schema = parseVertexSchema(vertexAttributes);
@@ -190,6 +160,31 @@ function getAttributeInfo(
     return { type, stride, count: accessor.count, data };
 }
 
+function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number {
+    let result = 0;
+    for (const attr of attributes) {
+        if (attr) {
+            result += attr.data.byteLength;
+        }
+    }
+    return result;
+}
+
+function setVertexData(
+    info: AttributeInfo, primitive: Primitive, attributes: AttributeOptions[],
+    name: string, offset: number, normalized: boolean | undefined,
+): number {
+    primitive.updateVertexData(info.data, offset);
+    attributes.push({
+        name,
+        type: info.type as ATTRIBUTE_TYPE,
+        offset: offset,
+        stride: info.stride,
+        normalized,
+    });
+    return offset + info.data.byteLength;
+}
+
 function noop(): void {
     // Nothing.
 }
@@ -224,10 +219,12 @@ function validateTexcoordType(type: GlTF_ACCESSOR_TYPE): void {
     }
 }
 
-function validateAccessorCount(count: number, matchCount: number, name: string): void {
-    if (count !== matchCount) {
-        throw new Error(`bad ${name} count: ${count}`);
-    }
+function makeAccessorCountValidator(matchCount: number, name: string): (count: number) => void {
+    return (count) => {
+        if (count !== matchCount) {
+            throw new Error(`bad ${name} count: ${count}`);
+        }
+    };
 }
 
 function getAccessor(idx: number, asset: GlTFAsset): GlTFSchema.Accessor {
