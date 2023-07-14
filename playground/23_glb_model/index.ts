@@ -16,8 +16,18 @@ import { createControls } from 'playground-utils/controls';
  */
 export type DESCRIPTION = never;
 
-// TODO: Add select control.
-const MODEL_URL = '/static/gltf-models/Cube/Cube.gltf';
+interface ModelInfo {
+    readonly name: string;
+    readonly path: string;
+}
+
+const MODELS: ReadonlyArray<ModelInfo> = [
+    { name: 'Box Vertex Colors', path: 'BoxVertexColors.glb' },
+    { name: 'Box Interleaved', path: 'BoxInterleaved.gltf' },
+    { name: 'Box Textured', path: 'BoxTextured.gltf' },
+    { name: 'Box With Spaces', path: 'BoxWithSpaces/Box With Spaces.gltf' },
+    { name: 'Cube', path: 'Cube/Cube.gltf' },
+];
 
 main();
 
@@ -45,12 +55,6 @@ function main(): void {
     });
 
     const renderer = new GlbRenderer(runtime);
-    renderer.setData({ url: MODEL_URL }).then(
-        () => {
-            runtime.requestFrameRender();
-        },
-        console.error,
-    );
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
@@ -65,8 +69,20 @@ function main(): void {
         renderer.render();
     });
 
+    const selectedModelName = observable(MODELS[0].name);
+    selectedModelName.on((selected) => {
+        const model = MODELS.find(({ name }) => name === selected)!;
+        renderer.setData({ url: `/static/gltf-models/${model.path}` }).then(
+            () => {
+                runtime.requestFrameRender();
+            },
+            console.error,
+        );
+    });
+
     createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
+        { label: 'model', options: MODELS.map((info) => info.name), selection: selectedModelName },
     ]);
 }
