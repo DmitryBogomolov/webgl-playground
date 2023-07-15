@@ -20,21 +20,30 @@ import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
 const SUPPORTED_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
-const VALID_INDEX_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
-    ['ubyte1', 'ushort1', 'uint1'],
-);
-const VALID_POSITION_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
-    ['float3'],
-);
-const VALID_NORMAL_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
-    ['float3'],
-);
-const VALID_COLOR_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
-    ['float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4'],
-);
-const VALID_TEXCOORD_TYPES: ReadonlySet<GlTF_ACCESSOR_TYPE> = new Set<GlTF_ACCESSOR_TYPE>(
-    ['float2', 'ubyte2', 'ushort2'],
-);
+
+type TypesSet = Readonly<Partial<Record<GlTF_ACCESSOR_TYPE, boolean>>>;
+
+function makeValidTypes(...types: GlTF_ACCESSOR_TYPE[]): TypesSet {
+    const obj: Partial<Record<GlTF_ACCESSOR_TYPE, boolean>> = {};
+    for (const type of types) {
+        obj[type] = true;
+    }
+    return obj;
+}
+
+const VALID_INDEX_TYPES = makeValidTypes('ubyte1', 'ushort1', 'uint1');
+const VALID_POSITION_TYPES = makeValidTypes('float3');
+const VALID_NORMAL_TYPES = makeValidTypes('float3');
+const VALID_COLOR_TYPES = makeValidTypes('float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4');
+const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
+
+type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
+
+const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
+    'ubyte1': 'u8',
+    'ushort1': 'u16',
+    'uint1': 'u32',
+};
 
 export function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
@@ -92,27 +101,24 @@ export function createPrimitive(
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);
     const vertexAttributes: AttributeOptions[] = [];
-    let vertexDataOffset = 0;
 
-    vertexDataOffset = setVertexData(
-        positionInfo, result, vertexAttributes, 'a_position', vertexDataOffset, undefined,
-    );
-    vertexDataOffset = setVertexData(
-        normalInfo, result, vertexAttributes, 'a_normal', vertexDataOffset, undefined,
-    );
+    const vertexDataCtx: SetVertexDataCtx = {
+        primitive: result,
+        attributes: vertexAttributes,
+        offset: 0,
+    };
+
+    setVertexData(vertexDataCtx, positionInfo, 'a_position', undefined);
+    setVertexData(vertexDataCtx, normalInfo, 'a_normal', undefined);
     if (colorInfo) {
         const normalized = colorInfo.type !== 'float3' && colorInfo.type !== 'float4';
-        vertexDataOffset = setVertexData(
-            colorInfo, result, vertexAttributes, 'a_color', vertexDataOffset, normalized,
-        );
+        setVertexData(vertexDataCtx, colorInfo, 'a_color', normalized);
     }
     if (texcoordInfo) {
         const normalized = texcoordInfo.type !== 'float2';
-        vertexDataOffset = setVertexData(
-            texcoordInfo, result, vertexAttributes, 'a_texcoord', vertexDataOffset, normalized,
-        );
+        setVertexData(vertexDataCtx, texcoordInfo, 'a_texcoord', normalized);
     }
-    if (vertexDataOffset !== totalVertexDataSize) {
+    if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
 
@@ -162,9 +168,14 @@ interface AttributeInfo {
     readonly data: Uint8Array;
 }
 
+type TypeValidator = (type: GlTF_ACCESSOR_TYPE) => void;
+type CountValidator = (count: number) => void;
+
 function getAttributeInfo(
-    asset: GlTFAsset, idx: number,
-    validateType: (t: GlTF_ACCESSOR_TYPE) => void, validateCount: (c: number) => void,
+    asset: GlTFAsset,
+    idx: number,
+    validateType: TypeValidator,
+    validateCount: CountValidator,
 ): AttributeInfo {
     const accessor = getAccessor(idx, asset);
     validateCount(accessor.count);
@@ -185,38 +196,39 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
     return result;
 }
 
+interface SetVertexDataCtx {
+    readonly primitive: Primitive;
+    readonly attributes: AttributeOptions[];
+    offset: number;
+}
+
 function setVertexData(
-    info: AttributeInfo, primitive: Primitive, attributes: AttributeOptions[],
-    name: string, offset: number, normalized: boolean | undefined,
-): number {
-    primitive.updateVertexData(info.data, offset);
-    attributes.push({
+    ctx: SetVertexDataCtx, info: AttributeInfo, name: string, normalized: boolean | undefined,
+): void {
+    ctx.primitive.updateVertexData(info.data, ctx.offset);
+    ctx.attributes.push({
         name,
         type: info.type as ATTRIBUTE_TYPE,
-        offset: offset,
+        offset: ctx.offset,
         stride: info.stride,
         normalized,
     });
-    return offset + info.data.byteLength;
+    ctx.offset += info.data.byteLength;
 }
 
 function noop(): void {
     // Nothing.
 }
 
-function makeAccessorTypeValidator(
-    validTypes: ReadonlySet<GlTF_ACCESSOR_TYPE>, name: string,
-): (type: GlTF_ACCESSOR_TYPE) => void {
+function makeAccessorTypeValidator(validTypes: TypesSet, name: string): TypeValidator {
     return (type) => {
-        if (!validTypes.has(type)) {
+        if (!validTypes[type]) {
             throw new Error(`bad ${name} type: ${type}`);
         }
     };
 }
 
-function makeAccessorCountValidator(
-    matchCount: number, name: string,
-): (count: number) => void {
+function makeAccessorCountValidator(matchCount: number, name: string): CountValidator {
     return (count) => {
         if (count !== matchCount) {
             throw new Error(`bad ${name} count: ${count}`);
@@ -253,11 +265,3 @@ function generateNormalInfo(positionInfo: AttributeInfo, indexInfo: AttributeInf
         data: generateNormals(positionInfo.data, indexInfo.data, indexInfo.type),
     };
 }
-
-type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
-
-const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
-    'ubyte1': 'u8',
-    'ushort1': 'u16',
-    'uint1': 'u32',
-};
