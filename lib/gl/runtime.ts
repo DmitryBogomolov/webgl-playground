@@ -184,7 +184,7 @@ export class Runtime extends BaseDisposable {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
-        this._dispose();
+        this._emitDisposed();
     }
 
     gl(): WebGLRenderingContext {

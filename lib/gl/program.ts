@@ -218,16 +218,16 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
 
     dispose(): void {
         this._logger.log('dispose');
-        this._dispose();
+        this._emitDisposed();
     }
 
     glHandle(): WebGLProgram {
         return this._program;
     }
 
-    protected _dispose(): void {
+    protected _emitDisposed(): void {
         this._disposeObjects();
-        super._dispose();
+        super._emitDisposed();
     }
 
     private _disposeObjects(): void {

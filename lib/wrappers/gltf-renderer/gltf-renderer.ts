@@ -40,7 +40,7 @@ export class GlbRenderer extends BaseDisposable {
     dispose(): void {
         this._loader.dispose();
         this._disposeElements();
-        this._dispose();
+        this._emitDisposed();
     }
 
     private _disposeElements(): void {

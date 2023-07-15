@@ -55,7 +55,7 @@ export class ImageRenderer extends BaseDisposable {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
-        this._dispose();
+        this._emitDisposed();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);

@@ -96,7 +96,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         this._cancelFlush();
         this._carrier.removeEventListener('message', this._handleMessage);
         this._carrier.close();
-        this._dispose();
+        this._emitDisposed();
     }
 
     send(message: SendT, options?: SendMessageOptions): void {
