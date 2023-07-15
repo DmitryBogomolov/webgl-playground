@@ -50,11 +50,11 @@ export class Loader {
             clean = () => {
                 this._tasks.delete(task);
                 request.done().off(done);
-                request.release();
+                request.decRef();
             };
         });
         request.done().on(done);
-        request.lock();
+        request.incRef();
         this._tasks.set(task, clean);
         return task as Promise<T>;
     }
@@ -136,14 +136,14 @@ class Request {
         }
     }
 
-    lock(): void {
+    incRef(): void {
         if (this._count === 0) {
             this._execute();
         }
         ++this._count;
     }
 
-    release(): void {
+    decRef(): void {
         --this._count;
         if (this._count === 0) {
             this._cancel();
