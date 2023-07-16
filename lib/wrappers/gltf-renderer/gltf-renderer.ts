@@ -22,7 +22,7 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
     return data && typeof (data as GlTFRendererUrlData).url === 'string';
 }
 
-export class GlbRenderer extends BaseDisposable {
+export class GlTFRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
     private readonly _loader: Loader = new Loader();
     private readonly _wrappers: PrimitiveWrapper[] = [];

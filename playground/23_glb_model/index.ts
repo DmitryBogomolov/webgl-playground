@@ -1,7 +1,7 @@
 import {
     Runtime, createRenderState,
     Camera,
-    GlbRenderer,
+    GlTFRenderer,
     color,
     vec3, mul3,
     spherical2zxy, deg2rad,
@@ -54,7 +54,7 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
-    const renderer = new GlbRenderer(runtime);
+    const renderer = new GlTFRenderer(runtime);
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
