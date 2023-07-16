@@ -1,3 +1,8 @@
+const float I_PI = 1.0 / acos(-1.0);
+const float DIELECTRIC_SPECULAR = 0.04;
+// Just an arbitrary picked multiplier.
+// Does not relate to formulas. Models are just too dark without it.
+const float DIFFUSE_COEFF = 2.2;
 
 float pos_dot(vec3 a, vec3 b) {
     return max(dot(a, b), 0.0);
@@ -30,15 +35,15 @@ vec3 brdf(vec3 base_color, float roughness, float metallic, vec3 normal, vec3 to
     float n_v = pos_dot(normal, to_eye);
     float h_v = pos_dot(h, to_eye);
 
-    vec3 f0 = mix(vec3(DIELECTRIC_SPECULAR), base_color.rgb, metallic);
-    vec3 c_diff = mix(base_color.rgb * (1.0 - DIELECTRIC_SPECULAR), vec3(0.0), metallic);
+    vec3 f0 = mix(vec3(DIELECTRIC_SPECULAR), base_color, metallic);
+    vec3 c_diff = mix(base_color * (1.0 - DIELECTRIC_SPECULAR), vec3(0.0), metallic);
     vec3 f = f0 + (vec3(1.0) - f0) * pow(1.0 - h_v, 5.0);
 
     float g = smith_g(a2, n_l, n_v);
     float d = ggx_d(a2, n_h);
 
-    vec3 diffuse = (vec3(1.0) - f) * c_diff * I_PI;
+    vec3 diffuse = (vec3(1.0) - f) * c_diff * I_PI * DIFFUSE_COEFF;
     vec3 specular = (f * g * d) / (4.0 * n_l * n_v);
 
-    return diffuse + specular;
+    return diffuse + max(specular, vec3(0.0));
 }

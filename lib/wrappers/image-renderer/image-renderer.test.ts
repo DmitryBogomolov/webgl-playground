@@ -15,11 +15,11 @@ jest.mock('../../gl/texture-2d');
 jest.mock('../../utils/image-maker');
 
 describe('image-renderer', () => {
-    const MockPrimitive = Primitive as jest.Mock<Primitive>;
-    const MockProgram = Program as jest.Mock<Program>;
-    const MockTexture = Texture as jest.Mock<Texture>;
-
     describe('ImageRenderer', () => {
+        const MockPrimitive = Primitive as jest.Mock<Primitive>;
+        const MockProgram = Program as jest.Mock<Program>;
+        const MockTexture = Texture as jest.Mock<Texture>;
+
         class StubLogger implements Logger {
             log(): string {
                 return '';

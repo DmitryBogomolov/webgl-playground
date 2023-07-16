@@ -18,8 +18,8 @@ import { Texture } from '../../gl/texture-2d';
 import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { makeImage } from '../../utils/image-maker';
-import vertShader from './shader.vert';
-import fragShader from './shader.frag';
+import vertShader from './shaders/shader.vert';
+import fragShader from './shaders/shader.frag';
 
 function isRawData(data: ImageRendererImageData): data is ImageRendererRawImageData {
     return data
@@ -55,7 +55,7 @@ export class ImageRenderer extends BaseDisposable {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
-        this._dispose();
+        this._emitDisposed();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
@@ -81,7 +81,7 @@ export class ImageRenderer extends BaseDisposable {
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
         if (!data) {
-            throw this._logger.error('set_image_data: null');
+            throw this._logger.error('set_image_data: not defined');
         }
         let imageData: TextureImageData;
         let unpackFlipY = false;

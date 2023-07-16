@@ -36,11 +36,28 @@ export class LoggerImpl implements Logger {
         return message;
     }
 
-    error(format: string, ...params: unknown[]): Error {
+    error(format: string | Error, ...params: unknown[]): Error {
+        if (format instanceof Error) {
+            const message = this._wrap(format.message);
+            const err = new Error(message);
+            err.name = format.name;
+            err.stack = patchStack(format, message);
+            this._driver.error(err.stack || message);
+            throw err;
+        }
         const message = this._wrap(format, ...params);
         this._driver.error(message);
         throw new Error(message);
     }
+}
+
+function patchStack(err: Error, message: string): string | undefined {
+    if (!err.stack) {
+        return undefined;
+    }
+    const prefix = err.name + ': ';
+    const k = err.stack.indexOf('\n');
+    return prefix + message + err.stack.substring(k);
 }
 
 class ConsoleLoggerDriver implements LoggerDriver {

@@ -154,8 +154,8 @@
         "markup": null
     },
     {
-        "name": "23_glb_model",
-        "title": "23 Glb Model",
+        "name": "23_gltf_model",
+        "title": "23 Gltf Model",
         "index": "index.ts",
         "worker": null,
         "markup": null

@@ -2,10 +2,7 @@ install:
 	@npm i
 
 check:
-	@npm run check
-
-lint:
-	@npm run lint:fix
+	@npm run tscheck && npm run lint:fix
 
 test:
 	@npm test

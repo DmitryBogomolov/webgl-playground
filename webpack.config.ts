@@ -116,8 +116,9 @@ const config: Configuration = {
             directory: path.join(__dirname, './static'),
             publicPath: `${CONTENT_PATH}/`,
         },
-        onBeforeSetupMiddleware: ({ app }) => {
-            setupHandlers(app!, playgrounds);
+        setupMiddlewares: (middlewares, devServer) => {
+            setupHandlers(devServer.app!, playgrounds);
+            return middlewares;
         },
     },
 };

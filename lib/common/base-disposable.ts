@@ -5,7 +5,7 @@ import { EventEmitter } from './event-emitter';
 export abstract class BaseDisposable extends BaseIdentity {
     private readonly _disposed = new EventEmitter();
 
-    protected _dispose(): void {
+    protected _emitDisposed(): void {
         this._disposed.emit();
         this._disposed.clear();
     }

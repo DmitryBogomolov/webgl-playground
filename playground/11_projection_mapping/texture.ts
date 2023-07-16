@@ -18,7 +18,7 @@ export function makeColorTexture(runtime: Runtime): Texture {
     });
     texture.setImageData(
         { size: { x: 8, y: 8 }, data },
-        { generateMipmap: true, format: 'luminance' },
+        { format: 'luminance' },
     );
     return texture;
 }
@@ -31,7 +31,7 @@ export function makeMappingTexture(runtime: Runtime, onReady: () => void): Textu
     });
     makeImage({ url: '/static/f-letter.png' }).then(
         (image) => {
-            texture.setImageData(image, { unpackFlipY: true, generateMipmap: true });
+            texture.setImageData(image, { unpackFlipY: true });
             onReady();
         },
         console.error,

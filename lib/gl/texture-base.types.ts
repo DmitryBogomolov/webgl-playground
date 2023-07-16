@@ -1,7 +1,8 @@
 import type { Vec2 } from '../geometry/vec2.types';
+import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { Runtime } from './runtime';
 
-export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge');
+export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge' | 'mirrored_repeat');
 export type TEXTURE_MAG_FILTER = ('nearest' | 'linear');
 export type TEXTURE_MIN_FILTER = (
     | 'nearest' | 'linear'
@@ -23,7 +24,7 @@ export interface TextureParameters {
 export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly unpackPremultiplyAlpha?: boolean;
-    readonly generateMipmap?: boolean;
+    readonly unpackColorSpaceConversion?: UNPACK_COLORSPACE_CONVERSION;
     readonly format?: TEXTURE_FORMAT;
 }
 
@@ -36,5 +37,8 @@ export type TextureImageData = TextureRawImageData | TexImageSource;
 
 export type TextureRuntimeBase = Pick<
     Runtime,
-    'gl' | 'logger' | 'setPixelStoreUnpackFlipYWebgl' | 'setPixelStoreUnpackPremultiplyAlphaWebgl'
+    | 'gl' | 'logger'
+    | 'setPixelStoreUnpackFlipYWebgl'
+    | 'setPixelStoreUnpackPremultiplyAlphaWebgl'
+    | 'setPixelStoreUnpackColorSpaceConversionWebgl'
 >;

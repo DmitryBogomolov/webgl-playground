@@ -70,7 +70,7 @@ export class Primitive extends BaseDisposable {
         this._runtime.gl().deleteBuffer(this._vertexBuffer);
         this._runtime.gl().deleteBuffer(this._indexBuffer);
         this._runtime.vaoExt().deleteVertexArrayOES(this._vao);
-        this._dispose();
+        this._emitDisposed();
     }
 
     private _createVao(): WebGLVertexArrayObjectOES {

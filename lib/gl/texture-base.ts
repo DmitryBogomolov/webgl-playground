@@ -3,16 +3,18 @@ import type {
     TextureRuntimeBase, TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
 } from './texture-base.types';
 import type { Vec2 } from '../geometry/vec2.types';
+import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseDisposable } from '../common/base-disposable';
-import { vec2, clone2, ZERO2 } from '../geometry/vec2';
+import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
 
 const WebGL = WebGLRenderingContext.prototype;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGL.REPEAT,
     'clamp_to_edge': WebGL.CLAMP_TO_EDGE,
+    'mirrored_repeat': WebGL.MIRRORED_REPEAT,
 };
 
 const MAG_FILTER_MAP: GLValuesMap<TEXTURE_MAG_FILTER> = {
@@ -74,10 +76,11 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
-    protected _size: Vec2 = ZERO2;
+    protected _size: Vec2 = clone2(ZERO2);
+    private _needMipmap: boolean = false;
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
-    private _state: State = {
+    private readonly _state: State = {
         wrap_s: 'clamp_to_edge',
         wrap_t: 'clamp_to_edge',
         mag_filter: 'linear',
@@ -95,7 +98,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl().deleteTexture(this._texture);
-        this._dispose();
+        this._emitDisposed();
     }
 
     glHandle(): WebGLTexture {
@@ -126,14 +129,17 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         gl.texParameteri(this._target, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
-    protected _beginDataUpdate(options?: TextureImageDataOptions): { format: number, type: number } {
+    protected _beginDataUpdate(options: TextureImageDataOptions | undefined): { format: number, type: number } {
+        // These defaults are implicitly duplicated. Find a way to solve it.
         let unpackFlipY = false;
         let unpackPremultiplyAlpha = false;
+        let unpackColorSpaceConversion: UNPACK_COLORSPACE_CONVERSION = 'browser_default';
         let format = DEFAULT_TEXTURE_FORMAT;
         let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
-            unpackFlipY = !!options.unpackFlipY;
-            unpackPremultiplyAlpha = !!options.unpackPremultiplyAlpha;
+            unpackFlipY = !!(options.unpackFlipY || unpackFlipY);
+            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha || unpackPremultiplyAlpha);
+            unpackColorSpaceConversion = options.unpackColorSpaceConversion || unpackColorSpaceConversion;
             if (options.format) {
                 format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
                 type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
@@ -141,6 +147,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         }
         this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);
+        this._runtime.setPixelStoreUnpackColorSpaceConversionWebgl(unpackColorSpaceConversion);
         this._bind();
         return { format, type };
     }
@@ -152,37 +159,58 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
             this._size = clone2(size);
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
+            // @ts-ignore Properties exist.
             this._size = vec2(imageData.width, imageData.height);
+        }
+        if (this._needMipmap) {
+            this._generateMipmap();
         }
     }
 
-    protected _endDataUpdate(options?: TextureImageDataOptions): void {
-        if (options && options.generateMipmap) {
-            this._runtime.gl().generateMipmap(this._target);
-        }
+    private _generateMipmap(): void {
+        this._logger.log('generate_mipmap');
+        this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
-        for (const [key, val] of Object.entries(params)) {
+        if (!params) {
+            throw this._logger.error('set_parameters: not defined');
+        }
+        for (const entry of Object.entries(params)) {
+            const key = entry[0] as keyof State;
+            const val = entry[1] as State[keyof State];
             if (val !== undefined) {
-                const value = GL_MAPS[key as keyof State][val as keyof typeof GL_MAPS];
+                const value = GL_MAPS[key][val];
                 if (!value) {
                     throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
                 }
-                if (this._state[key as keyof State] !== val) {
+                if (this._state[key] !== val) {
                     this._logger.log('set_parameter({0} = {1})', key, val);
                     this._bind();
-                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key as keyof State], value);
-                    this._state[key as keyof State] = val as never;
+                    gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
+                    this._state[key] = val as never;
                 }
+            }
+        }
+        const needMipmap = isMipmapRequired(this._state.min_filter);
+        if (needMipmap && !this._needMipmap) {
+            this._needMipmap = true;
+            if (!eq2(this._size, ZERO2)) {
+                this._generateMipmap();
             }
         }
     }
 }
 
+function isMipmapRequired(minFilter: TEXTURE_MIN_FILTER): boolean {
+    return minFilter !== 'nearest' && minFilter !== 'linear';
+}
+
 function isTextureRawImageData(imageData: TextureImageData): imageData is TextureRawImageData {
-    return 'size' in imageData && 'data' in imageData;
+    return imageData
+        && isVec2((imageData as TextureRawImageData).size)
+        && ('data' in imageData);
 }
 
 export function textureImageDataToStr(imageData: TextureImageData): string {

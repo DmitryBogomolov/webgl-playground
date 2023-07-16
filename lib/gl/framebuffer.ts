@@ -66,7 +66,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
             this._runtime.gl().deleteRenderbuffer(this._renderbuffer);
         }
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
-        this._dispose();
+        this._emitDisposed();
     }
 
     glHandle(): WebGLFramebuffer {
