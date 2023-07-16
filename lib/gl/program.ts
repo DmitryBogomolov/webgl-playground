@@ -2,6 +2,7 @@ import type { UNIFORM_VALUE, ProgramOptions, ProgramRuntime } from './program.ty
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Logger } from '../common/logger.types';
+import type { VERTEX_ATTRIBUTE_TYPE } from './vertex.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
