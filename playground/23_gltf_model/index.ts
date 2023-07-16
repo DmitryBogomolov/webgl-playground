@@ -12,7 +12,8 @@ import { createControls } from 'playground-utils/controls';
 /**
  * GlTF model.
  *
- * TODO...
+ * Demonstrates GlTF models rendering.
+ * Parses binary (of JSON) files, loads external content (if such exists), creates primitives and textures.
  */
 export type DESCRIPTION = never;
 
