@@ -10,15 +10,13 @@ export const GLB_MEDIA_TYPE = 'model/gltf-binary';
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
 export async function parseGlTF(data: ArrayBufferView, resolveUri?: GlTFResolveUriFunc): Promise<GlTFAsset> {
-    let gltf = tryParseJson(data);
+    const { gltf, buffer } = isJsonContent(data)
+        ? { gltf: decodeJson(data, 0, data.byteLength), buffer: null }
+        : parseGlb(data);
     const buffers = new Map<number, ArrayBuffer>();
     const images = new Map<number, ArrayBuffer>();
-    if (!gltf) {
-        const parsedGlb = parseGlb(data);
-        gltf = parsedGlb.gltf;
-        if (parsedGlb.buffer) {
-            buffers.set(0, parsedGlb.buffer);
-        }
+    if (buffer) {
+        buffers.set(0, buffer);
     }
     await resolveReferences(gltf, buffers, images, resolveUri || defaultResolveUri);
     return {
@@ -32,18 +30,22 @@ const defaultResolveUri: GlTFResolveUriFunc = (uri) => {
     return Promise.reject(new Error(`cannot resolve ${uri}`));
 };
 
-function tryParseJson(data: ArrayBufferView): GlTFSchema.GlTf | null {
-    const view = new Uint8Array(data.buffer, data.byteOffset, 1);
-    const first = view[0];
-    // Lightweight guess that it is JSON content.
-    if (first !== '\n'.charCodeAt(0) && first !== '{'.charCodeAt(0)) {
-        return null;
+const WHITESPACES = '\u0020\u00A0\n\r\t\v\f';
+
+function isJsonContent(data: ArrayBufferView): boolean {
+    const set = new Set<number>();
+    for (let i = 0; i < WHITESPACES.length; ++i) {
+        set.add(WHITESPACES.charCodeAt(i));
     }
-    try {
-        return decodeJson(data, 0, data.byteLength);
-    } catch {
-        return null;
+    const openBracket = '{'.charCodeAt(0);
+
+    const openView = new Uint8Array(data.buffer, data.byteOffset, Math.min(64, data.byteLength));
+    for (let i = 0; i < 64 && openView[i] !== openBracket; ++i) {
+        if (!set.has(openView[i])) {
+            return false;
+        }
     }
+    return true;
 }
 
 function parseGlb(data: ArrayBufferView): { gltf: GlTFSchema.GlTf, buffer: ArrayBuffer | null } {

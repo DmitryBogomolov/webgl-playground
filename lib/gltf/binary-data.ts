@@ -8,7 +8,7 @@ export function getBinaryData(
     const offset = (bufferView.byteOffset || 0) + byteOffset;
     const length = byteLength || bufferView.byteLength;
     if (offset + length > buffer.byteLength) {
-        throw new Error(`offset ${length} and length ${length} mismatch buffer size ${buffer.byteLength}`);
+        throw new Error(`offset ${offset} and length ${length} mismatch buffer size ${buffer.byteLength}`);
     }
     if (length > bufferView.byteLength) {
         throw new Error(`length ${length} mismatch buffer view length ${bufferView.byteLength}`);

@@ -133,7 +133,7 @@ export function createPrimitive(
         primitiveMode: 'triangles',
     });
 
-    const material = getMaterialInfo(asset, primitive);
+    const material = getMaterialInfo(asset.gltf, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
     const programDefinitions = {
