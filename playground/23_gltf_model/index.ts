@@ -10,7 +10,7 @@ import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 
 /**
- * Glb model.
+ * GlTF model.
  *
  * TODO...
  */
