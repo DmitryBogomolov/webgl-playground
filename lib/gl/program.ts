@@ -190,7 +190,9 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
             const prefix = buildSourcePrefix(options.defines);
             this._vertShader = this._createShader(GL_VERTEX_SHADER, combineSource(options.vertShader, prefix));
             this._fragShader = this._createShader(GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix));
-            // this._bindAttributes();
+            if (options.locations) {
+                this._bindAttributes(options.locations);
+            }
             this._linkProgram();
             this._attributes = this._collectAttributes();
             this._uniforms = this._collectUniforms();
@@ -258,12 +260,15 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         }
     }
 
-    // private _bindAttributes(): void {
-    //     const gl = this._runtime.gl();
-    //     for (const attr of this._schema.attributes) {
-    //         gl.bindAttribLocation(this._program, attr.location, attr.name);
-    //     }
-    // }
+    private _bindAttributes(locations: Readonly<Record<string, number>>): void {
+        const gl = this._runtime.gl();
+        // for (const attr of this._schema.attributes) {
+        //     gl.bindAttribLocation(this._program, attr.location, attr.name);
+        // }
+        for (const [name, location] of Object.entries(locations)) {
+            gl.bindAttribLocation(this._program, location, name);
+        }
+    }
 
     private _linkProgram(): void {
         const gl = this._runtime.gl();
