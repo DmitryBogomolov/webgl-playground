@@ -1,4 +1,8 @@
-import type { PRIMITIVE_MODE, INDEX_TYPE, IndexConfig, PrimitiveRuntime } from './primitive.types';
+import type {
+    PrimitiveVertexSchema, VertexAttributeDefinition, VERTEX_ATTRIBUTE_TYPE,
+    PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    PrimitiveRuntime,
+} from './primitive.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
@@ -34,6 +38,37 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'triangles': WebGL.TRIANGLES,
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
+
+const ATTRIBUTE_TYPE_MAP: Readonly<Record<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }>> = {
+    'byte': { type: WebGL.BYTE, rank: 1, size: 1 },
+    'byte2': { type: WebGL.BYTE, rank: 2, size: 1 },
+    'byte3': { type: WebGL.BYTE, rank: 3, size: 1 },
+    'byte4': { type: WebGL.BYTE, rank: 4, size: 1 },
+    'ubyte': { type: WebGL.UNSIGNED_BYTE, rank: 1, size: 1 },
+    'ubyte2': { type: WebGL.UNSIGNED_BYTE, rank: 2, size: 1 },
+    'ubyte3': { type: WebGL.UNSIGNED_BYTE, rank: 3, size: 1 },
+    'ubyte4': { type: WebGL.UNSIGNED_BYTE, rank: 4, size: 1 },
+    'short': { type: WebGL.SHORT, rank: 1, size: 2 },
+    'short2': { type: WebGL.SHORT, rank: 2, size: 2 },
+    'short3': { type: WebGL.SHORT, rank: 3, size: 2 },
+    'short4': { type: WebGL.SHORT, rank: 4, size: 2 },
+    'ushort': { type: WebGL.UNSIGNED_SHORT, rank: 1, size: 2 },
+    'ushort2': { type: WebGL.UNSIGNED_SHORT, rank: 2, size: 2 },
+    'ushort3': { type: WebGL.UNSIGNED_SHORT, rank: 3, size: 2 },
+    'ushort4': { type: WebGL.UNSIGNED_SHORT, rank: 4, size: 2 },
+    'int': { type: WebGL.INT, rank: 1, size: 4 },
+    'int2': { type: WebGL.INT, rank: 2, size: 4 },
+    'int3': { type: WebGL.INT, rank: 3, size: 4 },
+    'int4': { type: WebGL.INT, rank: 4, size: 4 },
+    'uint': { type: WebGL.UNSIGNED_INT, rank: 1, size: 4 },
+    'uint2': { type: WebGL.UNSIGNED_INT, rank: 2, size: 4 },
+    'uint3': { type: WebGL.UNSIGNED_INT, rank: 3, size: 4 },
+    'uint4': { type: WebGL.UNSIGNED_INT, rank: 4, size: 4 },
+    'float': { type: WebGL.FLOAT, rank: 1, size: 4 },
+    'float2': { type: WebGL.FLOAT, rank: 2, size: 4 },
+    'float3': { type: WebGL.FLOAT, rank: 3, size: 4 },
+    'float4': { type: WebGL.FLOAT, rank: 4, size: 4 },
+};
 
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'u8': WebGL.UNSIGNED_BYTE,
@@ -91,9 +126,9 @@ export class Primitive extends BaseDisposable {
 
     allocateVertexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
+            throw this._logger.error(`allocate_vertex_buffer(${size}): bad value`);
         }
-        this._logger.log('allocate_vertex_buffer({0})', size);
+        this._logger.log(`allocate_vertex_buffer(${size})`);
         const gl = this._runtime.gl();
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
@@ -102,9 +137,9 @@ export class Primitive extends BaseDisposable {
 
     allocateIndexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error('allocate_index_buffer({0}): bad value', size);
+            throw this._logger.error(`allocate_index_buffer(${size}): bad value`);
         }
-        this._logger.log('allocate_index_buffer({0})', size);
+        this._logger.log(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
@@ -112,20 +147,25 @@ export class Primitive extends BaseDisposable {
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
+        this._logger.log(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
+        this._logger.log(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
     setVertexSchema(schema: VertexSchema | null): void {
+        if ('attrs' in (schema as unknown as PrimitiveVertexSchema)) {
+            this.setVertexSchema_TODO(schema as unknown as PrimitiveVertexSchema);
+            return;
+        }
+
         const _schema = schema || EMPTY_SCHEMA;
         if (this._schema === _schema) {
             return;
@@ -148,31 +188,63 @@ export class Primitive extends BaseDisposable {
         }
     }
 
-    setIndexConfig(config: IndexConfig): void {
+    setVertexSchema_TODO(schema: PrimitiveVertexSchema): void {
+        if (!schema) {
+            throw this._logger.error('set_vertex_schema: not defined');
+        }
+        this._logger.log(`set_vertex_schema(attributes=${schema.attrs.length})`);
+        const gl = this._runtime.gl();
+        try {
+            this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
+            this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
+            const totalVertexSize = getTotalVertexSize(schema.attrs);
+            let currentOffset = 0;
+            for (let i = 0; i < schema.attrs.length; ++i) {
+                const attribute = schema.attrs[i];
+                const location = attribute.location !== undefined ? attribute.location : i;
+                const { type, rank, size } = ATTRIBUTE_TYPE_MAP[attribute.type];
+                const attrSize = align(rank * size);
+                const normalized = type !== WebGL.FLOAT && Boolean(attribute.normalized);
+                const stride = attribute.stride !== undefined ? attribute.stride : totalVertexSize;
+                const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
+                currentOffset += attrSize;
+                gl.vertexAttribPointer(location, rank, type, normalized, stride, offset);
+                gl.enableVertexAttribArray(location);
+            }
+            this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
+        } finally {
+            this._runtime.bindVertexArrayObject(null);
+        }
+    }
+
+    setIndexConfig(config: PrimitiveIndexConfig): void {
+        if (!config) {
+            throw this._logger.error('set_index_config: not defined');
+        }
         const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logger.log('set_index_data(count={0}, offset={1}, type={2}, mode={3})',
-            indexCount, indexOffset, indexType, primitiveMode);
+        this._logger.log(
+            `set_index_config:(count=${indexCount}, offset=${indexOffset}, type=${indexType}, mode=${primitiveMode})`);
         if (indexCount < 0) {
-            throw this._logger.error('bad index count: {0}', indexCount);
+            throw this._logger.error(`bad index count: ${indexCount}`);
         }
         this._indexCount = indexCount;
         if (indexOffset !== undefined) {
             if (indexOffset < 0) {
-                throw this._logger.error('bad index offset: {0}', indexOffset);
+                throw this._logger.error(`bad index offset: ${indexOffset}`);
             }
             this._indexOffset = indexOffset;
         }
         if (indexType !== undefined) {
             const value = INDEX_TYPE_MAP[indexType];
             if (value === undefined) {
-                throw this._logger.error('bad index type: {0}', indexType);
+                throw this._logger.error(`bad index type: ${indexType}`);
             }
             this._indexType = value;
         }
         if (primitiveMode !== undefined) {
             const value = PRIMITIVE_MODE_MAP[primitiveMode];
             if (value === undefined) {
-                throw this._logger.error('bad primitive mode: {0}', primitiveMode);
+                throw this._logger.error(`bad primitive mode: ${primitiveMode}`);
             }
             this._primitiveMode = value;
         }
@@ -209,4 +281,21 @@ export class Primitive extends BaseDisposable {
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
+}
+
+function getTotalVertexSize(attributes: ReadonlyArray<VertexAttributeDefinition>): number {
+    let sum = 0;
+    for (const attribute of attributes) {
+        if (attribute.offset === undefined && attribute.stride === undefined) {
+            const { rank, size } = ATTRIBUTE_TYPE_MAP[attribute.type];
+            const attrSize = align(rank * size);
+            sum += attrSize;
+        }
+    }
+    return sum;
+}
+
+function align(bytes: number): number {
+    const residue = bytes % 4;
+    return residue === 0 ? bytes : bytes + (4 - residue);
 }
