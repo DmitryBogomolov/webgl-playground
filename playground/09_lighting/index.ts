@@ -1,4 +1,4 @@
-import type { Program, UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Program, SHADER_UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     Runtime, createRenderState,
@@ -173,7 +173,7 @@ function main(): void {
 
 function renderPrimitive(
     program: Program, primitive: Primitive,
-    clr: Color, offset: number, uniforms: Record<string, UNIFORM_VALUE>,
+    clr: Color, offset: number, uniforms: Record<string, SHADER_UNIFORM_VALUE>,
     modelViewProj: Observable<Mat4>, modelInvTrs: Observable<Mat4>,
 ): void {
     program.setUniform('u_offset', offset);

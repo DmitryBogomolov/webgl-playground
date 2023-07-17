@@ -5,11 +5,35 @@ import type { Mat2 } from '../geometry/mat2.types';
 import type { Mat3 } from '../geometry/mat3.types';
 import type { Mat4 } from '../geometry/mat4.types';
 import type { Color } from '../common/color.types';
-import type { VERTEX_ATTRIBUTE_TYPE } from './vertex.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { Runtime } from './runtime';
 
-export type UNIFORM_VALUE = (
+export type SHADER_ATTRIBUTE_TYPE = (
+    | 'float' | 'float2' | 'float3' | 'float4'
+    | 'int' | 'int2' | 'int3' | 'int4'
+    | 'bool' | 'bool2' | 'bool3' | 'bool4'
+);
+
+export type SHADER_UNIFORM_TYPE = (
+    | SHADER_ATTRIBUTE_TYPE
+    | 'float2x2' | 'float3x3' | 'float4x4'
+    | 'sampler2D' | 'samplerCube'
+);
+
+export interface ShaderAttribute {
+    readonly name: string;
+    readonly location: number;
+    readonly type: SHADER_ATTRIBUTE_TYPE;
+}
+
+export interface ShaderUniform {
+    readonly name: string;
+    readonly type: SHADER_UNIFORM_TYPE;
+    readonly location: WebGLUniformLocation;
+    readonly arraySize: number;
+}
+
+export type SHADER_UNIFORM_VALUE = (
     | boolean
     | number
     | Readonly<[number]>
@@ -21,22 +45,6 @@ export type UNIFORM_VALUE = (
     | Mat2 | Mat3 | Mat4
     | Color
 );
-
-export type UNIFORM_TYPE = (
-    | VERTEX_ATTRIBUTE_TYPE
-    | 'float2x2' | 'float3x3' | 'float4x4'
-);
-
-export interface ShaderAttribute {
-    readonly name: string;
-    readonly location: number;
-    readonly type: VERTEX_ATTRIBUTE_TYPE;
-}
-
-export interface ShaderUniform {
-    readonly name: string;
-    readonly type: UNIFORM_TYPE;
-}
 
 export interface ProgramOptions {
     readonly vertShader: string;
