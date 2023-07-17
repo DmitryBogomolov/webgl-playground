@@ -1,7 +1,8 @@
 import type {
-    PrimitiveVertexSchema, VertexAttributeDefinition, VERTEX_ATTRIBUTE_TYPE,
+    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE,
     PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
     PrimitiveRuntime,
+    VertexAttributeInfo,
 } from './primitive.types';
 import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
@@ -192,24 +193,19 @@ export class Primitive extends BaseDisposable {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
+        const attrInfoList = validateVertexSchema(schema);
         this._logger.log(`set_vertex_schema(attributes=${schema.attrs.length})`);
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            const totalVertexSize = getTotalVertexSize(schema.attrs);
-            let currentOffset = 0;
             for (let i = 0; i < schema.attrs.length; ++i) {
-                const attribute = schema.attrs[i];
-                const location = attribute.location !== undefined ? attribute.location : i;
-                const { type, rank, size } = ATTRIBUTE_TYPE_MAP[attribute.type];
-                const attrSize = align(rank * size);
-                const normalized = type !== WebGL.FLOAT && Boolean(attribute.normalized);
-                const stride = attribute.stride !== undefined ? attribute.stride : totalVertexSize;
-                const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
-                currentOffset += attrSize;
-                gl.vertexAttribPointer(location, rank, type, normalized, stride, offset);
-                gl.enableVertexAttribArray(location);
+                const attrInfo = attrInfoList[i];
+                gl.vertexAttribPointer(
+                    attrInfo.location, attrInfo.rank, attrInfo.type,
+                    attrInfo.normalized, attrInfo.stride, attrInfo.offset,
+                );
+                gl.enableVertexAttribArray(attrInfo.location);
             }
             this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         } finally {
@@ -283,16 +279,47 @@ export class Primitive extends BaseDisposable {
     }
 }
 
-function getTotalVertexSize(attributes: ReadonlyArray<VertexAttributeDefinition>): number {
-    let sum = 0;
-    for (const attribute of attributes) {
-        if (attribute.offset === undefined && attribute.stride === undefined) {
-            const { rank, size } = ATTRIBUTE_TYPE_MAP[attribute.type];
-            const attrSize = align(rank * size);
-            sum += attrSize;
+export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {
+    let currentOffset = 0;
+    const list: VertexAttributeInfo[] = [];
+    for (let i = 0; i < schema.attrs.length; ++i) {
+        const attribute = schema.attrs[i];
+        const location = attribute.location !== undefined ? attribute.location : i;
+        if (location < 0) {
+            throw new Error(`attribute ${i}: bad location: ${location}`);
+        }
+        const typeInfo = ATTRIBUTE_TYPE_MAP[attribute.type];
+        if (!typeInfo) {
+            throw new Error(`attribute ${i}: bad type: ${attribute.type}`);
+        }
+        const attrSize = align(typeInfo.rank * typeInfo.size);
+        const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
+        if (attribute.offset === undefined) {
+            currentOffset += attrSize;
+        }
+        if (offset % typeInfo.size !== 0) {
+            throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
+        }
+        const stride = attribute.stride !== undefined ? attribute.stride : 0;
+        if (stride % attrSize !== 0) {
+            throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
+        }
+        const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
+        list.push({
+            location,
+            ...typeInfo,
+            offset,
+            stride,
+            normalized,
+        });
+    }
+    for (let i = 0; i < list.length; ++i) {
+        const item = list[i];
+        if (item.stride === 0) {
+            list[i] = { ...item, stride: currentOffset };
         }
     }
-    return sum;
+    return list;
 }
 
 function align(bytes: number): number {

@@ -27,6 +27,16 @@ export interface VertexAttributeDefinition {
     readonly offset?: number;
 }
 
+export interface VertexAttributeInfo {
+    readonly location: number;
+    readonly type: number;
+    readonly rank: number;
+    readonly size: number;
+    readonly normalized: boolean;
+    readonly offset: number;
+    readonly stride: number;
+}
+
 export interface PrimitiveVertexSchema {
     // TODO: Rename to "attributes".
     readonly attrs: ReadonlyArray<VertexAttributeDefinition>;

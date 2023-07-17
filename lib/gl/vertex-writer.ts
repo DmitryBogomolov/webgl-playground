@@ -1,3 +1,4 @@
+import type { PrimitiveVertexSchema, VertexAttributeInfo } from './primitive.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Attribute, RAW_ATTR_TYPE, VertexSchema, AttributeTypeMap } from './vertex-schema.types';
 import type { Logger } from '../common/logger.types';
@@ -6,6 +7,7 @@ import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
 import { isColor } from '../common/color';
+import { validateVertexSchema } from './primitive';
 
 type Normalizer = (value: number) => number;
 
@@ -25,7 +27,7 @@ interface AttributesMap {
     readonly [key: string]: Attribute;
 }
 
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Float32Array;
+type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
 
 const viewMakers: AttributeTypeMap<ArrayMaker> = {
@@ -34,6 +36,28 @@ const viewMakers: AttributeTypeMap<ArrayMaker> = {
     short: (buffer, offset, length) => new Int16Array(buffer, offset, length / 2),
     ushort: (buffer, offset, length) => new Uint16Array(buffer, offset, length / 2),
     float: (buffer, offset, length) => new Float32Array(buffer, offset, length / 4),
+};
+
+const WebGL = WebGLRenderingContext.prototype;
+
+const VIEW_MAKERS_MAP: Readonly<Record<number, ArrayMaker>> = {
+    [WebGL.BYTE]: (buffer, offset, length) => new Int8Array(buffer, offset, length),
+    [WebGL.UNSIGNED_BYTE]: (buffer, offset, length) => new Uint8Array(buffer, offset, length),
+    [WebGL.SHORT]: (buffer, offset, length) => new Int16Array(buffer, offset, length / 2),
+    [WebGL.UNSIGNED_SHORT]: (buffer, offset, length) => new Uint16Array(buffer, offset, length / 2),
+    [WebGL.INT]: (buffer, offset, length) => new Int32Array(buffer, offset, length / 4),
+    [WebGL.UNSIGNED_INT]: (buffer, offset, length) => new Uint32Array(buffer, offset, length / 4),
+    [WebGL.FLOAT]: (buffer, offset, length) => new Float32Array(buffer, offset, length / 4),
+};
+
+const NORMALIZERS_MAP: Readonly<Record<number, Normalizer>> = {
+    [WebGL.BYTE]: (value) => Math.round(value * 0x7F),
+    [WebGL.UNSIGNED_BYTE]: (value) => Math.round(value * 0xFF),
+    [WebGL.SHORT]: (value) => Math.round(value * 0x7FFF),
+    [WebGL.UNSIGNED_SHORT]: (value) => Math.round(value * 0xFFFF),
+    [WebGL.INT]: (value) => Math.round(value * 0x7FFFFFFF),
+    [WebGL.UNSIGNED_INT]: (value) => Math.round(value * 0xFFFFFFFF),
+    [WebGL.FLOAT]: () => { throw new Error('not supported'); },
 };
 
 function buildMap(schema: VertexSchema): AttributesMap {
@@ -97,6 +121,43 @@ export class VertexWriter {
         const base = (attr.offset + attr.stride * vertexIndex) / view.BYTES_PER_ELEMENT | 0;
         const normalize = attr.normalized ? normalizers[attr.type] : eigen;
         for (let i = 0; i < attr.size; ++i) {
+            view[base + i] = normalize(values[i]);
+        }
+    }
+}
+
+export class VertexWriter2 {
+    private readonly _target: ArrayBufferView;
+    private readonly _attributes: VertexAttributeInfo[];
+    private readonly _views = new Map<number, TypedArray>();
+
+    constructor(schema: PrimitiveVertexSchema, target: ArrayBufferLike) {
+        this._target = wrapBuffer(target);
+        this._attributes = validateVertexSchema(schema);
+    }
+
+    private _getView(type: number): TypedArray {
+        let view = this._views.get(type);
+        if (!view) {
+            view = VIEW_MAKERS_MAP[type](this._target.buffer, this._target.byteOffset, this._target.byteLength);
+            this._views.set(type, view);
+        }
+        return view;
+    }
+
+    writeAttribute(vertexIdx: number, attrIdx: number, attrValue: ATTRIBUTE_VALUE): void {
+        const attribute = this._attributes[attrIdx];
+        if (!attribute) {
+            throw new Error(`attribute ${attrIdx} not found`);
+        }
+        const values = unwrappers[attribute.rank](attrValue);
+        if (values === null) {
+            throw new Error(`attribute "${attrIdx}" rank is ${attribute.rank} but value is ${attrValue}`);
+        }
+        const view = this._getView(attribute.type);
+        const base = (attribute.offset + attribute.stride * vertexIdx) / view.BYTES_PER_ELEMENT | 0;
+        const normalize = attribute.normalized ? NORMALIZERS_MAP[attribute.type] : eigen;
+        for (let i = 0; i < attribute.rank; ++i) {
             view[base + i] = normalize(values[i]);
         }
     }
