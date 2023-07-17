@@ -184,7 +184,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         this._logger.log('init');
         this._runtime = runtime;
         // TODO: Remove it.
-        this._schema = options.schema;
+        this._schema = options.schema as unknown as VertexSchema;
         try {
             this._program = this._createProgram();
             const prefix = buildSourcePrefix(options.defines);

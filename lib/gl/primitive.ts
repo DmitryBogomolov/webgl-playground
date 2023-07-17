@@ -259,10 +259,10 @@ export class Primitive extends BaseDisposable {
         if (this._program === program) {
             return;
         }
-        this._logger.log('set_program({0})', _program.id());
-        if (_program.schema() !== this._schema) {
-            throw this._logger.error('program schema does not match');
-        }
+        this._logger.log(`set_program(${_program.id()})`);
+        // if (_program.schema() !== this._schema) {
+        //     throw this._logger.error('program schema does not match');
+        // }
         this._program = _program;
     }
 

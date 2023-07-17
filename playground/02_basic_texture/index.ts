@@ -1,11 +1,11 @@
-import type { Vec2 } from 'lib';
+import type { PrimitiveVertexSchema, Vec2 } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     Runtime,
     Primitive,
     Program,
     Texture,
-    parseVertexSchema,
+    // parseVertexSchema,
     Tracker,
     vec2, ZERO2, sub2, mul2, inv2,
 } from 'lib';
@@ -129,12 +129,15 @@ function makeTexture(runtime: Runtime): Texture {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        {
-            name: 'a_position',
-            type: 'float2',
-        },
-    ]);
+    // const schema = parseVertexSchema([
+    //     {
+    //         name: 'a_position',
+    //         type: 'float2',
+    //     },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [{ type: 'float2' }],
+    };
 
     const vertexData = new Float32Array([
         -1, -1,
@@ -153,13 +156,13 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
     primitive.setProgram(program);
 

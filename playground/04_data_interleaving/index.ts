@@ -1,9 +1,10 @@
-import type { VertexSchema, Color, Vec2 } from 'lib';
+import type { VertexSchema, Color, Vec2, PrimitiveVertexSchema } from 'lib';
 import {
     Runtime,
     Primitive,
     Program,
-    parseVertexSchema, VertexWriter,
+    // parseVertexSchema, VertexWriter,
+    VertexWriter2,
     color,
     vec2,
 } from 'lib';
@@ -45,50 +46,64 @@ function main(): void {
 function makeAoSPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
-        { name: 'a_color', type: 'ubyte3', normalized: true },
-        { name: 'a_factor', type: 'ubyte1', normalized: true },
-    ]);
-    return makePrimitive(runtime, schema, vertices.length * schema.totalSize, vertices, indices);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_position', type: 'float2' },
+    //     { name: 'a_color', type: 'ubyte3', normalized: true },
+    //     { name: 'a_factor', type: 'ubyte1', normalized: true },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float2' },
+            { type: 'ubyte3', normalized: true },
+            { type: 'ubyte', normalized: true },
+        ],
+    };
+    return makePrimitive(runtime, schema2, vertices.length * 16, vertices, indices);
 }
 
 function makeSoAPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema = parseVertexSchema([
-        { name: 'a_color', type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
-        { name: 'a_position', type: 'float2', offset: 16, stride: 8 },
-        { name: 'a_factor', type: 'ubyte1', normalized: true, offset: 48, stride: 4 },
-    ]);
-    return makePrimitive(runtime, schema, 64, vertices, indices);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_color', type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
+    //     { name: 'a_position', type: 'float2', offset: 16, stride: 8 },
+    //     { name: 'a_factor', type: 'ubyte1', normalized: true, offset: 48, stride: 4 },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float2', offset: 16, stride: 8 },
+            { type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
+            { type: 'ubyte', normalized: true, offset: 48, stride: 4 },
+        ],
+    };
+    return makePrimitive(runtime, schema2, 64, vertices, indices);
 }
 
 function makePrimitive(
-    runtime: Runtime, schema: VertexSchema, arrayBufferSize: number,
+    runtime: Runtime, schema: PrimitiveVertexSchema, arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
     const primitive = new Primitive(runtime);
 
     const vertexData = new ArrayBuffer(arrayBufferSize);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter2(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, color, factor } = vertices[i];
-        writer.writeAttribute(i, 'a_position', position);
-        writer.writeAttribute(i, 'a_color', color);
-        writer.writeAttribute(i, 'a_factor', factor);
+        writer.writeAttribute(i, 0, position);
+        writer.writeAttribute(i, 1, color);
+        writer.writeAttribute(i, 2, factor);
     }
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indices.length * 2);
     primitive.updateIndexData(new Uint16Array(indices));
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema);
     primitive.setIndexConfig({ indexCount: indices.length });
     primitive.setProgram(program);
 

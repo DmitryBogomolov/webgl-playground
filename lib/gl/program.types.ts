@@ -49,7 +49,7 @@ export type SHADER_UNIFORM_VALUE = (
 export interface ProgramOptions {
     readonly vertShader: string;
     readonly fragShader: string;
-    readonly schema: VertexSchema;
+    readonly schema?: VertexSchema;
     readonly locations?: Readonly<Record<string, number>>;
     readonly defines?: Readonly<Record<string, string>>;
 }

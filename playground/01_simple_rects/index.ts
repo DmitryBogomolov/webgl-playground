@@ -1,10 +1,11 @@
-import type { Vec2, Color } from 'lib';
+import type { Vec2, Color, PrimitiveVertexSchema } from 'lib';
 import {
     Runtime,
     Program,
     Primitive,
-    VertexWriter,
-    parseVertexSchema,
+    // VertexWriter,
+    VertexWriter2,
+    // parseVertexSchema,
     generateDefaultIndexes,
     colors,
     vec2,
@@ -35,21 +36,27 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        {
-            name: 'a_position',
-            type: 'float2',
-        },
-        {
-            name: 'a_color',
-            type: 'ubyte4',
-            normalized: true,
-        },
-    ]);
+    // const schema = parseVertexSchema([
+    //     {
+    //         name: 'a_position',
+    //         type: 'float2',
+    //     },
+    //     {
+    //         name: 'a_color',
+    //         type: 'ubyte4',
+    //         normalized: true,
+    //     },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float2' },
+            { type: 'ubyte4', normalized: true },
+        ],
+    };
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
     const primitive = new Primitive(runtime);
 
@@ -76,12 +83,12 @@ function makePrimitive(runtime: Runtime): Primitive {
         { position: vec2(-1, +0), color: c4 },
     ];
 
-    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
-    const writer = new VertexWriter(schema, vertexData);
+    const vertexData = new ArrayBuffer(vertices.length * 12);
+    const writer = new VertexWriter2(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
-        writer.writeAttribute(i, 'a_position', vertex.position);
-        writer.writeAttribute(i, 'a_color', vertex.color);
+        writer.writeAttribute(i, 0, vertex.position);
+        writer.writeAttribute(i, 1, vertex.color);
     }
     const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
 
@@ -89,7 +96,12 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO({
+        attrs: [
+            { type: 'float2' },
+            { type: 'ubyte4', normalized: true },
+        ],
+    });
     primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setProgram(program);
 

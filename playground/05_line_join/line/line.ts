@@ -1,14 +1,15 @@
-import type { Runtime, VertexSchema } from 'lib';
+import type { PrimitiveVertexSchema, Runtime, VertexSchema } from 'lib';
 import type { Vertex } from '../vertex';
-import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
+import { LoggerImpl, Primitive, Program, VertexWriter, VertexWriter2 } from 'lib';
 
 export interface LineParams {
-    readonly schema: VertexSchema;
+    readonly schema: PrimitiveVertexSchema;
     readonly vertShader: string;
     readonly fragShader: string;
+    getVertexSize(): number;
     getVertexCount(segmentCount: number): number;
     getIndexCount(segmentCount: number): number;
-    writeSegmentVertices(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, segmentIdx: number): void;
+    writeSegmentVertices(writer: VertexWriter2, vertices: ReadonlyArray<Vertex>, segmentIdx: number): void;
     writeSegmentIndexes(arr: Uint16Array, vertexCount: number, segmentIdx: number): void;
     getSegmentRange(vertexCount: number, vertexIdx: number): [number, number];
 }
@@ -30,11 +31,11 @@ export class Line {
         const program = new Program(runtime, {
             vertShader: params.vertShader,
             fragShader: params.fragShader,
-            schema: params.schema,
+            // schema: params.schema,
         });
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
-        this._primitive.setVertexSchema(params.schema);
+        this._primitive.setVertexSchema_TODO(params.schema);
         this._primitive.setProgram(program);
     }
 
@@ -48,7 +49,7 @@ export class Line {
     }
 
     private _getVertexBufferSize(vertexCount: number): number {
-        return vertexCount > 1 ? this._params.schema.totalSize * this._params.getVertexCount(vertexCount - 1) : 0;
+        return vertexCount > 1 ? this._params.getVertexSize() * this._params.getVertexCount(vertexCount - 1) : 0;
     }
 
     private _getIndexBufferSize(vertexCount: number): number {
@@ -78,7 +79,7 @@ export class Line {
     }
 
     private _writeVertices(vertices: ReadonlyArray<Vertex>): void {
-        const writer = new VertexWriter(this._params.schema, this._vertexBuffer);
+        const writer = new VertexWriter2(this._params.schema, this._vertexBuffer);
         for (let i = 0; i < vertices.length - 1; ++i) {
             this._params.writeSegmentVertices(writer, vertices, i);
         }
@@ -103,7 +104,7 @@ export class Line {
     }
 
     private _updateSegments(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {
-        const writer = new VertexWriter(this._params.schema, this._vertexBuffer);
+        const writer = new VertexWriter2(this._params.schema, this._vertexBuffer);
         const [beginSegmentIdx, endSegmentIdx] = this._params.getSegmentRange(vertices.length, vertexIdx);
         for (let i = beginSegmentIdx; i <= endSegmentIdx; ++i) {
             this._params.writeSegmentVertices(writer, vertices, i);
