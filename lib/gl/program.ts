@@ -30,7 +30,7 @@ type UniformSetter = (
 type UniformSettersMap = Readonly<Partial<Record<SHADER_UNIFORM_TYPE, UniformSetter>>>;
 
 // TODO: Add ReadonlyRecord common type.
-const attributeTypeMap: Readonly<Record<number, SHADER_ATTRIBUTE_TYPE>> = {
+const ATTRIBUTE_TYPE_MAP: Readonly<Record<number, SHADER_ATTRIBUTE_TYPE>> = {
     [WebGL.FLOAT]: 'float',
     [WebGL.FLOAT_VEC2]: 'float2',
     [WebGL.FLOAT_VEC3]: 'float3',
@@ -45,8 +45,8 @@ const attributeTypeMap: Readonly<Record<number, SHADER_ATTRIBUTE_TYPE>> = {
     [WebGL.BOOL_VEC4]: 'bool4',
 };
 
-const uniformTypeMap: Readonly<Record<number, SHADER_UNIFORM_TYPE>> = {
-    ...attributeTypeMap,
+const UNIFORM_TYPE_MAP: Readonly<Record<number, SHADER_UNIFORM_TYPE>> = {
+    ...ATTRIBUTE_TYPE_MAP,
     [WebGL.FLOAT_MAT2]: 'float2x2',
     [WebGL.FLOAT_MAT3]: 'float3x3',
     [WebGL.FLOAT_MAT4]: 'float4x4',
@@ -58,7 +58,7 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
 
-const uniformSetters: UniformSettersMap = {
+const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     'bool': (logger, gl, { location }, value) => {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
@@ -151,7 +151,7 @@ const uniformSetters: UniformSettersMap = {
     },
 };
 
-const uniformArraySetters: UniformSettersMap = {
+const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
     'bool': (logger, gl, { location, arraySize }, value) => {
         if (isNumArray(value, arraySize)) {
             gl.uniform1iv(location, value);
@@ -299,7 +299,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
             if (info.size > 1) {
                 throw this._logger.error(`attribute "${name}" size is not valid: ${info.size}`);
             }
-            const dataType = attributeTypeMap[info.type];
+            const dataType = ATTRIBUTE_TYPE_MAP[info.type];
             if (!dataType) {
                 throw this._logger.error(`attribute "${name}" type is unknown: ${info.type}`);
             }
@@ -324,7 +324,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
             // Uniform of array type have name like "something[0]". Postfix "[0]" is removed.
             const name = isArray ? info.name.substring(0, info.name.length - 3) : info.name;
             const location = gl.getUniformLocation(program, info.name)!;
-            const dataType = uniformTypeMap[info.type];
+            const dataType = UNIFORM_TYPE_MAP[info.type];
             if (!dataType) {
                 throw this._logger.error(`uniform "${name}" type is unknown: ${info.type}`);
             }
@@ -349,7 +349,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         if (!uniform) {
             throw this._logger.error(`uniform "${name}" is unknown`);
         }
-        const setter = (uniform.arraySize > 1 ? uniformArraySetters : uniformSetters)[uniform.type];
+        const setter = (uniform.arraySize > 1 ? UNIFORM_ARRAY_SETTERS_MAP : UNIFORM_SETTERS_MAP)[uniform.type];
         if (!setter) {
             throw this._logger.error(`uniform "${name}" setter is not found`);
         }
