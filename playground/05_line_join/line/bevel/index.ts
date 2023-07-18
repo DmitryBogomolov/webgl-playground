@@ -17,7 +17,7 @@ const schema2: PrimitiveVertexSchema = {
         { type: 'float4' },
         { type: 'ubyte4', normalized: true },
     ],
-}
+};
 
 const bevelParams: LineParams = {
     schema: schema2,

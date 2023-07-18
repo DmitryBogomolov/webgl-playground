@@ -1,5 +1,6 @@
-import { Primitive } from './primitive';
-import { Runtime } from './runtime';
+import type { VertexAttributeInfo, VERTEX_ATTRIBUTE_TYPE } from './primitive.types';
+import type { Runtime } from './runtime';
+import { Primitive, validateVertexSchema } from './primitive';
 
 describe('primitive', () => {
     describe('Primitive', () => {
@@ -39,6 +40,95 @@ describe('primitive', () => {
             expect(createBuffer.mock.calls).toEqual([
                 [],
                 [],
+            ]);
+        });
+    });
+
+    describe('validateVertexSchema', () => {
+        it('handle empty list', () => {
+            const attrs = validateVertexSchema({ attrs: [] });
+
+            expect(attrs).toEqual([]);
+        });
+
+        it('validate type', () => {
+            try {
+                validateVertexSchema({
+                    attrs: [{ type: 'test3' as VERTEX_ATTRIBUTE_TYPE }],
+                });
+                expect(true).toBe(false);
+            } catch (e) {
+                expect(e).toEqual(new Error('attribute 0: bad type: test3'));
+            }
+        });
+
+        it('validate schema', () => {
+            const attrs = validateVertexSchema({
+                attrs: [
+                    { type: 'float4' },
+                    { type: 'byte3', normalized: true },
+                    { type: 'ushort2' },
+                ],
+            });
+
+            expect(attrs).toEqual<VertexAttributeInfo[]>([
+                {
+                    location: 0,
+                    type: WebGLRenderingContext.prototype.FLOAT,
+                    rank: 4,
+                    size: 4,
+                    stride: 24,
+                    offset: 0,
+                    normalized: false,
+                },
+                {
+                    location: 1,
+                    type: WebGLRenderingContext.prototype.BYTE,
+                    rank: 3,
+                    size: 1,
+                    stride: 24,
+                    offset: 16,
+                    normalized: true,
+                },
+                {
+                    location: 2,
+                    type: WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+                    rank: 2,
+                    size: 2,
+                    stride: 24,
+                    offset: 20,
+                    normalized: false,
+                },
+            ]);
+        });
+
+        it('allow custom stride and offset', () => {
+            const attrs = validateVertexSchema({
+                attrs: [
+                    { type: 'float2', offset: 4, stride: 24 },
+                    { type: 'short3', offset: 48, stride: 12 },
+                ],
+            });
+
+            expect(attrs).toEqual<VertexAttributeInfo[]>([
+                {
+                    location: 0,
+                    type: WebGLRenderingContext.prototype.FLOAT,
+                    rank: 2,
+                    size: 4,
+                    stride: 24,
+                    offset: 4,
+                    normalized: false,
+                },
+                {
+                    location: 1,
+                    type: WebGLRenderingContext.prototype.SHORT,
+                    rank: 3,
+                    size: 2,
+                    stride: 12,
+                    offset: 48,
+                    normalized: false,
+                },
             ]);
         });
     });

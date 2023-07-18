@@ -255,15 +255,15 @@ export class Primitive extends BaseDisposable {
     }
 
     setProgram(program: Program | null): void {
-        const _program = program || EMPTY_PROGRAM;
+        const prog = program || EMPTY_PROGRAM;
         if (this._program === program) {
             return;
         }
-        this._logger.log(`set_program(${_program.id()})`);
+        this._logger.log(`set_program(${prog.id()})`);
         // if (_program.schema() !== this._schema) {
         //     throw this._logger.error('program schema does not match');
         // }
-        this._program = _program;
+        this._program = prog;
     }
 
     render(): void {
@@ -292,16 +292,15 @@ export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttri
         if (!typeInfo) {
             throw new Error(`attribute ${i}: bad type: ${attribute.type}`);
         }
-        const attrSize = align(typeInfo.rank * typeInfo.size);
         const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
         if (attribute.offset === undefined) {
-            currentOffset += attrSize;
+            currentOffset += align(typeInfo.rank * typeInfo.size);
         }
         if (offset % typeInfo.size !== 0) {
             throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
         }
         const stride = attribute.stride !== undefined ? attribute.stride : 0;
-        if (stride % attrSize !== 0) {
+        if (stride % (typeInfo.rank * typeInfo.size) !== 0) {
             throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
         }
         const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
