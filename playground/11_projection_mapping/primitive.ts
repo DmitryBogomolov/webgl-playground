@@ -16,13 +16,6 @@ import wireframeFragShader from './shaders/wireframe.frag';
 //     { name: 'a_position', type: 'float3' },
 //     { name: 'a_texcoord', type: 'float2' },
 // ]);
-const schema2: PrimitiveVertexSchema = {
-    attrs: [
-        { type: 'float3' },
-        { type: 'float2' },
-    ],
-};
-const VERTEX_SIZE = 20;
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
@@ -36,7 +29,13 @@ function makePrimitive(
     runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
 ): Primitive {
     const primitive = new Primitive(runtime);
-
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float3' },
+            { type: 'float2' },
+        ],
+    };
+    const VERTEX_SIZE = 20;
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
     const writer = new VertexWriter2(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
@@ -91,9 +90,12 @@ export function makePlane(runtime: Runtime, program: Program): Primitive {
 
 export function makeWireframe(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-    ]);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_position', type: 'float3' },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [{ type: 'float3' }],
+    };
 
     const vertices = new Float32Array([
         -1, -1, +1,
@@ -115,13 +117,13 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indices.length, primitiveMode: 'lines' });
 
     const program = new Program(runtime, {
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
-        schema,
+        // schema,
     });
     primitive.setProgram(program);
 

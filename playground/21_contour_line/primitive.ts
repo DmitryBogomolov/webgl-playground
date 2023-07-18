@@ -59,21 +59,29 @@ const MAX_CONTOUR_SEGMENTS = 6;
 const VERTEX_PER_SEGMENT = 4;
 const INDEX_PER_SEGMENT = 6;
 
+const schema2: PrimitiveVertexSchema = {
+    attrs: [
+        { type: 'float3' },
+        { type: 'float4' },
+    ],
+};
+const VERTEX_SIZE = 28;
+
 export function makeControurPrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-        { name: 'a_other', type: 'float4' },
-    ]);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_position', type: 'float3' },
+    //     { name: 'a_other', type: 'float4' },
+    // ]);
 
     const primitive = new Primitive(runtime);
-    primitive.allocateVertexBuffer(schema.totalSize * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
+    primitive.allocateVertexBuffer(VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
     primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
 
     const program = new Program(runtime, {
         vertShader: contourVertShader,
         fragShader: contourFragShader,
-        schema,
+        // schema,
     });
     primitive.setProgram(program);
 
@@ -82,9 +90,9 @@ export function makeControurPrimitive(runtime: Runtime): Primitive {
 
 export function updateContourData(primitive: Primitive, points: ReadonlyArray<Vec2>): void {
     const segmentCount = points.length;
-    const vertexData = new ArrayBuffer(segmentCount * primitive.schema().totalSize * VERTEX_PER_SEGMENT);
+    const vertexData = new ArrayBuffer(segmentCount * VERTEX_SIZE * VERTEX_PER_SEGMENT);
     const indexData = new Uint16Array(segmentCount * INDEX_PER_SEGMENT);
-    const vertexWriter = new VertexWriter(primitive.schema(), vertexData);
+    const vertexWriter = new VertexWriter2(schema2, vertexData);
     for (let i = 0; i < segmentCount; ++i) {
         const p1 = points[i];
         const p2 = points[pickIndex(i + 1, segmentCount)];
@@ -94,16 +102,16 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
         // Only half of line thickness is required, because other half overlaps figure itself.
         // Assuming that line goes CCW, right half is drawn.
         // For segment start it means 0 and +2 offsets, for segment end it means 0 and -2.
-        vertexWriter.writeAttribute(vertexIdx + 0, 'a_position', vec3(p1.x, p1.y, 0));
-        vertexWriter.writeAttribute(vertexIdx + 1, 'a_position', vec3(p1.x, p1.y, +2));
-        vertexWriter.writeAttribute(vertexIdx + 2, 'a_position', vec3(p2.x, p2.y, 0));
-        vertexWriter.writeAttribute(vertexIdx + 3, 'a_position', vec3(p2.x, p2.y, -2));
+        vertexWriter.writeAttribute(vertexIdx + 0, 0, vec3(p1.x, p1.y, 0));
+        vertexWriter.writeAttribute(vertexIdx + 1, 0, vec3(p1.x, p1.y, +2));
+        vertexWriter.writeAttribute(vertexIdx + 2, 0, vec3(p2.x, p2.y, 0));
+        vertexWriter.writeAttribute(vertexIdx + 3, 0, vec3(p2.x, p2.y, -2));
         const other1 = vec4(p2.x, p2.y, q1.x, q1.y);
         const other2 = vec4(p1.x, p1.y, q2.x, q2.y);
-        vertexWriter.writeAttribute(vertexIdx + 0, 'a_other', other1);
-        vertexWriter.writeAttribute(vertexIdx + 1, 'a_other', other1);
-        vertexWriter.writeAttribute(vertexIdx + 2, 'a_other', other2);
-        vertexWriter.writeAttribute(vertexIdx + 3, 'a_other', other2);
+        vertexWriter.writeAttribute(vertexIdx + 0, 1, other1);
+        vertexWriter.writeAttribute(vertexIdx + 1, 1, other1);
+        vertexWriter.writeAttribute(vertexIdx + 2, 1, other2);
+        vertexWriter.writeAttribute(vertexIdx + 3, 1, other2);
         const indexIdx = INDEX_PER_SEGMENT * i;
         indexData.set(
             [vertexIdx + 0, vertexIdx + 1, vertexIdx + 3, vertexIdx + 3, vertexIdx + 2, vertexIdx + 0],
