@@ -103,7 +103,7 @@ function makePrimitive(
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indices.length * 2);
     primitive.updateIndexData(new Uint16Array(indices));
-    primitive.setVertexSchema_TODO(schema);
+    primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indices.length });
     primitive.setProgram(program);
 

@@ -35,7 +35,7 @@ export class Line {
         });
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
-        this._primitive.setVertexSchema_TODO(params.schema);
+        this._primitive.setVertexSchema(params.schema);
         this._primitive.setProgram(program);
     }
 

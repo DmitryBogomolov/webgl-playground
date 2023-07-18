@@ -96,7 +96,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema_TODO({
+    primitive.setVertexSchema({
         attrs: [
             { type: 'float2' },
             { type: 'ubyte4', normalized: true },

@@ -41,7 +41,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema_TODO(schema2);
+    primitive.setVertexSchema(schema2);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
@@ -76,7 +76,7 @@ export function makeControurPrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
     primitive.allocateVertexBuffer(VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
     primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
-    primitive.setVertexSchema_TODO(schema2);
+    primitive.setVertexSchema(schema2);
 
     const program = new Program(runtime, {
         vertShader: contourVertShader,

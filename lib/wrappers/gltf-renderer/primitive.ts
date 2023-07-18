@@ -127,7 +127,7 @@ export function createPrimitive(
     const schema: PrimitiveVertexSchema = {
         attrs: vertexAttributes,
     };
-    result.setVertexSchema_TODO(schema);
+    result.setVertexSchema(schema);
 
     result.allocateIndexBuffer(indexInfo.data.byteLength);
     result.updateIndexData(indexInfo.data);

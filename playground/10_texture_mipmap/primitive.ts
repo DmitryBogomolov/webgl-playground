@@ -27,7 +27,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema_TODO(schema2);
+    primitive.setVertexSchema(schema2);
     primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {

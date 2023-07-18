@@ -153,7 +153,7 @@ export class Primitive extends BaseDisposable {
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
-    setVertexSchema_TODO(schema: PrimitiveVertexSchema): void {
+    setVertexSchema(schema: PrimitiveVertexSchema): void {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
