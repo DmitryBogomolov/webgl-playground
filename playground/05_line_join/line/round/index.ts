@@ -1,25 +1,18 @@
-import type { PrimitiveVertexSchema, Runtime, Vec2, Vec4 } from 'lib';
+import type { Runtime, Vec2, Vec4 } from 'lib';
 import type { LineParams } from '../line';
-import { parseVertexSchema, vec4 } from 'lib';
+import { vec4 } from 'lib';
 import { Line, writeSegmentIndexes } from '../line';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
 
-// const schema = parseVertexSchema([
-//     { name: 'a_position', type: 'float4' },
-//     { name: 'a_other', type: 'float2' },
-//     { name: 'a_color', type: 'ubyte4', normalized: true },
-// ]);
-const schema2: PrimitiveVertexSchema = {
-    attrs: [
-        { type: 'float4' },
-        { type: 'float2' },
-        { type: 'ubyte4', normalized: true },
-    ],
-};
-
 const roundParams: LineParams = {
-    schema: schema2,
+    schema: {
+        attrs: [
+            { type: 'float4' },
+            { type: 'float2' },
+            { type: 'ubyte4', normalized: true },
+        ],
+    },
     vertShader,
     fragShader,
     getVertexSize() {

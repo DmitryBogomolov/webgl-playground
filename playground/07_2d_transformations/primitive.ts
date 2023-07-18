@@ -1,5 +1,5 @@
 import type { Runtime, Color, Vec2, PrimitiveVertexSchema } from 'lib';
-import { Primitive, Program, VertexWriter_, VertexWriter, parseVertexSchema, vec2 } from 'lib';
+import { Primitive, Program, VertexWriter, vec2 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -8,11 +8,7 @@ export interface PrimitiveFactory {
 }
 
 export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float2' },
-    //     { name: 'a_color', type: 'ubyte3', normalized: true },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
+    const schema: PrimitiveVertexSchema = {
         attrs: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
@@ -22,7 +18,6 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        //schema,
     });
 
     const angle = Math.PI / 4;
@@ -38,7 +33,7 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     return (clr) => {
         const primitive = new Primitive(runtime);
         const vertexData = new ArrayBuffer(points.length * VERTEX_SIZE);
-        const writer = new VertexWriter(schema2, vertexData);
+        const writer = new VertexWriter(schema, vertexData);
         for (let i = 0; i < points.length; ++i) {
             writer.writeAttribute(i, 0, points[i]);
             writer.writeAttribute(i, 1, clr);
@@ -49,7 +44,7 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         primitive.updateVertexData(vertexData);
         primitive.allocateIndexBuffer(indexData.byteLength);
         primitive.updateIndexData(indexData);
-        primitive.setVertexSchema(schema2);
+        primitive.setVertexSchema(schema);
         primitive.setIndexConfig({ indexCount: indexData.length });
         primitive.setProgram(program);
 

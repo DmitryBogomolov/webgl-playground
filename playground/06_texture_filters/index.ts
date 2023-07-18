@@ -1,12 +1,4 @@
-import {
-    Runtime,
-    Primitive,
-    Program,
-    Texture,
-    parseVertexSchema,
-    makeImage,
-    PrimitiveVertexSchema,
-} from 'lib';
+import { Runtime, Primitive, Program, Texture, makeImage } from 'lib';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -52,16 +44,9 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float2' },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
-        attrs: [{ type: 'float2' }],
-    };
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        //schema,
     });
     const primitive = new Primitive(runtime);
     const vertices = new Float32Array([
@@ -78,8 +63,12 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema2);
-    primitive.setIndexConfig({ indexCount: indices.length });
+    primitive.setVertexSchema({
+        attrs: [{ type: 'float2' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indices.length,
+    });
     primitive.setProgram(program);
     return primitive;
 }

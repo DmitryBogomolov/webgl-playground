@@ -1,12 +1,5 @@
 import type { PrimitiveVertexSchema, Runtime, Vec3 } from 'lib';
-import {
-    Primitive,
-    Program,
-    parseVertexSchema,
-    VertexWriter_,
-    generateSphere,
-    VertexWriter,
-} from 'lib';
+import { Primitive, Program, generateSphere, VertexWriter } from 'lib';
 import directionalVertShader from './shaders/directional.vert';
 import directionalFragShader from './shaders/directional.frag';
 import pointVertShader from './shaders/point.vert';
@@ -14,12 +7,7 @@ import pointFragShader from './shaders/point.frag';
 import spotVertShader from './shaders/spot.vert';
 import spotFragShader from './shaders/spot.frag';
 
-// const schema = parseVertexSchema([
-//     { name: 'a_position', type: 'float3' },
-//     { name: 'a_normal', type: 'float3' },
-// ]);
-
-const schema2: PrimitiveVertexSchema = {
+const schema: PrimitiveVertexSchema = {
     attrs: [
         { type: 'float3' },
         { type: 'float3' },
@@ -31,7 +19,6 @@ export function makeDirectionalProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader: directionalVertShader,
         fragShader: directionalFragShader,
-        // schema,
     });
 }
 
@@ -39,7 +26,6 @@ export function makePointProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader: pointVertShader,
         fragShader: pointFragShader,
-        // schema,
     });
 }
 
@@ -47,7 +33,6 @@ export function makeSpotProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader: spotVertShader,
         fragShader: spotFragShader,
-        // schema,
     });
 }
 
@@ -57,7 +42,7 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema2, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -68,7 +53,7 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     return primitive;

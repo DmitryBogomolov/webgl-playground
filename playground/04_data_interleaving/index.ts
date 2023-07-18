@@ -1,9 +1,8 @@
-import type { VertexSchema, Color, Vec2, PrimitiveVertexSchema } from 'lib';
+import type { PrimitiveVertexSchema, Color, Vec2 } from 'lib';
 import {
     Runtime,
     Primitive,
     Program,
-    // parseVertexSchema, VertexWriter,
     VertexWriter,
     color,
     vec2,
@@ -46,37 +45,27 @@ function main(): void {
 function makeAoSPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float2' },
-    //     { name: 'a_color', type: 'ubyte3', normalized: true },
-    //     { name: 'a_factor', type: 'ubyte1', normalized: true },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
+    const schema: PrimitiveVertexSchema = {
         attrs: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
             { type: 'ubyte', normalized: true },
         ],
     };
-    return makePrimitive(runtime, schema2, vertices.length * 16, vertices, indices);
+    return makePrimitive(runtime, schema, vertices.length * 16, vertices, indices);
 }
 
 function makeSoAPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_color', type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
-    //     { name: 'a_position', type: 'float2', offset: 16, stride: 8 },
-    //     { name: 'a_factor', type: 'ubyte1', normalized: true, offset: 48, stride: 4 },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
+    const schema: PrimitiveVertexSchema = {
         attrs: [
             { type: 'float2', offset: 16, stride: 8 },
             { type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
             { type: 'ubyte', normalized: true, offset: 48, stride: 4 },
         ],
     };
-    return makePrimitive(runtime, schema2, 64, vertices, indices);
+    return makePrimitive(runtime, schema, 64, vertices, indices);
 }
 
 function makePrimitive(
@@ -86,7 +75,6 @@ function makePrimitive(
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        // schema,
     });
     const primitive = new Primitive(runtime);
 

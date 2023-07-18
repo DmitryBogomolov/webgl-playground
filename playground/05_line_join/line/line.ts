@@ -1,6 +1,6 @@
-import type { PrimitiveVertexSchema, Runtime, VertexSchema } from 'lib';
+import type { PrimitiveVertexSchema, Runtime } from 'lib';
 import type { Vertex } from '../vertex';
-import { LoggerImpl, Primitive, Program, VertexWriter_, VertexWriter } from 'lib';
+import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
 
 export interface LineParams {
     readonly schema: PrimitiveVertexSchema;
@@ -31,7 +31,6 @@ export class Line {
         const program = new Program(runtime, {
             vertShader: params.vertShader,
             fragShader: params.fragShader,
-            // schema: params.schema,
         });
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
