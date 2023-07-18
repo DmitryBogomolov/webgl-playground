@@ -1,6 +1,6 @@
-import type { PrimitiveVertexSchema, Runtime, Vec2 } from 'lib';
+import type { Runtime, Vec2 } from 'lib';
 import type { GlyphAtlas } from './glyph';
-import { Primitive, Program, parseVertexSchema, vec2 } from 'lib';
+import { Primitive, Program, vec2 } from 'lib';
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
 
@@ -48,16 +48,6 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
         );
     }
 
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float2' },
-    //     { name: 'a_texcoord', type: 'float2' },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
-        attrs: [
-            { type: 'float2' },
-            { type: 'float2' },
-        ],
-    };
     const vertexData = new Float32Array(vertices);
     const indexData = new Uint16Array(indices);
 
@@ -66,13 +56,19 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema2);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setVertexSchema({
+        attrs: [
+            { type: 'float2' },
+            { type: 'float2' },
+        ],
+    });
+    primitive.setIndexConfig({
+        indexCount: indexData.length,
+    });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        // schema,
     });
     primitive.setProgram(program);
 

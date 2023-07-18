@@ -2,8 +2,6 @@ import type { PrimitiveVertexSchema, Runtime, VertexData, VertexIndexData } from
 import {
     Primitive,
     Program,
-    parseVertexSchema,
-    VertexWriter_,
     generateCube, generateSphere,
     UNIT3, mul3, VertexWriter,
 } from 'lib';
@@ -14,22 +12,17 @@ import depthFragShader from './shaders/depth.frag';
 import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
-// const schema = parseVertexSchema([
-//     { name: 'a_position', type: 'float3' },
-//     { name: 'a_normal', type: 'float3' },
-// ]);
-const schema2: PrimitiveVertexSchema = {
-    attrs: [
-        { type: 'float3' },
-        { type: 'float3' },
-    ],
-};
-const VERTEX_SIZE = 24;
-
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
     const primitive = new Primitive(runtime);
+    const schema: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float3' },
+            { type: 'float3' },
+        ],
+    };
+    const VERTEX_SIZE = 24;
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema2, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -40,7 +33,7 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setIndexConfig({ indexCount: indexData.length });
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(schema);
     return primitive;
 }
 
@@ -48,7 +41,6 @@ export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader: sceneVertShader,
         fragShader: sceneFragShader,
-        // schema,
     });
 }
 
@@ -56,7 +48,6 @@ export function makeDepthProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader: depthVertShader,
         fragShader: depthFragShader,
-        // schema,
     });
 }
 
@@ -70,12 +61,6 @@ export function makeCube(runtime: Runtime, size: number): Primitive {
 
 export function makeWireframe(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float3' },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
-        attrs: [{ type: 'float3' }],
-    };
 
     const vertices = new Float32Array([
         -1, -1, +1,
@@ -97,13 +82,17 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema2);
-    primitive.setIndexConfig({ indexCount: indices.length, primitiveMode: 'lines' });
+    primitive.setVertexSchema({
+        attrs: [{ type: 'float3' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indices.length,
+        primitiveMode: 'lines',
+    });
 
     const program = new Program(runtime, {
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
-        // schema,
     });
     primitive.setProgram(program);
 

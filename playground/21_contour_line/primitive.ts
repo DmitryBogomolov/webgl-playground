@@ -1,25 +1,12 @@
-import type { PrimitiveVertexSchema, Runtime, Vec2 } from 'lib';
-import {
-    Primitive,
-    Program,
-    generateCube,
-    parseVertexSchema,
-    VertexWriter_,
-    UNIT3, vec3,
-    vec4,
-    VertexWriter,
-} from 'lib';
+import type { Runtime, PrimitiveVertexSchema, Vec2 } from 'lib';
+import { Primitive, Program, VertexWriter, generateCube, UNIT3, vec3, vec4 } from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
 import contourVertShader from './shaders/contour.vert';
 import contourFragShader from './shaders/contour.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float3' },
-    //     { name: 'a_normal', type: 'float3' },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
+    const schema: PrimitiveVertexSchema = {
         attrs: [
             { type: 'float3' },
             { type: 'float3' },
@@ -29,7 +16,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema2, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -41,13 +28,12 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        // schema,
     });
     primitive.setProgram(program);
 
@@ -59,29 +45,23 @@ const MAX_CONTOUR_SEGMENTS = 6;
 const VERTEX_PER_SEGMENT = 4;
 const INDEX_PER_SEGMENT = 6;
 
-const schema2: PrimitiveVertexSchema = {
+const contourSchema: PrimitiveVertexSchema = {
     attrs: [
         { type: 'float3' },
         { type: 'float4' },
     ],
 };
-const VERTEX_SIZE = 28;
+const CONTOUR_VERTEX_SIZE = 28;
 
-export function makeControurPrimitive(runtime: Runtime): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float3' },
-    //     { name: 'a_other', type: 'float4' },
-    // ]);
-
+export function makeContourPrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
-    primitive.allocateVertexBuffer(VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
+    primitive.allocateVertexBuffer(CONTOUR_VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
     primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(contourSchema);
 
     const program = new Program(runtime, {
         vertShader: contourVertShader,
         fragShader: contourFragShader,
-        // schema,
     });
     primitive.setProgram(program);
 
@@ -90,9 +70,9 @@ export function makeControurPrimitive(runtime: Runtime): Primitive {
 
 export function updateContourData(primitive: Primitive, points: ReadonlyArray<Vec2>): void {
     const segmentCount = points.length;
-    const vertexData = new ArrayBuffer(segmentCount * VERTEX_SIZE * VERTEX_PER_SEGMENT);
+    const vertexData = new ArrayBuffer(segmentCount * CONTOUR_VERTEX_SIZE * VERTEX_PER_SEGMENT);
     const indexData = new Uint16Array(segmentCount * INDEX_PER_SEGMENT);
-    const vertexWriter = new VertexWriter(schema2, vertexData);
+    const vertexWriter = new VertexWriter(contourSchema, vertexData);
     for (let i = 0; i < segmentCount; ++i) {
         const p1 = points[i];
         const p2 = points[pickIndex(i + 1, segmentCount)];
@@ -121,7 +101,10 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
 
     primitive.updateVertexData(vertexData);
     primitive.updateIndexData(indexData);
-    primitive.setIndexConfig({ indexCount: indexData.length, primitiveMode: 'triangles' });
+    primitive.setIndexConfig({
+        indexCount: indexData.length,
+        primitiveMode: 'triangles',
+    });
 }
 
 function pickIndex(i: number, length: number): number {

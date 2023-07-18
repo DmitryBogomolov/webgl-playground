@@ -1,14 +1,12 @@
-import type { Runtime, VertexData, VertexIndexData, VertexSchema, Vec3, Mat4, Color, PrimitiveVertexSchema } from 'lib';
+import type { Runtime, VertexData, VertexIndexData, PrimitiveVertexSchema, Vec3, Mat4, Color } from 'lib';
 import {
     Primitive,
     Program,
+    VertexWriter,
     generateCube, generateSphere, generatePlaneX, generatePlaneY, generatePlaneZ,
-    parseVertexSchema,
-    VertexWriter_,
     vec2,
     norm3, add3,
     translation4x4,
-    VertexWriter,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -38,15 +36,6 @@ interface VertexInfo {
     readonly offset: Vec3;
 }
 
-const schema2: PrimitiveVertexSchema = {
-    attrs: [
-        { type: 'float3' },
-        { type: 'float3' },
-        { type: 'float3' },
-    ],
-};
-const VERTEX_SIZE = 36;
-
 export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
     models: Model[],
     objectProgram: Program,
@@ -55,26 +44,17 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
 } {
     const models: Model[] = [];
 
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float3' },
-    //     { name: 'a_normal', type: 'float3' },
-    //     { name: 'a_offset', type: 'float3' },
-    // ]);
-
     const objectProgram = new Program(runtime, {
         vertShader: objectVertShader,
         fragShader: objectFragShader,
-        // schema,
     });
     const outlineProgram = new Program(runtime, {
         vertShader: outlineVertShader,
         fragShader: outlineFragShader,
-        // schema,
     });
     const idProgram = new Program(runtime, {
         vertShader: idVertShader,
         fragShader: idFragShader,
-        // schema,
     });
 
     let nextObjectId = 2001;
@@ -138,8 +118,17 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
 }
 
 function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
+    const schema: PrimitiveVertexSchema = {
+        attrs: [
+            { type: 'float3' },
+            { type: 'float3' },
+            { type: 'float3' },
+        ],
+    };
+    const VERTEX_SIZE = 36;
+
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema2, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -152,7 +141,7 @@ function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     return primitive;
