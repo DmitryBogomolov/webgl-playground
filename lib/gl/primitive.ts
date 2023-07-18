@@ -157,19 +157,18 @@ export class Primitive extends BaseDisposable {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
-        this._attributes = validateVertexSchema(schema);
         this._logger.log(`set_vertex_schema(attributes=${schema.attrs.length})`);
+        this._attributes = validateVertexSchema(schema);
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            for (let i = 0; i < schema.attrs.length; ++i) {
-                const attrInfo = this._attributes[i];
+            for (const attr of this._attributes) {
                 gl.vertexAttribPointer(
-                    attrInfo.location, attrInfo.rank, attrInfo.type,
-                    attrInfo.normalized, attrInfo.stride, attrInfo.offset,
+                    attr.location, attr.rank, attr.type,
+                    attr.normalized, attr.stride, attr.offset,
                 );
-                gl.enableVertexAttribArray(attrInfo.location);
+                gl.enableVertexAttribArray(attr.location);
             }
             this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         } finally {

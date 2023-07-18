@@ -3,13 +3,11 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
-import type { INDEX_TYPE, PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
+import type { VERTEX_ATTRIBUTE_TYPE, INDEX_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
-import { parseVertexSchema } from '../../gl/vertex-schema';
 import { inversetranspose4x4 } from '../../geometry/mat4';
 import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
 import { getPrimitiveMode } from '../../gltf/primitive';
@@ -43,6 +41,13 @@ const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
     'ubyte1': 'u8',
     'ushort1': 'u16',
     'uint1': 'u32',
+};
+
+const LOCATIONS = {
+    POSITION: 0,
+    NORMAL: 1,
+    COLOR: 2,
+    TEXCOORD: 3,
 };
 
 export function createPrimitive(
@@ -100,7 +105,6 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);
-    // const vertexAttributes: AttributeOptions[] = [];
     const vertexAttributes: VertexAttributeDefinition[] = [];
 
     const vertexDataCtx: SetVertexDataCtx = {
@@ -109,25 +113,23 @@ export function createPrimitive(
         offset: 0,
     };
 
-    setVertexData(vertexDataCtx, positionInfo, undefined);
-    setVertexData(vertexDataCtx, normalInfo, undefined);
+    setVertexData(vertexDataCtx, LOCATIONS.POSITION, positionInfo, undefined);
+    setVertexData(vertexDataCtx, LOCATIONS.NORMAL, normalInfo, undefined);
     if (colorInfo) {
         const normalized = colorInfo.type !== 'float3' && colorInfo.type !== 'float4';
-        setVertexData(vertexDataCtx, colorInfo, normalized);
+        setVertexData(vertexDataCtx, LOCATIONS.COLOR, colorInfo, normalized);
     }
     if (texcoordInfo) {
         const normalized = texcoordInfo.type !== 'float2';
-        setVertexData(vertexDataCtx, texcoordInfo, normalized);
+        setVertexData(vertexDataCtx, LOCATIONS.TEXCOORD, texcoordInfo, normalized);
     }
     if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
 
-    // const schema = parseVertexSchema(vertexAttributes);
-    const schema: PrimitiveVertexSchema = {
+    result.setVertexSchema({
         attrs: vertexAttributes,
-    };
-    result.setVertexSchema(schema);
+    });
 
     result.allocateIndexBuffer(indexInfo.data.byteLength);
     result.updateIndexData(indexInfo.data);
@@ -150,9 +152,14 @@ export function createPrimitive(
             && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
     };
     const program = new Program(runtime, {
-        // schema,
         vertShader: makeShaderSource(vertShader, programDefinitions),
         fragShader: makeShaderSource(fragShader, programDefinitions),
+        locations: {
+            'a_position': LOCATIONS.POSITION,
+            'a_normal': LOCATIONS.NORMAL,
+            'a_color': LOCATIONS.COLOR,
+            'a_texcoord': LOCATIONS.TEXCOORD,
+        },
     });
     context.add(program);
     result.setProgram(program);
@@ -207,11 +214,11 @@ interface SetVertexDataCtx {
 }
 
 function setVertexData(
-    ctx: SetVertexDataCtx, info: AttributeInfo, /*name: string, */normalized: boolean | undefined,
+    ctx: SetVertexDataCtx, location: number, info: AttributeInfo, normalized: boolean | undefined,
 ): void {
     ctx.primitive.updateVertexData(info.data, ctx.offset);
     ctx.attributes.push({
-        // name,
+        location,
         type: info.type as VERTEX_ATTRIBUTE_TYPE,
         offset: ctx.offset,
         stride: info.stride,

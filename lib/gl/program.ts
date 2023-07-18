@@ -254,9 +254,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
 
     private _bindAttributes(locations: Readonly<Record<string, number>>): void {
         const gl = this._runtime.gl();
-        // for (const attr of this._schema.attributes) {
-        //     gl.bindAttribLocation(this._program, attr.location, attr.name);
-        // }
         for (const [name, location] of Object.entries(locations)) {
             gl.bindAttribLocation(this._program, location, name);
         }
