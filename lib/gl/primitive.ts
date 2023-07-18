@@ -1,10 +1,8 @@
 import type {
-    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE,
+    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
     PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
     PrimitiveRuntime,
-    VertexAttributeInfo,
 } from './primitive.types';
-import type { VertexSchema } from './vertex-schema.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
 import { BaseDisposable } from '../common/base-disposable';
@@ -15,11 +13,6 @@ const WebGL = WebGLRenderingContext.prototype;
 const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
 const GL_STATIC_DRAW = WebGL.STATIC_DRAW;
-
-const EMPTY_SCHEMA: VertexSchema = {
-    attributes: [],
-    totalSize: -1,
-};
 
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
@@ -84,7 +77,7 @@ export class Primitive extends BaseDisposable {
     private readonly _indexBuffer: WebGLBuffer;
     private _vertexBufferSize: number = 0;
     private _indexBufferSize: number = 0;
-    private _schema: VertexSchema = EMPTY_SCHEMA;
+    private _attributes: VertexAttributeInfo[] = [];
     private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
     private _indexCount: number = 0;
     private _indexOffset: number = 0;
@@ -160,46 +153,18 @@ export class Primitive extends BaseDisposable {
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
-    setVertexSchema(schema: VertexSchema | null): void {
-        if ('attrs' in (schema as unknown as PrimitiveVertexSchema)) {
-            this.setVertexSchema_TODO(schema as unknown as PrimitiveVertexSchema);
-            return;
-        }
-
-        const _schema = schema || EMPTY_SCHEMA;
-        if (this._schema === _schema) {
-            return;
-        }
-        this._logger.log('set_vertex_schema(attributes={0}, size={1})', _schema.attributes.length, _schema.totalSize);
-        this._schema = _schema;
-        const gl = this._runtime.gl();
-        try {
-            this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
-            this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            for (const attr of _schema.attributes) {
-                gl.vertexAttribPointer(
-                    attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
-                );
-                gl.enableVertexAttribArray(attr.location);
-            }
-            this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
-        } finally {
-            this._runtime.bindVertexArrayObject(null);
-        }
-    }
-
     setVertexSchema_TODO(schema: PrimitiveVertexSchema): void {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
-        const attrInfoList = validateVertexSchema(schema);
+        this._attributes = validateVertexSchema(schema);
         this._logger.log(`set_vertex_schema(attributes=${schema.attrs.length})`);
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
             for (let i = 0; i < schema.attrs.length; ++i) {
-                const attrInfo = attrInfoList[i];
+                const attrInfo = this._attributes[i];
                 gl.vertexAttribPointer(
                     attrInfo.location, attrInfo.rank, attrInfo.type,
                     attrInfo.normalized, attrInfo.stride, attrInfo.offset,
@@ -245,10 +210,6 @@ export class Primitive extends BaseDisposable {
         }
     }
 
-    schema(): VertexSchema {
-        return this._schema;
-    }
-
     program(): Program {
         return this._program;
     }
@@ -259,9 +220,6 @@ export class Primitive extends BaseDisposable {
             return;
         }
         this._logger.log(`set_program(${prog.id()})`);
-        // if (_program.schema() !== this._schema) {
-        //     throw this._logger.error('program schema does not match');
-        // }
         this._program = prog;
     }
 
