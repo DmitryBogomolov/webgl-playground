@@ -206,6 +206,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
 
     dispose(): void {
         this._logger.log('dispose');
+        this._disposeObjects();
         this._emitDisposed();
     }
 
@@ -219,11 +220,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
 
     uniforms(): ReadonlyArray<ShaderUniform> {
         return this._uniforms;
-    }
-
-    protected _emitDisposed(): void {
-        this._disposeObjects();
-        super._emitDisposed();
     }
 
     private _disposeObjects(): void {
