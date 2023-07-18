@@ -2,7 +2,6 @@ import type {
     SHADER_ATTRIBUTE_TYPE, SHADER_UNIFORM_TYPE, ShaderAttribute, ShaderUniform, SHADER_UNIFORM_VALUE,
     ProgramOptions, ProgramRuntime,
 } from './program.types';
-import type { VertexSchema } from './vertex-schema.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Logger } from '../common/logger.types';
 import { BaseDisposable } from '../common/base-disposable';
@@ -173,7 +172,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     private readonly _runtime: ProgramRuntime;
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
-    private readonly _schema: VertexSchema;
     private readonly _attributes: ShaderAttribute[];
     private readonly _uniforms: ShaderUniform[];
     private readonly _uniformsMap: Record<string, number>;
@@ -183,8 +181,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
-        // TODO: Remove it.
-        this._schema = options.schema as unknown as VertexSchema;
         try {
             this._program = this._createProgram();
             const prefix = buildSourcePrefix(options.defines);
@@ -332,10 +328,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
             });
         }
         return uniforms;
-    }
-
-    schema(): VertexSchema {
-        return this._schema;
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
