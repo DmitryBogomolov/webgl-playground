@@ -1,11 +1,14 @@
-import type { Runtime } from 'lib';
+import type { PrimitiveVertexSchema, Runtime } from 'lib';
 import { Primitive, Program, parseVertexSchema } from 'lib';
 import vertShader from './shaders/texture.vert';
 import fragShader from './shaders/texture.frag';
 
-const schema = parseVertexSchema([
-    { name: 'a_position', type: 'float2' },
-]);
+// const schema = parseVertexSchema([
+//     { name: 'a_position', type: 'float2' },
+// ]);
+const schema2: PrimitiveVertexSchema = {
+    attrs: [{ type: 'float2' }],
+};
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
@@ -24,13 +27,13 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
     primitive.setProgram(program);
     return primitive;

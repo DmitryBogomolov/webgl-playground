@@ -1,27 +1,34 @@
-import type { Runtime, VertexData, VertexIndexData } from 'lib';
+import type { PrimitiveVertexSchema, Runtime, VertexData, VertexIndexData } from 'lib';
 import {
     Primitive,
     Program,
     parseVertexSchema, VertexWriter,
     vec2,
     vec3,
-    generateSphere, generateCube, generatePlaneZ,
+    generateSphere, generateCube, generatePlaneZ, VertexWriter2,
 } from 'lib';
 import vertShader from './shaders/mapping.vert';
 import fragShader from './shaders/mapping.frag';
 import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
-const schema = parseVertexSchema([
-    { name: 'a_position', type: 'float3' },
-    { name: 'a_texcoord', type: 'float2' },
-]);
+// const schema = parseVertexSchema([
+//     { name: 'a_position', type: 'float3' },
+//     { name: 'a_texcoord', type: 'float2' },
+// ]);
+const schema2: PrimitiveVertexSchema = {
+    attrs: [
+        { type: 'float3' },
+        { type: 'float2' },
+    ],
+};
+const VERTEX_SIZE = 20;
 
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
 }
 
@@ -30,12 +37,12 @@ function makePrimitive(
 ): Primitive {
     const primitive = new Primitive(runtime);
 
-    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
-    const writer = new VertexWriter(schema, vertexData);
+    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
+    const writer = new VertexWriter2(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, texcoord } = vertices[i];
-        writer.writeAttribute(i, 'a_position', position);
-        writer.writeAttribute(i, 'a_texcoord', texcoord);
+        writer.writeAttribute(i, 0, position);
+        writer.writeAttribute(i, 1, texcoord);
     }
     const indexData = new Uint16Array(indices);
 
@@ -43,7 +50,7 @@ function makePrimitive(
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setProgram(program);
 

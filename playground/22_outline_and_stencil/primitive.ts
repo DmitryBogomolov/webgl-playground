@@ -1,4 +1,4 @@
-import type { Runtime, VertexData, VertexIndexData, VertexSchema, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, VertexData, VertexIndexData, VertexSchema, Vec3, Mat4, Color, PrimitiveVertexSchema } from 'lib';
 import {
     Primitive,
     Program,
@@ -8,6 +8,7 @@ import {
     vec2,
     norm3, add3,
     translation4x4,
+    VertexWriter2,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -37,6 +38,15 @@ interface VertexInfo {
     readonly offset: Vec3;
 }
 
+const schema2: PrimitiveVertexSchema = {
+    attrs: [
+        { type: 'float3' },
+        { type: 'float3' },
+        { type: 'float3' },
+    ],
+};
+const VERTEX_SIZE = 36;
+
 export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
     models: Model[],
     objectProgram: Program,
@@ -45,25 +55,26 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
 } {
     const models: Model[] = [];
 
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-        { name: 'a_normal', type: 'float3' },
-        { name: 'a_offset', type: 'float3' },
-    ]);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_position', type: 'float3' },
+    //     { name: 'a_normal', type: 'float3' },
+    //     { name: 'a_offset', type: 'float3' },
+    // ]);
+
     const objectProgram = new Program(runtime, {
         vertShader: objectVertShader,
         fragShader: objectFragShader,
-        schema,
+        // schema,
     });
     const outlineProgram = new Program(runtime, {
         vertShader: outlineVertShader,
         fragShader: outlineFragShader,
-        schema,
+        // schema,
     });
     const idProgram = new Program(runtime, {
         vertShader: idVertShader,
         fragShader: idFragShader,
-        schema,
+        // schema,
     });
 
     let nextObjectId = 2001;
@@ -89,7 +100,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
                 break;
             }
         }
-        const primitive = makePrimitive(runtime, schema, vertexIndexData!);
+        const primitive = makePrimitive(runtime, vertexIndexData!);
         const mat = translation4x4(location);
         models.push({
             primitive,
@@ -126,15 +137,13 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
     };
 }
 
-function makePrimitive(
-    runtime: Runtime, schema: VertexSchema, { vertices, indices }: VertexIndexData<VertexInfo>,
-): Primitive {
-    const vertexData = new ArrayBuffer(schema.totalSize * vertices.length);
-    const writer = new VertexWriter(schema, vertexData);
+function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
+    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
+    const writer = new VertexWriter2(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 'a_position', vertices[i].position);
-        writer.writeAttribute(i, 'a_normal', vertices[i].normal);
-        writer.writeAttribute(i, 'a_offset', vertices[i].offset);
+        writer.writeAttribute(i, 0, vertices[i].position);
+        writer.writeAttribute(i, 1, vertices[i].normal);
+        writer.writeAttribute(i, 2, vertices[i].offset);
     }
     const indexData = new Uint16Array(indices);
 
@@ -143,7 +152,7 @@ function makePrimitive(
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     return primitive;

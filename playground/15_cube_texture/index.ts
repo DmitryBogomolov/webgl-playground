@@ -7,7 +7,7 @@ import {
     parseVertexSchema,
     generateCube,
     UNIT3, mul3,
-    deg2rad, spherical2zxy,
+    deg2rad, spherical2zxy, PrimitiveVertexSchema,
 } from 'lib';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -66,12 +66,15 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        {
-            name: 'a_position',
-            type: 'float3',
-        },
-    ]);
+    // const schema = parseVertexSchema([
+    //     {
+    //         name: 'a_position',
+    //         type: 'float3',
+    //     },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [{ type: 'float3' }],
+    };
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex.position);
 
@@ -90,13 +93,13 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     });
     primitive.setProgram(program);
 
