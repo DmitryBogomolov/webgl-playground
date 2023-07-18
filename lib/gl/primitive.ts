@@ -252,11 +252,11 @@ export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttri
         if (attribute.offset === undefined) {
             currentOffset += align(typeInfo.rank * typeInfo.size);
         }
-        if (offset % typeInfo.size !== 0) {
+        if (offset !== 0 && (offset % typeInfo.size !== 0)) {
             throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
         }
         const stride = attribute.stride !== undefined ? attribute.stride : 0;
-        if (stride % (typeInfo.rank * typeInfo.size) !== 0) {
+        if (stride !== 0 && (stride % typeInfo.size !== 0 || stride < typeInfo.rank * typeInfo.size)) {
             throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
         }
         const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
