@@ -6,6 +6,7 @@ import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { TextureImageData } from '../../gl/texture-2d.types';
 import type { Runtime } from '../../gl/runtime';
+import type { PrimitiveVertexSchema } from '../../gl/primitive.types';
 import { eq2, isVec2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
@@ -329,20 +330,23 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
-    ]);
+    // const schema = parseVertexSchema([
+    //     { name: 'a_position', type: 'float2' },
+    // ]);
+    const schema2: PrimitiveVertexSchema = {
+        attrs: [{ type: 'float2' }],
+    };
     primitive.allocateVertexBuffer(vertices.byteLength);
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema);
+    primitive.setVertexSchema_TODO(schema2);
     primitive.setIndexConfig({ indexCount: indices.length });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
+        // schema,
     }, tag);
     primitive.setProgram(program);
     return primitive;

@@ -4,7 +4,7 @@ import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
 import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
-import type { INDEX_TYPE } from '../../gl/primitive.types';
+import type { INDEX_TYPE, PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Primitive } from '../../gl/primitive';
@@ -100,7 +100,8 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);
-    const vertexAttributes: AttributeOptions[] = [];
+    // const vertexAttributes: AttributeOptions[] = [];
+    const vertexAttributes: VertexAttributeDefinition[] = [];
 
     const vertexDataCtx: SetVertexDataCtx = {
         primitive: result,
@@ -108,22 +109,25 @@ export function createPrimitive(
         offset: 0,
     };
 
-    setVertexData(vertexDataCtx, positionInfo, 'a_position', undefined);
-    setVertexData(vertexDataCtx, normalInfo, 'a_normal', undefined);
+    setVertexData(vertexDataCtx, positionInfo, undefined);
+    setVertexData(vertexDataCtx, normalInfo, undefined);
     if (colorInfo) {
         const normalized = colorInfo.type !== 'float3' && colorInfo.type !== 'float4';
-        setVertexData(vertexDataCtx, colorInfo, 'a_color', normalized);
+        setVertexData(vertexDataCtx, colorInfo, normalized);
     }
     if (texcoordInfo) {
         const normalized = texcoordInfo.type !== 'float2';
-        setVertexData(vertexDataCtx, texcoordInfo, 'a_texcoord', normalized);
+        setVertexData(vertexDataCtx, texcoordInfo, normalized);
     }
     if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
 
-    const schema = parseVertexSchema(vertexAttributes);
-    result.setVertexSchema(schema);
+    // const schema = parseVertexSchema(vertexAttributes);
+    const schema: PrimitiveVertexSchema = {
+        attrs: vertexAttributes,
+    };
+    result.setVertexSchema_TODO(schema);
 
     result.allocateIndexBuffer(indexInfo.data.byteLength);
     result.updateIndexData(indexInfo.data);
@@ -146,7 +150,7 @@ export function createPrimitive(
             && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
     };
     const program = new Program(runtime, {
-        schema,
+        // schema,
         vertShader: makeShaderSource(vertShader, programDefinitions),
         fragShader: makeShaderSource(fragShader, programDefinitions),
     });
@@ -198,17 +202,17 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
 
 interface SetVertexDataCtx {
     readonly primitive: Primitive;
-    readonly attributes: AttributeOptions[];
+    readonly attributes: VertexAttributeDefinition[];
     offset: number;
 }
 
 function setVertexData(
-    ctx: SetVertexDataCtx, info: AttributeInfo, name: string, normalized: boolean | undefined,
+    ctx: SetVertexDataCtx, info: AttributeInfo, /*name: string, */normalized: boolean | undefined,
 ): void {
     ctx.primitive.updateVertexData(info.data, ctx.offset);
     ctx.attributes.push({
-        name,
-        type: info.type as ATTRIBUTE_TYPE,
+        // name,
+        type: info.type as VERTEX_ATTRIBUTE_TYPE,
         offset: ctx.offset,
         stride: info.stride,
         normalized,
