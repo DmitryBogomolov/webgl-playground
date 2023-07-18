@@ -4,11 +4,11 @@ import {
     Primitive,
     Program,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     vec3,
     color,
     generateCube,
-    VertexWriter2,
+    VertexWriter,
 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -55,7 +55,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     });
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { pos, clr } = vertices[i];
         writer.writeAttribute(i, 0, pos);

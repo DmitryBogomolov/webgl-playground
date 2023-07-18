@@ -4,10 +4,10 @@ import {
     Program,
     generateCube,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     UNIT3, vec3,
     vec4,
-    VertexWriter2,
+    VertexWriter,
 } from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
@@ -29,7 +29,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -92,7 +92,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     const segmentCount = points.length;
     const vertexData = new ArrayBuffer(segmentCount * VERTEX_SIZE * VERTEX_PER_SEGMENT);
     const indexData = new Uint16Array(segmentCount * INDEX_PER_SEGMENT);
-    const vertexWriter = new VertexWriter2(schema2, vertexData);
+    const vertexWriter = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < segmentCount; ++i) {
         const p1 = points[i];
         const p2 = points[pickIndex(i + 1, segmentCount)];

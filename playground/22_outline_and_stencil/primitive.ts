@@ -4,11 +4,11 @@ import {
     Program,
     generateCube, generateSphere, generatePlaneX, generatePlaneY, generatePlaneZ,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     vec2,
     norm3, add3,
     translation4x4,
-    VertexWriter2,
+    VertexWriter,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -139,7 +139,7 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
 
 function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

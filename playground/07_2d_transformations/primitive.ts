@@ -1,5 +1,5 @@
 import type { Runtime, Color, Vec2, PrimitiveVertexSchema } from 'lib';
-import { Primitive, Program, VertexWriter, VertexWriter2, parseVertexSchema, vec2 } from 'lib';
+import { Primitive, Program, VertexWriter_, VertexWriter, parseVertexSchema, vec2 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -38,7 +38,7 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     return (clr) => {
         const primitive = new Primitive(runtime);
         const vertexData = new ArrayBuffer(points.length * VERTEX_SIZE);
-        const writer = new VertexWriter2(schema2, vertexData);
+        const writer = new VertexWriter(schema2, vertexData);
         for (let i = 0; i < points.length; ++i) {
             writer.writeAttribute(i, 0, points[i]);
             writer.writeAttribute(i, 1, clr);

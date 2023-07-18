@@ -3,10 +3,10 @@ import {
     Primitive,
     Program,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     generateCube,
     UNIT3,
-    VertexWriter2,
+    VertexWriter,
 } from 'lib';
 import skyboxVertShader from './shaders/skybox.vert';
 import skyboxFragShader from './shaders/skybox.frag';
@@ -69,7 +69,7 @@ export function makeCube(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

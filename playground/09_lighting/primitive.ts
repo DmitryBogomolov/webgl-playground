@@ -3,9 +3,9 @@ import {
     Primitive,
     Program,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     generateSphere,
-    VertexWriter2,
+    VertexWriter,
 } from 'lib';
 import directionalVertShader from './shaders/directional.vert';
 import directionalFragShader from './shaders/directional.frag';
@@ -57,7 +57,7 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

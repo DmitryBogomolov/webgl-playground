@@ -3,10 +3,10 @@ import {
     Primitive,
     Program,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     vec2,
     UNIT3,
-    generateCube, generatePlaneZ, VertexWriter2,
+    generateCube, generatePlaneZ, VertexWriter,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -30,7 +30,7 @@ export function makeObject(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -71,7 +71,7 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generatePlaneZ(vec2(2, 2), (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].texcoord);

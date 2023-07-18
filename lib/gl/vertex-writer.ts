@@ -95,7 +95,7 @@ const unwrappers: UnwrappersMap = {
 
 const defaultLogger = new LoggerImpl('VertexWriter');
 
-export class VertexWriter {
+export class VertexWriter_ {
     private readonly _attrs: AttributesMap;
     private readonly _views: AttributeTypeMap<TypedArray>;
     private readonly _logger: Logger;
@@ -126,7 +126,7 @@ export class VertexWriter {
     }
 }
 
-export class VertexWriter2 {
+export class VertexWriter {
     private readonly _target: ArrayBufferView;
     private readonly _attributes: VertexAttributeInfo[];
     private readonly _views = new Map<number, TypedArray>();

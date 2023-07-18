@@ -5,7 +5,7 @@ import {
     Primitive,
     Program,
     // VertexWriter,
-    VertexWriter2,
+    VertexWriter,
     // parseVertexSchema,
     color,
     vec2,
@@ -116,7 +116,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * 8);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 0, vertex);

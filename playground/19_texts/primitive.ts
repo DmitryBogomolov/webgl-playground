@@ -1,5 +1,5 @@
 import type { PrimitiveVertexSchema, Runtime } from 'lib';
-import { Primitive, Program, generateCube, parseVertexSchema, VertexWriter, UNIT3, VertexWriter2 } from 'lib';
+import { Primitive, Program, generateCube, parseVertexSchema, VertexWriter_, UNIT3, VertexWriter } from 'lib';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 
@@ -18,7 +18,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

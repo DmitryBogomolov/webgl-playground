@@ -4,7 +4,7 @@ import {
     Primitive,
     Program,
     // parseVertexSchema, VertexWriter,
-    VertexWriter2,
+    VertexWriter,
     color,
     vec2,
 } from 'lib';
@@ -91,7 +91,7 @@ function makePrimitive(
     const primitive = new Primitive(runtime);
 
     const vertexData = new ArrayBuffer(arrayBufferSize);
-    const writer = new VertexWriter2(schema, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, color, factor } = vertices[i];
         writer.writeAttribute(i, 0, position);

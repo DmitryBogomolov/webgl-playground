@@ -2,10 +2,10 @@ import type { Runtime, Vec3, Mat4, Mat4Mut, PrimitiveVertexSchema } from 'lib';
 import {
     Primitive,
     Program,
-    parseVertexSchema, VertexWriter,
+    parseVertexSchema, VertexWriter_,
     generateCube,
     UNIT3,
-    identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4, VertexWriter2,
+    identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4, VertexWriter,
 } from 'lib';
 import itemVertShader from './shaders/item.vert';
 import itemFragShader from './shaders/item.frag';
@@ -40,7 +40,7 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

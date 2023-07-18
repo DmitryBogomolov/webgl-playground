@@ -3,9 +3,9 @@ import {
     Primitive,
     Program,
     parseVertexSchema,
-    VertexWriter,
+    VertexWriter_,
     generateCube, generateSphere,
-    UNIT3, mul3, VertexWriter2,
+    UNIT3, mul3, VertexWriter,
 } from 'lib';
 import sceneVertShader from './shaders/scene.vert';
 import sceneFragShader from './shaders/scene.frag';
@@ -29,7 +29,7 @@ const VERTEX_SIZE = 24;
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
     const primitive = new Primitive(runtime);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter2(schema2, vertexData);
+    const writer = new VertexWriter(schema2, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);

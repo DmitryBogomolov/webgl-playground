@@ -1,39 +1,29 @@
-import type { VertexSchema } from './vertex-schema.types';
+import type { PrimitiveVertexSchema } from './primitive.types';
 import { VertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
     describe('VertexWriter', () => {
-        const schema: VertexSchema = {
-            attributes: [
-                {
-                    name: 'f1', location: 0, type: 'float', size: 2,
-                    stride: 16, offset: 0, normalized: false, gltype: 0,
-                },
-                {
-                    name: 'f2', location: 1, type: 'short', size: 1,
-                    stride: 16, offset: 8, normalized: false, gltype: 0,
-                },
-                {
-                    name: 'f3', location: 2, type: 'ubyte', size: 3,
-                    stride: 16, offset: 12, normalized: false, gltype: 0,
-                },
+        const schema: PrimitiveVertexSchema = {
+            attrs: [
+                { type: 'float2' },
+                { type: 'short' },
+                { type: 'ubyte3' },
             ],
-            totalSize: 16,
         };
 
         it('write attributes', () => {
             const dv = new DataView(new ArrayBuffer(100));
             const writer = new VertexWriter(schema, dv.buffer);
 
-            writer.writeAttribute(0, 'f1', [1.2, 2.3]);
-            writer.writeAttribute(0, 'f2', [1200]);
-            writer.writeAttribute(0, 'f3', [1, 2, 3]);
-            writer.writeAttribute(1, 'f1', { x: 2.3, y: 2.1 });
-            writer.writeAttribute(1, 'f2', 1300);
-            writer.writeAttribute(1, 'f3', { x: 2, y: 3, z: 4 });
-            writer.writeAttribute(2, 'f1', [4.1, 3.1]);
-            writer.writeAttribute(2, 'f2', [1400]);
-            writer.writeAttribute(2, 'f3', [4, 2, 1]);
+            writer.writeAttribute(0, 0, [1.2, 2.3]);
+            writer.writeAttribute(0, 1, [1200]);
+            writer.writeAttribute(0, 2, [1, 2, 3]);
+            writer.writeAttribute(1, 0, { x: 2.3, y: 2.1 });
+            writer.writeAttribute(1, 1, 1300);
+            writer.writeAttribute(1, 2, { x: 2, y: 3, z: 4 });
+            writer.writeAttribute(2, 0, [4.1, 3.1]);
+            writer.writeAttribute(2, 1, [1400]);
+            writer.writeAttribute(2, 2, [4, 2, 1]);
 
             let offset = 0;
             expect(dv.getFloat32(offset + 0, true)).toBeCloseTo(1.2);
