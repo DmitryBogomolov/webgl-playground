@@ -6,17 +6,13 @@ import type { Mat4 } from '../../geometry/mat4.types';
 import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
-import type { Mapping } from '../../common/mapping.types';
 import { Primitive } from '../../gl/primitive';
-import { Program } from '../../gl/program';
 import { inversetranspose4x4 } from '../../geometry/mat4';
 import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
 import { getPrimitiveMode } from '../../gltf/primitive';
 import { getMaterialInfo } from '../../gltf/material';
-import { makeShaderSource } from './shader-source';
 import { generateNormals } from './normals';
-import vertShader from './shaders/shader.vert';
-import fragShader from './shaders/shader.frag';
+import { LOCATIONS } from './attr-locations';
 
 const SUPPORTED_PRIMITIVE_MODE: GlTF_PRIMITIVE_MODE = 'triangles';
 
@@ -37,13 +33,6 @@ const VALID_COLOR_TYPES = makeValidTypes('float3', 'float4', 'ubyte3', 'ubyte4',
 const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 
 type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte' | 'ushort' | 'uint'>;
-
-const LOCATIONS = {
-    POSITION: 0,
-    NORMAL: 1,
-    COLOR: 2,
-    TEXCOORD: 3,
-};
 
 export function createPrimitive(
     primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
@@ -136,34 +125,20 @@ export function createPrimitive(
 
     const material = getMaterialInfo(asset.gltf, primitive);
 
-    // TODO: Share program between all primitives (some schema check should be updated?).
-    const programDefinitions: Mapping<string, string> = {
-        HAS_COLOR_ATTR: colorInfo ? '1' : '0',
-        HAS_TEXCOORD_ATTR: texcoordIdx ? '1' : '0',
-        HAS_MATERIAL: material ? '1' : '0',
-        HAS_BASE_COLOR_TEXTURE: !!texcoordInfo
-            && material?.baseColorTextureIndex !== undefined ? '1' : '0',
-        HAS_METALLIC_ROUGHNESS_TEXTURE: !!texcoordInfo
-            && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
-    };
-    const program = new Program(runtime, {
-        vertShader: makeShaderSource(vertShader, programDefinitions),
-        fragShader: makeShaderSource(fragShader, programDefinitions),
-        locations: {
-            'a_position': LOCATIONS.POSITION,
-            'a_normal': LOCATIONS.NORMAL,
-            'a_color': LOCATIONS.COLOR,
-            'a_texcoord': LOCATIONS.TEXCOORD,
-        },
-    });
-    context.add(program);
-    result.setProgram(program);
-
     return {
         primitive: result,
         matrix: transform,
         normalMatrix: inversetranspose4x4(transform),
         material,
+        description: {
+            HAS_COLOR_ATTR: colorInfo ? '1' : '0',
+            HAS_TEXCOORD_ATTR: texcoordInfo ? '1' : '0',
+            HAS_MATERIAL: material ? '1' : '0',
+            HAS_BASE_COLOR_TEXTURE: texcoordInfo
+                && material?.baseColorTextureIndex !== undefined ? '1' : '0',
+            HAS_METALLIC_ROUGHNESS_TEXTURE: texcoordInfo
+                && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
+        },
     };
 }
 

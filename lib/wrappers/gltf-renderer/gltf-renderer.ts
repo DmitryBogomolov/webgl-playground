@@ -4,6 +4,7 @@ import type { Vec3 } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
 import type { PrimitiveWrapper } from './primitive.types';
+import type { Program } from '../../gl/program';
 import type { Texture } from '../../gl/texture-2d';
 import { BaseDisposable } from '../../common/base-disposable';
 import { Loader } from '../../common/loader';
@@ -12,6 +13,7 @@ import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
 import { DisposableContext } from '../../utils/disposable-context';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene } from './scene';
+import { createPrograms, destroyPrograms } from './program';
 import { createTextures } from './texture';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
@@ -26,6 +28,7 @@ export class GlTFRenderer extends BaseDisposable {
     private readonly _runtime: Runtime;
     private readonly _loader: Loader = new Loader();
     private readonly _wrappers: PrimitiveWrapper[] = [];
+    private readonly _programs: Program[] = [];
     private readonly _textures: Texture[] = [];
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
@@ -46,8 +49,8 @@ export class GlTFRenderer extends BaseDisposable {
     private _disposeElements(): void {
         for (const wrapper of this._wrappers) {
             wrapper.primitive.dispose();
-            wrapper.primitive.program().dispose();
         }
+        destroyPrograms(this._programs);
         for (const texture of this._textures.values()) {
             texture.dispose();
         }
@@ -64,8 +67,9 @@ export class GlTFRenderer extends BaseDisposable {
         try {
             const asset = await parseGlTF(source, resolveUri);
             const wrappers = processScene(asset, this._runtime, context);
+            const programs = createPrograms(wrappers, this._runtime, context);
             const textures = await createTextures(asset, this._runtime, context);
-            this._setup(wrappers, textures);
+            this._setup(wrappers, programs, textures);
             context.release();
         } catch (err) {
             throw this._logger.error(err as Error);
@@ -100,10 +104,16 @@ export class GlTFRenderer extends BaseDisposable {
         throw this._logger.error('set_data({0}): bad value', data);
     }
 
-    private _setup(wrappers: ReadonlyArray<PrimitiveWrapper>, textures: ReadonlyArray<Texture>): void {
+    private _setup(
+        wrappers: ReadonlyArray<PrimitiveWrapper>,
+        programs: ReadonlyArray<Program>,
+        textures: ReadonlyArray<Texture>,
+    ): void {
         this._disposeElements();
         this._wrappers.length = 0;
         this._wrappers.push(...wrappers);
+        this._programs.length = 0;
+        this._programs.push(...programs);
         this._textures.length = 0;
         this._textures.push(...textures);
     }
