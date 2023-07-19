@@ -3,7 +3,7 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { VERTEX_ATTRIBUTE_TYPE, INDEX_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
+import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import type { Mapping } from '../../common/mapping.types';
@@ -36,13 +36,7 @@ const VALID_NORMAL_TYPES = makeValidTypes('float3');
 const VALID_COLOR_TYPES = makeValidTypes('float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4');
 const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 
-type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
-
-const INDEX_TYPE_TO_TYPE: Mapping<GLTF_INDEX_TYPE, INDEX_TYPE> = {
-    'ubyte1': 'ubyte',
-    'ushort1': 'ushort',
-    'uint1': 'uint',
-};
+type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte' | 'ushort' | 'uint'>;
 
 const LOCATIONS = {
     POSITION: 0,
@@ -136,7 +130,7 @@ export function createPrimitive(
     result.updateIndexData(indexInfo.data);
     result.setIndexConfig({
         indexCount: indexInfo.count,
-        indexType: INDEX_TYPE_TO_TYPE[indexInfo.type as GLTF_INDEX_TYPE],
+        indexType: indexInfo.type as GLTF_INDEX_TYPE,
         primitiveMode: 'triangles',
     });
 
