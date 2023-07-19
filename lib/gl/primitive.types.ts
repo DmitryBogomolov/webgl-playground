@@ -10,9 +10,8 @@ export type VERTEX_ATTRIBUTE_TYPE = (
     | 'float' | 'float2' | 'float3' | 'float4'
 );
 
-// TODO: Rename to 'ubyte', 'ushort', 'uint'.
 export type INDEX_TYPE = (
-    'u8' | 'u16' | 'u32'
+    'ubyte' | 'ushort' | 'uint'
 );
 
 export type PRIMITIVE_MODE = (

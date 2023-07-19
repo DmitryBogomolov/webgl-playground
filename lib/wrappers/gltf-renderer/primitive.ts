@@ -38,9 +38,9 @@ const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
 
 const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
-    'ubyte1': 'u8',
-    'ushort1': 'u16',
-    'uint1': 'u32',
+    'ubyte1': 'ubyte',
+    'ushort1': 'ushort',
+    'uint1': 'uint',
 };
 
 const LOCATIONS = {

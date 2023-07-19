@@ -64,11 +64,11 @@ const ATTRIBUTE_TYPE_MAP: Readonly<Record<VERTEX_ATTRIBUTE_TYPE, { type: number,
 };
 
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
-    'u8': WebGL.UNSIGNED_BYTE,
-    'u16': WebGL.UNSIGNED_SHORT,
-    'u32': WebGL.UNSIGNED_INT,
+    'ubyte': WebGL.UNSIGNED_BYTE,
+    'ushort': WebGL.UNSIGNED_SHORT,
+    'uint': WebGL.UNSIGNED_INT,
 };
-const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
+const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'ushort';
 
 export class Primitive extends BaseDisposable {
     private readonly _runtime: PrimitiveRuntime;
