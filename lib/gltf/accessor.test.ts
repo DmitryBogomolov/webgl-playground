@@ -6,7 +6,7 @@ describe('accessor', () => {
         it('parse accessor type', () => {
             expect(
                 getAccessorType({ count: 0, type: 'SCALAR', componentType: 5123 }),
-            ).toEqual<GlTF_ACCESSOR_TYPE>('ushort1');
+            ).toEqual<GlTF_ACCESSOR_TYPE>('ushort');
             expect(
                 getAccessorType({ count: 0, type: 'VEC2', componentType: 5126 }),
             ).toEqual<GlTF_ACCESSOR_TYPE>('float2');

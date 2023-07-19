@@ -29,7 +29,7 @@ function makeValidTypes(...types: GlTF_ACCESSOR_TYPE[]): TypesSet {
     return obj;
 }
 
-const VALID_INDEX_TYPES = makeValidTypes('ubyte1', 'ushort1', 'uint1');
+const VALID_INDEX_TYPES = makeValidTypes('ubyte', 'ushort', 'uint');
 const VALID_POSITION_TYPES = makeValidTypes('float3');
 const VALID_NORMAL_TYPES = makeValidTypes('float3');
 const VALID_COLOR_TYPES = makeValidTypes('float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4');
@@ -261,7 +261,7 @@ function generateIndexInfo(count: number): AttributeInfo {
         arr[i] = i;
     }
     return {
-        type: 'ushort1',
+        type: 'ushort',
         count,
         stride: 0,
         data: new Uint8Array(arr.buffer),
