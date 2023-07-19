@@ -62,8 +62,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
-            // TODO: Just throw error. And use `string`.
-            throw logger.error('bad value for "bool" uniform: {0}', value);
+            throw logger.error(`bad value for "bool" uniform: ${value}`);
         }
 
     },
@@ -73,7 +72,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 1)) {
             gl.uniform1fv(location, value);
         } else {
-            throw logger.error('bad value for "float" uniform: {0}', value);
+            throw logger.error(`bad value for "float" uniform: ${value}`);
         }
     },
     'float2': (logger, gl, { location }, value) => {
@@ -82,7 +81,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 2)) {
             gl.uniform2fv(location, value);
         } else {
-            throw logger.error('bad value for "vec2" uniform: {0}', value);
+            throw logger.error(`bad value for "vec2" uniform: ${value}`);
         }
     },
     'float3': (logger, gl, { location }, value) => {
@@ -93,7 +92,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform3f(location, value.r, value.g, value.b);
         } else {
-            throw logger.error('bad value for "vec3" uniform: {0}', value);
+            throw logger.error(`bad value for "vec3" uniform: ${value}`);
         }
     },
     'float4': (logger, gl, { location }, value) => {
@@ -104,21 +103,21 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
-            throw logger.error('bad value for "vec4" uniform: {0}', value);
+            throw logger.error(`bad value for "vec4" uniform: ${value}`);
         }
     },
     'sampler2D': (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw logger.error('bad value for "sampler2D" uniform: {0}', value);
+            throw logger.error(`bad value for "sampler2D" uniform: ${value}`);
         }
     },
     'samplerCube': (logger, gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw logger.error('bad value for "samplerCube" uniform: {0}', value);
+            throw logger.error(`bad value for "samplerCube" uniform: ${value}`);
         }
     },
     'float2x2': (logger, gl, { location }, value) => {
@@ -127,7 +126,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 4)) {
             gl.uniformMatrix2fv(location, false, value);
         } else {
-            throw logger.error('bad value for "mat2" uniform: {0}', value);
+            throw logger.error(`bad value for "mat2" uniform: ${value}`);
         }
     },
     'float3x3': (logger, gl, { location }, value) => {
@@ -136,7 +135,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 9)) {
             gl.uniformMatrix3fv(location, false, value);
         } else {
-            throw logger.error('bad value for "mat3" uniform: {0}', value);
+            throw logger.error(`bad value for "mat3" uniform: ${value}`);
         }
     },
     'float4x4': (logger, gl, { location }, value) => {
@@ -145,7 +144,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 16)) {
             gl.uniformMatrix4fv(location, false, value);
         } else {
-            throw logger.error('bad value for "mat4" uniform: {0}', value);
+            throw logger.error(`bad value for "mat4" uniform: ${value}`);
         }
     },
 };
@@ -155,7 +154,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
         if (isNumArray(value, arraySize)) {
             gl.uniform1iv(location, value);
         } else {
-            throw logger.error('bad value for "bool[{1}]" uniform: {0}', value, arraySize);
+            throw logger.error(`bad value for "bool[${arraySize}]" uniform: ${value}`);
         }
 
     },
@@ -163,7 +162,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
         if (isNumArray(value, arraySize)) {
             gl.uniform1fv(location, value);
         } else {
-            throw logger.error('bad value for "float[{1}]" uniform: {0}', value, arraySize);
+            throw logger.error(`bad value for "float[${arraySize}]" uniform: ${value}`);
         }
     },
 };
