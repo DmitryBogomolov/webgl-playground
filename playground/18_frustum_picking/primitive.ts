@@ -26,7 +26,7 @@ export interface ObjectsFactory {
 
 export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],

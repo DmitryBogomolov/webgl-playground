@@ -9,7 +9,7 @@ export interface PrimitiveFactory {
 
 export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
         ],

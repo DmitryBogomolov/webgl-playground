@@ -1,16 +1,6 @@
 import type { Color, PrimitiveVertexSchema, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import {
-    Runtime,
-    Primitive,
-    Program,
-    // VertexWriter,
-    VertexWriter,
-    // parseVertexSchema,
-    color,
-    vec2,
-    ForegroundChannel,
-} from 'lib';
+import { Runtime, Primitive, Program, VertexWriter, ForegroundChannel, color, vec2 } from 'lib';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -95,16 +85,12 @@ function runWorker(runtime: Runtime, state: State): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    // const schema = parseVertexSchema([
-    //     { name: 'a_position', type: 'float2' },
-    // ]);
-    const schema2: PrimitiveVertexSchema = {
-        attrs: [{ type: 'float2' }],
+    const schema: PrimitiveVertexSchema = {
+        attributes: [{ type: 'float2' }],
     };
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        // schema,
     });
     const primitive = new Primitive(runtime);
 
@@ -116,7 +102,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * 8);
-    const writer = new VertexWriter(schema2, vertexData);
+    const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 0, vertex);
@@ -127,7 +113,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema2);
+    primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
     primitive.setProgram(program);
 

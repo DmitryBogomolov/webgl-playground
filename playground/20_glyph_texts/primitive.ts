@@ -5,7 +5,7 @@ import fragShader from './shaders/cube.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],

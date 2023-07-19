@@ -157,7 +157,7 @@ export class Primitive extends BaseDisposable {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
-        this._logger.log(`set_vertex_schema(attributes=${schema.attrs.length})`);
+        this._logger.log(`set_vertex_schema(attributes=${schema.attributes.length})`);
         this._attributes = validateVertexSchema(schema);
         const gl = this._runtime.gl();
         try {
@@ -238,8 +238,8 @@ export class Primitive extends BaseDisposable {
 export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {
     let currentOffset = 0;
     const list: VertexAttributeInfo[] = [];
-    for (let i = 0; i < schema.attrs.length; ++i) {
-        const attribute = schema.attrs[i];
+    for (let i = 0; i < schema.attributes.length; ++i) {
+        const attribute = schema.attributes[i];
         const location = attribute.location !== undefined ? attribute.location : i;
         if (location < 0) {
             throw new Error(`attribute ${i}: bad location: ${location}`);

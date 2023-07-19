@@ -23,7 +23,7 @@ function makePrimitive(
 ): Primitive {
     const primitive = new Primitive(runtime);
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float2' },
         ],
@@ -106,7 +106,7 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float3' }],
+        attributes: [{ type: 'float3' }],
     });
     primitive.setIndexConfig({
         indexCount: indices.length,

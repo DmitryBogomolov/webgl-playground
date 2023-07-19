@@ -46,7 +46,7 @@ function makeAoSPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
             { type: 'ubyte', normalized: true },
@@ -59,7 +59,7 @@ function makeSoAPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float2', offset: 16, stride: 8 },
             { type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
             { type: 'ubyte', normalized: true, offset: 48, stride: 4 },

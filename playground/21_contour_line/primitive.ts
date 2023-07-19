@@ -7,7 +7,7 @@ import contourFragShader from './shaders/contour.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
@@ -46,7 +46,7 @@ const VERTEX_PER_SEGMENT = 4;
 const INDEX_PER_SEGMENT = 6;
 
 const contourSchema: PrimitiveVertexSchema = {
-    attrs: [
+    attributes: [
         { type: 'float3' },
         { type: 'float4' },
     ],

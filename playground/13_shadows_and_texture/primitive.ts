@@ -15,7 +15,7 @@ import wireframeFragShader from './shaders/wireframe.frag';
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
     const primitive = new Primitive(runtime);
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
@@ -83,7 +83,7 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float3' }],
+        attributes: [{ type: 'float3' }],
     });
     primitive.setIndexConfig({
         indexCount: indices.length,

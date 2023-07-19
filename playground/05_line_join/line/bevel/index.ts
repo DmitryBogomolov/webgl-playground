@@ -7,7 +7,7 @@ import fragShader from './shaders/frag.glsl';
 
 const bevelParams: LineParams = {
     schema: {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float4' },
             { type: 'ubyte4', normalized: true },

@@ -46,7 +46,7 @@ describe('primitive', () => {
 
     describe('validateVertexSchema', () => {
         it('handle empty list', () => {
-            const attrs = validateVertexSchema({ attrs: [] });
+            const attrs = validateVertexSchema({ attributes: [] });
 
             expect(attrs).toEqual([]);
         });
@@ -54,7 +54,7 @@ describe('primitive', () => {
         it('validate type', () => {
             try {
                 validateVertexSchema({
-                    attrs: [{ type: 'test3' as VERTEX_ATTRIBUTE_TYPE }],
+                    attributes: [{ type: 'test3' as VERTEX_ATTRIBUTE_TYPE }],
                 });
                 expect(true).toBe(false);
             } catch (e) {
@@ -64,7 +64,7 @@ describe('primitive', () => {
 
         it('validate schema', () => {
             const attrs = validateVertexSchema({
-                attrs: [
+                attributes: [
                     { type: 'float4' },
                     { type: 'byte3', normalized: true },
                     { type: 'ushort2' },
@@ -104,7 +104,7 @@ describe('primitive', () => {
 
         it('allow custom stride and offset', () => {
             const attrs = validateVertexSchema({
-                attrs: [
+                attributes: [
                     { type: 'float2', offset: 4, stride: 24 },
                     { type: 'short3', offset: 48, stride: 12 },
                 ],

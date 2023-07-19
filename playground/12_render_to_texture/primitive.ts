@@ -15,7 +15,7 @@ export function makeObject(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
@@ -51,7 +51,7 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float2' },
         ],

@@ -7,7 +7,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
 
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'ubyte3', normalized: true },
         ],

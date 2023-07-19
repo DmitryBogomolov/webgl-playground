@@ -4,7 +4,7 @@ import { VertexWriter } from './vertex-writer';
 describe('vertex writer', () => {
     describe('VertexWriter', () => {
         const schema: PrimitiveVertexSchema = {
-            attrs: [
+            attributes: [
                 { type: 'float2' },
                 { type: 'short' },
                 { type: 'ubyte3' },

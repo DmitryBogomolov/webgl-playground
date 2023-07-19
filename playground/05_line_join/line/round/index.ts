@@ -7,7 +7,7 @@ import fragShader from './shaders/frag.glsl';
 
 const roundParams: LineParams = {
     schema: {
-        attrs: [
+        attributes: [
             { type: 'float4' },
             { type: 'float2' },
             { type: 'ubyte4', normalized: true },

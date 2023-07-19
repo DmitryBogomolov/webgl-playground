@@ -21,7 +21,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float2' }],
+        attributes: [{ type: 'float2' }],
     });
     primitive.setIndexConfig({
         indexCount: indices.length,

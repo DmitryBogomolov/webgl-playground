@@ -57,7 +57,7 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema({
-        attrs: [
+        attributes: [
             { type: 'float2' },
             { type: 'float2' },
         ],

@@ -24,7 +24,7 @@ export function makeQuad(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float2' }],
+        attributes: [{ type: 'float2' }],
     });
     primitive.setIndexConfig({
         indexCount: indexData.length,
@@ -41,7 +41,7 @@ export function makeQuad(runtime: Runtime): Primitive {
 
 export function makeCube(runtime: Runtime): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],

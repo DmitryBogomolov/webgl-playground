@@ -8,7 +8,7 @@ import spotVertShader from './shaders/spot.vert';
 import spotFragShader from './shaders/spot.frag';
 
 const schema: PrimitiveVertexSchema = {
-    attrs: [
+    attributes: [
         { type: 'float3' },
         { type: 'float3' },
     ],

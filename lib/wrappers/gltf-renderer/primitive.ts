@@ -128,7 +128,7 @@ export function createPrimitive(
     }
 
     result.setVertexSchema({
-        attrs: vertexAttributes,
+        attributes: vertexAttributes,
     });
 
     result.allocateIndexBuffer(indexInfo.data.byteLength);

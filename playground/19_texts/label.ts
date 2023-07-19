@@ -21,7 +21,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float2' }],
+        attributes: [{ type: 'float2' }],
     });
     primitive.setIndexConfig({
         indexCount: indexData.length,

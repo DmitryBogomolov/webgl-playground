@@ -119,7 +119,7 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
 
 function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
     const schema: PrimitiveVertexSchema = {
-        attrs: [
+        attributes: [
             { type: 'float3' },
             { type: 'float3' },
             { type: 'float3' },

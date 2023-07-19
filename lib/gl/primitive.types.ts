@@ -37,8 +37,7 @@ export interface VertexAttributeInfo {
 }
 
 export interface PrimitiveVertexSchema {
-    // TODO: Rename to "attributes".
-    readonly attrs: ReadonlyArray<VertexAttributeDefinition>;
+    readonly attributes: ReadonlyArray<VertexAttributeDefinition>;
 }
 
 export interface PrimitiveIndexConfig {

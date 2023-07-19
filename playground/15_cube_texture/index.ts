@@ -83,7 +83,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
     primitive.setVertexSchema({
-        attrs: [{ type: 'float3' }],
+        attributes: [{ type: 'float3' }],
     });
     primitive.setIndexConfig({
         indexCount: indexData.length,
