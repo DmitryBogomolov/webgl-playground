@@ -88,9 +88,12 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
 
+const _arr_scratch: number[] = [0, 0, 0, 0];
+
 function unwrap1(value: ATTRIBUTE_VALUE): number[] | null {
     if (typeof value === 'number') {
-        return [value];
+        _arr_scratch[0] = value;
+        return _arr_scratch;
     }
     if (isNumArray(value, 1)) {
         return value;
@@ -100,7 +103,9 @@ function unwrap1(value: ATTRIBUTE_VALUE): number[] | null {
 
 function unwrap2(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec2(value)) {
-        return [value.x, value.y];
+        _arr_scratch[0] = value.x;
+        _arr_scratch[1] = value.y;
+        return _arr_scratch;
     }
     if (isNumArray(value, 2)) {
         return value;
@@ -110,10 +115,16 @@ function unwrap2(value: ATTRIBUTE_VALUE): number[] | null {
 
 function unwrap3(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec3(value)) {
-        return [value.x, value.y, value.z];
+        _arr_scratch[0] = value.x;
+        _arr_scratch[1] = value.y;
+        _arr_scratch[2] = value.z;
+        return _arr_scratch;
     }
     if (isColor(value)) {
-        return [value.r, value.g, value.b];
+        _arr_scratch[0] = value.r;
+        _arr_scratch[1] = value.g;
+        _arr_scratch[2] = value.b;
+        return _arr_scratch;
     }
     if (isNumArray(value, 3)) {
         return value;
@@ -123,10 +134,18 @@ function unwrap3(value: ATTRIBUTE_VALUE): number[] | null {
 
 function unwrap4(value: ATTRIBUTE_VALUE): number[] | null {
     if (isVec4(value)) {
-        return [value.x, value.y, value.z, value.w];
+        _arr_scratch[0] = value.x;
+        _arr_scratch[1] = value.y;
+        _arr_scratch[2] = value.z;
+        _arr_scratch[3] = value.w;
+        return _arr_scratch;
     }
     if (isColor(value)) {
-        return [value.r, value.g, value.b, value.a];
+        _arr_scratch[0] = value.r;
+        _arr_scratch[1] = value.g;
+        _arr_scratch[2] = value.b;
+        _arr_scratch[3] = value.a;
+        return _arr_scratch;
     }
     if (isNumArray(value, 4)) {
         return value;
