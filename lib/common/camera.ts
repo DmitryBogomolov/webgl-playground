@@ -3,6 +3,7 @@ import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from './event-emitter.types';
+import type { Mapping } from './mapping.types';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
@@ -313,7 +314,7 @@ const orthographicImpl: ProjImpl = {
     },
 };
 
-const PROJ_TYPE_TO_IMPL_MAP: Readonly<Record<CAMERA_PROJECTION, ProjImpl>> = {
+const PROJ_TYPE_TO_IMPL_MAP: Mapping<CAMERA_PROJECTION, ProjImpl> = {
     'perspective': perspectiveImpl,
     'orthographic': orthographicImpl,
 };

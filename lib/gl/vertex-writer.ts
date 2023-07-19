@@ -1,5 +1,6 @@
 import type { PrimitiveVertexSchema, VertexAttributeInfo } from './primitive.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
+import type { Mapping } from '../common/mapping.types';
 import { validateVertexSchema } from './primitive';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
@@ -10,7 +11,7 @@ const WebGL = WebGLRenderingContext.prototype;
 
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;
-const VIEW_MAKERS_MAP: Readonly<Record<number, ArrayMaker>> = {
+const VIEW_MAKERS_MAP: Mapping<number, ArrayMaker> = {
     [WebGL.BYTE]: (buffer, offset, length) => new Int8Array(buffer, offset, length),
     [WebGL.UNSIGNED_BYTE]: (buffer, offset, length) => new Uint8Array(buffer, offset, length),
     [WebGL.SHORT]: (buffer, offset, length) => new Int16Array(buffer, offset, length / 2),
@@ -21,7 +22,7 @@ const VIEW_MAKERS_MAP: Readonly<Record<number, ArrayMaker>> = {
 };
 
 type Normalizer = (value: number) => number;
-const NORMALIZERS_MAP: Readonly<Record<number, Normalizer>> = {
+const NORMALIZERS_MAP: Mapping<number, Normalizer> = {
     [WebGL.BYTE]: (value) => Math.round(value * 0x7F),
     [WebGL.UNSIGNED_BYTE]: (value) => Math.round(value * 0xFF),
     [WebGL.SHORT]: (value) => Math.round(value * 0x7FFF),
@@ -32,7 +33,7 @@ const NORMALIZERS_MAP: Readonly<Record<number, Normalizer>> = {
 };
 
 type Unwrapper = (value: ATTRIBUTE_VALUE) => number[] | null;
-const UNWRAPPERS_MAP: Readonly<Record<number, Unwrapper>> = {
+const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
     [1]: unwrap1,
     [2]: unwrap2,
     [3]: unwrap3,

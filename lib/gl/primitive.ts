@@ -3,8 +3,9 @@ import type {
     PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
     PrimitiveRuntime,
 } from './primitive.types';
-import type { GLValuesMap } from './gl-values-map.types';
 import type { Program } from './program';
+import type { GLValuesMap } from './gl-values-map.types';
+import type { Mapping } from '../common/mapping.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { wrap } from './gl-handle-wrapper';
 
@@ -32,7 +33,7 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-const ATTRIBUTE_TYPE_MAP: Readonly<Record<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }>> = {
+const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }> = {
     'byte': { type: WebGL.BYTE, rank: 1, size: 1 },
     'byte2': { type: WebGL.BYTE, rank: 2, size: 1 },
     'byte3': { type: WebGL.BYTE, rank: 3, size: 1 },

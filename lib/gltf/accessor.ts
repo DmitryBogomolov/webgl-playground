@@ -1,5 +1,6 @@
 import type { GlTF_ACCESSOR_TYPE } from './accessor.types';
 import type { GlTFAsset, GlTFSchema } from './asset.types';
+import type { Mapping } from '../common/mapping.types';
 import { getBinaryData } from './binary-data';
 
 const BYTE = 5120;
@@ -10,7 +11,7 @@ const UINT = 5125;
 const FLOAT = 5126;
 
 // There are also MAT2, MAT3, MAT4. Skip them for now.
-const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTF_ACCESSOR_TYPE>>> = {
+const ACCESSOR_TYPE_MAPPING: Mapping<string, Mapping<number, GlTF_ACCESSOR_TYPE>> = {
     'SCALAR': {
         [BYTE]: 'byte',
         [UBYTE]: 'ubyte',
@@ -45,7 +46,7 @@ const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTF_ACCESSO
     },
 };
 
-const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTF_ACCESSOR_TYPE, number>> = {
+const ACCESSOR_TYPE_SIZES: Mapping<GlTF_ACCESSOR_TYPE, number> = {
     'byte': 1,
     'byte2': 2,
     'byte3': 3,

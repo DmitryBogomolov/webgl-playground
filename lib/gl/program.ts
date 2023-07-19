@@ -3,6 +3,7 @@ import type {
     ProgramOptions, ProgramRuntime,
 } from './program.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
+import type { Mapping } from '../common/mapping.types';
 import type { Logger } from '../common/logger.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { isVec2 } from '../geometry/vec2';
@@ -22,14 +23,7 @@ const GL_LINK_STATUS = WebGL.LINK_STATUS;
 const GL_ACTIVE_ATTRIBUTES = WebGL.ACTIVE_ATTRIBUTES;
 const GL_ACTIVE_UNIFORMS = WebGL.ACTIVE_UNIFORMS;
 
-type UniformSetter = (
-    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE
-) => void;
-
-type UniformSettersMap = Readonly<Partial<Record<SHADER_UNIFORM_TYPE, UniformSetter>>>;
-
-// TODO: Add ReadonlyRecord common type.
-const ATTRIBUTE_TYPE_MAP: Readonly<Record<number, SHADER_ATTRIBUTE_TYPE>> = {
+const ATTRIBUTE_TYPE_MAP: Mapping<number, SHADER_ATTRIBUTE_TYPE> = {
     [WebGL.FLOAT]: 'float',
     [WebGL.FLOAT_VEC2]: 'float2',
     [WebGL.FLOAT_VEC3]: 'float3',
@@ -44,7 +38,7 @@ const ATTRIBUTE_TYPE_MAP: Readonly<Record<number, SHADER_ATTRIBUTE_TYPE>> = {
     [WebGL.BOOL_VEC4]: 'bool4',
 };
 
-const UNIFORM_TYPE_MAP: Readonly<Record<number, SHADER_UNIFORM_TYPE>> = {
+const UNIFORM_TYPE_MAP: Mapping<number, SHADER_UNIFORM_TYPE> = {
     ...ATTRIBUTE_TYPE_MAP,
     [WebGL.FLOAT_MAT2]: 'float2x2',
     [WebGL.FLOAT_MAT3]: 'float3x3',
@@ -56,6 +50,11 @@ const UNIFORM_TYPE_MAP: Readonly<Record<number, SHADER_UNIFORM_TYPE>> = {
 function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
+
+type UniformSetter = (
+    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE
+) => void;
+type UniformSettersMap = Partial<Mapping<SHADER_UNIFORM_TYPE, UniformSetter>>;
 
 const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     'bool': (logger, gl, { location }, value) => {
@@ -251,7 +250,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         }
     }
 
-    private _bindAttributes(locations: Readonly<Record<string, number>>): void {
+    private _bindAttributes(locations: Mapping<string, number>): void {
         const gl = this._runtime.gl();
         for (const [name, location] of Object.entries(locations)) {
             gl.bindAttribLocation(this._program, location, name);
@@ -345,7 +344,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     }
 }
 
-function buildSourcePrefix(defines: Readonly<Record<string, string>> | undefined): string {
+function buildSourcePrefix(defines: Mapping<string, string> | undefined): string {
     const lines: string[] = [];
     if (defines) {
         for (const [key, val] of Object.entries(defines)) {

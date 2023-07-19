@@ -9,7 +9,7 @@ describe('shader-loader', () => {
         (fs.readFile as jest.Mock).mockReset();
     });
 
-    function setDebugSources(sources: Readonly<Record<string, string>>): void {
+    function setDebugSources(sources: Record<string, string>): void {
         (fs.readFile as jest.Mock).mockImplementation((name: string) => {
             const source = sources[name];
             return source ? Promise.resolve(source) : Promise.reject(new Error(`not found: ${name}`));

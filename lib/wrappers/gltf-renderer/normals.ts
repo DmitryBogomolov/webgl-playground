@@ -1,11 +1,12 @@
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
+import type { Mapping } from '../../common/mapping.types';
 import type { Vec3, Vec3Mut } from '../../geometry/vec3.types';
 import { vec3, sub3, cross3, norm3 } from '../../geometry/vec3';
 
 type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte' | 'ushort' | 'uint'>;
 type IndexViewCtor = Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor;
 
-const INDEX_TYPE_TO_VIEW: Readonly<Record<GLTF_INDEX_TYPE, IndexViewCtor>> = {
+const INDEX_TYPE_TO_VIEW: Mapping<GLTF_INDEX_TYPE, IndexViewCtor> = {
     'ubyte': Uint8Array,
     'ushort': Uint16Array,
     'uint': Uint32Array,

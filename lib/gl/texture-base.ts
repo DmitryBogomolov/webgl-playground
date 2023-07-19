@@ -5,6 +5,7 @@ import type {
 import type { Vec2 } from '../geometry/vec2.types';
 import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
+import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
@@ -65,7 +66,7 @@ const GL_PARAMETER_NAMES: GLValuesMap<keyof State> = {
     'min_filter': WebGL.TEXTURE_MIN_FILTER,
 };
 
-const GL_MAPS: Readonly<Record<keyof State, GLValuesMap<string>>> = {
+const GL_MAPS: Mapping<keyof State, GLValuesMap<string>> = {
     'wrap_s': WRAP_MAP,
     'wrap_t': WRAP_MAP,
     'mag_filter': MAG_FILTER_MAP,

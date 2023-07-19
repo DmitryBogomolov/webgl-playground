@@ -15,6 +15,7 @@ import type {
 import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
+import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
@@ -97,7 +98,7 @@ const READ_PIXELS_TYPE_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
 
 const DEFAULT_READ_PIXELS_FORMAT: READ_PIXELS_FORMAT = 'rgba';
 
-const EXTENSION_MAP: Readonly<Record<EXTENSION, string>> = {
+const EXTENSION_MAP: Mapping<EXTENSION, string> = {
     'element_index_uint': 'OES_element_index_uint',
     'depth_texture': 'WEBGL_depth_texture',
 };

@@ -1,7 +1,8 @@
 import type { GlTF_PRIMITIVE_MODE } from './primitive.types';
 import type { GlTFSchema } from './asset.types';
+import type { Mapping } from '../common/mapping.types';
 
-const PRIMITIVE_MODE_MAPPING: Readonly<Record<number, GlTF_PRIMITIVE_MODE>> = {
+const PRIMITIVE_MODE_MAPPING: Mapping<number, GlTF_PRIMITIVE_MODE> = {
     [0]: 'points',
     [1]: 'lines',
     [2]: 'line_loop',

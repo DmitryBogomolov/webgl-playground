@@ -6,6 +6,7 @@ import type { Mat4 } from '../../geometry/mat4.types';
 import type { VERTEX_ATTRIBUTE_TYPE, INDEX_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
+import type { Mapping } from '../../common/mapping.types';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { inversetranspose4x4 } from '../../geometry/mat4';
@@ -37,7 +38,7 @@ const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 
 type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
 
-const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
+const INDEX_TYPE_TO_TYPE: Mapping<GLTF_INDEX_TYPE, INDEX_TYPE> = {
     'ubyte1': 'ubyte',
     'ushort1': 'ushort',
     'uint1': 'uint',

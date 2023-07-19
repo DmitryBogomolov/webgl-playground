@@ -1,6 +1,8 @@
+import type { Mapping } from '../../common/mapping.types';
+
 export interface GlTFRendererRawData {
     readonly data: ArrayBufferView;
-    readonly additionalData?: Readonly<Record<string, ArrayBufferView>>;
+    readonly additionalData?: Mapping<string, ArrayBufferView>;
 }
 
 export interface GlTFRendererUrlData {

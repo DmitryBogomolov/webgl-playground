@@ -1,8 +1,9 @@
 import type { GlTF_WRAP, GlTF_MAG_FILTER, GlTF_MIN_FILTER, GlTFTexture, GlTFTextureSampler } from './texture.types';
 import type { GlTFAsset } from './asset.types';
+import type { Mapping } from '../common/mapping.types';
 import { getBinaryData } from './binary-data';
 
-const MIN_FILTER_MAPPING: Readonly<Record<number, GlTF_MIN_FILTER>> = {
+const MIN_FILTER_MAPPING: Mapping<number, GlTF_MIN_FILTER> = {
     [9728]: 'nearest',
     [9729]: 'linear',
     [9984]: 'nearest_mipmap_nearest',
@@ -10,11 +11,11 @@ const MIN_FILTER_MAPPING: Readonly<Record<number, GlTF_MIN_FILTER>> = {
     [9986]: 'nearest_mipmap_linear',
     [9987]: 'linear_mipmap_linear',
 };
-const MAG_FILTER_MAPPING: Readonly<Record<number, GlTF_MAG_FILTER>> = {
+const MAG_FILTER_MAPPING: Mapping<number, GlTF_MAG_FILTER> = {
     [9728]: 'nearest',
     [9729]: 'linear',
 };
-const WRAP_MAPPING: Readonly<Record<number, GlTF_WRAP>> = {
+const WRAP_MAPPING: Mapping<number, GlTF_WRAP> = {
     [10497]: 'repeat',
     [33071]: 'clamp_to_edge',
     [33648]: 'mirrored_repeat',

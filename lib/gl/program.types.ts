@@ -5,6 +5,7 @@ import type { Mat2 } from '../geometry/mat2.types';
 import type { Mat3 } from '../geometry/mat3.types';
 import type { Mat4 } from '../geometry/mat4.types';
 import type { Color } from '../common/color.types';
+import type { Mapping } from '../common/mapping.types';
 import type { Runtime } from './runtime';
 
 export type SHADER_ATTRIBUTE_TYPE = (
@@ -48,8 +49,8 @@ export type SHADER_UNIFORM_VALUE = (
 export interface ProgramOptions {
     readonly vertShader: string;
     readonly fragShader: string;
-    readonly locations?: Readonly<Record<string, number>>;
-    readonly defines?: Readonly<Record<string, string>>;
+    readonly locations?: Mapping<string, number>;
+    readonly defines?: Mapping<string, string>;
 }
 
 export type ProgramRuntime = Pick<

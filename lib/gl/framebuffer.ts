@@ -2,6 +2,7 @@ import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } f
 import type { RenderTarget } from './render-target.types';
 import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
+import type { Mapping } from '../common/mapping.types';
 import type { Vec2 } from '../geometry/vec2.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { eq2, clone2 } from '../geometry/vec2';
@@ -24,7 +25,7 @@ const GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = WebGL.FRAMEBUFFER_INCOMPLET
 const GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS = WebGL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
 const GL_FRAMEBUFFER_UNSUPPORTED = WebGL.FRAMEBUFFER_UNSUPPORTED;
 
-const ERRORS_MAP: Readonly<Record<number, string>> = {
+const ERRORS_MAP: Mapping<number, string> = {
     [GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT]: 'incomplete attachment',
     [GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT]: 'missing attachment',
     [GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: 'dimensions',
