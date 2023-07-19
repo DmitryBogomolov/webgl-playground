@@ -143,7 +143,7 @@ export function createPrimitive(
     const material = getMaterialInfo(asset.gltf, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
-    const programDefinitions = {
+    const programDefinitions: Mapping<string, string> = {
         HAS_COLOR_ATTR: colorInfo ? '1' : '0',
         HAS_TEXCOORD_ATTR: texcoordIdx ? '1' : '0',
         HAS_MATERIAL: material ? '1' : '0',
