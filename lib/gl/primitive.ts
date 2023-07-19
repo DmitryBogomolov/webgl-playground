@@ -1,7 +1,11 @@
-import type { PRIMITIVE_MODE, INDEX_TYPE, IndexConfig, PrimitiveRuntime } from './primitive.types';
-import type { VertexSchema } from './vertex-schema.types';
-import type { GLValuesMap } from './gl-values-map.types';
+import type {
+    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
+    PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    PrimitiveRuntime,
+} from './primitive.types';
 import type { Program } from './program';
+import type { GLValuesMap } from './gl-values-map.types';
+import type { Mapping } from '../common/mapping.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { wrap } from './gl-handle-wrapper';
 
@@ -11,18 +15,12 @@ const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
 const GL_STATIC_DRAW = WebGL.STATIC_DRAW;
 
-const EMPTY_SCHEMA: VertexSchema = {
-    attributes: [],
-    totalSize: -1,
-};
-
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
     id() { return 'EMPTY_PROGRAM'; },
     glHandle() { return null as unknown as WebGLProgram; },
-    schema() { return EMPTY_SCHEMA; },
     setUniform() { /* empty */ },
-} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'schema' | 'setUniform'> as unknown as Program;
+} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'setUniform'> as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGL.POINTS,
@@ -35,12 +33,43 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
-    'u8': WebGL.UNSIGNED_BYTE,
-    'u16': WebGL.UNSIGNED_SHORT,
-    'u32': WebGL.UNSIGNED_INT,
+const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }> = {
+    'byte': { type: WebGL.BYTE, rank: 1, size: 1 },
+    'byte2': { type: WebGL.BYTE, rank: 2, size: 1 },
+    'byte3': { type: WebGL.BYTE, rank: 3, size: 1 },
+    'byte4': { type: WebGL.BYTE, rank: 4, size: 1 },
+    'ubyte': { type: WebGL.UNSIGNED_BYTE, rank: 1, size: 1 },
+    'ubyte2': { type: WebGL.UNSIGNED_BYTE, rank: 2, size: 1 },
+    'ubyte3': { type: WebGL.UNSIGNED_BYTE, rank: 3, size: 1 },
+    'ubyte4': { type: WebGL.UNSIGNED_BYTE, rank: 4, size: 1 },
+    'short': { type: WebGL.SHORT, rank: 1, size: 2 },
+    'short2': { type: WebGL.SHORT, rank: 2, size: 2 },
+    'short3': { type: WebGL.SHORT, rank: 3, size: 2 },
+    'short4': { type: WebGL.SHORT, rank: 4, size: 2 },
+    'ushort': { type: WebGL.UNSIGNED_SHORT, rank: 1, size: 2 },
+    'ushort2': { type: WebGL.UNSIGNED_SHORT, rank: 2, size: 2 },
+    'ushort3': { type: WebGL.UNSIGNED_SHORT, rank: 3, size: 2 },
+    'ushort4': { type: WebGL.UNSIGNED_SHORT, rank: 4, size: 2 },
+    'int': { type: WebGL.INT, rank: 1, size: 4 },
+    'int2': { type: WebGL.INT, rank: 2, size: 4 },
+    'int3': { type: WebGL.INT, rank: 3, size: 4 },
+    'int4': { type: WebGL.INT, rank: 4, size: 4 },
+    'uint': { type: WebGL.UNSIGNED_INT, rank: 1, size: 4 },
+    'uint2': { type: WebGL.UNSIGNED_INT, rank: 2, size: 4 },
+    'uint3': { type: WebGL.UNSIGNED_INT, rank: 3, size: 4 },
+    'uint4': { type: WebGL.UNSIGNED_INT, rank: 4, size: 4 },
+    'float': { type: WebGL.FLOAT, rank: 1, size: 4 },
+    'float2': { type: WebGL.FLOAT, rank: 2, size: 4 },
+    'float3': { type: WebGL.FLOAT, rank: 3, size: 4 },
+    'float4': { type: WebGL.FLOAT, rank: 4, size: 4 },
 };
-const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'u16';
+
+const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
+    'ubyte': WebGL.UNSIGNED_BYTE,
+    'ushort': WebGL.UNSIGNED_SHORT,
+    'uint': WebGL.UNSIGNED_INT,
+};
+const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'ushort';
 
 export class Primitive extends BaseDisposable {
     private readonly _runtime: PrimitiveRuntime;
@@ -49,7 +78,7 @@ export class Primitive extends BaseDisposable {
     private readonly _indexBuffer: WebGLBuffer;
     private _vertexBufferSize: number = 0;
     private _indexBufferSize: number = 0;
-    private _schema: VertexSchema = EMPTY_SCHEMA;
+    private _attributes: VertexAttributeInfo[] = [];
     private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
     private _indexCount: number = 0;
     private _indexOffset: number = 0;
@@ -91,9 +120,9 @@ export class Primitive extends BaseDisposable {
 
     allocateVertexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error('allocate_vertex_buffer({0}): bad value', size);
+            throw this._logger.error(`allocate_vertex_buffer(${size}): bad value`);
         }
-        this._logger.log('allocate_vertex_buffer({0})', size);
+        this._logger.log(`allocate_vertex_buffer(${size})`);
         const gl = this._runtime.gl();
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
@@ -102,9 +131,9 @@ export class Primitive extends BaseDisposable {
 
     allocateIndexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error('allocate_index_buffer({0}): bad value', size);
+            throw this._logger.error(`allocate_index_buffer(${size}): bad value`);
         }
-        this._logger.log('allocate_index_buffer({0})', size);
+        this._logger.log(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
@@ -112,33 +141,33 @@ export class Primitive extends BaseDisposable {
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logger.log('update_vertex_data(offset={1}, bytes={0})', vertexData.byteLength, offset);
+        this._logger.log(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logger.log('update_index_data(offset={1}, bytes={0})', indexData.byteLength, offset);
+        this._logger.log(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
     }
 
-    setVertexSchema(schema: VertexSchema | null): void {
-        const _schema = schema || EMPTY_SCHEMA;
-        if (this._schema === _schema) {
-            return;
+    setVertexSchema(schema: PrimitiveVertexSchema): void {
+        if (!schema) {
+            throw this._logger.error('set_vertex_schema: not defined');
         }
-        this._logger.log('set_vertex_schema(attributes={0}, size={1})', _schema.attributes.length, _schema.totalSize);
-        this._schema = _schema;
+        this._logger.log(`set_vertex_schema(attributes=${schema.attributes.length})`);
+        this._attributes = validateVertexSchema(schema);
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
             this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
-            for (const attr of _schema.attributes) {
+            for (const attr of this._attributes) {
                 gl.vertexAttribPointer(
-                    attr.location, attr.size, attr.gltype, attr.normalized, attr.stride, attr.offset,
+                    attr.location, attr.rank, attr.type,
+                    attr.normalized, attr.stride, attr.offset,
                 );
                 gl.enableVertexAttribArray(attr.location);
             }
@@ -148,38 +177,37 @@ export class Primitive extends BaseDisposable {
         }
     }
 
-    setIndexConfig(config: IndexConfig): void {
+    setIndexConfig(config: PrimitiveIndexConfig): void {
+        if (!config) {
+            throw this._logger.error('set_index_config: not defined');
+        }
         const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logger.log('set_index_data(count={0}, offset={1}, type={2}, mode={3})',
-            indexCount, indexOffset, indexType, primitiveMode);
+        this._logger.log(
+            `set_index_config:(count=${indexCount}, offset=${indexOffset}, type=${indexType}, mode=${primitiveMode})`);
         if (indexCount < 0) {
-            throw this._logger.error('bad index count: {0}', indexCount);
+            throw this._logger.error(`bad index count: ${indexCount}`);
         }
         this._indexCount = indexCount;
         if (indexOffset !== undefined) {
             if (indexOffset < 0) {
-                throw this._logger.error('bad index offset: {0}', indexOffset);
+                throw this._logger.error(`bad index offset: ${indexOffset}`);
             }
             this._indexOffset = indexOffset;
         }
         if (indexType !== undefined) {
             const value = INDEX_TYPE_MAP[indexType];
             if (value === undefined) {
-                throw this._logger.error('bad index type: {0}', indexType);
+                throw this._logger.error(`bad index type: ${indexType}`);
             }
             this._indexType = value;
         }
         if (primitiveMode !== undefined) {
             const value = PRIMITIVE_MODE_MAP[primitiveMode];
             if (value === undefined) {
-                throw this._logger.error('bad primitive mode: {0}', primitiveMode);
+                throw this._logger.error(`bad primitive mode: ${primitiveMode}`);
             }
             this._primitiveMode = value;
         }
-    }
-
-    schema(): VertexSchema {
-        return this._schema;
     }
 
     program(): Program {
@@ -187,15 +215,12 @@ export class Primitive extends BaseDisposable {
     }
 
     setProgram(program: Program | null): void {
-        const _program = program || EMPTY_PROGRAM;
+        const prog = program || EMPTY_PROGRAM;
         if (this._program === program) {
             return;
         }
-        this._logger.log('set_program({0})', _program.id());
-        if (_program.schema() !== this._schema) {
-            throw this._logger.error('program schema does not match');
-        }
-        this._program = _program;
+        this._logger.log(`set_program(${prog.id()})`);
+        this._program = prog;
     }
 
     render(): void {
@@ -209,4 +234,51 @@ export class Primitive extends BaseDisposable {
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
+}
+
+export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {
+    let currentOffset = 0;
+    const list: VertexAttributeInfo[] = [];
+    for (let i = 0; i < schema.attributes.length; ++i) {
+        const attribute = schema.attributes[i];
+        const location = attribute.location !== undefined ? attribute.location : i;
+        if (location < 0) {
+            throw new Error(`attribute ${i}: bad location: ${location}`);
+        }
+        const typeInfo = ATTRIBUTE_TYPE_MAP[attribute.type];
+        if (!typeInfo) {
+            throw new Error(`attribute ${i}: bad type: ${attribute.type}`);
+        }
+        const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
+        if (attribute.offset === undefined) {
+            currentOffset += align(typeInfo.rank * typeInfo.size);
+        }
+        if (offset !== 0 && (offset % typeInfo.size !== 0)) {
+            throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
+        }
+        const stride = attribute.stride !== undefined ? attribute.stride : 0;
+        if (stride !== 0 && (stride % typeInfo.size !== 0 || stride < typeInfo.rank * typeInfo.size)) {
+            throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
+        }
+        const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
+        list.push({
+            location,
+            ...typeInfo,
+            offset,
+            stride,
+            normalized,
+        });
+    }
+    for (let i = 0; i < list.length; ++i) {
+        const item = list[i];
+        if (item.stride === 0) {
+            list[i] = { ...item, stride: currentOffset };
+        }
+    }
+    return list;
+}
+
+function align(bytes: number): number {
+    const residue = bytes % 4;
+    return residue === 0 ? bytes : bytes + (4 - residue);
 }

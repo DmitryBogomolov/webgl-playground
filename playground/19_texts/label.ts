@@ -1,5 +1,5 @@
 import type { Runtime } from 'lib';
-import { Primitive, Program, Texture, parseVertexSchema } from 'lib';
+import { Primitive, Program, Texture } from 'lib';
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
 
@@ -14,22 +14,22 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
-    ]);
 
     const primitive = new Primitive(runtime);
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setVertexSchema({
+        attributes: [{ type: 'float2' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indexData.length,
+    });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
     });
     primitive.setProgram(program);
 

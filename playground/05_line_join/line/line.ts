@@ -1,11 +1,12 @@
-import type { Runtime, VertexSchema } from 'lib';
+import type { PrimitiveVertexSchema, Runtime } from 'lib';
 import type { Vertex } from '../vertex';
 import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
 
 export interface LineParams {
-    readonly schema: VertexSchema;
+    readonly schema: PrimitiveVertexSchema;
     readonly vertShader: string;
     readonly fragShader: string;
+    getVertexSize(): number;
     getVertexCount(segmentCount: number): number;
     getIndexCount(segmentCount: number): number;
     writeSegmentVertices(writer: VertexWriter, vertices: ReadonlyArray<Vertex>, segmentIdx: number): void;
@@ -30,7 +31,6 @@ export class Line {
         const program = new Program(runtime, {
             vertShader: params.vertShader,
             fragShader: params.fragShader,
-            schema: params.schema,
         });
         this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
         this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
@@ -48,7 +48,7 @@ export class Line {
     }
 
     private _getVertexBufferSize(vertexCount: number): number {
-        return vertexCount > 1 ? this._params.schema.totalSize * this._params.getVertexCount(vertexCount - 1) : 0;
+        return vertexCount > 1 ? this._params.getVertexSize() * this._params.getVertexCount(vertexCount - 1) : 0;
     }
 
     private _getIndexBufferSize(vertexCount: number): number {

@@ -9,7 +9,7 @@ import {
 } from 'lib';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
-import { makePrimitive, makeControurPrimitive, updateContourData } from './primitive';
+import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
 
 /**
@@ -70,7 +70,7 @@ function main(): void {
         runtime,
         camera,
         primitive: makePrimitive(runtime),
-        contourPrimitive: makeControurPrimitive(runtime),
+        contourPrimitive: makeContourPrimitive(runtime),
         modelMat,
         modelClr: color(0.5, 0.1, 0.5),
         modelPoints: [

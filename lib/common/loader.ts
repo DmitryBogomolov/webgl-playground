@@ -1,5 +1,6 @@
 import type { LoaderRequestOptions, LOADER_REQUEST_METHOD, LOADER_RESPONSE_TYPE } from './loader.types';
 import type { EventProxy } from './event-emitter.types';
+import type { Mapping } from './mapping.types';
 import { EventEmitter } from './event-emitter';
 
 export class Loader {
@@ -67,7 +68,7 @@ export class Loader {
     }
 }
 
-const RESPONSE_READERS: Readonly<Record<LOADER_RESPONSE_TYPE, (response: Response) => unknown>> = {
+const RESPONSE_READERS: Mapping<LOADER_RESPONSE_TYPE, (response: Response) => unknown> = {
     binary: (response) => response.arrayBuffer(),
     text: (response) => response.text(),
     json: (response) => response.json(),

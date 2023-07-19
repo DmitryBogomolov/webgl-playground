@@ -1,27 +1,20 @@
-import type { Runtime, VertexData, VertexIndexData } from 'lib';
+import type { PrimitiveVertexSchema, Runtime, VertexData, VertexIndexData } from 'lib';
 import {
     Primitive,
     Program,
-    parseVertexSchema, VertexWriter,
     vec2,
     vec3,
-    generateSphere, generateCube, generatePlaneZ,
+    generateSphere, generateCube, generatePlaneZ, VertexWriter,
 } from 'lib';
 import vertShader from './shaders/mapping.vert';
 import fragShader from './shaders/mapping.frag';
 import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
-const schema = parseVertexSchema([
-    { name: 'a_position', type: 'float3' },
-    { name: 'a_texcoord', type: 'float2' },
-]);
-
 export function makeProgram(runtime: Runtime): Program {
     return new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
     });
 }
 
@@ -29,13 +22,20 @@ function makePrimitive(
     runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
 ): Primitive {
     const primitive = new Primitive(runtime);
+    const schema: PrimitiveVertexSchema = {
+        attributes: [
+            { type: 'float3' },
+            { type: 'float2' },
+        ],
+    };
+    const VERTEX_SIZE = 20;
 
-    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
+    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, texcoord } = vertices[i];
-        writer.writeAttribute(i, 'a_position', position);
-        writer.writeAttribute(i, 'a_texcoord', texcoord);
+        writer.writeAttribute(i, 0, position);
+        writer.writeAttribute(i, 1, texcoord);
     }
     const indexData = new Uint16Array(indices);
 
@@ -84,9 +84,6 @@ export function makePlane(runtime: Runtime, program: Program): Primitive {
 
 export function makeWireframe(runtime: Runtime): Primitive {
     const primitive = new Primitive(runtime);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-    ]);
 
     const vertices = new Float32Array([
         -1, -1, +1,
@@ -108,13 +105,17 @@ export function makeWireframe(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indices.length, primitiveMode: 'lines' });
+    primitive.setVertexSchema({
+        attributes: [{ type: 'float3' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indices.length,
+        primitiveMode: 'lines',
+    });
 
     const program = new Program(runtime, {
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
-        schema,
     });
     primitive.setProgram(program);
 

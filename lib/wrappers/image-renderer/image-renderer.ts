@@ -15,7 +15,6 @@ import { BaseDisposable } from '../../common/base-disposable';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
-import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { makeImage } from '../../utils/image-maker';
 import vertShader from './shaders/shader.vert';
@@ -329,20 +328,20 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float2' },
-    ]);
     primitive.allocateVertexBuffer(vertices.byteLength);
     primitive.updateVertexData(vertices);
     primitive.allocateIndexBuffer(indices.byteLength);
     primitive.updateIndexData(indices);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indices.length });
+    primitive.setVertexSchema({
+        attributes: [{ type: 'float2' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indices.length,
+    });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
     }, tag);
     primitive.setProgram(program);
     return primitive;

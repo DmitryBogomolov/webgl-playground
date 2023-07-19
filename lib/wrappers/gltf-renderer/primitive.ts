@@ -3,13 +3,12 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { AttributeOptions, ATTRIBUTE_TYPE } from '../../gl/vertex-schema.types';
-import type { INDEX_TYPE } from '../../gl/primitive.types';
+import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import type { DisposableContextProxy } from '../../utils/disposable-context.types';
+import type { Mapping } from '../../common/mapping.types';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
-import { parseVertexSchema } from '../../gl/vertex-schema';
 import { inversetranspose4x4 } from '../../geometry/mat4';
 import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
 import { getPrimitiveMode } from '../../gltf/primitive';
@@ -31,18 +30,19 @@ function makeValidTypes(...types: GlTF_ACCESSOR_TYPE[]): TypesSet {
     return obj;
 }
 
-const VALID_INDEX_TYPES = makeValidTypes('ubyte1', 'ushort1', 'uint1');
+const VALID_INDEX_TYPES = makeValidTypes('ubyte', 'ushort', 'uint');
 const VALID_POSITION_TYPES = makeValidTypes('float3');
 const VALID_NORMAL_TYPES = makeValidTypes('float3');
 const VALID_COLOR_TYPES = makeValidTypes('float3', 'float4', 'ubyte3', 'ubyte4', 'ushort3', 'ushort4');
 const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 
-type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte1' | 'ushort1' | 'uint1'>;
+type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte' | 'ushort' | 'uint'>;
 
-const INDEX_TYPE_TO_TYPE: Readonly<Record<GLTF_INDEX_TYPE, INDEX_TYPE>> = {
-    'ubyte1': 'u8',
-    'ushort1': 'u16',
-    'uint1': 'u32',
+const LOCATIONS = {
+    POSITION: 0,
+    NORMAL: 1,
+    COLOR: 2,
+    TEXCOORD: 3,
 };
 
 export function createPrimitive(
@@ -100,7 +100,7 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);
-    const vertexAttributes: AttributeOptions[] = [];
+    const vertexAttributes: VertexAttributeDefinition[] = [];
 
     const vertexDataCtx: SetVertexDataCtx = {
         primitive: result,
@@ -108,35 +108,36 @@ export function createPrimitive(
         offset: 0,
     };
 
-    setVertexData(vertexDataCtx, positionInfo, 'a_position', undefined);
-    setVertexData(vertexDataCtx, normalInfo, 'a_normal', undefined);
+    setVertexData(vertexDataCtx, LOCATIONS.POSITION, positionInfo, undefined);
+    setVertexData(vertexDataCtx, LOCATIONS.NORMAL, normalInfo, undefined);
     if (colorInfo) {
         const normalized = colorInfo.type !== 'float3' && colorInfo.type !== 'float4';
-        setVertexData(vertexDataCtx, colorInfo, 'a_color', normalized);
+        setVertexData(vertexDataCtx, LOCATIONS.COLOR, colorInfo, normalized);
     }
     if (texcoordInfo) {
         const normalized = texcoordInfo.type !== 'float2';
-        setVertexData(vertexDataCtx, texcoordInfo, 'a_texcoord', normalized);
+        setVertexData(vertexDataCtx, LOCATIONS.TEXCOORD, texcoordInfo, normalized);
     }
     if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
 
-    const schema = parseVertexSchema(vertexAttributes);
-    result.setVertexSchema(schema);
+    result.setVertexSchema({
+        attributes: vertexAttributes,
+    });
 
     result.allocateIndexBuffer(indexInfo.data.byteLength);
     result.updateIndexData(indexInfo.data);
     result.setIndexConfig({
         indexCount: indexInfo.count,
-        indexType: INDEX_TYPE_TO_TYPE[indexInfo.type as GLTF_INDEX_TYPE],
+        indexType: indexInfo.type as GLTF_INDEX_TYPE,
         primitiveMode: 'triangles',
     });
 
     const material = getMaterialInfo(asset.gltf, primitive);
 
     // TODO: Share program between all primitives (some schema check should be updated?).
-    const programDefinitions = {
+    const programDefinitions: Mapping<string, string> = {
         HAS_COLOR_ATTR: colorInfo ? '1' : '0',
         HAS_TEXCOORD_ATTR: texcoordIdx ? '1' : '0',
         HAS_MATERIAL: material ? '1' : '0',
@@ -146,9 +147,14 @@ export function createPrimitive(
             && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
     };
     const program = new Program(runtime, {
-        schema,
         vertShader: makeShaderSource(vertShader, programDefinitions),
         fragShader: makeShaderSource(fragShader, programDefinitions),
+        locations: {
+            'a_position': LOCATIONS.POSITION,
+            'a_normal': LOCATIONS.NORMAL,
+            'a_color': LOCATIONS.COLOR,
+            'a_texcoord': LOCATIONS.TEXCOORD,
+        },
     });
     context.add(program);
     result.setProgram(program);
@@ -198,17 +204,17 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
 
 interface SetVertexDataCtx {
     readonly primitive: Primitive;
-    readonly attributes: AttributeOptions[];
+    readonly attributes: VertexAttributeDefinition[];
     offset: number;
 }
 
 function setVertexData(
-    ctx: SetVertexDataCtx, info: AttributeInfo, name: string, normalized: boolean | undefined,
+    ctx: SetVertexDataCtx, location: number, info: AttributeInfo, normalized: boolean | undefined,
 ): void {
     ctx.primitive.updateVertexData(info.data, ctx.offset);
     ctx.attributes.push({
-        name,
-        type: info.type as ATTRIBUTE_TYPE,
+        location,
+        type: info.type as VERTEX_ATTRIBUTE_TYPE,
         offset: ctx.offset,
         stride: info.stride,
         normalized,
@@ -250,7 +256,7 @@ function generateIndexInfo(count: number): AttributeInfo {
         arr[i] = i;
     }
     return {
-        type: 'ushort1',
+        type: 'ushort',
         count,
         stride: 0,
         data: new Uint8Array(arr.buffer),

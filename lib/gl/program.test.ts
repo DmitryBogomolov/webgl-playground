@@ -55,10 +55,6 @@ describe('program', () => {
             new Program(runtime, {
                 vertShader: 'vert-shader-source',
                 fragShader: 'frag-shader-source',
-                schema: {
-                    totalSize: 0,
-                    attributes: [],
-                },
             });
             expect(createProgram.mock.calls).toEqual([
                 [],

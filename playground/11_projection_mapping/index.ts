@@ -107,7 +107,7 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
 
-    [model, camera.changed(), mappingCamera.changed()].forEach(
+    [model, camera.changed(), mappingCamera.changed(), isWireframeShown].forEach(
         (changed) => changed.on(() => runtime.requestFrameRender()),
     );
 

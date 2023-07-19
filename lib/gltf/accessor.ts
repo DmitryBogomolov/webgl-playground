@@ -1,5 +1,6 @@
 import type { GlTF_ACCESSOR_TYPE } from './accessor.types';
 import type { GlTFAsset, GlTFSchema } from './asset.types';
+import type { Mapping } from '../common/mapping.types';
 import { getBinaryData } from './binary-data';
 
 const BYTE = 5120;
@@ -10,14 +11,14 @@ const UINT = 5125;
 const FLOAT = 5126;
 
 // There are also MAT2, MAT3, MAT4. Skip them for now.
-const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTF_ACCESSOR_TYPE>>> = {
+const ACCESSOR_TYPE_MAPPING: Mapping<string, Mapping<number, GlTF_ACCESSOR_TYPE>> = {
     'SCALAR': {
-        [BYTE]: 'byte1',
-        [UBYTE]: 'ubyte1',
-        [SHORT]: 'short1',
-        [USHORT]: 'ushort1',
-        [UINT]: 'uint1',
-        [FLOAT]: 'float1',
+        [BYTE]: 'byte',
+        [UBYTE]: 'ubyte',
+        [SHORT]: 'short',
+        [USHORT]: 'ushort',
+        [UINT]: 'uint',
+        [FLOAT]: 'float',
     },
     'VEC2': {
         [BYTE]: 'byte2',
@@ -45,28 +46,28 @@ const ACCESSOR_TYPE_MAPPING: Readonly<Record<string, Record<number, GlTF_ACCESSO
     },
 };
 
-const ACCESSOR_TYPE_SIZES: Readonly<Record<GlTF_ACCESSOR_TYPE, number>> = {
-    'byte1': 1,
+const ACCESSOR_TYPE_SIZES: Mapping<GlTF_ACCESSOR_TYPE, number> = {
+    'byte': 1,
     'byte2': 2,
     'byte3': 3,
     'byte4': 4,
-    'ubyte1': 1,
+    'ubyte': 1,
     'ubyte2': 2,
     'ubyte3': 3,
     'ubyte4': 4,
-    'short1': 2,
+    'short': 2,
     'short2': 4,
     'short3': 6,
     'short4': 8,
-    'ushort1': 2,
+    'ushort': 2,
     'ushort2': 4,
     'ushort3': 6,
     'ushort4': 8,
-    'uint1': 4,
+    'uint': 4,
     'uint2': 8,
     'uint3': 12,
     'uint4': 16,
-    'float1': 4,
+    'float': 4,
     'float2': 8,
     'float3': 12,
     'float4': 16,

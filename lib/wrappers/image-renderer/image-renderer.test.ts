@@ -80,7 +80,6 @@ describe('image-renderer', () => {
                 {
                     vertShader: expect.any(String),
                     fragShader: expect.any(String),
-                    schema: expect.any(Object),
                 },
                 'ImageRenderer:shared:stub/runtime',
             );

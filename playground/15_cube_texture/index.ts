@@ -4,7 +4,6 @@ import {
     Program,
     TextureCube,
     Camera,
-    parseVertexSchema,
     generateCube,
     UNIT3, mul3,
     deg2rad, spherical2zxy,
@@ -66,13 +65,6 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema = parseVertexSchema([
-        {
-            name: 'a_position',
-            type: 'float3',
-        },
-    ]);
-
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex.position);
 
     const vertexData = new Float32Array(vertices.length * 3);
@@ -90,13 +82,16 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
     primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setVertexSchema({
+        attributes: [{ type: 'float3' }],
+    });
+    primitive.setIndexConfig({
+        indexCount: indexData.length,
+    });
 
     const program = new Program(runtime, {
         vertShader,
         fragShader,
-        schema,
     });
     primitive.setProgram(program);
 

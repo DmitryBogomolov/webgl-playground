@@ -1,11 +1,10 @@
-import type { Runtime, Vec3, Mat4, Mat4Mut } from 'lib';
+import type { Runtime, PrimitiveVertexSchema, Vec3, Mat4, Mat4Mut } from 'lib';
 import {
     Primitive,
     Program,
-    parseVertexSchema, VertexWriter,
+    VertexWriter,
     generateCube,
-    UNIT3,
-    identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
+    UNIT3, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
 } from 'lib';
 import itemVertShader from './shaders/item.vert';
 import itemFragShader from './shaders/item.frag';
@@ -26,17 +25,20 @@ export interface ObjectsFactory {
 }
 
 export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
-    const schema = parseVertexSchema([
-        { name: 'a_position', type: 'float3' },
-        { name: 'a_normal', type: 'float3' },
-    ]);
+    const schema: PrimitiveVertexSchema = {
+        attributes: [
+            { type: 'float3' },
+            { type: 'float3' },
+        ],
+    };
+    const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
-    const vertexData = new ArrayBuffer(vertices.length * schema.totalSize);
+    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
     const writer = new VertexWriter(schema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 'a_position', vertices[i].position);
-        writer.writeAttribute(i, 'a_normal', vertices[i].normal);
+        writer.writeAttribute(i, 0, vertices[i].position);
+        writer.writeAttribute(i, 1, vertices[i].normal);
     }
     const indexData = new Uint16Array(indices);
 
@@ -51,12 +53,10 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     const program = new Program(runtime, {
         vertShader: itemVertShader,
         fragShader: itemFragShader,
-        schema,
     });
     const idProgram = new Program(runtime, {
         vertShader: idVertShader,
         fragShader: idFragShader,
-        schema,
     });
 
     return {
