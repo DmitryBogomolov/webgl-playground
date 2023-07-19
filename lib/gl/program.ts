@@ -14,6 +14,7 @@ import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
 import { isColor } from '../common/color';
 import { formatStr } from '../utils/string-formatter';
+import { DisposableContext } from '../utils/disposable-context';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -179,28 +180,34 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
         super(runtime.logger(), tag);
         this._logger.log('init');
         this._runtime = runtime;
+        const gl = this._runtime.gl();
+        const ctx = new DisposableContext();
         try {
-            this._program = this._createProgram();
+            this._program = createProgram(gl, ctx);
             const prefix = buildSourcePrefix(options.defines);
-            this._vertShader = this._createShader(GL_VERTEX_SHADER, combineSource(options.vertShader, prefix));
-            this._fragShader = this._createShader(GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix));
+            this._vertShader = createShader(gl, GL_VERTEX_SHADER, combineSource(options.vertShader, prefix), ctx);
+            this._fragShader = createShader(gl, GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix), ctx);
             if (options.locations) {
-                this._bindAttributes(options.locations);
+                bindAttributes(gl, this._program, options.locations);
             }
-            this._linkProgram();
-            this._attributes = this._collectAttributes();
-            this._uniforms = this._collectUniforms();
+            linkProgram(gl, this._program, this._vertShader, this._fragShader);
+            this._attributes = collectAttributes(gl, this._program);
+            this._uniforms = collectUniforms(gl, this._program);
             this._uniformsMap = buildUniformsMap(this._uniforms);
+            ctx.release();
         } catch (err) {
-            // TODO: Use DisposableContext.
-            this._disposeObjects();
-            throw err;
+            throw this._logger.error(err as Error);
+        } finally {
+            ctx.dispose();
         }
     }
 
     dispose(): void {
         this._logger.log('dispose');
-        this._disposeObjects();
+        const gl = this._runtime.gl();
+        gl.deleteShader(this._vertShader);
+        gl.deleteShader(this._fragShader);
+        gl.deleteProgram(this._program);
         this._emitDisposed();
     }
 
@@ -214,115 +221,6 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
 
     uniforms(): ReadonlyArray<ShaderUniform> {
         return this._uniforms;
-    }
-
-    private _disposeObjects(): void {
-        this._deleteShader(this._vertShader);
-        this._deleteShader(this._fragShader);
-        this._runtime.gl().deleteProgram(this._program);
-    }
-
-    private _createProgram(): WebGLProgram {
-        const program = this._runtime.gl().createProgram();
-        if (!program) {
-            throw this._logger.error('failed to create program');
-        }
-        return program;
-    }
-
-    private _createShader(type: number, source: string): WebGLShader {
-        const gl = this._runtime.gl();
-        const shader = gl.createShader(type)!;
-        if (!shader) {
-            throw this._logger.error('failed to create shader');
-        }
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        gl.attachShader(this._program, shader);
-        return shader;
-    }
-
-    private _deleteShader(shader: WebGLShader): void {
-        const gl = this._runtime.gl();
-        if (shader) {
-            gl.detachShader(this._program, shader);
-            gl.deleteShader(shader);
-        }
-    }
-
-    private _bindAttributes(locations: Mapping<string, number>): void {
-        const gl = this._runtime.gl();
-        for (const [name, location] of Object.entries(locations)) {
-            gl.bindAttribLocation(this._program, location, name);
-        }
-    }
-
-    private _linkProgram(): void {
-        const gl = this._runtime.gl();
-        gl.linkProgram(this._program);
-        if (!gl.getProgramParameter(this._program, GL_LINK_STATUS)) {
-            const linkInfo = gl.getProgramInfoLog(this._program)!;
-            const vertexInfo = gl.getShaderInfoLog(this._vertShader);
-            const fragmentInfo = gl.getShaderInfoLog(this._fragShader);
-            let message = formatStr(linkInfo);
-            if (vertexInfo) {
-                message += '\n' + vertexInfo;
-            }
-            if (fragmentInfo) {
-                message += '\n' + fragmentInfo;
-            }
-            throw this._logger.error(message);
-        }
-    }
-
-    private _collectAttributes(): ShaderAttribute[] {
-        const gl = this._runtime.gl();
-        const program = this._program;
-        const count = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES) as number;
-        const attributes: ShaderAttribute[] = [];
-        for (let i = 0; i < count; ++i) {
-            const info = gl.getActiveAttrib(program, i)!;
-            const { name } = info;
-            if (info.size > 1) {
-                throw this._logger.error(`attribute "${name}" size is not valid: ${info.size}`);
-            }
-            const dataType = ATTRIBUTE_TYPE_MAP[info.type];
-            if (!dataType) {
-                throw this._logger.error(`attribute "${name}" type is unknown: ${info.type}`);
-            }
-            const location = gl.getAttribLocation(program, name);
-            attributes.push({
-                name,
-                type: dataType,
-                location,
-            });
-        }
-        return attributes;
-    }
-
-    private _collectUniforms(): ShaderUniform[] {
-        const gl = this._runtime.gl();
-        const program = this._program;
-        const count = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS) as number;
-        const uniforms: ShaderUniform[] = [];
-        for (let i = 0; i < count; ++i) {
-            const info = gl.getActiveUniform(program, i)!;
-            const isArray = info.size > 1;
-            // Uniform of array type have name like "something[0]". Postfix "[0]" is removed.
-            const name = isArray ? info.name.substring(0, info.name.length - 3) : info.name;
-            const location = gl.getUniformLocation(program, info.name)!;
-            const dataType = UNIFORM_TYPE_MAP[info.type];
-            if (!dataType) {
-                throw this._logger.error(`uniform "${name}" type is unknown: ${info.type}`);
-            }
-            uniforms.push({
-                name,
-                type: dataType,
-                location,
-                arraySize: info.size,
-            });
-        }
-        return uniforms;
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
@@ -344,6 +242,32 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     }
 }
 
+function createProgram(gl: WebGLRenderingContext, ctx: DisposableContext): WebGLProgram {
+    const program = gl.createProgram();
+    if (!program) {
+        throw new Error('failed to create program');
+    }
+    function dispose(): void {
+        gl.deleteProgram(program);
+    }
+    ctx.add({ dispose });
+    return program;
+}
+
+function createShader(gl: WebGLRenderingContext, type: number, source: string, ctx: DisposableContext): WebGLShader {
+    const shader = gl.createShader(type)!;
+    if (!shader) {
+        throw new Error('failed to create shader');
+    }
+    function dispose(): void {
+        gl.deleteShader(shader);
+    }
+    ctx.add({ dispose });
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    return shader;
+}
+
 function buildSourcePrefix(defines: Mapping<string, string> | undefined): string {
     const lines: string[] = [];
     if (defines) {
@@ -359,6 +283,79 @@ function combineSource(source: string, prefix: string): string {
         return source;
     }
     return `${prefix}\n#line 1 0\n${source}`;
+}
+
+function bindAttributes(gl: WebGLRenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
+    for (const [name, location] of Object.entries(locations)) {
+        gl.bindAttribLocation(program, location, name);
+    }
+}
+
+function linkProgram(
+    gl: WebGLRenderingContext, program: WebGLProgram, vertShader: WebGLShader, fragShader: WebGLShader,
+): void {
+    gl.attachShader(program, vertShader);
+    gl.attachShader(program, fragShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, GL_LINK_STATUS)) {
+        const linkInfo = gl.getProgramInfoLog(program)!;
+        const vertexInfo = gl.getShaderInfoLog(vertShader);
+        const fragmentInfo = gl.getShaderInfoLog(fragShader);
+        let message = formatStr(linkInfo);
+        if (vertexInfo) {
+            message += '\n' + vertexInfo;
+        }
+        if (fragmentInfo) {
+            message += '\n' + fragmentInfo;
+        }
+        throw new Error(message);
+    }
+}
+
+function collectUniforms(gl: WebGLRenderingContext, program: WebGLProgram): ShaderUniform[] {
+    const count = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS) as number;
+    const uniforms: ShaderUniform[] = [];
+    for (let i = 0; i < count; ++i) {
+        const info = gl.getActiveUniform(program, i)!;
+        const isArray = info.size > 1;
+        // Uniform of array type have name like "something[0]". Postfix "[0]" is removed.
+        const name = isArray ? info.name.substring(0, info.name.length - 3) : info.name;
+        const location = gl.getUniformLocation(program, info.name)!;
+        const dataType = UNIFORM_TYPE_MAP[info.type];
+        if (!dataType) {
+            throw new Error(`uniform "${name}" type is unknown: ${info.type}`);
+        }
+        uniforms.push({
+            name,
+            type: dataType,
+            location,
+            arraySize: info.size,
+        });
+    }
+    return uniforms;
+}
+
+function collectAttributes(gl: WebGLRenderingContext, program: WebGLProgram): ShaderAttribute[] {
+    const count = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES) as number;
+    const attributes: ShaderAttribute[] = [];
+    for (let i = 0; i < count; ++i) {
+        const info = gl.getActiveAttrib(program, i)!;
+        const { name } = info;
+        if (info.size > 1) {
+            throw new Error(`attribute "${name}" size is not valid: ${info.size}`);
+        }
+        const dataType = ATTRIBUTE_TYPE_MAP[info.type];
+        if (!dataType) {
+            throw new Error(`attribute "${name}" type is unknown: ${info.type}`);
+        }
+        const location = gl.getAttribLocation(program, name);
+        attributes.push({
+            name,
+            type: dataType,
+            location,
+        });
+    }
+    return attributes;
 }
 
 function buildUniformsMap(uniforms: ReadonlyArray<ShaderUniform>): Record<string, number> {
