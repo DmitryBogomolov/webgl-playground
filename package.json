@@ -4,14 +4,14 @@
   "description": "WebGL playground",
   "private": true,
   "scripts": {
-    "tscheck": "tsc -p tsconfig_check.json",
-    "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig_tools.json webpack serve",
+    "tscheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig.json webpack serve",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "bench:objects-create-access": "node ./benchmark/objects-create-access",
     "bench:vec3-operations": "node ./benchmark/vec3-operations",
-    "build-registry": "TS_NODE_PROJECT=tsconfig_tools.json ts-node ./tools/registry-builder.ts"
+    "build-registry": "TS_NODE_PROJECT=tsconfig.json ts-node ./tools/registry-builder.ts"
   },
   "keywords": [
     "webgl"
