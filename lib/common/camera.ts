@@ -6,6 +6,7 @@ import type { EventProxy } from './event-emitter.types';
 import type { Mapping } from './mapping.types';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
+import { toStr } from '../utils/string-formatter';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
@@ -64,7 +65,7 @@ export class Camera {
     setProjType(value: CAMERA_PROJECTION): void {
         const impl = PROJ_TYPE_TO_IMPL_MAP[value];
         if (!impl) {
-            throw new Error(`bad "projType" value: ${value}`);
+            throw new Error(`bad "projType" value: ${toStr(value)}`);
         }
         if (this._projImpl !== impl) {
             this._projImpl = impl;
@@ -78,7 +79,7 @@ export class Camera {
 
     setZNear(value: number): void {
         if (!(value > 0 && value < this._zFar)) {
-            throw new Error(`bad "zNear" value: ${value}`);
+            throw new Error(`bad "zNear" value: ${toStr(value)}`);
         }
         if (this._zNear !== value) {
             this._zNear = value;
@@ -92,7 +93,7 @@ export class Camera {
 
     setZFar(value: number): void {
         if (!(value > 0 && value > this._zNear)) {
-            throw new Error(`bad "zFar" value: ${value}`);
+            throw new Error(`bad "zFar" value: ${toStr(value)}`);
         }
         if (this._zFar !== value) {
             this._zFar = value;
@@ -110,7 +111,7 @@ export class Camera {
 
     setViewportSize(value: Vec2): void {
         if (!(isVec2(value) && value.x > 0 && value.y > 0)) {
-            throw new Error(`bad "viewportSize" value: ${value}`);
+            throw new Error(`bad "viewportSize" value: ${toStr(value)}`);
         }
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
@@ -128,7 +129,7 @@ export class Camera {
 
     setYFov(value: number): void {
         if (!(value > 0)) {
-            throw new Error(`bad "yFOV" value: ${value}`);
+            throw new Error(`bad "yFOV" value: ${toStr(value)}`);
         }
         if (this._yFov !== value) {
             this._yFov = value;
@@ -142,7 +143,7 @@ export class Camera {
 
     setUpDir(value: Vec3): void {
         if (!(isVec3(value) && !eq3(value, ZERO3))) {
-            throw new Error(`bad "upDir" value: ${value}`);
+            throw new Error(`bad "upDir" value: ${toStr(value)}`);
         }
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
@@ -157,7 +158,7 @@ export class Camera {
 
     setCenterPos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw new Error(`bad "centerPos" value: ${value}`);
+            throw new Error(`bad "centerPos" value: ${toStr(value)}`);
         }
         if (!eq3(this._centerPos, value)) {
             this._centerPos = clone3(value);
@@ -171,7 +172,7 @@ export class Camera {
 
     setEyePos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw new Error(`bad "eyePos" value: ${value}`);
+            throw new Error(`bad "eyePos" value: ${toStr(value)}`);
         }
         if (!eq3(this._eyePos, value)) {
             this._eyePos = clone3(value);

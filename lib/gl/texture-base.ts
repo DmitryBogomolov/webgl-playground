@@ -9,6 +9,7 @@ import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import { BaseDisposable } from '../common/base-disposable';
 import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
+import { toStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -161,7 +162,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
             // @ts-ignore Properties exist.
-            this._size = vec2(imageData.width, imageData.height);
+            this._size = vec2(imageData.width as number, imageData.height as number);
         }
         if (this._needMipmap) {
             this._generateMipmap();
@@ -219,7 +220,7 @@ export function textureImageDataToStr(imageData: TextureImageData): string {
         const { size, data } = imageData;
         return `image_data[size: ${size.x}x${size.y}, data: ${data ? data.byteLength : null}]`;
     } else {
-        const str = imageData.toString();
+        const str = toStr(imageData);
         const ret = /\[object (\w+)\]/.exec(str);
         return `image_data[${ret ? ret[1] : '?'}]`;
     }

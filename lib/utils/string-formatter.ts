@@ -2,26 +2,28 @@
 const objectToString = Object.prototype.toString;
 
 export function formatStr(format: string, ...params: unknown[]): string {
-    return format.replace(/{(\d+)}/g, (_match, i: number) => {
-        const param = params[i];
-        if (param === null || param === undefined) {
-            return String(param);
+    return format.replace(/{(\d+)}/g, (_match, i: number) => toStr(params[i]));
+}
+
+export function toStr(obj: unknown): string {
+    if (obj === null || obj === undefined) {
+        return String(obj);
+    }
+    const type = typeof obj;
+    if (type === 'symbol') {
+        return String(obj);
+    }
+    if (Array.isArray(obj)) {
+        return JSON.stringify(obj);
+    }
+    if (type === 'object') {
+        if ((obj as object).toString !== objectToString) {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            return (obj as object).toString();
         }
-        const type = typeof param;
-        if (type === 'symbol') {
-            return String(param);
+        if (objectToString.call(obj) === '[object Object]') {
+            return JSON.stringify(obj);
         }
-        if (Array.isArray(param)) {
-            return JSON.stringify(param);
-        }
-        if (type === 'object') {
-            if ((param as object).toString !== objectToString) {
-                return (param as object).toString();
-            }
-            if (objectToString.call(param) === '[object Object]') {
-                return JSON.stringify(param);
-            }
-        }
-        return String(param);
-    });
+    }
+    return String(obj);
 }
