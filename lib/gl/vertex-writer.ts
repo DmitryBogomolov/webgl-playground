@@ -6,6 +6,7 @@ import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
 import { isColor } from '../common/color';
+import { toStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -66,7 +67,7 @@ export class VertexWriter {
         }
         const values = UNWRAPPERS_MAP[attribute.rank](attrValue);
         if (values === null) {
-            throw new Error(`attribute "${attrIdx}" rank is ${attribute.rank} but value is ${attrValue}`);
+            throw new Error(`attribute "${attrIdx}" rank is ${attribute.rank} but value is ${toStr(attrValue)}`);
         }
         const view = this._getView(attribute.type);
         const base = (attribute.offset + attribute.stride * vertexIdx) / view.BYTES_PER_ELEMENT | 0;

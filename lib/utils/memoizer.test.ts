@@ -59,7 +59,6 @@ describe('memoizer', () => {
 
             func.mockReturnValue(1);
             expect(target()).toEqual(1);
-            console.log(func.mock.calls);
             expect(func.mock.calls).toEqual([
                 [],
             ]);

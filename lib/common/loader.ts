@@ -83,7 +83,7 @@ class Request {
     private readonly _responseType: LOADER_RESPONSE_TYPE;
     private _executed = false;
     private _count = 0;
-    private _result: unknown | null = null;
+    private _result: unknown = null;
     private _error: Error | null = null;
 
     constructor(url: string, method: LOADER_REQUEST_METHOD, responseType: LOADER_RESPONSE_TYPE) {

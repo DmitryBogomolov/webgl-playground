@@ -96,9 +96,6 @@ module.exports = {
                 CULL_FACE: 'TEST_CULL_FACE',
                 BLEND: 'TEST_BLEND',
             },
-        },
-        'ts-jest': {
-            tsconfig: '<rootDir>/tsconfig.json'
         }
     },
 
@@ -213,6 +210,9 @@ module.exports = {
 
     // A map from regular expressions to paths to transformers
     transform: {
+        '\.ts$': ['ts-jest', {
+            tsconfig: '<rootDir>/tsconfig.json'
+        }],
         '\.vert$|\.frag$|\.glsl$': '<rootDir>/tools/jest-shader-transform.js',
     },
 
