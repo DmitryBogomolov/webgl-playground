@@ -1,4 +1,5 @@
 import type {
+    RuntimeParams,
     READ_PIXELS_FORMAT, ReadPixelsOptions,
     EXTENSION,
     UNPACK_COLORSPACE_CONVERSION,
@@ -20,8 +21,8 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
+import { BaseObject } from './base-object';
 import { BaseIdentity } from '../common/base-identity';
-import { BaseDisposable } from '../common/base-disposable';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../common/event-emitter';
@@ -118,7 +119,7 @@ const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
-export class Runtime extends BaseDisposable {
+export class Runtime extends BaseObject {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -151,17 +152,19 @@ export class Runtime extends BaseDisposable {
         this.adjustViewport();
     };
 
-    constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
-        super(null, tag, RootLogger);
-        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
+    constructor(params: RuntimeParams) {
+        super({ ...params, logger: new RootLogger('') });
+        // @ts-ignore Override.
+        this._logger = new RootLogger(`${this._name}#${this._id}`);
+        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
         this._logger.log('init');
-        this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
+        this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext();
         this._vaoExt = this._getVaoExt();
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
-        this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
+        this._defaultRenderTarget = new DefaultRenderTarget(this, params.tag);
         this._bindingsState = getDefaultBindingsState();
         this._clearState = getDefaultClearState();
         this._pixelStoreState = getDefaultPixelStoreState();
@@ -185,7 +188,7 @@ export class Runtime extends BaseDisposable {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
-        this._emitDisposed();
+        this._dispose();
     }
 
     gl(): WebGLRenderingContext {

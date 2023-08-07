@@ -13,7 +13,7 @@ main();
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,

@@ -52,7 +52,7 @@ interface Controls {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
     const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));

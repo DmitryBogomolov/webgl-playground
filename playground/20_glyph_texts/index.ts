@@ -51,7 +51,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
     const atlas = makeGlyphAtlas(FONT_SIZE);

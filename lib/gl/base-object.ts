@@ -2,7 +2,7 @@ import type { BaseObjectParams } from './base-object.types';
 import type { Logger } from '../common/logger.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl } from 'lib/common/logger';
+import { LoggerImpl } from '../common/logger';
 
 let nextId = 1;
 

@@ -59,11 +59,11 @@ describe('runtime', () => {
         });
 
         it('create runtime', () => {
-            new Runtime(container);
+            new Runtime({ element: container });
         });
 
         it('return sizes', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             expect(runtime.canvas()).toEqual(canvas);
             expect(runtime.size()).toEqual({ x: 640, y: 480 });
@@ -80,7 +80,7 @@ describe('runtime', () => {
             try {
                 // eslint-disable-next-line no-global-assign
                 devicePixelRatio = 2;
-                const runtime = new Runtime(container);
+                const runtime = new Runtime({ element: container });
 
                 expect(runtime.size()).toEqual({ x: 640, y: 480 });
                 expect(runtime.canvasSize()).toEqual({ x: 1280, y: 960 });
@@ -97,7 +97,7 @@ describe('runtime', () => {
         });
 
         it('notify size on subscription', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
             const handleSizeChanged = jest.fn();
             runtime.sizeChanged().on(handleSizeChanged);
 
@@ -107,7 +107,7 @@ describe('runtime', () => {
         });
 
         it('update size', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
             const handleSizeChanged = jest.fn();
             runtime.sizeChanged().on(handleSizeChanged);
             viewport.mockClear();
@@ -136,7 +136,7 @@ describe('runtime', () => {
         });
 
         it('adjust viewport', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
             const handleSizeChanged = jest.fn();
             const handleFrameRendered = jest.fn();
             runtime.sizeChanged().on(handleSizeChanged);
@@ -169,7 +169,7 @@ describe('runtime', () => {
         });
 
         it('return default state', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             expect(runtime.getClearColor()).toEqual({ r: 0, g: 0, b: 0, a: 0 });
             expect(runtime.getClearDepth()).toEqual(1);
@@ -195,7 +195,7 @@ describe('runtime', () => {
         });
 
         it('set clear color', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             expect(runtime.setClearColor({ r: 0.5, g: 0, b: 0, a: 1 })).toEqual(true);
             expect(runtime.getClearColor()).toEqual({ r: 0.5, g: 0, b: 0, a: 1 });
@@ -206,7 +206,7 @@ describe('runtime', () => {
         });
 
         it('set flip y', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             expect(runtime.setPixelStoreUnpackFlipYWebgl(true)).toEqual(true);
             expect(runtime.getPixelStoreUnpackFlipYWebgl()).toEqual(true);
@@ -217,7 +217,7 @@ describe('runtime', () => {
         });
 
         it('set render state', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             const state1 = createRenderState({ depthTest: true, culling: true, blending: true });
             expect(runtime.setRenderState(state1)).toEqual(true);
@@ -234,7 +234,7 @@ describe('runtime', () => {
         });
 
         it('set render state complex', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             const state1 = createRenderState({ depthTest: true, culling: true, blending: true });
             expect(runtime.setRenderState(state1)).toEqual(true);
@@ -259,7 +259,7 @@ describe('runtime', () => {
         });
 
         it('clear buffer', () => {
-            const runtime = new Runtime(container);
+            const runtime = new Runtime({ element: container });
 
             runtime.clearBuffer();
             runtime.clearBuffer('color|depth');

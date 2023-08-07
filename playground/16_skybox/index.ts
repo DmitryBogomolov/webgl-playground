@@ -39,7 +39,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);
