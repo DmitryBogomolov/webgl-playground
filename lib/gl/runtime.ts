@@ -155,7 +155,7 @@ export class Runtime extends BaseObject {
     constructor(params: RuntimeParams) {
         super({ ...params, logger: new RootLogger('') });
         // @ts-ignore Override.
-        this._logger = new RootLogger(`${this._name}#${this._id}`);
+        this._logger = new RootLogger(this._id);
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
         this._logger.log('init');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);

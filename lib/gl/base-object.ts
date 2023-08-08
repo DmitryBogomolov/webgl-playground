@@ -7,15 +7,14 @@ import { LoggerImpl } from '../common/logger';
 let nextId = 1;
 
 export abstract class BaseObject {
-    protected readonly _name: string;
     protected readonly _id: string;
     protected readonly _logger: Logger;
     private readonly _disposed = new EventEmitter();
 
     constructor(params: BaseObjectParams) {
-        this._name = params.name || this.constructor.name;
-        this._id = params.tag || String(nextId++);
-        this._logger = new LoggerImpl(`${this._name}#${this._id}`, params.logger);
+        const name = params.name || this.constructor.name;
+        this._id = `${name}#${params.tag || String(nextId++)}`;
+        this._logger = new LoggerImpl(`${this._id}`, params.logger);
     }
 
     protected _dispose(): void {
@@ -26,10 +25,6 @@ export abstract class BaseObject {
         this._disposed.clear();
         // @ts-ignore DEBUG
         this._disposed = null;
-    }
-
-    name(): string {
-        return this._name;
     }
 
     id(): string {
