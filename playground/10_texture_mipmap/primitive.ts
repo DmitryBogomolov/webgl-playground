@@ -4,7 +4,7 @@ import vertShader from './shaders/texture.vert';
 import fragShader from './shaders/texture.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices = new Float32Array([
         -0.5, -0.5,

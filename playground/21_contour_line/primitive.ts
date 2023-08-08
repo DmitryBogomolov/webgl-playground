@@ -23,7 +23,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
@@ -55,7 +55,7 @@ const contourSchema: PrimitiveVertexSchema = {
 const CONTOUR_VERTEX_SIZE = 28;
 
 export function makeContourPrimitive(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(CONTOUR_VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
     primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
     primitive.setVertexSchema(contourSchema);

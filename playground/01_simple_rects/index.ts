@@ -37,7 +37,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const c1 = colors.RED;
     const c2 = colors.YELLOW;

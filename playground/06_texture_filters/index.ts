@@ -49,7 +49,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     const vertices = new Float32Array([
         -1, -1,
         +1, -1,

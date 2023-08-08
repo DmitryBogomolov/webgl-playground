@@ -27,7 +27,7 @@ export class Line {
     constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
         this._params = params;
-        this._primitive = new Primitive(runtime);
+        this._primitive = new Primitive({ runtime });
         const program = new Program({
             runtime,
             vertShader: params.vertShader,

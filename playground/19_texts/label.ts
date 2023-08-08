@@ -15,7 +15,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
         2, 3, 0,
     ]);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);

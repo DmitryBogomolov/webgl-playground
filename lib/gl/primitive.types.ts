@@ -1,4 +1,5 @@
 import type { Runtime } from './runtime';
+import type { BaseObjectParams } from './base-object.types';
 
 export type VERTEX_ATTRIBUTE_TYPE = (
     | 'byte' | 'byte2' | 'byte3' | 'byte4'
@@ -52,3 +53,7 @@ export type PrimitiveRuntime = Pick<
     | 'gl' | 'vaoExt' | 'logger'
     | 'bindArrayBuffer' | 'bindElementArrayBuffer' | 'bindVertexArrayObject' | 'useProgram'
 >;
+
+export interface PrimitiveParams extends BaseObjectParams {
+    readonly runtime: PrimitiveRuntime;
+}

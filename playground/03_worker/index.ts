@@ -93,7 +93,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices: Vec2[] = [
         vec2(-1, -1),

@@ -76,7 +76,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);

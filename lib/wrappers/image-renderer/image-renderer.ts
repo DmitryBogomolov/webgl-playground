@@ -317,7 +317,7 @@ function releasePrimitive(runtime: Runtime): void {
 }
 
 function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
-    const primitive = new Primitive(runtime, tag);
+    const primitive = new Primitive({ runtime, tag });
     const vertices = new Float32Array([
         -1, -1,
         +1, -1,

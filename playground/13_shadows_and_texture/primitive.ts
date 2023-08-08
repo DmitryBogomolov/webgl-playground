@@ -13,7 +13,7 @@ import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     const schema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float3' },
@@ -62,7 +62,7 @@ export function makeCube(runtime: Runtime, size: number): Primitive {
 }
 
 export function makeWireframe(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices = new Float32Array([
         -1, -1, +1,

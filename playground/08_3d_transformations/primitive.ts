@@ -4,7 +4,7 @@ import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const schema: PrimitiveVertexSchema = {
         attributes: [

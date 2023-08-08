@@ -77,7 +77,7 @@ function makePrimitive(
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertexData = new ArrayBuffer(arrayBufferSize);
     const writer = new VertexWriter(schema, vertexData);

@@ -40,7 +40,7 @@ export function makeSpotProgram(runtime: Runtime): Program {
 }
 
 export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
