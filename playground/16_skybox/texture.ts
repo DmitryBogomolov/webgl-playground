@@ -2,7 +2,7 @@ import type { Runtime } from 'lib';
 import { TextureCube, TextureCubeImageData, makeImage } from 'lib';
 
 export function makeTexture(runtime: Runtime): TextureCube {
-    const texture = new TextureCube(runtime);
+    const texture = new TextureCube({ runtime });
     const schema: { key: keyof TextureCubeImageData, url: string }[] = [
         { key: 'xNeg', url: '/static/computer-history-museum/x-neg.jpg' },
         { key: 'xPos', url: '/static/computer-history-museum/x-pos.jpg' },

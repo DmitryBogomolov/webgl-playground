@@ -100,7 +100,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 function makeTexture(runtime: Runtime): TextureCube {
-    const texture = new TextureCube(runtime);
+    const texture = new TextureCube({ runtime });
     texture.setImageData({
         xNeg: makeCanvas('-X', '#ff0', '#00f'),
         xPos: makeCanvas('+X', '#f00', '#0ff'),

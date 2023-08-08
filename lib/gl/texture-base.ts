@@ -1,13 +1,14 @@
 import type {
     TEXTURE_WRAP, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER, TEXTURE_FORMAT,
-    TextureRuntimeBase, TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
+    TextureParams, TextureRuntimeBase,
+    TextureParameters, TextureImageData, TextureRawImageData, TextureImageDataOptions,
 } from './texture-base.types';
 import type { Vec2 } from '../geometry/vec2.types';
 import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
 import { toStr } from '../utils/string-formatter';
 
@@ -74,7 +75,7 @@ const GL_MAPS: Mapping<keyof State, GLValuesMap<string>> = {
     'min_filter': MIN_FILTER_MAP,
 };
 
-export abstract class TextureBase extends BaseDisposable implements GLHandleWrapper<WebGLTexture> {
+export abstract class TextureBase extends BaseObject implements GLHandleWrapper<WebGLTexture> {
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
@@ -89,10 +90,10 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
         min_filter: 'linear',
     };
 
-    constructor(runtime: TextureRuntimeBase, tag?: string) {
-        super(runtime.logger(), tag);
+    constructor(params: TextureParams) {
+        super({ logger: params.runtime.logger(), ...params });
         this._logger.log('init');
-        this._runtime = runtime;
+        this._runtime = params.runtime;
         this._texture = this._createTexture();
         this._initTextureState();
     }
@@ -100,7 +101,7 @@ export abstract class TextureBase extends BaseDisposable implements GLHandleWrap
     dispose(): void {
         this._logger.log('dispose');
         this._runtime.gl().deleteTexture(this._texture);
-        this._emitDisposed();
+        this._dispose();
     }
 
     glHandle(): WebGLTexture {

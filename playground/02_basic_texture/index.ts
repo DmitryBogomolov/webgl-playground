@@ -122,7 +122,7 @@ function main(): void {
 }
 
 function makeTexture(runtime: Runtime): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     texture.setImageData(makeTextureData(), { unpackFlipY: true });
     return texture;
 }

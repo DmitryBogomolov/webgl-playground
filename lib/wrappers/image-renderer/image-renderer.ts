@@ -65,7 +65,7 @@ export class ImageRenderer extends BaseDisposable {
     }
 
     private _createTexture(tag: string | undefined): Texture {
-        const texture = new Texture(this._runtime, tag);
+        const texture = new Texture({ runtime: this._runtime, tag });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',

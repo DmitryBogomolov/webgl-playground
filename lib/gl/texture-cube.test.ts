@@ -1,5 +1,5 @@
+import type { Runtime } from './runtime';
 import { TextureCube } from './texture-cube';
-import { Runtime } from './runtime';
 
 describe('texture-cube', () => {
     describe('TextureCube', () => {
@@ -39,7 +39,7 @@ describe('texture-cube', () => {
         });
 
         it('create texture', () => {
-            const texture = new TextureCube(runtime);
+            const texture = new TextureCube({ runtime });
             expect(createTexture.mock.calls).toEqual([
                 [],
             ]);

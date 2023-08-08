@@ -55,7 +55,7 @@ function main(): void {
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
     const atlas = makeGlyphAtlas(FONT_SIZE);
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     texture.setImageData(atlas.canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
 
     const camera = new Camera();

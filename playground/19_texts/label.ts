@@ -38,7 +38,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
 }
 
 export function makeLabelTexture(runtime: Runtime, text: string, fontSize: number): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;

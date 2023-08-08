@@ -75,7 +75,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 function makeTexture(runtime: Runtime): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',

@@ -1,5 +1,5 @@
+import type { Runtime } from './runtime';
 import { Texture } from './texture-2d';
-import { Runtime } from './runtime';
 
 describe('texture', () => {
     describe('Texture', () => {
@@ -39,7 +39,7 @@ describe('texture', () => {
         });
 
         it('create texture', () => {
-            const texture = new Texture(runtime);
+            const texture = new Texture({ runtime });
             expect(createTexture.mock.calls).toEqual([
                 [],
             ]);

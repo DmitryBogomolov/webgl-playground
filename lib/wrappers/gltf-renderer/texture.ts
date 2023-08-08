@@ -31,7 +31,7 @@ async function createTexture(
     const { data, mimeType, sampler } = textureInfo;
     const blob = new Blob([data], { type: mimeType });
     const bitmap = await createImageBitmap(blob);
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     context.add(texture);
     texture.setParameters({
         wrap_s: sampler.wrapS,

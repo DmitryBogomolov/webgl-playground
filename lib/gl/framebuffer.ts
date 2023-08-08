@@ -103,7 +103,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     private _attachTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         resizeColorTexture(texture, this._size);
         this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
@@ -112,7 +112,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     private _attachDepthTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
         texture.setParameters({
             mag_filter: 'nearest',
@@ -140,7 +140,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     private _attachDepthStencilTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
