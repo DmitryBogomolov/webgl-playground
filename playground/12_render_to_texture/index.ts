@@ -70,7 +70,8 @@ function main(): void {
         return mat as Mat4;
     }, [xRotation, yRotation]);
 
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         size: { x: 256, y: 256 },
     });

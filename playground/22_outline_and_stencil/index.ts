@@ -47,7 +47,8 @@ function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const runtime = new Runtime({ element: container, options: { contextAttributes: { stencil: true } } });
     const camera = new Camera();
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });

@@ -96,7 +96,8 @@ function main(): void {
         depthCamera.setZFar(zFar);
     });
 
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         useDepthTexture: true,
         size: { x: 512, y: 512 },

@@ -1,10 +1,10 @@
-import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './framebuffer.types';
+import type { FramebufferParams, FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './framebuffer.types';
 import type { RenderTarget } from './render-target.types';
 import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { eq2, clone2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
@@ -32,7 +32,7 @@ const ERRORS_MAP: Mapping<number, string> = {
     [GL_FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
 };
 
-export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
+export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private readonly _attachment: FRAMEBUFFER_ATTACHMENT;
@@ -41,15 +41,15 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
     private readonly _renderbuffer: WebGLRenderbuffer | null;
     private _size!: Vec2;
 
-    constructor(runtime: FramebufferRuntime, options: FramebufferOptions, tag?: string) {
-        super(runtime.logger(), tag);
+    constructor(params: FramebufferParams) {
+        super({ logger: params.runtime.logger(), ...params });
         this._logger.log('init');
-        this._runtime = runtime;
+        this._runtime = params.runtime;
         this._framebuffer = this._createFramebuffer();
         const {
             texture, depthTexture, renderbuffer,
-        } = this._setup(options.attachment, options.size, options.useDepthTexture);
-        this._attachment = options.attachment;
+        } = this._setup(params.attachment, params.size, params.useDepthTexture);
+        this._attachment = params.attachment;
         this._texture = texture;
         this._depthTexture = depthTexture;
         this._renderbuffer = renderbuffer;
@@ -67,7 +67,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
             this._runtime.gl().deleteRenderbuffer(this._renderbuffer);
         }
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
-        this._emitDisposed();
+        this._dispose();
     }
 
     glHandle(): WebGLFramebuffer {

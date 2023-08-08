@@ -41,7 +41,8 @@ function main(): void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });

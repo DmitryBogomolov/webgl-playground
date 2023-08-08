@@ -50,7 +50,8 @@ describe('framebuffer', () => {
         });
 
         it('create framebuffer', () => {
-            new Framebuffer(runtime, {
+            new Framebuffer({
+                runtime,
                 attachment: 'color',
                 size: { x: 200, y: 150 },
             });
