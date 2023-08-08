@@ -13,7 +13,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
         ],
     };
     const VERTEX_SIZE = 16;
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

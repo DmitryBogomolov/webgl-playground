@@ -44,15 +44,18 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
 } {
     const models: Model[] = [];
 
-    const objectProgram = new Program(runtime, {
+    const objectProgram = new Program({
+        runtime,
         vertShader: objectVertShader,
         fragShader: objectFragShader,
     });
-    const outlineProgram = new Program(runtime, {
+    const outlineProgram = new Program({
+        runtime,
         vertShader: outlineVertShader,
         fragShader: outlineFragShader,
     });
-    const idProgram = new Program(runtime, {
+    const idProgram = new Program({
+        runtime,
         vertShader: idVertShader,
         fragShader: idFragShader,
     });

@@ -12,7 +12,8 @@ import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
 export function makeProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -113,7 +114,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
         primitiveMode: 'lines',
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
     });

@@ -27,7 +27,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
         indexCount: indices.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

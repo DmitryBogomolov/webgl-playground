@@ -52,7 +52,8 @@ describe('program', () => {
         });
 
         it('create program', () => {
-            new Program(runtime, {
+            new Program({
+                runtime,
                 vertShader: 'vert-shader-source',
                 fragShader: 'frag-shader-source',
             });

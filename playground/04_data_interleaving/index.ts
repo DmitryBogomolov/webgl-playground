@@ -72,7 +72,8 @@ function makePrimitive(
     runtime: Runtime, schema: PrimitiveVertexSchema, arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

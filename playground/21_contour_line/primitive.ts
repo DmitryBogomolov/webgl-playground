@@ -31,7 +31,8 @@ export function makePrimitive(runtime: Runtime): Primitive {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -59,7 +60,8 @@ export function makeContourPrimitive(runtime: Runtime): Primitive {
     primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
     primitive.setVertexSchema(contourSchema);
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: contourVertShader,
         fragShader: contourFragShader,
     });

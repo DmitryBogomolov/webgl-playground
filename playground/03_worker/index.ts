@@ -88,7 +88,8 @@ function makePrimitive(runtime: Runtime): Primitive {
     const schema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float2' }],
     };
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

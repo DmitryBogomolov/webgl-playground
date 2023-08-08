@@ -50,11 +50,13 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: itemVertShader,
         fragShader: itemFragShader,
     });
-    const idProgram = new Program(runtime, {
+    const idProgram = new Program({
+        runtime,
         vertShader: idVertShader,
         fragShader: idFragShader,
     });

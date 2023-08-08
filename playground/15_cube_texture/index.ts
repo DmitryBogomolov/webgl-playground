@@ -89,7 +89,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

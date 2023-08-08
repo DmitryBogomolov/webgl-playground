@@ -30,7 +30,8 @@ export function makeQuad(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: skyboxVertShader,
         fragShader: skyboxFragShader,
     });
@@ -66,7 +67,8 @@ export function makeCube(runtime: Runtime): Primitive {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: reflectVertShader,
         fragShader: reflectFragShader,
     });

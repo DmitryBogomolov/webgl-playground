@@ -16,21 +16,24 @@ const schema: PrimitiveVertexSchema = {
 const VERTEX_SIZE = 24;
 
 export function makeDirectionalProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: directionalVertShader,
         fragShader: directionalFragShader,
     });
 }
 
 export function makePointProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: pointVertShader,
         fragShader: pointFragShader,
     });
 }
 
 export function makeSpotProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: spotVertShader,
         fragShader: spotFragShader,
     });

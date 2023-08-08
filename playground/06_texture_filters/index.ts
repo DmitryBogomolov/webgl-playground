@@ -44,7 +44,8 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

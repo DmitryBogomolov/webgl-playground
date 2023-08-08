@@ -339,10 +339,12 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
         indexCount: indices.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
-    }, tag);
+        tag,
+    });
     primitive.setProgram(program);
     return primitive;
 }

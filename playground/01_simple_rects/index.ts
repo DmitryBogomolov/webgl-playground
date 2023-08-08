@@ -32,7 +32,8 @@ function makePrimitive(runtime: Runtime): Primitive {
             { type: 'ubyte4', normalized: true },
         ],
     };
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

@@ -28,7 +28,8 @@ export class Line {
         this._runtime = runtime;
         this._params = params;
         this._primitive = new Primitive(runtime);
-        const program = new Program(runtime, {
+        const program = new Program({
+            runtime,
             vertShader: params.vertShader,
             fragShader: params.fragShader,
         });
