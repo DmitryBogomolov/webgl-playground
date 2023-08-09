@@ -1,4 +1,3 @@
-export * from './utils/indexes-generator';
 export * from './utils/pointer-event.types';
 export * from './utils/pointer-event';
 export * from './utils/compare';
