@@ -22,7 +22,6 @@ import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { BaseIdentity } from '../common/base-identity';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../common/event-emitter';
@@ -646,11 +645,11 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget extends BaseIdentity implements RenderTarget {
+class DefaultRenderTarget extends BaseObject implements RenderTarget {
     private readonly _runtime: Runtime;
 
-    constructor(runtime: Runtime, tag?: string) {
-        super(runtime.logger(), tag);
+    constructor(runtime: Runtime, tag: string | undefined) {
+        super({ logger: runtime.logger(), tag });
         this._runtime = runtime;
     }
 
