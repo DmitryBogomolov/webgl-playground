@@ -1,4 +1,6 @@
-import type { GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData } from './gltf-renderer.types';
+import type {
+    GlTFRendererParams, GlTFRendererData, GlTFRendererRawData, GlTFRendererUrlData,
+} from './gltf-renderer.types';
 import type { GlTFResolveUriFunc } from '../../gltf/parse.types';
 import type { Vec3 } from '../../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
@@ -6,7 +8,7 @@ import type { Runtime } from '../../gl/runtime';
 import type { PrimitiveWrapper } from './primitive.types';
 import type { Program } from '../../gl/program';
 import type { Texture } from '../../gl/texture-2d';
-import { BaseDisposable } from '../../common/base-disposable';
+import { BaseObject } from '../../gl/base-object';
 import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
@@ -24,7 +26,7 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
     return data && typeof (data as GlTFRendererUrlData).url === 'string';
 }
 
-export class GlTFRenderer extends BaseDisposable {
+export class GlTFRenderer extends BaseObject {
     private readonly _runtime: Runtime;
     private readonly _loader: Loader = new Loader();
     private readonly _wrappers: PrimitiveWrapper[] = [];
@@ -35,15 +37,15 @@ export class GlTFRenderer extends BaseDisposable {
     private _eyePosition: Vec3 = vec3(0, 0, 0);
     private _lightDirection: Vec3 = norm3(vec3(0, -0.4, -1));
 
-    constructor(runtime: Runtime, tag?: string) {
-        super(runtime.logger(), tag);
-        this._runtime = runtime;
+    constructor(params: GlTFRendererParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._runtime = params.runtime;
     }
 
     dispose(): void {
         this._loader.dispose();
         this._disposeElements();
-        this._emitDisposed();
+        this._dispose();
     }
 
     private _disposeElements(): void {

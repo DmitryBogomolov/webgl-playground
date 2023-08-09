@@ -55,7 +55,7 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
-    const renderer = new GlTFRenderer(runtime);
+    const renderer = new GlTFRenderer({ runtime });
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());
