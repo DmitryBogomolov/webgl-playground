@@ -1,4 +1,4 @@
-import type { Logger } from '../../common/logger.types';
+import type { BaseObjectParams } from '../../gl/base-object.types';
 
 export interface SendMessageOptions {
     readonly transferables?: ReadonlyArray<Transferable>;
@@ -7,9 +7,7 @@ export interface SendMessageOptions {
 
 export type BaseChannelMessageHandler<T> = (message: T) => void;
 
-export interface BaseChannelOptions<T> {
-    readonly rootLogger?: Logger;
-    readonly tag?: string;
+export interface BaseChannelParams<T> extends BaseObjectParams {
     readonly carrier: MessagePort;
     readonly connectionId: number;
     readonly handler: BaseChannelMessageHandler<T>;

@@ -1,5 +1,5 @@
-import type { BaseChannelMessageHandler, BaseChannelOptions, SendMessageOptions } from './base-channel.types';
-import { BaseDisposable } from '../../common/base-disposable';
+import type { BaseChannelMessageHandler, BaseChannelParams, SendMessageOptions } from './base-channel.types';
+import { BaseObject } from '../../gl/base-object';
 
 interface MessageBatch<T> {
     readonly connectionId: number;
@@ -11,7 +11,7 @@ const DEFAULT_SEND_BUFFER_SIZE = 64;
 const DEFAULT_RECV_QUEUE_SIZE = 16;
 const DEFAULT_FLUSH_DELAY = 500;
 
-export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
+export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
     private readonly _carrier: MessagePort;
     private readonly _connectionId: number;
     private readonly _handler: BaseChannelMessageHandler<RecvT>;
@@ -25,24 +25,24 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
     private _recvOrderId: number = 1;
     private _flushTimeout: number = 0;
 
-    constructor(options: BaseChannelOptions<RecvT>) {
-        super(options.rootLogger || null, options.tag);
+    constructor(params: BaseChannelParams<RecvT>) {
+        super(params);
         this._logger.log('init');
-        if (!options.carrier) {
+        if (!params.carrier) {
             throw this._logger.error('carrier is not defined');
         }
-        if (typeof options.handler !== 'function') {
+        if (typeof params.handler !== 'function') {
             throw this._logger.error('handler is not defined');
         }
-        if (!(options.connectionId > 0)) {
-            throw this._logger.error('bad connection id: {0}', options.connectionId);
+        if (!(params.connectionId > 0)) {
+            throw this._logger.error('bad connection id: {0}', params.connectionId);
         }
-        this._carrier = options.carrier;
-        this._connectionId = options.connectionId;
-        this._handler = options.handler;
-        this._sendBufferSize = pickValue(options.sendBufferSize, DEFAULT_SEND_BUFFER_SIZE);
-        this._recvQueueSize = pickValue(options.recvQueueSize, DEFAULT_RECV_QUEUE_SIZE);
-        this._flushDelay = pickValue(options.flushDelay, DEFAULT_FLUSH_DELAY);
+        this._carrier = params.carrier;
+        this._connectionId = params.connectionId;
+        this._handler = params.handler;
+        this._sendBufferSize = pickValue(params.sendBufferSize, DEFAULT_SEND_BUFFER_SIZE);
+        this._recvQueueSize = pickValue(params.recvQueueSize, DEFAULT_RECV_QUEUE_SIZE);
+        this._flushDelay = pickValue(params.flushDelay, DEFAULT_FLUSH_DELAY);
         this._carrier.addEventListener('message', this._handleMessage);
         this._carrier.start();
     }
@@ -96,7 +96,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseDisposable {
         this._cancelFlush();
         this._carrier.removeEventListener('message', this._handleMessage);
         this._carrier.close();
-        this._emitDisposed();
+        this._dispose();
     }
 
     send(message: SendT, options?: SendMessageOptions): void {

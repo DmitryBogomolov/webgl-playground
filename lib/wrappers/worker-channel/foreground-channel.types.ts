@@ -1,5 +1,5 @@
-import type { BaseChannelOptions } from './base-channel.types';
+import type { BaseChannelParams } from './base-channel.types';
 
-export type ForegroundChannelOptions<T> = Omit<BaseChannelOptions<T>, 'carrier'> & {
+export type ForegroundChannelParams<T> = Omit<BaseChannelParams<T>, 'carrier'> & {
     readonly worker: Worker | string;
 };
