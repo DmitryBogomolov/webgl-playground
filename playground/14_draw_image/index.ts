@@ -19,11 +19,11 @@ function main(): void {
         depthTest: true,
     }));
 
-    const imageCells = new ImageRenderer(runtime, 'image/cells');
+    const imageCells = new ImageRenderer({ runtime, tag: 'image/cells' });
     imageCells.setTextureUnit(3);
-    const imageLetter = new ImageRenderer(runtime, 'image/f-letter');
+    const imageLetter = new ImageRenderer({ runtime, tag: 'image/f-letter' });
     imageLetter.setTextureUnit(4);
-    const imageLeaves = new ImageRenderer(runtime, 'image/leaves');
+    const imageLeaves = new ImageRenderer({ runtime, tag: 'image/leaves' });
     imageLeaves.setTextureUnit(5);
 
     imageCells.setImageData(generateTextureData()).catch(console.error);

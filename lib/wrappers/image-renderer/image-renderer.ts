@@ -1,4 +1,5 @@
 import type {
+    ImageRendererParams,
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
 } from './image-renderer.types';
@@ -11,7 +12,7 @@ import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
 } from '../../geometry/mat4';
-import { BaseDisposable } from '../../common/base-disposable';
+import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
@@ -30,7 +31,7 @@ function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageD
     return data && typeof (data as ImageRendererUrlImageData).url === 'string';
 }
 
-export class ImageRenderer extends BaseDisposable {
+export class ImageRenderer extends BaseObject {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
@@ -43,18 +44,18 @@ export class ImageRenderer extends BaseDisposable {
     private readonly _texmat: Mat4 = mat4();
     private _texmatDirty: boolean = true;
 
-    constructor(runtime: Runtime, tag?: string) {
-        super(runtime.logger(), tag);
-        this._runtime = runtime;
+    constructor(params: ImageRendererParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._runtime = params.runtime;
         this._primitive = this._createPrimitive();
-        this._texture = this._createTexture(tag);
+        this._texture = this._createTexture(params.tag);
         this._renderTargetSize = this._runtime.getRenderTarget().size();
     }
 
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
-        this._emitDisposed();
+        this._dispose();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);

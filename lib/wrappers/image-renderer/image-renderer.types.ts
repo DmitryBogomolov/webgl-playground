@@ -1,4 +1,6 @@
 import type { Vec2 } from '../../geometry/vec2.types';
+import type { BaseObjectParams } from '../../gl/base-object.types';
+import type { Runtime } from '../../gl/runtime';
 
 export interface ImageRendererRawImageData {
     readonly size: Vec2;
@@ -31,4 +33,8 @@ export interface ImageRendererLocation extends ImageRendererRegion {
     readonly width?: number;
     /** Height */
     readonly height?: number;
+}
+
+export interface ImageRendererParams extends BaseObjectParams {
+    readonly runtime: Runtime;
 }
