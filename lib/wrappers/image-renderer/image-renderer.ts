@@ -99,7 +99,7 @@ export class ImageRenderer extends BaseObject {
             log = 'tex_image_source';
             imageData = data;
         }
-        this._logger.log('set_image_data({0})', log);
+        this._logger.info('set_image_data({0})', log);
         this._texture.setImageData(imageData, { unpackFlipY });
         this._matDirty = this._texmatDirty = true;
     }
@@ -115,7 +115,7 @@ export class ImageRenderer extends BaseObject {
         if (this._textureUnit === unit) {
             return;
         }
-        this._logger.log('set_texture_unit({0})', unit);
+        this._logger.info('set_texture_unit({0})', unit);
         this._textureUnit = unit;
     }
 
@@ -130,7 +130,7 @@ export class ImageRenderer extends BaseObject {
         if (compareRegions(this._region, region)) {
             return;
         }
-        this._logger.log('set_region({0})', region);
+        this._logger.info('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -152,7 +152,7 @@ export class ImageRenderer extends BaseObject {
         if (compareLocations(this._location, location)) {
             return;
         }
-        this._logger.log('set_location({0})', location);
+        this._logger.info('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
     }

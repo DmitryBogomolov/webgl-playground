@@ -27,7 +27,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
 
     constructor(params: BaseChannelParams<RecvT>) {
         super(params);
-        this._logger.log('init');
+        this._logger.info('init');
         if (!params.carrier) {
             throw this._logger.error('carrier is not defined');
         }
@@ -79,7 +79,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
 
     private _notify(messages: ReadonlyArray<RecvT>): void {
         for (const message of messages) {
-            this._logger.log('recv: {0}', message);
+            this._logger.info('recv: {0}', message);
             this._handler(message);
         }
         this._recvOrderId = advanceOrderId(this._recvOrderId);
@@ -92,7 +92,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         this._cancelFlush();
         this._carrier.removeEventListener('message', this._handleMessage);
         this._carrier.close();
@@ -131,7 +131,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
     flush(): void {
         this._cancelFlush();
         for (const message of this._sendBuffer) {
-            this._logger.log('send: {0}', message);
+            this._logger.info('send: {0}', message);
         }
         const batch: MessageBatch<SendT> = {
             connectionId: this._connectionId,

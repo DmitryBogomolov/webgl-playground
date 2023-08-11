@@ -66,7 +66,7 @@ export class Line {
         if (capacity < 0) {
             return;
         }
-        this._logger.log('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
+        this._logger.info('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
         const vertexBuffer = new ArrayBuffer(this._getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(this._getIndexBufferSize(capacity));
         copyBuffer(this._vertexBuffer, vertexBuffer);

@@ -121,19 +121,19 @@ export class GlTFRenderer extends BaseObject {
     }
 
     setProjMat(mat: Mat4): void {
-        this._logger.log('set_proj_mat({0})', mat);
+        this._logger.info('set_proj_mat({0})', mat);
         this._projMat = clone4x4(mat);
     }
 
     setViewMat(mat: Mat4): void {
-        this._logger.log('set_view_mat({0})', mat);
+        this._logger.info('set_view_mat({0})', mat);
         this._viewMat = clone4x4(mat);
         const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
         this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
-        this._logger.log('set_light_direction({0})', lightDirection);
+        this._logger.info('set_light_direction({0})', lightDirection);
         this._lightDirection = norm3(lightDirection);
     }
 

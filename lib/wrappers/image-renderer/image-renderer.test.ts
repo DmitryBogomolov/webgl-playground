@@ -21,7 +21,7 @@ describe('image-renderer', () => {
         const MockTexture = Texture as jest.Mock<Texture>;
 
         class StubLogger implements Logger {
-            log(): string {
+            info(): string {
                 return '';
             }
             warn(): string {

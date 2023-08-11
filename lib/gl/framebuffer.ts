@@ -43,7 +43,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     constructor(params: FramebufferParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logger.log('init');
+        this._logger.info('init');
         this._runtime = params.runtime;
         this._framebuffer = this._createFramebuffer();
         const {
@@ -56,7 +56,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         if (this._texture) {
             this._texture.dispose();
         }
@@ -171,7 +171,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         depthTexture: Texture | null,
         renderbuffer: WebGLFramebuffer | null,
     } {
-        this._logger.log('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
+        this._logger.info('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
         this._size = size;
         let texture!: Texture;
         let depthTexture: Texture | null = null;
@@ -217,7 +217,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this._logger.log('resize({0})', size);
+        this._logger.info('resize({0})', size);
         resizeColorTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {
