@@ -12,7 +12,8 @@ import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
 export function makeProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -21,7 +22,7 @@ export function makeProgram(runtime: Runtime): Program {
 function makePrimitive(
     runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
 ): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     const schema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float3' },
@@ -83,7 +84,7 @@ export function makePlane(runtime: Runtime, program: Program): Primitive {
 }
 
 export function makeWireframe(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices = new Float32Array([
         -1, -1, +1,
@@ -113,7 +114,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
         primitiveMode: 'lines',
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
     });

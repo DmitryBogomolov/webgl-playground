@@ -1,10 +1,10 @@
-import type { FRAMEBUFFER_ATTACHMENT, FramebufferRuntime, FramebufferOptions } from './framebuffer.types';
+import type { FramebufferParams, FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './framebuffer.types';
 import type { RenderTarget } from './render-target.types';
 import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { eq2, clone2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
@@ -32,7 +32,7 @@ const ERRORS_MAP: Mapping<number, string> = {
     [GL_FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
 };
 
-export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
+export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private readonly _attachment: FRAMEBUFFER_ATTACHMENT;
@@ -41,22 +41,22 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
     private readonly _renderbuffer: WebGLRenderbuffer | null;
     private _size!: Vec2;
 
-    constructor(runtime: FramebufferRuntime, options: FramebufferOptions, tag?: string) {
-        super(runtime.logger(), tag);
-        this._logger.log('init');
-        this._runtime = runtime;
+    constructor(params: FramebufferParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._logger.info('init');
+        this._runtime = params.runtime;
         this._framebuffer = this._createFramebuffer();
         const {
             texture, depthTexture, renderbuffer,
-        } = this._setup(options.attachment, options.size, options.useDepthTexture);
-        this._attachment = options.attachment;
+        } = this._setup(params.attachment, params.size, params.useDepthTexture);
+        this._attachment = params.attachment;
         this._texture = texture;
         this._depthTexture = depthTexture;
         this._renderbuffer = renderbuffer;
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         if (this._texture) {
             this._texture.dispose();
         }
@@ -67,7 +67,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
             this._runtime.gl().deleteRenderbuffer(this._renderbuffer);
         }
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
-        this._emitDisposed();
+        this._dispose();
     }
 
     glHandle(): WebGLFramebuffer {
@@ -103,7 +103,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
     }
 
     private _attachTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         resizeColorTexture(texture, this._size);
         this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
@@ -112,7 +112,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
     }
 
     private _attachDepthTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
         texture.setParameters({
             mag_filter: 'nearest',
@@ -140,7 +140,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
     }
 
     private _attachDepthStencilTexture(): Texture {
-        const texture = new Texture(this._runtime as unknown as TextureRuntime);
+        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
@@ -171,7 +171,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
         depthTexture: Texture | null,
         renderbuffer: WebGLFramebuffer | null,
     } {
-        this._logger.log('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
+        this._logger.info('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
         this._size = size;
         let texture!: Texture;
         let depthTexture: Texture | null = null;
@@ -217,7 +217,7 @@ export class Framebuffer extends BaseDisposable implements GLHandleWrapper<WebGL
             return;
         }
         this._size = clone2(size);
-        this._logger.log('resize({0})', size);
+        this._logger.info('resize({0})', size);
         resizeColorTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {

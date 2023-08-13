@@ -27,8 +27,8 @@ function main(): void {
 
     const state = new State();
 
-    const runtimeBevel = new Runtime(containerBevel);
-    const runtimeRound = new Runtime(containerRound);
+    const runtimeBevel = new Runtime({ element: containerBevel });
+    const runtimeRound = new Runtime({ element: containerRound });
 
     setupLine(runtimeBevel, state, BevelLine);
     setupLine(runtimeRound, state, RoundLine);

@@ -1,4 +1,5 @@
 import type { Vec2 } from '../geometry/vec2.types';
+import type { BaseObjectParams } from './base-object.types';
 export type {
     BUFFER_MASK,
     DEPTH_FUNC,
@@ -31,3 +32,8 @@ export interface RuntimeOptions {
     readonly extensions?: ReadonlyArray<EXTENSION>;
     readonly contextAttributes?: WebGLContextAttributes;
 }
+
+export type RuntimeParams = Omit<BaseObjectParams, 'logger'> & {
+    readonly element: HTMLElement;
+    readonly options?: RuntimeOptions;
+};

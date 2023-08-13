@@ -6,6 +6,7 @@ import type { Mat3 } from '../geometry/mat3.types';
 import type { Mat4 } from '../geometry/mat4.types';
 import type { Color } from '../common/color.types';
 import type { Mapping } from '../common/mapping.types';
+import type { BaseObjectParams } from './base-object.types';
 import type { Runtime } from './runtime';
 
 export type SHADER_ATTRIBUTE_TYPE = (
@@ -46,14 +47,15 @@ export type SHADER_UNIFORM_VALUE = (
     | Color
 );
 
-export interface ProgramOptions {
+export type ProgramRuntime = Pick<
+    Runtime,
+    'gl' | 'logger' | 'useProgram'
+>;
+
+export interface ProgramParams extends BaseObjectParams {
+    readonly runtime: ProgramRuntime;
     readonly vertShader: string;
     readonly fragShader: string;
     readonly locations?: Mapping<string, number>;
     readonly defines?: Mapping<string, string>;
 }
-
-export type ProgramRuntime = Pick<
-    Runtime,
-    'gl' | 'logger' | 'useProgram'
->;

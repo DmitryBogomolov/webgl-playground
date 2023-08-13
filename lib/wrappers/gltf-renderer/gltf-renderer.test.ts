@@ -10,7 +10,7 @@ describe('gltf-renderer', () => {
         const MockLoader = Loader as jest.Mock<Loader>;
 
         class StubLogger implements Logger {
-            log(): string {
+            info(): string {
                 return '';
             }
             warn(): string {
@@ -31,7 +31,7 @@ describe('gltf-renderer', () => {
                 id: () => 'stub/runtime',
                 logger: () => stubLogger,
             } as Pick<Runtime, 'id' | 'logger'> as Runtime;
-            renderer = new GlTFRenderer(runtime, 'tag/test');
+            renderer = new GlTFRenderer({ runtime, tag: 'tag/test' });
             loader = MockLoader.mock.instances[0];
         });
 

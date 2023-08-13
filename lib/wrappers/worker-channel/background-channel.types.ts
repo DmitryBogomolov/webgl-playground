@@ -1,3 +1,3 @@
-import type { BaseChannelOptions } from './base-channel.types';
+import type { BaseChannelParams } from './base-channel.types';
 
-export type BackgroundChannelOptions<T> = Omit<BaseChannelOptions<T>, 'carrier'>;
+export type BackgroundChannelParams<T> = Omit<BaseChannelParams<T>, 'carrier'>;

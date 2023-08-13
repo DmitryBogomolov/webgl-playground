@@ -13,7 +13,7 @@ import wireframeVertShader from './shaders/wireframe.vert';
 import wireframeFragShader from './shaders/wireframe.frag';
 
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     const schema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float3' },
@@ -38,14 +38,16 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
 }
 
 export function makeProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: sceneVertShader,
         fragShader: sceneFragShader,
     });
 }
 
 export function makeDepthProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: depthVertShader,
         fragShader: depthFragShader,
     });
@@ -60,7 +62,7 @@ export function makeCube(runtime: Runtime, size: number): Primitive {
 }
 
 export function makeWireframe(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices = new Float32Array([
         -1, -1, +1,
@@ -90,7 +92,8 @@ export function makeWireframe(runtime: Runtime): Primitive {
         primitiveMode: 'lines',
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: wireframeVertShader,
         fragShader: wireframeFragShader,
     });

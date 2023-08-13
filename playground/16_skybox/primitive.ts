@@ -17,7 +17,7 @@ export function makeQuad(runtime: Runtime): Primitive {
         2, 3, 0,
     ]);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
@@ -30,7 +30,8 @@ export function makeQuad(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: skyboxVertShader,
         fragShader: skyboxFragShader,
     });
@@ -57,7 +58,7 @@ export function makeCube(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
@@ -66,7 +67,8 @@ export function makeCube(runtime: Runtime): Primitive {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: reflectVertShader,
         fragShader: reflectFragShader,
     });

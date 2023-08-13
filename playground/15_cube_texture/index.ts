@@ -25,7 +25,7 @@ main();
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
@@ -76,7 +76,7 @@ function makePrimitive(runtime: Runtime): Primitive {
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
@@ -89,7 +89,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -99,7 +100,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 function makeTexture(runtime: Runtime): TextureCube {
-    const texture = new TextureCube(runtime);
+    const texture = new TextureCube({ runtime });
     texture.setImageData({
         xNeg: makeCanvas('-X', '#ff0', '#00f'),
         xPos: makeCanvas('+X', '#f00', '#0ff'),

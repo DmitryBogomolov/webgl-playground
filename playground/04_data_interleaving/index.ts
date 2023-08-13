@@ -72,11 +72,12 @@ function makePrimitive(
     runtime: Runtime, schema: PrimitiveVertexSchema, arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertexData = new ArrayBuffer(arrayBufferSize);
     const writer = new VertexWriter(schema, vertexData);
@@ -99,7 +100,7 @@ function makePrimitive(
 }
 
 function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Primitive): void {
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();

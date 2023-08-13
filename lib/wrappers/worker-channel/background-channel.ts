@@ -1,8 +1,8 @@
-import type { BackgroundChannelOptions } from './background-channel.types';
+import type { BackgroundChannelParams } from './background-channel.types';
 import { BaseChannel } from './base-channel';
 
 export class BackgroundChannel<SendT, RecvT> extends BaseChannel<SendT, RecvT> {
-    constructor(options: BackgroundChannelOptions<RecvT>) {
+    constructor(options: BackgroundChannelParams<RecvT>) {
         super({ ...options, carrier: wrapWorkerContext() });
     }
 }

@@ -21,7 +21,7 @@ describe('image-renderer', () => {
         const MockTexture = Texture as jest.Mock<Texture>;
 
         class StubLogger implements Logger {
-            log(): string {
+            info(): string {
                 return '';
             }
             warn(): string {
@@ -52,7 +52,7 @@ describe('image-renderer', () => {
                 getRenderTarget: () => renderTarget,
                 setTextureUnit: jest.fn(),
             } as Pick<Runtime, 'id' | 'logger' | 'getRenderTarget' | 'setTextureUnit'> as Runtime;
-            renderer = new ImageRenderer(runtime, 'tag/test');
+            renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
             primitive = MockPrimitive.mock.instances[0];
             program = MockProgram.mock.instances[0];
             texture = MockTexture.mock.instances[0];
@@ -69,23 +69,21 @@ describe('image-renderer', () => {
         });
 
         it('create instance', () => {
-            expect(MockPrimitive).toBeCalledWith(runtime, 'ImageRenderer:shared:stub/runtime');
+            expect(MockPrimitive).toBeCalledWith({ runtime, tag: 'ImageRenderer:shared:stub/runtime' });
             expect(primitive.allocateVertexBuffer).toBeCalledWith(32);
             expect(primitive.updateVertexData).toBeCalledWith(new Float32Array([-1, -1, +1, -1, +1, +1, -1, +1]));
             expect(primitive.allocateIndexBuffer).toBeCalledWith(12);
             expect(primitive.updateIndexData).toBeCalledWith(new Uint16Array([0, 1, 2, 2, 3, 0]));
 
-            expect(MockProgram).toBeCalledWith(
+            expect(MockProgram).toBeCalledWith({
                 runtime,
-                {
-                    vertShader: expect.any(String),
-                    fragShader: expect.any(String),
-                },
-                'ImageRenderer:shared:stub/runtime',
-            );
+                vertShader: expect.any(String),
+                fragShader: expect.any(String),
+                tag: 'ImageRenderer:shared:stub/runtime',
+            });
             expect(primitive.setProgram).toBeCalledWith(program);
 
-            expect(MockTexture).toBeCalledWith(runtime, 'tag/test');
+            expect(MockTexture).toBeCalledWith({ runtime, tag: 'tag/test' });
             expect(texture.setParameters).toBeCalledWith({ mag_filter: 'nearest', min_filter: 'nearest' });
             expect(texture.setImageData).toBeCalledWith({ data: null, size: { x: 1, y: 1 } });
         });
@@ -177,7 +175,7 @@ describe('image-renderer', () => {
         });
 
         it('share primitive and program amoung all renderers', () => {
-            const otherRenderer = new ImageRenderer(runtime);
+            const otherRenderer = new ImageRenderer({ runtime });
             const otherTexture = MockTexture.mock.instances[1];
 
             expect(MockTexture).toBeCalledTimes(2);

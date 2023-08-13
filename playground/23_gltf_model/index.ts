@@ -34,7 +34,7 @@ main();
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -55,7 +55,7 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
-    const renderer = new GlTFRenderer(runtime);
+    const renderer = new GlTFRenderer({ runtime });
 
     runtime.sizeChanged().on(() => {
         camera.setViewportSize(runtime.canvasSize());

@@ -42,7 +42,7 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
@@ -50,11 +50,13 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: itemVertShader,
         fragShader: itemFragShader,
     });
-    const idProgram = new Program(runtime, {
+    const idProgram = new Program({
+        runtime,
         vertShader: idVertShader,
         fragShader: idFragShader,
     });

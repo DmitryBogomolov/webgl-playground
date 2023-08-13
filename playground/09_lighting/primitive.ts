@@ -16,28 +16,31 @@ const schema: PrimitiveVertexSchema = {
 const VERTEX_SIZE = 24;
 
 export function makeDirectionalProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: directionalVertShader,
         fragShader: directionalFragShader,
     });
 }
 
 export function makePointProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: pointVertShader,
         fragShader: pointFragShader,
     });
 }
 
 export function makeSpotProgram(runtime: Runtime): Program {
-    return new Program(runtime, {
+    return new Program({
+        runtime,
         vertShader: spotVertShader,
         fragShader: spotFragShader,
     });
 }
 
 export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 

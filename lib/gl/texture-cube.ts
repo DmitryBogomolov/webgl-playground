@@ -13,10 +13,6 @@ const GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = WebGL.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 const GL_TEXTURE_CUBE_MAP_POSITIVE_Z = WebGL.TEXTURE_CUBE_MAP_POSITIVE_Z;
 
 export class TextureCube extends TextureBase {
-    constructor(runtime: TextureCubeRuntime, tag?: string) {
-        super(runtime, tag);
-    }
-
     protected _bind(): void {
         (this._runtime as TextureCubeRuntime).bindCubeTexture(this);
     }
@@ -25,7 +21,7 @@ export class TextureCube extends TextureBase {
         if (!imageData) {
             throw this._logger.error('set_image_data: not defined');
         }
-        this._logger.log('set_image_data({0})', imageDataToStr(imageData));
+        this._logger.info('set_image_data({0})', imageDataToStr(imageData));
         const { format, type } = this._beginDataUpdate(options);
         this._updateData(imageData.xNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, format, type);
         this._updateData(imageData.xPos, GL_TEXTURE_CUBE_MAP_POSITIVE_X, format, type);

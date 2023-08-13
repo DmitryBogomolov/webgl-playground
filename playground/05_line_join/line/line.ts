@@ -27,8 +27,9 @@ export class Line {
     constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
         this._params = params;
-        this._primitive = new Primitive(runtime);
-        const program = new Program(runtime, {
+        this._primitive = new Primitive({ runtime });
+        const program = new Program({
+            runtime,
             vertShader: params.vertShader,
             fragShader: params.fragShader,
         });
@@ -65,7 +66,7 @@ export class Line {
         if (capacity < 0) {
             return;
         }
-        this._logger.log('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
+        this._logger.info('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
         const vertexBuffer = new ArrayBuffer(this._getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(this._getIndexBufferSize(capacity));
         copyBuffer(this._vertexBuffer, vertexBuffer);

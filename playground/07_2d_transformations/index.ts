@@ -20,7 +20,7 @@ main();
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     const makePrimitive = makePrimitiveFactory(runtime);
     const render1 = makeFigureRenderer(makePrimitive, colors.BLUE, vec2(50, 50));

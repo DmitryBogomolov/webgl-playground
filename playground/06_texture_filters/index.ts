@@ -16,7 +16,7 @@ main();
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
@@ -44,11 +44,12 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     const vertices = new Float32Array([
         -1, -1,
         +1, -1,
@@ -74,7 +75,7 @@ function makePrimitive(runtime: Runtime): Primitive {
 }
 
 function makeTexture(runtime: Runtime): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     texture.setParameters({
         min_filter: 'nearest',
         mag_filter: 'nearest',

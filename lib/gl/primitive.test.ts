@@ -33,7 +33,7 @@ describe('primitive', () => {
         });
 
         it('create primitive', () => {
-            new Primitive(runtime);
+            new Primitive({ runtime });
             expect(createVertexArrayOES.mock.calls).toEqual([
                 [],
             ]);

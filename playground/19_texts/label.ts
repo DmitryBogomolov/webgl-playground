@@ -15,7 +15,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
         2, 3, 0,
     ]);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
@@ -27,7 +27,8 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -37,7 +38,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
 }
 
 export function makeLabelTexture(runtime: Runtime, text: string, fontSize: number): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;

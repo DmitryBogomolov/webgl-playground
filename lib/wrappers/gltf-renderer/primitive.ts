@@ -84,7 +84,7 @@ export function createPrimitive(
         makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
     ) : null;
 
-    const result = new Primitive(runtime);
+    const result = new Primitive({ runtime });
     context.add(result);
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);

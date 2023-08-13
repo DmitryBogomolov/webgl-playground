@@ -1,4 +1,5 @@
 import type {
+    ImageRendererParams,
     ImageRendererImageData, ImageRendererRawImageData, ImageRendererUrlImageData,
     ImageRendererRegion, ImageRendererLocation,
 } from './image-renderer.types';
@@ -11,7 +12,7 @@ import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
 } from '../../geometry/mat4';
-import { BaseDisposable } from '../../common/base-disposable';
+import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
@@ -30,7 +31,7 @@ function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageD
     return data && typeof (data as ImageRendererUrlImageData).url === 'string';
 }
 
-export class ImageRenderer extends BaseDisposable {
+export class ImageRenderer extends BaseObject {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
@@ -43,18 +44,18 @@ export class ImageRenderer extends BaseDisposable {
     private readonly _texmat: Mat4 = mat4();
     private _texmatDirty: boolean = true;
 
-    constructor(runtime: Runtime, tag?: string) {
-        super(runtime.logger(), tag);
-        this._runtime = runtime;
+    constructor(params: ImageRendererParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._runtime = params.runtime;
         this._primitive = this._createPrimitive();
-        this._texture = this._createTexture(tag);
+        this._texture = this._createTexture(params.tag);
         this._renderTargetSize = this._runtime.getRenderTarget().size();
     }
 
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
-        this._emitDisposed();
+        this._dispose();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
@@ -65,7 +66,7 @@ export class ImageRenderer extends BaseDisposable {
     }
 
     private _createTexture(tag: string | undefined): Texture {
-        const texture = new Texture(this._runtime, tag);
+        const texture = new Texture({ runtime: this._runtime, tag });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
@@ -98,7 +99,7 @@ export class ImageRenderer extends BaseDisposable {
             log = 'tex_image_source';
             imageData = data;
         }
-        this._logger.log('set_image_data({0})', log);
+        this._logger.info('set_image_data({0})', log);
         this._texture.setImageData(imageData, { unpackFlipY });
         this._matDirty = this._texmatDirty = true;
     }
@@ -114,7 +115,7 @@ export class ImageRenderer extends BaseDisposable {
         if (this._textureUnit === unit) {
             return;
         }
-        this._logger.log('set_texture_unit({0})', unit);
+        this._logger.info('set_texture_unit({0})', unit);
         this._textureUnit = unit;
     }
 
@@ -129,7 +130,7 @@ export class ImageRenderer extends BaseDisposable {
         if (compareRegions(this._region, region)) {
             return;
         }
-        this._logger.log('set_region({0})', region);
+        this._logger.info('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -151,7 +152,7 @@ export class ImageRenderer extends BaseDisposable {
         if (compareLocations(this._location, location)) {
             return;
         }
-        this._logger.log('set_location({0})', location);
+        this._logger.info('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
     }
@@ -317,7 +318,7 @@ function releasePrimitive(runtime: Runtime): void {
 }
 
 function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
-    const primitive = new Primitive(runtime, tag);
+    const primitive = new Primitive({ runtime, tag });
     const vertices = new Float32Array([
         -1, -1,
         +1, -1,
@@ -339,10 +340,12 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
         indexCount: indices.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
-    }, tag);
+        tag,
+    });
     primitive.setProgram(program);
     return primitive;
 }

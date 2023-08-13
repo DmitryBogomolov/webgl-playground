@@ -53,7 +53,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container, { extensions: ['depth_texture'] });
+    const runtime = new Runtime({ element: container, options: { extensions: ['depth_texture'] } });
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
@@ -96,7 +96,8 @@ function main(): void {
         depthCamera.setZFar(zFar);
     });
 
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         useDepthTexture: true,
         size: { x: 512, y: 512 },

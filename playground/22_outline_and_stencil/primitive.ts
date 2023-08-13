@@ -44,15 +44,18 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
 } {
     const models: Model[] = [];
 
-    const objectProgram = new Program(runtime, {
+    const objectProgram = new Program({
+        runtime,
         vertShader: objectVertShader,
         fragShader: objectFragShader,
     });
-    const outlineProgram = new Program(runtime, {
+    const outlineProgram = new Program({
+        runtime,
         vertShader: outlineVertShader,
         fragShader: outlineFragShader,
     });
-    const idProgram = new Program(runtime, {
+    const idProgram = new Program({
+        runtime,
         vertShader: idVertShader,
         fragShader: idFragShader,
     });
@@ -136,7 +139,7 @@ function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<
     }
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);

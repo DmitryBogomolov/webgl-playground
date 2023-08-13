@@ -2,7 +2,7 @@ import type { Logger, LoggerDriver } from './logger.types';
 import { formatStr } from '../utils/string-formatter';
 
 const DUMMY_DRIVER: LoggerDriver = {
-    log() { /* empty */ },
+    info() { /* empty */ },
     warn() { /* empty */ },
     error() { /* empty */ },
 };
@@ -24,9 +24,9 @@ export class LoggerImpl implements Logger {
         return this._driver;
     }
 
-    log(format: string, ...params: unknown[]): string {
+    info(format: string, ...params: unknown[]): string {
         const message = this._wrap(format, ...params);
-        this._driver.log(message);
+        this._driver.info(message);
         return message;
     }
 
@@ -63,7 +63,7 @@ function patchStack(err: Error, message: string): string | undefined {
 class ConsoleLoggerDriver implements LoggerDriver {
     private _silent: boolean = false;
 
-    log(message: string): void {
+    info(message: string): void {
         this._silent || console.log(message);
     }
 

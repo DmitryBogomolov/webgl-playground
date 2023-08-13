@@ -2,15 +2,15 @@ import { LoggerImpl } from './logger';
 
 describe('logger', () => {
     describe('LoggerImpl', () => {
-        it('log', () => {
-            const log = jest.fn();
+        it('info', () => {
+            const info = jest.fn();
             const tmp = new LoggerImpl('');
-            Object.assign(tmp, { _driver: { log } });
+            Object.assign(tmp, { _driver: { info } });
             const logger = new LoggerImpl('test-logger', tmp);
 
-            expect(logger.log('Hello World')).toEqual('[test-logger]: Hello World');
-            expect(logger.log('Hello {0} {1}', 1, 'test')).toEqual('[test-logger]: Hello 1 test');
-            expect(log.mock.calls).toEqual([
+            expect(logger.info('Hello World')).toEqual('[test-logger]: Hello World');
+            expect(logger.info('Hello {0} {1}', 1, 'test')).toEqual('[test-logger]: Hello 1 test');
+            expect(info.mock.calls).toEqual([
                 ['[test-logger]: Hello World'],
                 ['[test-logger]: Hello 1 test'],
             ]);

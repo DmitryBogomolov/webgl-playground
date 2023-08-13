@@ -26,7 +26,8 @@ function lockProgram(runtime: Runtime, description: Mapping<string, string>): Pr
 function createProgram(
     runtime: Runtime, collection: Map<string, ProgramInfo>, key: string, description: Mapping<string, string>,
 ): ProgramInfo {
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: makeShaderSource(vertShader, description),
         fragShader: makeShaderSource(fragShader, description),
         locations: {

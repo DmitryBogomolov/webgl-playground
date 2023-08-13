@@ -52,7 +52,7 @@ interface Controls {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
     const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));
@@ -122,7 +122,7 @@ function main(): void {
 }
 
 function makeTexture(runtime: Runtime): Texture {
-    const texture = new Texture(runtime);
+    const texture = new Texture({ runtime });
     texture.setImageData(makeTextureData(), { unpackFlipY: true });
     return texture;
 }
@@ -139,7 +139,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         2, 3, 0,
     ]);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
@@ -152,7 +152,8 @@ function makePrimitive(runtime: Runtime): Primitive {
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });

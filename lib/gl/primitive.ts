@@ -1,12 +1,12 @@
 import type {
+    PrimitiveParams, PrimitiveRuntime,
     PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
     PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
-    PrimitiveRuntime,
 } from './primitive.types';
 import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { wrap } from './gl-handle-wrapper';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -71,7 +71,7 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'ushort';
 
-export class Primitive extends BaseDisposable {
+export class Primitive extends BaseObject {
     private readonly _runtime: PrimitiveRuntime;
     private readonly _vao: WebGLVertexArrayObjectOES;
     private readonly _vertexBuffer: WebGLBuffer;
@@ -85,21 +85,21 @@ export class Primitive extends BaseDisposable {
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
-    constructor(runtime: PrimitiveRuntime, tag?: string) {
-        super(runtime.logger(), tag);
-        this._logger.log('init');
-        this._runtime = runtime;
+    constructor(params: PrimitiveParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._logger.info('init');
+        this._runtime = params.runtime;
         this._vao = this._createVao();
         this._vertexBuffer = this._createBuffer();
         this._indexBuffer = this._createBuffer();
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         this._runtime.gl().deleteBuffer(this._vertexBuffer);
         this._runtime.gl().deleteBuffer(this._indexBuffer);
         this._runtime.vaoExt().deleteVertexArrayOES(this._vao);
-        this._emitDisposed();
+        this._dispose();
     }
 
     private _createVao(): WebGLVertexArrayObjectOES {
@@ -122,7 +122,7 @@ export class Primitive extends BaseDisposable {
         if (size < 0) {
             throw this._logger.error(`allocate_vertex_buffer(${size}): bad value`);
         }
-        this._logger.log(`allocate_vertex_buffer(${size})`);
+        this._logger.info(`allocate_vertex_buffer(${size})`);
         const gl = this._runtime.gl();
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
@@ -133,7 +133,7 @@ export class Primitive extends BaseDisposable {
         if (size < 0) {
             throw this._logger.error(`allocate_index_buffer(${size}): bad value`);
         }
-        this._logger.log(`allocate_index_buffer(${size})`);
+        this._logger.info(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
@@ -141,14 +141,14 @@ export class Primitive extends BaseDisposable {
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logger.log(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
+        this._logger.info(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logger.log(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
+        this._logger.info(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
@@ -158,7 +158,7 @@ export class Primitive extends BaseDisposable {
         if (!schema) {
             throw this._logger.error('set_vertex_schema: not defined');
         }
-        this._logger.log(`set_vertex_schema(attributes=${schema.attributes.length})`);
+        this._logger.info(`set_vertex_schema(attributes=${schema.attributes.length})`);
         this._attributes = validateVertexSchema(schema);
         const gl = this._runtime.gl();
         try {
@@ -182,7 +182,7 @@ export class Primitive extends BaseDisposable {
             throw this._logger.error('set_index_config: not defined');
         }
         const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logger.log(
+        this._logger.info(
             `set_index_config:(count=${indexCount}, offset=${indexOffset}, type=${indexType}, mode=${primitiveMode})`);
         if (indexCount < 0) {
             throw this._logger.error(`bad index count: ${indexCount}`);
@@ -219,7 +219,7 @@ export class Primitive extends BaseDisposable {
         if (this._program === program) {
             return;
         }
-        this._logger.log(`set_program(${prog.id()})`);
+        this._logger.info(`set_program(${prog.id()})`);
         this._program = prog;
     }
 

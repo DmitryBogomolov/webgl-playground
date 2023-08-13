@@ -1,11 +1,11 @@
 import type {
+    ProgramParams, ProgramRuntime,
     SHADER_ATTRIBUTE_TYPE, SHADER_UNIFORM_TYPE, ShaderAttribute, ShaderUniform, SHADER_UNIFORM_VALUE,
-    ProgramOptions, ProgramRuntime,
 } from './program.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
 import type { Logger } from '../common/logger.types';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -167,7 +167,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
     },
 };
 
-export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProgram> {
+export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
@@ -176,19 +176,19 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     private readonly _uniformsMap: Record<string, number>;
     private readonly _program: WebGLProgram;
 
-    constructor(runtime: ProgramRuntime, options: ProgramOptions, tag?: string) {
-        super(runtime.logger(), tag);
-        this._logger.log('init');
-        this._runtime = runtime;
+    constructor(params: ProgramParams) {
+        super({ logger: params.runtime.logger(), ...params });
+        this._logger.info('init');
+        this._runtime = params.runtime;
         const gl = this._runtime.gl();
         const ctx = new DisposableContext();
         try {
             this._program = createProgram(gl, ctx);
-            const prefix = buildSourcePrefix(options.defines);
-            this._vertShader = createShader(gl, GL_VERTEX_SHADER, combineSource(options.vertShader, prefix), ctx);
-            this._fragShader = createShader(gl, GL_FRAGMENT_SHADER, combineSource(options.fragShader, prefix), ctx);
-            if (options.locations) {
-                bindAttributes(gl, this._program, options.locations);
+            const prefix = buildSourcePrefix(params.defines);
+            this._vertShader = createShader(gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), ctx);
+            this._fragShader = createShader(gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), ctx);
+            if (params.locations) {
+                bindAttributes(gl, this._program, params.locations);
             }
             linkProgram(gl, this._program, this._vertShader, this._fragShader);
             this._attributes = collectAttributes(gl, this._program);
@@ -203,12 +203,12 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         const gl = this._runtime.gl();
         gl.deleteShader(this._vertShader);
         gl.deleteShader(this._fragShader);
         gl.deleteProgram(this._program);
-        this._emitDisposed();
+        this._dispose();
     }
 
     glHandle(): WebGLProgram {
@@ -224,7 +224,7 @@ export class Program extends BaseDisposable implements GLHandleWrapper<WebGLProg
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logger.log(`set_uniform(${name}: ${toStr(value)})`);
+        this._logger.info(`set_uniform(${name}: ${toStr(value)})`);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {

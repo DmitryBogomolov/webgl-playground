@@ -15,7 +15,8 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         ],
     };
     const VERTEX_SIZE = 12;
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
@@ -31,7 +32,7 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     ];
 
     return (clr) => {
-        const primitive = new Primitive(runtime);
+        const primitive = new Primitive({ runtime });
         const vertexData = new ArrayBuffer(points.length * VERTEX_SIZE);
         const writer = new VertexWriter(schema, vertexData);
         for (let i = 0; i < points.length; ++i) {

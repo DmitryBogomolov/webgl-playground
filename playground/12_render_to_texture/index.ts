@@ -44,7 +44,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
@@ -70,7 +70,8 @@ function main(): void {
         return mat as Mat4;
     }, [xRotation, yRotation]);
 
-    const framebuffer = new Framebuffer(runtime, {
+    const framebuffer = new Framebuffer({
+        runtime,
         attachment: 'color|depth',
         size: { x: 256, y: 256 },
     });

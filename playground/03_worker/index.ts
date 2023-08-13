@@ -23,7 +23,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
 
     const state: State = {
@@ -88,11 +88,12 @@ function makePrimitive(runtime: Runtime): Primitive {
     const schema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float2' }],
     };
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const vertices: Vec2[] = [
         vec2(-1, -1),

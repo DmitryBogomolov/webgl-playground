@@ -1,5 +1,5 @@
 import type { PrimitiveVertexSchema, Vec2, Color } from 'lib';
-import { Runtime, Program, Primitive, VertexWriter, generateDefaultIndexes, colors, vec2 } from 'lib';
+import { Runtime, Program, Primitive, VertexWriter, colors, vec2 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -17,7 +17,7 @@ interface Vertex {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime(container);
+    const runtime = new Runtime({ element: container });
     const primitive = makePrimitive(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
@@ -32,11 +32,12 @@ function makePrimitive(runtime: Runtime): Primitive {
             { type: 'ubyte4', normalized: true },
         ],
     };
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const c1 = colors.RED;
     const c2 = colors.YELLOW;
@@ -68,7 +69,9 @@ function makePrimitive(runtime: Runtime): Primitive {
         writer.writeAttribute(i, 0, vertex.position);
         writer.writeAttribute(i, 1, vertex.color);
     }
-    const indexData = new Uint16Array(generateDefaultIndexes(vertices.length));
+    const indexData = new Uint16Array(
+        Array(vertices.length).fill(0).map((_, i) => i),
+    );
 
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);

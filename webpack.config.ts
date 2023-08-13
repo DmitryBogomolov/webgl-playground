@@ -92,7 +92,7 @@ const config: Configuration = {
         },
     },
     plugins: [
-        new CleanWebpackPlugin(),
+        new CleanWebpackPlugin({ dry: false, dangerouslyAllowCleanPatternsOutsideProject: true }),
         new MiniCssWebpackPlugin(),
         // Without it "[WDS] Nothing changed" (in browser console) is reported when template files are updated.
         // As a result hot reload does not happen and page content is not updated.

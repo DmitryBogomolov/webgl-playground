@@ -12,7 +12,7 @@ import texturePlaneVertShader from './shaders/texture-plane.vert';
 import texturePlaneFragShader from './shaders/texture-plane.frag';
 
 export function makeObject(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const schema: PrimitiveVertexSchema = {
         attributes: [
@@ -38,7 +38,8 @@ export function makeObject(runtime: Runtime): Primitive {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: objectVertShader,
         fragShader: objectFragShader,
     });
@@ -48,7 +49,7 @@ export function makeObject(runtime: Runtime): Primitive {
 }
 
 export function makeTexturePlane(runtime: Runtime): Primitive {
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
 
     const schema: PrimitiveVertexSchema = {
         attributes: [
@@ -74,7 +75,8 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
     primitive.setVertexSchema(schema);
     primitive.setIndexConfig({ indexCount: indexData.length });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader: texturePlaneVertShader,
         fragShader: texturePlaneFragShader,
     });

@@ -193,7 +193,7 @@ const RENDER_STATE_COMPARERS: RenderStateComparers = {
 
 const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
     depthTest: (depthTest, gl, logger) => {
-        logger.log('set_depth_test({0})', depthTest);
+        logger.info('set_depth_test({0})', depthTest);
         if (depthTest) {
             gl.enable(GL_DEPTH_TEST);
         } else {
@@ -202,17 +202,17 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
     },
 
     depthMask: (depthMask, gl, logger) => {
-        logger.log('set_depth_mask({0})', depthMask);
+        logger.info('set_depth_mask({0})', depthMask);
         gl.depthMask(depthMask);
     },
 
     depthFunc: (depthFunc, gl, logger) => {
-        logger.log('set_depth_func({0})', depthFunc);
+        logger.info('set_depth_func({0})', depthFunc);
         gl.depthFunc(DEPTH_FUNC_MAP[depthFunc]);
     },
 
     stencilTest: (stencilTest, gl, logger) => {
-        logger.log('set_stencil_test({0})', stencilTest);
+        logger.info('set_stencil_test({0})', stencilTest);
         if (stencilTest) {
             gl.enable(GL_STENCIL_TEST);
         } else {
@@ -221,25 +221,25 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
     },
 
     stencilMask: (stencilMask, gl, logger) => {
-        logger.log('set_stencil_mask({0})', stencilMask);
+        logger.info('set_stencil_mask({0})', stencilMask);
         gl.stencilMask(stencilMask);
     },
 
     stencilFunc: (stencilFunc, gl, logger) => {
-        logger.log('set_stencil_func(func={0}, ref={1}, mask={2})',
+        logger.info('set_stencil_func(func={0}, ref={1}, mask={2})',
             stencilFunc.func, stencilFunc.ref, stencilFunc.mask);
         gl.stencilFunc(STENCIL_FUNC_MAP[stencilFunc.func], stencilFunc.ref, stencilFunc.mask);
     },
 
     stencilOp: (stencilOp, gl, logger) => {
-        logger.log('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
+        logger.info('set_stencil_op(fail={0}, zfail={1}, zpass={2})',
             stencilOp.fail, stencilOp.zfail, stencilOp.zpass);
         gl.stencilOp(
             STENCIL_OP_MAP[stencilOp.fail], STENCIL_OP_MAP[stencilOp.zfail], STENCIL_OP_MAP[stencilOp.zpass]);
     },
 
     culling: (culling, gl, logger) => {
-        logger.log('set_culling({0})', culling);
+        logger.info('set_culling({0})', culling);
         if (culling) {
             gl.enable(GL_CULL_FACE);
         } else {
@@ -248,12 +248,12 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
     },
 
     cullFace: (cullFace, gl, logger) => {
-        logger.log('set_cull_face({0})', cullFace);
+        logger.info('set_cull_face({0})', cullFace);
         gl.cullFace(CULL_FACE_MAP[cullFace]);
     },
 
     blending: (blending, gl, logger) => {
-        logger.log('set_blending({0})', blending);
+        logger.info('set_blending({0})', blending);
         if (blending) {
             gl.enable(GL_BLEND);
         } else {
@@ -262,7 +262,7 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
     },
 
     blendFunc: (blendFunc, gl, logger) => {
-        logger.log('set_blend_func({0})', blendFunc);
+        logger.info('set_blend_func({0})', blendFunc);
         gl.blendFunc(BLEND_FUNC_MAP_SRC[blendFunc], BLEND_FUNC_MAP_DST[blendFunc]);
     },
 };

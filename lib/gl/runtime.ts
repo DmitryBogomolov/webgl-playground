@@ -1,4 +1,5 @@
 import type {
+    RuntimeParams,
     READ_PIXELS_FORMAT, ReadPixelsOptions,
     EXTENSION,
     UNPACK_COLORSPACE_CONVERSION,
@@ -20,8 +21,7 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
-import { BaseIdentity } from '../common/base-identity';
-import { BaseDisposable } from '../common/base-disposable';
+import { BaseObject } from './base-object';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { EventEmitter } from '../common/event-emitter';
@@ -118,7 +118,7 @@ const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
 
-export class Runtime extends BaseDisposable {
+export class Runtime extends BaseObject {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
@@ -151,17 +151,19 @@ export class Runtime extends BaseDisposable {
         this.adjustViewport();
     };
 
-    constructor(element: HTMLElement, options?: RuntimeOptions, tag?: string) {
-        super(null, tag, RootLogger);
-        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...options };
-        this._logger.log('init');
-        this._canvas = element instanceof HTMLCanvasElement ? element : createCanvas(element);
+    constructor(params: RuntimeParams) {
+        super({ ...params, logger: new RootLogger('') });
+        // @ts-ignore Override.
+        this._logger = new RootLogger(this._id);
+        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
+        this._logger.info('init');
+        this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext();
         this._vaoExt = this._getVaoExt();
         this._enableExtensions();
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
-        this._defaultRenderTarget = new DefaultRenderTarget(this, tag);
+        this._defaultRenderTarget = new DefaultRenderTarget(this, params.tag);
         this._bindingsState = getDefaultBindingsState();
         this._clearState = getDefaultClearState();
         this._pixelStoreState = getDefaultPixelStoreState();
@@ -173,7 +175,7 @@ export class Runtime extends BaseDisposable {
     }
 
     dispose(): void {
-        this._logger.log('dispose');
+        this._logger.info('dispose');
         this._renderLoop.cancel();
         this._renderLoop.clearCallbacks();
         this._sizeChanged.clear();
@@ -185,7 +187,7 @@ export class Runtime extends BaseDisposable {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
-        this._emitDisposed();
+        this._dispose();
     }
 
     gl(): WebGLRenderingContext {
@@ -234,7 +236,7 @@ export class Runtime extends BaseDisposable {
         if (eq2(this._viewportSize, size)) {
             return;
         }
-        this._logger.log('update_viewport({0}, {1})', size.x, size.y);
+        this._logger.info('update_viewport({0}, {1})', size.x, size.y);
         this._gl.viewport(0, 0, size.x, size.y);
         this._viewportSize = clone2(size);
     }
@@ -254,7 +256,7 @@ export class Runtime extends BaseDisposable {
         if (eq2(this._size, size)) {
             return false;
         }
-        this._logger.log('set_size(width={0}, height={1})', size.x, size.y);
+        this._logger.info('set_size(width={0}, height={1})', size.x, size.y);
         this._size = clone2(size);
         this._canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
         this._canvas.width = this._canvasSize.x;
@@ -278,7 +280,7 @@ export class Runtime extends BaseDisposable {
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         const value = BUFFER_MASK_MAP[mask];
-        this._logger.log('clear_buffer({0})', mask);
+        this._logger.info('clear_buffer({0})', mask);
         this._gl.clear(value);
     }
 
@@ -301,7 +303,7 @@ export class Runtime extends BaseDisposable {
             return false;
         }
         const { r, g, b, a } = clearColor;
-        this._logger.log('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
+        this._logger.info('set_clear_color({0}, {1}, {2}, {3})', r, g, b, a);
         this._gl.clearColor(r, g, b, a);
         this._clearState.clearColor = color(r, g, b, a);
         return true;
@@ -318,7 +320,7 @@ export class Runtime extends BaseDisposable {
         if (this._clearState.clearDepth === clearDepth) {
             return false;
         }
-        this._logger.log('set_clear_depth({0})', clearDepth);
+        this._logger.info('set_clear_depth({0})', clearDepth);
         this._gl.clearDepth(Number(clearDepth));
         this._clearState.clearDepth = Number(clearDepth);
         return true;
@@ -335,7 +337,7 @@ export class Runtime extends BaseDisposable {
         if (this._clearState.clearStencil === clearStencil) {
             return false;
         }
-        this._logger.log('set_clear_stencil({0})', clearStencil);
+        this._logger.info('set_clear_stencil({0})', clearStencil);
         this._gl.clearStencil(Number(clearStencil));
         this._clearState.clearStencil = Number(clearStencil);
         return true;
@@ -402,7 +404,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.currentProgram === handle) {
             return;
         }
-        this._logger.log('use_program({0})', program ? program.id() : null);
+        this._logger.info('use_program({0})', program ? program.id() : null);
         this._gl.useProgram(handle);
         this._bindingsState.currentProgram = handle;
     }
@@ -412,7 +414,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.vertexArrayObject === handle) {
             return;
         }
-        this._logger.log('bind_vertex_array_object({0})', vertexArrayObject ? vertexArrayObject.id() : null);
+        this._logger.info('bind_vertex_array_object({0})', vertexArrayObject ? vertexArrayObject.id() : null);
         this._vaoExt.bindVertexArrayOES(handle);
         this._bindingsState.vertexArrayObject = handle;
     }
@@ -422,7 +424,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.arrayBuffer === buffer) {
             return;
         }
-        this._logger.log('bind_array_buffer({0})', buffer ? buffer.id() : null);
+        this._logger.info('bind_array_buffer({0})', buffer ? buffer.id() : null);
         this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
         this._bindingsState.arrayBuffer = handle;
     }
@@ -432,7 +434,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] === handle) {
             return;
         }
-        this._logger.log('bind_element_array_buffer({0})', buffer ? buffer.id() : null);
+        this._logger.info('bind_element_array_buffer({0})', buffer ? buffer.id() : null);
         this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
         this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] = handle;
     }
@@ -442,7 +444,7 @@ export class Runtime extends BaseDisposable {
         if ((this._bindingsState.boundTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logger.log('bind_texture({0})', texture ? texture.id() : null);
+        this._logger.info('bind_texture({0})', texture ? texture.id() : null);
         this._gl.bindTexture(GL_TEXTURE_2D, handle);
         this._bindingsState.boundTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -452,7 +454,7 @@ export class Runtime extends BaseDisposable {
         if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logger.log('bind_cube_texture({0})', texture ? texture.id() : null);
+        this._logger.info('bind_cube_texture({0})', texture ? texture.id() : null);
         this._gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
         this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -463,7 +465,7 @@ export class Runtime extends BaseDisposable {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logger.log('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
+            this._logger.info('set_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -476,7 +478,7 @@ export class Runtime extends BaseDisposable {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logger.log('set_cube_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
+            this._logger.info('set_cube_texture_unit({0}, {1})', unit, texture ? texture.id() : null);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -491,7 +493,7 @@ export class Runtime extends BaseDisposable {
         if (this._pixelStoreState.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
             return false;
         }
-        this._logger.log('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
+        this._logger.info('unpack_flip_y_webgl({0})', unpackFlipYWebgl);
         this._gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
         this._pixelStoreState.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
         return true;
@@ -505,7 +507,7 @@ export class Runtime extends BaseDisposable {
         if (this._pixelStoreState.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
             return false;
         }
-        this._logger.log('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
+        this._logger.info('unpack_premultiply_alpha_webgl({0})', unpackPremultiplyAlphaWebgl);
         this._gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
         this._pixelStoreState.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
         return true;
@@ -521,7 +523,7 @@ export class Runtime extends BaseDisposable {
         if (this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl === unpackColorSpaceConversionWebgl) {
             return false;
         }
-        this._logger.log('unpack_colorspace_conversion_webgl({0})', unpackColorSpaceConversionWebgl);
+        this._logger.info('unpack_colorspace_conversion_webgl({0})', unpackColorSpaceConversionWebgl);
         const value = UNPACK_COLORSPACE_CONVERSION_MAP[unpackColorSpaceConversionWebgl];
         this._gl.pixelStorei(GL_UNPACK_COLORSPACE_CONVERSION_WEBGL, value);
         this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl = unpackColorSpaceConversionWebgl;
@@ -533,7 +535,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.framebuffer === handle) {
             return;
         }
-        this._logger.log('bind_framebuffer({0})', framebuffer ? framebuffer.id() : null);
+        this._logger.info('bind_framebuffer({0})', framebuffer ? framebuffer.id() : null);
         this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
         this._bindingsState.framebuffer = handle;
     }
@@ -553,7 +555,7 @@ export class Runtime extends BaseDisposable {
         if (this._renderTarget === renderTarget) {
             return;
         }
-        this._logger.log('set_render_target({0})', renderTarget ? renderTarget.id() : null);
+        this._logger.info('set_render_target({0})', renderTarget ? renderTarget.id() : null);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this._updateViewport((renderTarget || this._defaultRenderTarget).size());
         this._renderTarget = renderTarget;
@@ -564,7 +566,7 @@ export class Runtime extends BaseDisposable {
         if (this._bindingsState.renderbuffer === handle) {
             return;
         }
-        this._logger.log('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
+        this._logger.info('bind_renderbuffer({0})', renderbuffer ? renderbuffer.id() : null);
         this._gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
         this._bindingsState.renderbuffer = handle;
     }
@@ -643,11 +645,11 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget extends BaseIdentity implements RenderTarget {
+class DefaultRenderTarget extends BaseObject implements RenderTarget {
     private readonly _runtime: Runtime;
 
-    constructor(runtime: Runtime, tag?: string) {
-        super(runtime.logger(), tag);
+    constructor(runtime: Runtime, tag: string | undefined) {
+        super({ logger: runtime.logger(), tag });
         this._runtime = runtime;
     }
 

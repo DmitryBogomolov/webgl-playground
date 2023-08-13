@@ -51,7 +51,7 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
     const vertexData = new Float32Array(vertices);
     const indexData = new Uint16Array(indices);
 
-    const primitive = new Primitive(runtime);
+    const primitive = new Primitive({ runtime });
     primitive.allocateVertexBuffer(vertexData.byteLength);
     primitive.updateVertexData(vertexData);
     primitive.allocateIndexBuffer(indexData.byteLength);
@@ -66,7 +66,8 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
         indexCount: indexData.length,
     });
 
-    const program = new Program(runtime, {
+    const program = new Program({
+        runtime,
         vertShader,
         fragShader,
     });
