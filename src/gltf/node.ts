@@ -1,6 +1,6 @@
 import type { GlTFSchema } from './asset.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
-import type { Vec4Mut } from 'lib/geometry/vec4.types';
+import type { Vec4Mut } from '../geometry/vec4.types';
 import { vec3 } from '../geometry/vec3';
 import { vec4 } from '../geometry/vec4';
 import { quat4toAxisAngle } from '../geometry/quat4';

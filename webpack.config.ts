@@ -48,8 +48,8 @@ const config: Configuration = {
     resolve: {
         extensions: ['.ts', '.js'],
         alias: {
-            lib: path.join(__dirname, './lib/index.ts'),
-            'playground-utils': path.join(__dirname, './playground-utils'),
+            lib: path.join(__dirname, './src/index.ts'),
+            'playground-utils': path.join(__dirname, './playground-utils/'),
         },
     },
     module: {
