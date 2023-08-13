@@ -17,6 +17,7 @@ import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
 import { memoize } from '../../utils/memoizer';
+import { toStr } from '../../utils/string-formatter';
 import { makeImage } from '../../utils/image-maker';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -81,7 +82,7 @@ export class ImageRenderer extends BaseObject {
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
         if (!data) {
-            throw this._logger.error('set_image_data: not defined');
+            throw this._logError('set_image_data: not defined');
         }
         let imageData: TextureImageData;
         let unpackFlipY = false;
@@ -110,7 +111,7 @@ export class ImageRenderer extends BaseObject {
 
     setTextureUnit(unit: number): void {
         if (!(unit >= 0)) {
-            throw this._logger.error('set_texture_unit({0}): bad value', unit);
+            throw this._logError(`set_texture_unit(${unit}): bad value`);
         }
         if (this._textureUnit === unit) {
             return;
@@ -125,7 +126,7 @@ export class ImageRenderer extends BaseObject {
 
     setRegion(region: ImageRendererRegion): void {
         if (!region) {
-            throw this._logger.error('set_region: not defined');
+            throw this._logError('set_region: not defined');
         }
         if (compareRegions(this._region, region)) {
             return;
@@ -141,13 +142,13 @@ export class ImageRenderer extends BaseObject {
 
     setLocation(location: ImageRendererLocation): void {
         if (!location) {
-            throw this._logger.error('set_location: not defined');
+            throw this._logError('set_location: not defined');
         }
         if (
             (location.x1 === undefined && location.x2 === undefined) ||
             (location.y1 === undefined && location.y2 === undefined)
         ) {
-            throw this._logger.error('set_location: not enough data {0}', location);
+            throw this._logError(`set_location: not enough data: ${toStr(location)}`);
         }
         if (compareLocations(this._location, location)) {
             return;

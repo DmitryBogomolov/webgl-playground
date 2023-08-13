@@ -115,7 +115,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl().createTexture();
         if (!texture) {
-            throw this._logger.error('failed to create texture');
+            throw this._logError('failed to create texture');
         }
         return texture;
     }
@@ -178,7 +178,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
         if (!params) {
-            throw this._logger.error('set_parameters: not defined');
+            throw this._logError('set_parameters: not defined');
         }
         for (const entry of Object.entries(params)) {
             const key = entry[0] as keyof State;
@@ -186,7 +186,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
+                    throw this._logError(`set_paramater(${key} = ${toStr(val)}): bad value`);
                 }
                 if (this._state[key] !== val) {
                     this._logger.info('set_parameter({0} = {1})', key, val);

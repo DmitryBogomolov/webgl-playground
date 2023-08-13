@@ -24,6 +24,7 @@ import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
 import { LoggerImpl, RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
+import { toStr } from '../utils/string-formatter';
 import { EventEmitter } from '../common/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
@@ -206,7 +207,7 @@ export class Runtime extends BaseObject {
         const context = this._canvas.getContext('webgl',
             { ...DEFAULT_CONTEXT_ATTRIBUTES, ...this._options.contextAttributes });
         if (!context) {
-            throw this._logger.error('failed to get webgl context');
+            throw this._logError('failed to get webgl context');
         }
         return context;
     }
@@ -214,7 +215,7 @@ export class Runtime extends BaseObject {
     private _getVaoExt(): OES_vertex_array_object {
         const ext = this._gl.getExtension('OES_vertex_array_object');
         if (!ext) {
-            throw this._logger.error('failed to get OES_vertex_array_object extension');
+            throw this._logError('failed to get OES_vertex_array_object extension');
         }
         return ext;
     }
@@ -223,11 +224,11 @@ export class Runtime extends BaseObject {
         for (const ext of this._options.extensions) {
             const name = EXTENSION_MAP[ext];
             if (!name) {
-                throw this._logger.error('extension {0}: bad value', ext);
+                throw this._logError(`extension ${ext}: bad value`);
             }
             const ret = this._gl.getExtension(name) as unknown;
             if (!ret) {
-                throw this._logger.error('failed to get {0} extension', name);
+                throw this._logError(`failed to get ${name} extension`);
             }
         }
     }
@@ -251,7 +252,7 @@ export class Runtime extends BaseObject {
 
     setSize(size: Vec2): boolean {
         if (!isVec2(size)) {
-            throw this._logger.error('set_size({0}): bad value', size);
+            throw this._logError(`set_size(${toStr(size)}): bad value`);
         }
         if (eq2(this._size, size)) {
             return false;
@@ -286,7 +287,7 @@ export class Runtime extends BaseObject {
 
     setRenderState(state: Readonly<RenderState>): boolean {
         if (!isRenderState(state)) {
-            throw this._logger.error('set_render_state(...): bad value');
+            throw this._logError(`set_render_state(${toStr(state)}): bad value`);
         }
         return applyRenderState(this._renderState, state, this._gl, this._logger);
     }
@@ -297,7 +298,7 @@ export class Runtime extends BaseObject {
 
     setClearColor(clearColor: Color): boolean {
         if (!isColor(clearColor)) {
-            throw this._logger.error('set_clear_color({0}): bad value', clearColor);
+            throw this._logError(`set_clear_color(${toStr(clearColor)}): bad value`);
         }
         if (colorEq(this._clearState.clearColor, clearColor)) {
             return false;
@@ -315,7 +316,7 @@ export class Runtime extends BaseObject {
 
     setClearDepth(clearDepth: number): boolean {
         if (!(0 <= clearDepth && clearDepth <= 1)) {
-            throw this._logger.error('set_clear_depth({0}): bad value', clearDepth);
+            throw this._logError(`set_clear_depth(${clearDepth}): bad value`);
         }
         if (this._clearState.clearDepth === clearDepth) {
             return false;
@@ -332,7 +333,7 @@ export class Runtime extends BaseObject {
 
     setClearStencil(clearStencil: number): boolean {
         if (!(0 <= clearStencil && clearStencil <= 1)) {
-            throw this._logger.error('set_clear_stencil({0}): bad value', clearStencil);
+            throw this._logError(`set_clear_stencil(${clearStencil}): bad value`);
         }
         if (this._clearState.clearStencil === clearStencil) {
             return false;

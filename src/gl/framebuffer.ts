@@ -89,7 +89,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _createFramebuffer(): WebGLFramebuffer {
         const framebuffer = this._runtime.gl().createFramebuffer();
         if (!framebuffer) {
-            throw this._logger.error('failed to create framebuffer');
+            throw this._logError('failed to create framebuffer');
         }
         return framebuffer;
     }
@@ -97,7 +97,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _createRenderbuffer(): WebGLRenderbuffer {
         const renderbuffer = this._runtime.gl().createRenderbuffer();
         if (!renderbuffer) {
-            throw this._logger.error('failed to create renderbuffer');
+            throw this._logError('failed to create renderbuffer');
         }
         return renderbuffer;
     }
@@ -199,12 +199,12 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
                 }
                 break;
             default:
-                this._logger.error('bad attachment type: {0}', attachment);
+                throw this._logError(`bad attachment type: ${attachment}`);
                 break;
             }
             const status = this._runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
             if (status !== GL_FRAMEBUFFER_COMPLETE) {
-                throw this._logger.error('failed to setup attachment: {0}', ERRORS_MAP[status]);
+                throw this._logError(`failed to setup attachment: ${ERRORS_MAP[status]}`);
             }
         } finally {
             this._runtime.bindFramebuffer(null);

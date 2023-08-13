@@ -1,5 +1,6 @@
 import type { BaseChannelMessageHandler, BaseChannelParams, SendMessageOptions } from './base-channel.types';
 import { BaseObject } from '../../gl/base-object';
+import { toStr } from '../../utils/string-formatter';
 
 interface MessageBatch<T> {
     readonly connectionId: number;
@@ -29,13 +30,13 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
         super(params);
         this._logger.info('init');
         if (!params.carrier) {
-            throw this._logger.error('carrier is not defined');
+            throw this._logError('carrier is not defined');
         }
         if (typeof params.handler !== 'function') {
-            throw this._logger.error('handler is not defined');
+            throw this._logError('handler is not defined');
         }
         if (!(params.connectionId > 0)) {
-            throw this._logger.error('bad connection id: {0}', params.connectionId);
+            throw this._logError(`bad connection id: ${params.connectionId}`);
         }
         this._carrier = params.carrier;
         this._connectionId = params.connectionId;
@@ -53,19 +54,18 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
             return;
         }
         if (!batch.orderId || !Array.isArray(batch.messages)) {
-            throw this._logger.error('recv: bad message content', batch);
+            throw this._logError(`recv: bad message content: ${toStr(batch)}`);
         }
         const orderOffset = getOrderOffset(this._recvOrderId, batch.orderId);
         if (isReversedOrderOffset(orderOffset)) {
-            throw this._logger.error(
-                'recv: duplicate order id: {0}', batch.orderId, this._recvOrderId);
+            throw this._logError(`recv: duplicate order id: ${batch.orderId}`);
         }
         if (orderOffset > 0) {
             if (orderOffset > this._recvQueueSize) {
-                throw this._logger.error('recv: queue is too long');
+                throw this._logError('recv: queue is too long');
             }
             if (this._recvQueue[orderOffset - 1]) {
-                throw this._logger.error('recv: duplicate order id: {0}', batch.orderId);
+                throw this._logError(`recv: duplicate order id: ${batch.orderId}`);
             }
             this._recvQueue[orderOffset - 1] = batch.messages;
             return;
@@ -101,7 +101,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
 
     send(message: SendT, options?: SendMessageOptions): void {
         if (!message) {
-            throw this._logger.error('send: message is not defined');
+            throw this._logError('send: message is not defined');
         }
         this._sendBuffer.push(message);
         if (options && Array.isArray(options.transferables)) {

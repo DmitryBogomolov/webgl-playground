@@ -105,7 +105,7 @@ export class Primitive extends BaseObject {
     private _createVao(): WebGLVertexArrayObjectOES {
         const vao = this._runtime.vaoExt().createVertexArrayOES();
         if (!vao) {
-            throw this._logger.error('failed to create vertex array object');
+            throw this._logError('failed to create vertex array object');
         }
         return vao;
     }
@@ -113,14 +113,14 @@ export class Primitive extends BaseObject {
     private _createBuffer(): WebGLBuffer {
         const buffer = this._runtime.gl().createBuffer();
         if (!buffer) {
-            throw this._logger.error('failed to create buffer');
+            throw this._logError('failed to create buffer');
         }
         return buffer;
     }
 
     allocateVertexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error(`allocate_vertex_buffer(${size}): bad value`);
+            throw this._logError(`allocate_vertex_buffer(${size}): bad value`);
         }
         this._logger.info(`allocate_vertex_buffer(${size})`);
         const gl = this._runtime.gl();
@@ -131,7 +131,7 @@ export class Primitive extends BaseObject {
 
     allocateIndexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error(`allocate_index_buffer(${size}): bad value`);
+            throw this._logError(`allocate_index_buffer(${size}): bad value`);
         }
         this._logger.info(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
@@ -156,7 +156,7 @@ export class Primitive extends BaseObject {
 
     setVertexSchema(schema: PrimitiveVertexSchema): void {
         if (!schema) {
-            throw this._logger.error('set_vertex_schema: not defined');
+            throw this._logError('set_vertex_schema: not defined');
         }
         this._logger.info(`set_vertex_schema(attributes=${schema.attributes.length})`);
         this._attributes = validateVertexSchema(schema);
@@ -179,32 +179,32 @@ export class Primitive extends BaseObject {
 
     setIndexConfig(config: PrimitiveIndexConfig): void {
         if (!config) {
-            throw this._logger.error('set_index_config: not defined');
+            throw this._logError('set_index_config: not defined');
         }
         const { indexCount, indexOffset, indexType, primitiveMode } = config;
         this._logger.info(
             `set_index_config:(count=${indexCount}, offset=${indexOffset}, type=${indexType}, mode=${primitiveMode})`);
         if (indexCount < 0) {
-            throw this._logger.error(`bad index count: ${indexCount}`);
+            throw this._logError(`bad index count: ${indexCount}`);
         }
         this._indexCount = indexCount;
         if (indexOffset !== undefined) {
             if (indexOffset < 0) {
-                throw this._logger.error(`bad index offset: ${indexOffset}`);
+                throw this._logError(`bad index offset: ${indexOffset}`);
             }
             this._indexOffset = indexOffset;
         }
         if (indexType !== undefined) {
             const value = INDEX_TYPE_MAP[indexType];
             if (value === undefined) {
-                throw this._logger.error(`bad index type: ${indexType}`);
+                throw this._logError(`bad index type: ${indexType}`);
             }
             this._indexType = value;
         }
         if (primitiveMode !== undefined) {
             const value = PRIMITIVE_MODE_MAP[primitiveMode];
             if (value === undefined) {
-                throw this._logger.error(`bad primitive mode: ${primitiveMode}`);
+                throw this._logError(`bad primitive mode: ${primitiveMode}`);
             }
             this._primitiveMode = value;
         }

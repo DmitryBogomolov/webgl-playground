@@ -261,13 +261,13 @@ describe('base-channel', () => {
 
             expect(() => {
                 port.listener({ data: { connectionId: 102 } });
-            }).toThrow(/recv: bad message content$/);
+            }).toThrow(/recv: bad message content/);
             expect(() => {
                 port.listener({ data: { connectionId: 102, items: [] } });
-            }).toThrow(/recv: bad message content$/);
+            }).toThrow(/recv: bad message content/);
             expect(() => {
                 port.listener({ data: { connectionId: 102, orderId: 1 } });
-            }).toThrow(/recv: bad message content$/);
+            }).toThrow(/recv: bad message content/);
         });
 
         it('enforce order of received messages', () => {

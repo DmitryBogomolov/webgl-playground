@@ -228,11 +228,11 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
-            throw this._logger.error(`uniform "${name}" is unknown`);
+            throw this._logError(`uniform "${name}" is unknown`);
         }
         const setter = (uniform.arraySize > 1 ? UNIFORM_ARRAY_SETTERS_MAP : UNIFORM_SETTERS_MAP)[uniform.type];
         if (!setter) {
-            throw this._logger.error(`uniform "${name}" setter is not found`);
+            throw this._logError(`uniform "${name}" setter is not found`);
         }
         // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
         // Otherwise it would cause an error.

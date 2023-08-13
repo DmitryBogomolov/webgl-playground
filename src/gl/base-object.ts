@@ -27,6 +27,11 @@ export abstract class BaseObject {
         this._disposed = null;
     }
 
+    protected _logError(message: string): Error {
+        this._logger.error(message);
+        return new Error(message);
+    }
+
     id(): string {
         return this._id;
     }

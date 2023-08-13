@@ -13,6 +13,7 @@ import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
 import { DisposableContext } from '../../utils/disposable-context';
+import { toStr } from '../../utils/string-formatter';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene } from './scene';
 import { createPrograms, destroyPrograms } from './program';
@@ -84,7 +85,7 @@ export class GlTFRenderer extends BaseObject {
         data: GlTFRendererData,
     ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
         if (!data) {
-            throw this._logger.error('set_data: not defined');
+            throw this._logError('set_data: not defined');
         }
         if (isRawData(data)) {
             const source = data.data;
@@ -103,7 +104,7 @@ export class GlTFRenderer extends BaseObject {
             const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
             return { source, resolveUri };
         }
-        throw this._logger.error('set_data({0}): bad value', data);
+        throw this._logError(`set_data(${toStr(data)}): bad value`);
     }
 
     private _setup(
