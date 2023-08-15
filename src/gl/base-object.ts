@@ -27,7 +27,14 @@ export abstract class BaseObject {
         this._disposed = null;
     }
 
-    protected _logError(message: string): Error {
+    protected _logError(message: string | Error): Error {
+        if (message instanceof Error) {
+            const err = new Error(message.message);
+            err.name = message.name;
+            err.stack = patchStack(message, message.message);
+            this._logger.error(err.stack || err.message);
+            throw err;
+        }
         this._logger.error(message);
         return new Error(message);
     }
@@ -43,4 +50,14 @@ export abstract class BaseObject {
     disposed(): EventProxy {
         return this._disposed.proxy();
     }
+}
+
+// TODO: Is it required? Should it be moved next to Logger?
+function patchStack(err: Error, message: string): string | undefined {
+    if (!err.stack) {
+        return undefined;
+    }
+    const prefix = err.name + ': ';
+    const k = err.stack.indexOf('\n');
+    return prefix + message + err.stack.substring(k);
 }

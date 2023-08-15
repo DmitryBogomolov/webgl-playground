@@ -196,7 +196,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
             this._uniformsMap = buildUniformsMap(this._uniforms);
             ctx.release();
         } catch (err) {
-            throw this._logger.error(err as Error);
+            throw this._logError(err as Error);
         } finally {
             ctx.dispose();
         }

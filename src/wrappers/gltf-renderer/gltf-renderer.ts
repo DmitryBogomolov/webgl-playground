@@ -75,7 +75,7 @@ export class GlTFRenderer extends BaseObject {
             this._setup(wrappers, programs, textures);
             context.release();
         } catch (err) {
-            throw this._logger.error(err as Error);
+            throw this._logError(err as Error);
         } finally {
             context.dispose();
         }
