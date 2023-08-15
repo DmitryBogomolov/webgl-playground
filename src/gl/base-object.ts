@@ -27,6 +27,14 @@ export abstract class BaseObject {
         this._disposed = null;
     }
 
+    protected _logInfo(message: string): void {
+        this._logger.info(message);
+    }
+
+    protected _logWarn(message: string): void {
+        this._logger.warn(message);
+    }
+
     protected _logError(message: string | Error): Error {
         if (message instanceof Error) {
             const err = new Error(message.message);

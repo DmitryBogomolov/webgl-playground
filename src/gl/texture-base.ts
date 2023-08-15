@@ -92,14 +92,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
 
     constructor(params: TextureParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logger.info('init');
+        this._logInfo('init');
         this._runtime = params.runtime;
         this._texture = this._createTexture();
         this._initTextureState();
     }
 
     dispose(): void {
-        this._logger.info('dispose');
+        this._logInfo('dispose');
         this._runtime.gl().deleteTexture(this._texture);
         this._dispose();
     }
@@ -171,7 +171,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     private _generateMipmap(): void {
-        this._logger.info('generate_mipmap');
+        this._logInfo('generate_mipmap');
         this._runtime.gl().generateMipmap(this._target);
     }
 
@@ -189,7 +189,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
                     throw this._logError(`set_paramater(${key} = ${toStr(val)}): bad value`);
                 }
                 if (this._state[key] !== val) {
-                    this._logger.info('set_parameter({0} = {1})', key, val);
+                    this._logInfo(`set_parameter(${key} = ${val})`);
                     this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
                     this._state[key] = val as never;
