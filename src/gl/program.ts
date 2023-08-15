@@ -4,7 +4,6 @@ import type {
 } from './program.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
-import type { Logger } from '../common/logger.types';
 import { BaseObject } from './base-object';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
@@ -52,39 +51,37 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
 
-type UniformSetter = (
-    logger: Logger, gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE
-) => void;
+type UniformSetter = (gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE) => void;
 type UniformSettersMap = Partial<Mapping<SHADER_UNIFORM_TYPE, UniformSetter>>;
 
 const UNIFORM_SETTERS_MAP: UniformSettersMap = {
-    'bool': (logger, gl, { location }, value) => {
+    'bool': (gl, { location }, value) => {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
-            throw logger.error(`bad value for "bool" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "bool" uniform: ${toStr(value)}`);
         }
 
     },
-    'float': (logger, gl, { location }, value) => {
+    'float': (gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
         } else if (isNumArray(value, 1)) {
             gl.uniform1fv(location, value);
         } else {
-            throw logger.error(`bad value for "float" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "float" uniform: ${toStr(value)}`);
         }
     },
-    'float2': (logger, gl, { location }, value) => {
+    'float2': (gl, { location }, value) => {
         if (isVec2(value)) {
             gl.uniform2f(location, value.x, value.y);
         } else if (isNumArray(value, 2)) {
             gl.uniform2fv(location, value);
         } else {
-            throw logger.error(`bad value for "vec2" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "vec2" uniform: ${toStr(value)}`);
         }
     },
-    'float3': (logger, gl, { location }, value) => {
+    'float3': (gl, { location }, value) => {
         if (isVec3(value)) {
             gl.uniform3f(location, value.x, value.y, value.z);
         } else if (isNumArray(value, 3)) {
@@ -92,10 +89,10 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform3f(location, value.r, value.g, value.b);
         } else {
-            throw logger.error(`bad value for "vec3" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "vec3" uniform: ${toStr(value)}`);
         }
     },
-    'float4': (logger, gl, { location }, value) => {
+    'float4': (gl, { location }, value) => {
         if (isVec4(value)) {
             gl.uniform4f(location, value.x, value.y, value.z, value.w);
         } else if (isNumArray(value, 4)) {
@@ -103,66 +100,66 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
-            throw logger.error(`bad value for "vec4" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "vec4" uniform: ${toStr(value)}`);
         }
     },
-    'sampler2D': (logger, gl, { location }, value) => {
+    'sampler2D': (gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw logger.error(`bad value for "sampler2D" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "sampler2D" uniform: ${toStr(value)}`);
         }
     },
-    'samplerCube': (logger, gl, { location }, value) => {
+    'samplerCube': (gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw logger.error(`bad value for "samplerCube" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "samplerCube" uniform: ${toStr(value)}`);
         }
     },
-    'float2x2': (logger, gl, { location }, value) => {
+    'float2x2': (gl, { location }, value) => {
         if (isMat2(value)) {
             gl.uniformMatrix2fv(location, false, value as number[]);
         } else if (isNumArray(value, 4)) {
             gl.uniformMatrix2fv(location, false, value);
         } else {
-            throw logger.error(`bad value for "mat2" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "mat2" uniform: ${toStr(value)}`);
         }
     },
-    'float3x3': (logger, gl, { location }, value) => {
+    'float3x3': (gl, { location }, value) => {
         if (isMat3(value)) {
             gl.uniformMatrix3fv(location, false, value as number[]);
         } else if (isNumArray(value, 9)) {
             gl.uniformMatrix3fv(location, false, value);
         } else {
-            throw logger.error(`bad value for "mat3" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "mat3" uniform: ${toStr(value)}`);
         }
     },
-    'float4x4': (logger, gl, { location }, value) => {
+    'float4x4': (gl, { location }, value) => {
         if (isMat4(value)) {
             gl.uniformMatrix4fv(location, false, value as number[]);
         } else if (isNumArray(value, 16)) {
             gl.uniformMatrix4fv(location, false, value);
         } else {
-            throw logger.error(`bad value for "mat4" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "mat4" uniform: ${toStr(value)}`);
         }
     },
 };
 
 const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
-    'bool': (logger, gl, { location, arraySize }, value) => {
+    'bool': (gl, { location, arraySize }, value) => {
         if (isNumArray(value, arraySize)) {
             gl.uniform1iv(location, value);
         } else {
-            throw logger.error(`bad value for "bool[${arraySize}]" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "bool[${arraySize}]" uniform: ${toStr(value)}`);
         }
 
     },
-    'float': (logger, gl, { location, arraySize }, value) => {
+    'float': (gl, { location, arraySize }, value) => {
         if (isNumArray(value, arraySize)) {
             gl.uniform1fv(location, value);
         } else {
-            throw logger.error(`bad value for "float[${arraySize}]" uniform: ${toStr(value)}`);
+            throw new Error(`bad value for "float[${arraySize}]" uniform: ${toStr(value)}`);
         }
     },
 };
@@ -238,7 +235,11 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         // Otherwise it would cause an error.
         // > INVALID_OPERATION: uniformXXX: location is not from current program
         this._runtime.useProgram(this);
-        setter(this._logger, gl, uniform, value);
+        try {
+            setter(gl, uniform, value);
+        } catch (err) {
+            throw this._logError(err as Error);
+        }
     }
 }
 
