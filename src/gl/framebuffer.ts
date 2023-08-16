@@ -8,7 +8,6 @@ import { BaseObject } from './base-object';
 import { eq2, clone2 } from '../geometry/vec2';
 import { wrap } from './gl-handle-wrapper';
 import { Texture } from './texture-2d';
-import { toStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -218,7 +217,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this._logInfo(`resize(${toStr(size)})`);
+        this._logInfo(`resize(width=${size.x}, height=${size.y})`);
         resizeColorTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {

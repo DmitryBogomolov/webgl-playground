@@ -186,7 +186,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logError(`set_paramater(${key} = ${toStr(val)}): bad value`);
+                    throw this._logError(`set_paramater(${key} = ${val}): bad value`);
                 }
                 if (this._state[key] !== val) {
                     this._logInfo(`set_parameter(${key} = ${val})`);

@@ -252,7 +252,7 @@ export class Runtime extends BaseObject {
 
     setSize(size: Vec2): boolean {
         if (!isVec2(size)) {
-            throw this._logError(`set_size(${toStr(size)}): bad value`);
+            throw this._logError(`set_size(${size}): bad value`);
         }
         if (eq2(this._size, size)) {
             return false;
@@ -298,7 +298,7 @@ export class Runtime extends BaseObject {
 
     setClearColor(clearColor: Color): boolean {
         if (!isColor(clearColor)) {
-            throw this._logError(`set_clear_color(${toStr(clearColor)}): bad value`);
+            throw this._logError(`set_clear_color(${clearColor}): bad value`);
         }
         if (colorEq(this._clearState.clearColor, clearColor)) {
             return false;
