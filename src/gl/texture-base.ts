@@ -162,8 +162,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             this._size = clone2(size);
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
-            // @ts-ignore Properties exist.
-            this._size = vec2(imageData.width as number, imageData.height as number);
+            this._size = vec2((imageData as ImageData).width, (imageData as ImageData).height);
         }
         if (this._needMipmap) {
             this._generateMipmap();
