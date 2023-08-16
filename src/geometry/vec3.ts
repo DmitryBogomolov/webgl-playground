@@ -46,6 +46,10 @@ function v3(): Vec3Mut {
     return vec3(0, 0, 0) as Vec3Mut;
 }
 
+export function vec3str(v: Vec3): string {
+    return `(${v.x}, ${v.y}, ${v.z})`;
+}
+
 export function clone3(v: Vec3, out: Vec3Mut = v3()): Vec3 {
     return upd3(out, v.x, v.y, v.z);
 }

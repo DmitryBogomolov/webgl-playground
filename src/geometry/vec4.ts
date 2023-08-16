@@ -49,6 +49,10 @@ function v4(): Vec4Mut {
     return vec4(0, 0, 0, 0) as Vec4Mut;
 }
 
+export function vec4str(v: Vec4): string {
+    return `(${v.x}, ${v.y}, ${v.z}, ${v.w})`;
+}
+
 export function clone4(v: Vec4, out: Vec4Mut = v4()): Vec4 {
     return upd4(out, v.x, v.y, v.z, v.w);
 }

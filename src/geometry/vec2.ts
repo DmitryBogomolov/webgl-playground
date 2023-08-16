@@ -41,6 +41,10 @@ function v2(): Vec2Mut {
     return vec2(0, 0) as Vec2Mut;
 }
 
+export function vec2str(v: Vec2): string {
+    return `(${v.x}, ${v.y})`;
+}
+
 export function clone2(v: Vec2, out: Vec2Mut = v2()): Vec2 {
     return upd2(out, v.x, v.y);
 }
