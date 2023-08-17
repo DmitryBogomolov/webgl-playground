@@ -188,7 +188,23 @@ export class Runtime extends BaseObject {
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
+        this._disposeBindings();
         this._dispose();
+    }
+
+    private _disposeBindings(): void {
+        this.bindVertexArrayObject(null);
+        this.bindArrayBuffer(null);
+        this.bindElementArrayBuffer(null);
+        this.useProgram(null);
+        this.bindFramebuffer(null);
+        this.bindRenderbuffer(null);
+        for (const [unit] of Object.entries(this._bindingsState.boundTextures)) {
+            this.setTextureUnit(Number(unit), null);
+        }
+        for (const [unit] of Object.entries(this._bindingsState.boundCubeTextures)) {
+            this.setCubeTextureUnit(Number(unit), null);
+        }
     }
 
     gl(): WebGLRenderingContext {
