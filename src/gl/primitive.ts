@@ -226,11 +226,12 @@ export class Primitive extends BaseObject {
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            this._logWarn('render without program');
+            this._logWarn('render: no program');
             return;
         }
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
+        this._logInfo('render');
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
