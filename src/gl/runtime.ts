@@ -197,6 +197,7 @@ export class Runtime extends BaseObject {
             this._canvas.remove();
         }
         this._disposeBindings();
+        this._loseContext();
         this._dispose();
     }
 
@@ -234,6 +235,14 @@ export class Runtime extends BaseObject {
             throw this._logError('failed to get webgl context');
         }
         return context;
+    }
+
+    private _loseContext(): void {
+        const ext = this._gl.getExtension('WEBGL_lose_context');
+        if (!ext) {
+            throw this._logError('failed to get WEBGL_lose_context extension');
+        }
+        ext.loseContext();
     }
 
     private _getVaoExt(): OES_vertex_array_object {
