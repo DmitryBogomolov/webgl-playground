@@ -297,7 +297,7 @@ function lockPrimitive(runtime: Runtime): Primitive {
     let shared = primitivesCache.get(runtime);
     if (!shared) {
         shared = {
-            primitive: createPrimitive(runtime, `ImageRenderer:shared:${runtime.id()}`),
+            primitive: createPrimitive(runtime, `ImageRenderer:shared:${runtime}`),
             refCount: 0,
         };
         primitivesCache.set(runtime, shared);

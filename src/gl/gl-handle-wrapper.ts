@@ -9,7 +9,7 @@ class GLHandleWrapperImpl<T> implements GLHandleWrapper<T> {
         this._handle = handle;
     }
 
-    id(): string {
+    toString(): string {
         return this._id;
     }
 

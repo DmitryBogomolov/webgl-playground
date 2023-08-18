@@ -438,7 +438,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.currentProgram === handle) {
             return;
         }
-        this._logInfo(`use_program(${program ? program.id() : null})`);
+        this._logInfo(`use_program(${program})`);
         this._gl.useProgram(handle);
         this._bindingsState.currentProgram = handle;
     }
@@ -448,7 +448,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.vertexArrayObject === handle) {
             return;
         }
-        this._logInfo(`bind_vertex_array_object(${vertexArrayObject ? vertexArrayObject.id() : null})`);
+        this._logInfo(`bind_vertex_array_object(${vertexArrayObject})`);
         this._vaoExt.bindVertexArrayOES(handle);
         this._bindingsState.vertexArrayObject = handle;
     }
@@ -458,7 +458,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.arrayBuffer === buffer) {
             return;
         }
-        this._logInfo(`bind_array_buffer(${buffer ? buffer.id() : null})`);
+        this._logInfo(`bind_array_buffer(${buffer})`);
         this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
         this._bindingsState.arrayBuffer = handle;
     }
@@ -468,7 +468,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] === handle) {
             return;
         }
-        this._logInfo(`bind_element_array_buffer(${buffer ? buffer.id() : null})`);
+        this._logInfo(`bind_element_array_buffer(${buffer})`);
         this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
         this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] = handle;
     }
@@ -478,7 +478,7 @@ export class Runtime extends BaseObject {
         if ((this._bindingsState.boundTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logInfo(`bind_texture(${texture ? texture.id() : null})`);
+        this._logInfo(`bind_texture(${texture})`);
         this._gl.bindTexture(GL_TEXTURE_2D, handle);
         this._bindingsState.boundTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -488,7 +488,7 @@ export class Runtime extends BaseObject {
         if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logInfo(`bind_cube_texture(${texture ? texture.id() : null})`);
+        this._logInfo(`bind_cube_texture(${texture})`);
         this._gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
         this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -499,7 +499,7 @@ export class Runtime extends BaseObject {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logInfo(`set_texture_unit(${unit}, ${texture ? texture.id() : null})`);
+            this._logInfo(`set_texture_unit(${unit}, ${texture})`);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -512,7 +512,7 @@ export class Runtime extends BaseObject {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logInfo(`set_cube_texture_unit(${unit}, ${texture ? texture.id() : null})`);
+            this._logInfo(`set_cube_texture_unit(${unit}, ${texture})`);
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -569,7 +569,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.framebuffer === handle) {
             return;
         }
-        this._logInfo(`bind_framebuffer(${framebuffer ? framebuffer.id() : null})`);
+        this._logInfo(`bind_framebuffer(${framebuffer})`);
         this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
         this._bindingsState.framebuffer = handle;
     }
@@ -589,7 +589,7 @@ export class Runtime extends BaseObject {
         if (this._renderTarget === renderTarget) {
             return;
         }
-        this._logInfo(`set_render_target(${renderTarget ? renderTarget.id() : null})`);
+        this._logInfo(`set_render_target(${renderTarget})`);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this._updateViewport((renderTarget || this._defaultRenderTarget).size());
         this._renderTarget = renderTarget;
@@ -600,7 +600,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.renderbuffer === handle) {
             return;
         }
-        this._logInfo(`bind_renderbuffer(${renderbuffer ? renderbuffer.id() : null})`);
+        this._logInfo(`bind_renderbuffer(${renderbuffer})`);
         this._gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
         this._bindingsState.renderbuffer = handle;
     }

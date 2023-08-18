@@ -47,7 +47,7 @@ export abstract class BaseObject {
         return new Error(message);
     }
 
-    id(): string {
+    toString(): string {
         return this._id;
     }
 

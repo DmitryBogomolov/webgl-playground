@@ -17,10 +17,10 @@ const GL_STATIC_DRAW = WebGL.STATIC_DRAW;
 
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
-    id() { return 'EMPTY_PROGRAM'; },
+    toString() { return 'EMPTY_PROGRAM'; },
     glHandle() { return null as unknown as WebGLProgram; },
     setUniform() { /* empty */ },
-} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'setUniform'> as unknown as Program;
+} as Pick<Program, 'dispose' | 'toString' | 'glHandle' | 'setUniform'> as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGL.POINTS,
@@ -219,7 +219,7 @@ export class Primitive extends BaseObject {
         if (this._program === program) {
             return;
         }
-        this._logInfo(`set_program(${prog.id()})`);
+        this._logInfo(`set_program(${prog})`);
         this._program = prog;
     }
 
