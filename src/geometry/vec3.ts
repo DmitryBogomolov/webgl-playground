@@ -12,6 +12,10 @@ export class Vec3Impl implements Vec3 {
         this.y = y;
         this.z = z;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y}, ${this.z})`;
+    }
 }
 
 export const ZERO3 = vec3(0, 0, 0);

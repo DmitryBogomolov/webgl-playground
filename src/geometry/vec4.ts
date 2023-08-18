@@ -14,6 +14,10 @@ export class Vec4Impl implements Vec4 {
         this.z = z;
         this.w = w;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
+    }
 }
 
 export const ZERO4 = vec4(0, 0, 0, 0);

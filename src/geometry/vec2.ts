@@ -10,6 +10,10 @@ export class Vec2Impl implements Vec2 {
         this.x = x;
         this.y = y;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y})`;
+    }
 }
 
 export const ZERO2 = vec2(0, 0);
