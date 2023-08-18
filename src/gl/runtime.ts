@@ -135,17 +135,23 @@ export class Runtime extends BaseObject {
     private _canvasSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
+    private readonly _contextLost = new EventEmitter();
+    private readonly _contextRestored = new EventEmitter();
+
     private readonly _sizeChanged = new EventEmitter((handler) => {
         // Immediately notify subscriber so that it may perform initial calculation.
+        // TODO: Remove it. From the user perspective it looks weird.
         handler();
     });
 
     private readonly _handleContextLost: EventListener = () => {
         this._logWarn('context is lost');
+        this._contextLost.emit();
     };
 
     private readonly _handleContextRestored: EventListener = () => {
         this._logWarn('context is restored');
+        this._contextRestored.emit();
     };
 
     private readonly _handleWindowResize = (): void => {
@@ -180,6 +186,8 @@ export class Runtime extends BaseObject {
         this._renderLoop.cancel();
         this._renderLoop.clearCallbacks();
         this._sizeChanged.clear();
+        this._contextLost.clear();
+        this._contextRestored.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         if (this._options.trackWindowResize) {
