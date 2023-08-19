@@ -19,10 +19,9 @@ import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
-import type { Logger } from '../common/logger.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { LoggerImpl, RootLogger } from '../common/logger';
+import { RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { toStr } from '../utils/string-formatter';
 import { EventEmitter } from '../common/event-emitter';
@@ -174,7 +173,7 @@ export class Runtime extends BaseObject {
         this._bindingsState = getDefaultBindingsState();
         this._clearState = getDefaultClearState();
         this._pixelStoreState = getDefaultPixelStoreState();
-        this._renderState = makeRenderState({}, this._logger);
+        this._renderState = makeRenderState({});
         this.adjustViewport();
         if (this._options.trackWindowResize) {
             onWindowResize(this._handleWindowResize);
@@ -322,7 +321,7 @@ export class Runtime extends BaseObject {
         if (!isRenderState(state)) {
             throw this._logError(`set_render_state(${toStr(state)}): bad value`);
         }
-        return applyRenderState(this._renderState, state, this._gl, this._logger);
+        return applyRenderState(this._renderState, state, this._gl, (msg) => this._logger.info(msg));
     }
 
     getClearColor(): Color {
@@ -707,10 +706,6 @@ function getReadPixelsRange(
     };
 }
 
-const defaultRenderStateLogger = new LoggerImpl('RenderState');
-
-export function createRenderState(
-    state: Partial<RenderState>, logger: Logger = defaultRenderStateLogger,
-): RenderState {
-    return makeRenderState(state, logger);
+export function createRenderState(state: Partial<RenderState>): RenderState {
+    return makeRenderState(state);
 }
