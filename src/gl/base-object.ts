@@ -1,8 +1,8 @@
 import type { BaseObjectParams } from './base-object.types';
-import type { Logger } from '../common/logger.types';
+import type { Logger } from '../common/logger_ex.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl } from '../common/logger';
+import { LoggerImpl } from '../common/logger_ex';
 
 let nextId = 1;
 
@@ -14,7 +14,7 @@ export abstract class BaseObject {
     constructor(params: BaseObjectParams) {
         const name = params.name || this.constructor.name;
         this._id = `${name}#${params.tag || String(nextId++)}`;
-        this._logger = new LoggerImpl(`${this._id}`, params.logger);
+        this._logger = params.logger || new LoggerImpl();
     }
 
     protected _dispose(): void {
@@ -28,11 +28,11 @@ export abstract class BaseObject {
     }
 
     protected _logInfo(message: string): void {
-        this._logger.info(message);
+        this._logger.info(this._id + '.' + message);
     }
 
     protected _logWarn(message: string): void {
-        this._logger.warn(message);
+        this._logger.warn(this._id + '.' + message);
     }
 
     protected _logError(message: string | Error): Error {
@@ -40,11 +40,11 @@ export abstract class BaseObject {
             const err = new Error(message.message);
             err.name = message.name;
             err.stack = patchStack(message, message.message);
-            this._logger.error(err.stack || err.message);
+            this._logger.error(this._id + '.' + (err.stack || err.message));
             throw err;
         }
-        this._logger.error(message);
-        return new Error(message);
+        this._logger.error(this._id + '.' + message);
+        return new Error(this._id + '.' + message);
     }
 
     toString(): string {

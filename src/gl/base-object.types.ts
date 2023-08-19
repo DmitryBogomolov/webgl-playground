@@ -1,4 +1,4 @@
-import type { Logger } from '../common/logger.types';
+import type { Logger } from '../common/logger_ex.types';
 
 export interface BaseObjectParams {
     readonly logger?: Logger;

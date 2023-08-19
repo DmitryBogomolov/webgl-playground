@@ -17,6 +17,7 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
+import type { Logger } from '../common/logger_ex.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
@@ -25,6 +26,7 @@ import { RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { toStr } from '../utils/string-formatter';
 import { EventEmitter } from '../common/event-emitter';
+import { LoggerImpl, ConsoleLogTransport } from '../common/logger_ex';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
@@ -158,9 +160,7 @@ export class Runtime extends BaseObject {
     };
 
     constructor(params: RuntimeParams) {
-        super({ ...params, logger: new RootLogger('') });
-        // @ts-ignore Override.
-        this._logger = new RootLogger(this._id);
+        super({ logger: createLogger(), ...params });
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
         this._logInfo('init');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
@@ -321,7 +321,7 @@ export class Runtime extends BaseObject {
         if (!isRenderState(state)) {
             throw this._logError(`set_render_state(${toStr(state)}): bad value`);
         }
-        return applyRenderState(this._renderState, state, this._gl, (msg) => this._logger.info(msg));
+        return applyRenderState(this._renderState, state, this._gl, (msg) => this._logInfo(msg));
     }
 
     getClearColor(): Color {
@@ -654,6 +654,12 @@ function getDefaultPixelStoreState(): PixelStoreState {
         pixelStoreUnpackPremultiplyAlphaWebgl: false,
         pixelStoreUnpackColorSpaceConversionWebgl: 'browser_default',
     };
+}
+
+function createLogger(): Logger {
+    const logger = new LoggerImpl();
+    logger.addTransport(new ConsoleLogTransport());
+    return logger;
 }
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
