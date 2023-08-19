@@ -15,7 +15,7 @@ export interface LineParams {
 }
 
 export class Line {
-    private readonly _logger = new LoggerImpl(this.constructor.name);
+    private readonly _logger = new LoggerImpl();
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
