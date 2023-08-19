@@ -67,7 +67,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         if (typeof value === 'number') {
             gl.uniform1f(location, value);
         } else if (isNumArray(value, 1)) {
-            gl.uniform1fv(location, value);
+            gl.uniform1f(location, value[0]);
         } else {
             throw new Error(`bad value for "float" uniform: ${toStr(value)}`);
         }
@@ -76,7 +76,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         if (isVec2(value)) {
             gl.uniform2f(location, value.x, value.y);
         } else if (isNumArray(value, 2)) {
-            gl.uniform2fv(location, value);
+            gl.uniform2f(location, value[0], value[1]);
         } else {
             throw new Error(`bad value for "vec2" uniform: ${toStr(value)}`);
         }
@@ -85,7 +85,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         if (isVec3(value)) {
             gl.uniform3f(location, value.x, value.y, value.z);
         } else if (isNumArray(value, 3)) {
-            gl.uniform3fv(location, value);
+            gl.uniform3f(location, value[0], value[1], value[2]);
         } else if (isColor(value)) {
             gl.uniform3f(location, value.r, value.g, value.b);
         } else {
@@ -96,7 +96,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         if (isVec4(value)) {
             gl.uniform4f(location, value.x, value.y, value.z, value.w);
         } else if (isNumArray(value, 4)) {
-            gl.uniform4fv(location, value);
+            gl.uniform4f(location, value[0], value[1], value[2], value[3]);
         } else if (isColor(value)) {
             gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
