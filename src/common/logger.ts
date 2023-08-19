@@ -1,4 +1,4 @@
-import type { Logger, LogEntry, LOG_LEVEL, LogTransport } from './logger_ex.types';
+import type { Logger, LogEntry, LOG_LEVEL, LogTransport } from './logger.types';
 import type { Mapping } from './mapping.types';
 
 export class LoggerImpl implements Logger {

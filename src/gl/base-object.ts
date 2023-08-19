@@ -1,8 +1,8 @@
 import type { BaseObjectParams } from './base-object.types';
-import type { Logger } from '../common/logger_ex.types';
+import type { Logger } from '../common/logger.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl } from '../common/logger_ex';
+import { LoggerImpl } from '../common/logger';
 
 let nextId = 1;
 

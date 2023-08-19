@@ -1,5 +1,5 @@
-import type { LogEntry, LogTransport } from './logger_ex.types';
-import { LoggerImpl, ConsoleLogTransport } from './logger_ex';
+import type { LogEntry, LogTransport } from './logger.types';
+import { LoggerImpl, ConsoleLogTransport } from './logger';
 
 describe('logger', () => {
     describe('LoggerImpl', () => {

@@ -1,4 +1,4 @@
-import type { Logger } from '../../common/logger_ex.types';
+import type { Logger } from '../../common/logger.types';
 import type { Runtime } from '../../gl/runtime';
 import { GlTFRenderer } from './gltf-renderer';
 import { Loader } from '../../common/loader';
