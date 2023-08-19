@@ -1,7 +1,7 @@
-import type { Logging, LogEntry, LOG_LEVEL, LogTransport } from './logger_ex.types';
+import type { Logger, LogEntry, LOG_LEVEL, LogTransport } from './logger_ex.types';
 import type { Mapping } from './mapping.types';
 
-export class Logger implements Logging {
+export class LoggerImpl implements Logger {
     private readonly _transports: LogTransport[] = [];
 
     private _log(level: LOG_LEVEL, message: string): void {
