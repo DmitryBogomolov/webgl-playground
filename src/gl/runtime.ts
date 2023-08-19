@@ -22,7 +22,6 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { RootLogger } from '../common/logger';
 import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { toStr } from '../utils/string-formatter';
 import { EventEmitter } from '../common/event-emitter';
@@ -221,10 +220,6 @@ export class Runtime extends BaseObject {
 
     vaoExt(): OES_vertex_array_object {
         return this._vaoExt;
-    }
-
-    logSilent(silent: boolean): void {
-        (this._logger as RootLogger).setSilent(silent);
     }
 
     private _getContext(): WebGLRenderingContext {
