@@ -43,7 +43,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     constructor(params: FramebufferParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logger.info('init');
+        this._logInfo('init');
         this._runtime = params.runtime;
         this._framebuffer = this._createFramebuffer();
         const {
@@ -56,7 +56,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     dispose(): void {
-        this._logger.info('dispose');
+        this._logInfo('dispose');
         if (this._texture) {
             this._texture.dispose();
         }
@@ -89,7 +89,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _createFramebuffer(): WebGLFramebuffer {
         const framebuffer = this._runtime.gl().createFramebuffer();
         if (!framebuffer) {
-            throw this._logger.error('failed to create framebuffer');
+            throw this._logError('failed to create framebuffer');
         }
         return framebuffer;
     }
@@ -97,7 +97,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _createRenderbuffer(): WebGLRenderbuffer {
         const renderbuffer = this._runtime.gl().createRenderbuffer();
         if (!renderbuffer) {
-            throw this._logger.error('failed to create renderbuffer');
+            throw this._logError('failed to create renderbuffer');
         }
         return renderbuffer;
     }
@@ -171,7 +171,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         depthTexture: Texture | null,
         renderbuffer: WebGLFramebuffer | null,
     } {
-        this._logger.info('setup_attachment({0}, {1}x{2})', attachment, size.x, size.y);
+        this._logInfo(`setup_attachment(${attachment}, ${size.x}x${size.y})`);
         this._size = size;
         let texture!: Texture;
         let depthTexture: Texture | null = null;
@@ -199,12 +199,12 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
                 }
                 break;
             default:
-                this._logger.error('bad attachment type: {0}', attachment);
+                throw this._logError(`bad attachment type: ${attachment}`);
                 break;
             }
             const status = this._runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
             if (status !== GL_FRAMEBUFFER_COMPLETE) {
-                throw this._logger.error('failed to setup attachment: {0}', ERRORS_MAP[status]);
+                throw this._logError(`failed to setup attachment: ${ERRORS_MAP[status]}`);
             }
         } finally {
             this._runtime.bindFramebuffer(null);
@@ -217,7 +217,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this._logger.info('resize({0})', size);
+        this._logInfo(`resize(width=${size.x}, height=${size.y})`);
         resizeColorTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {

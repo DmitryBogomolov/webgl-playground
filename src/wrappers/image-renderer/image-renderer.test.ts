@@ -43,15 +43,14 @@ describe('image-renderer', () => {
         beforeEach(() => {
             renderTargetSize = { x: 640, y: 480 };
             const renderTarget: RenderTarget = {
-                id: () => 'stub/render-target',
                 size: () => renderTargetSize,
             };
             runtime = {
-                id: () => 'stub/runtime',
+                toString: () => 'stub/runtime',
                 logger: () => stubLogger,
                 getRenderTarget: () => renderTarget,
                 setTextureUnit: jest.fn(),
-            } as Pick<Runtime, 'id' | 'logger' | 'getRenderTarget' | 'setTextureUnit'> as Runtime;
+            } as Pick<Runtime, 'logger' | 'getRenderTarget' | 'setTextureUnit'> as Runtime;
             renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
             primitive = MockPrimitive.mock.instances[0];
             program = MockProgram.mock.instances[0];

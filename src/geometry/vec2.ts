@@ -10,6 +10,10 @@ export class Vec2Impl implements Vec2 {
         this.x = x;
         this.y = y;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y})`;
+    }
 }
 
 export const ZERO2 = vec2(0, 0);
@@ -39,6 +43,10 @@ export function isUnit2(v: Vec2, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v2(): Vec2Mut {
     return vec2(0, 0) as Vec2Mut;
+}
+
+export function vec2str(v: Vec2): string {
+    return `(${v.x}, ${v.y})`;
 }
 
 export function clone2(v: Vec2, out: Vec2Mut = v2()): Vec2 {

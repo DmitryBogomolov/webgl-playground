@@ -15,7 +15,7 @@ export interface LineParams {
 }
 
 export class Line {
-    private readonly _logger = new LoggerImpl(this.constructor.name);
+    private readonly _logger = new LoggerImpl();
     private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
@@ -66,7 +66,7 @@ export class Line {
         if (capacity < 0) {
             return;
         }
-        this._logger.info('reallocate(vertices={0}, capacity={1})', vertexCount, capacity);
+        this._logger.info(`reallocate(vertices=${vertexCount}, capacity=${capacity})`);
         const vertexBuffer = new ArrayBuffer(this._getVertexBufferSize(capacity));
         const indexBuffer = new ArrayBuffer(this._getIndexBufferSize(capacity));
         copyBuffer(this._vertexBuffer, vertexBuffer);

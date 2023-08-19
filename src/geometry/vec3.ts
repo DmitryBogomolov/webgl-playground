@@ -12,6 +12,10 @@ export class Vec3Impl implements Vec3 {
         this.y = y;
         this.z = z;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y}, ${this.z})`;
+    }
 }
 
 export const ZERO3 = vec3(0, 0, 0);
@@ -44,6 +48,10 @@ export function isUnit3(v: Vec3, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v3(): Vec3Mut {
     return vec3(0, 0, 0) as Vec3Mut;
+}
+
+export function vec3str(v: Vec3): string {
+    return `(${v.x}, ${v.y}, ${v.z})`;
 }
 
 export function clone3(v: Vec3, out: Vec3Mut = v3()): Vec3 {

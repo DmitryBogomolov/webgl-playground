@@ -13,6 +13,7 @@ import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
 import { DisposableContext } from '../../utils/disposable-context';
+import { toStr } from '../../utils/string-formatter';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene } from './scene';
 import { createPrograms, destroyPrograms } from './program';
@@ -74,7 +75,7 @@ export class GlTFRenderer extends BaseObject {
             this._setup(wrappers, programs, textures);
             context.release();
         } catch (err) {
-            throw this._logger.error(err as Error);
+            throw this._logError(err as Error);
         } finally {
             context.dispose();
         }
@@ -84,7 +85,7 @@ export class GlTFRenderer extends BaseObject {
         data: GlTFRendererData,
     ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
         if (!data) {
-            throw this._logger.error('set_data: not defined');
+            throw this._logError('set_data: not defined');
         }
         if (isRawData(data)) {
             const source = data.data;
@@ -103,7 +104,7 @@ export class GlTFRenderer extends BaseObject {
             const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
             return { source, resolveUri };
         }
-        throw this._logger.error('set_data({0}): bad value', data);
+        throw this._logError(`set_data(${toStr(data)}): bad value`);
     }
 
     private _setup(
@@ -121,19 +122,19 @@ export class GlTFRenderer extends BaseObject {
     }
 
     setProjMat(mat: Mat4): void {
-        this._logger.info('set_proj_mat({0})', mat);
+        this._logInfo(`set_proj_mat(${toStr(mat)})`);
         this._projMat = clone4x4(mat);
     }
 
     setViewMat(mat: Mat4): void {
-        this._logger.info('set_view_mat({0})', mat);
+        this._logInfo(`set_view_mat(${toStr(mat)})`);
         this._viewMat = clone4x4(mat);
         const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
         this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
-        this._logger.info('set_light_direction({0})', lightDirection);
+        this._logInfo(`set_light_direction(${toStr(lightDirection)})`);
         this._lightDirection = norm3(lightDirection);
     }
 

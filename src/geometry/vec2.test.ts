@@ -1,6 +1,6 @@
 import {
     ZERO2, UNIT2, XUNIT2, YUNIT2,
-    eq2, isZero2, isUnit2, clone2, neg2, inv2, len2, sqrlen2, norm2,
+    eq2, isZero2, isUnit2, vec2str, clone2, neg2, inv2, len2, sqrlen2, norm2,
     dot2, mul2, div2, mulc2, divc2, add2, sub2, dir2, dist2, sqrdist2, project2,
 } from './vec2';
 
@@ -27,6 +27,11 @@ describe('vec2', () => {
         expect(isUnit2({ x: 0, y: -1 })).toEqual(true);
         expect(isUnit2({ x: -0.8, y: 0.6 })).toEqual(true);
         expect(isUnit2({ x: 2, y: -1 })).toEqual(false);
+    });
+
+    it('vec2str', () => {
+        expect(vec2str({ x: 1, y: 2 })).toEqual('(1, 2)');
+        expect(vec2str({ x: 2.1234, y: 3.0023 })).toEqual('(2.1234, 3.0023)');
     });
 
     it('clone2', () => {

@@ -92,14 +92,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
 
     constructor(params: TextureParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logger.info('init');
+        this._logInfo('init');
         this._runtime = params.runtime;
         this._texture = this._createTexture();
         this._initTextureState();
     }
 
     dispose(): void {
-        this._logger.info('dispose');
+        this._logInfo('dispose');
         this._runtime.gl().deleteTexture(this._texture);
         this._dispose();
     }
@@ -115,7 +115,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl().createTexture();
         if (!texture) {
-            throw this._logger.error('failed to create texture');
+            throw this._logError('failed to create texture');
         }
         return texture;
     }
@@ -162,8 +162,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             this._size = clone2(size);
         } else {
             this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
-            // @ts-ignore Properties exist.
-            this._size = vec2(imageData.width as number, imageData.height as number);
+            this._size = vec2((imageData as ImageData).width, (imageData as ImageData).height);
         }
         if (this._needMipmap) {
             this._generateMipmap();
@@ -171,14 +170,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     private _generateMipmap(): void {
-        this._logger.info('generate_mipmap');
+        this._logInfo('generate_mipmap');
         this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
         if (!params) {
-            throw this._logger.error('set_parameters: not defined');
+            throw this._logError('set_parameters: not defined');
         }
         for (const entry of Object.entries(params)) {
             const key = entry[0] as keyof State;
@@ -186,10 +185,10 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logger.error('set_paramater({0} = {1}): bad value', key, val);
+                    throw this._logError(`set_paramater(${key} = ${val}): bad value`);
                 }
                 if (this._state[key] !== val) {
-                    this._logger.info('set_parameter({0} = {1})', key, val);
+                    this._logInfo(`set_parameter(${key} = ${val})`);
                     this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
                     this._state[key] = val as never;

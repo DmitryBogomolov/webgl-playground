@@ -6,7 +6,7 @@ describe('gl-handle-wrapper', () => {
             const handle = { tag: 'test-handle' };
             const target = wrap('test-id', handle);
 
-            expect(target.id()).toEqual('test-id');
+            expect(target.toString()).toEqual('test-id');
             expect(target.glHandle()).toEqual(handle);
         });
     });

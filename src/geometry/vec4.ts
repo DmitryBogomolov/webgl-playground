@@ -14,6 +14,10 @@ export class Vec4Impl implements Vec4 {
         this.z = z;
         this.w = w;
     }
+
+    toString(): string {
+        return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
+    }
 }
 
 export const ZERO4 = vec4(0, 0, 0, 0);
@@ -47,6 +51,10 @@ export function isUnit4(v: Vec4, eps: number = FLOAT_EQ_EPS): boolean {
 
 function v4(): Vec4Mut {
     return vec4(0, 0, 0, 0) as Vec4Mut;
+}
+
+export function vec4str(v: Vec4): string {
+    return `(${v.x}, ${v.y}, ${v.z}, ${v.w})`;
 }
 
 export function clone4(v: Vec4, out: Vec4Mut = v4()): Vec4 {

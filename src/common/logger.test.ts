@@ -1,47 +1,115 @@
-import { LoggerImpl } from './logger';
+import type { LogEntry, LogTransport } from './logger.types';
+import { LoggerImpl, ConsoleLogTransport } from './logger';
 
 describe('logger', () => {
     describe('LoggerImpl', () => {
-        it('info', () => {
-            const info = jest.fn();
-            const tmp = new LoggerImpl('');
-            Object.assign(tmp, { _driver: { info } });
-            const logger = new LoggerImpl('test-logger', tmp);
+        let logger: LoggerImpl;
+        let log: jest.SpyInstance;
 
-            expect(logger.info('Hello World')).toEqual('[test-logger]: Hello World');
-            expect(logger.info('Hello {0} {1}', 1, 'test')).toEqual('[test-logger]: Hello 1 test');
-            expect(info.mock.calls).toEqual([
-                ['[test-logger]: Hello World'],
-                ['[test-logger]: Hello 1 test'],
-            ]);
+        beforeEach(() => {
+            logger = new LoggerImpl();
+            log = jest.fn();
+            logger.addTransport({ log } as unknown as LogTransport);
+        });
+
+        it('info', () => {
+            logger.info('test message');
+
+            expect(log).toBeCalledWith<[LogEntry]>({
+                level: 'info', message: 'test message', timestamp: expect.any(Date),
+            });
         });
 
         it('warn', () => {
-            const warn = jest.fn();
-            const tmp = new LoggerImpl('');
-            Object.assign(tmp, { _driver: { warn } });
-            const logger = new LoggerImpl('test-logger', tmp);
+            logger.warn('test message');
 
-            expect(logger.warn('Hello World')).toEqual('[test-logger]: Hello World');
-            expect(logger.warn('Hello {0} {1}', 1, 'test')).toEqual('[test-logger]: Hello 1 test');
-            expect(warn.mock.calls).toEqual([
-                ['[test-logger]: Hello World'],
-                ['[test-logger]: Hello 1 test'],
-            ]);
+            expect(log).toBeCalledWith<[LogEntry]>({
+                level: 'warn', message: 'test message', timestamp: expect.any(Date),
+            });
         });
 
         it('error', () => {
-            const error = jest.fn();
-            const tmp = new LoggerImpl('');
-            Object.assign(tmp, { _driver: { error } });
-            const logger = new LoggerImpl('test-logger', tmp);
+            logger.error('test message');
 
-            expect(() => logger.error('Hello World')).toThrow('[test-logger]: Hello World');
-            expect(() => logger.error('Hello {0} {1}', 1, 'test')).toThrow('[test-logger]: Hello 1 test');
-            expect(error.mock.calls).toEqual([
-                ['[test-logger]: Hello World'],
-                ['[test-logger]: Hello 1 test'],
-            ]);
+            expect(log).toBeCalledWith<[LogEntry]>({
+                level: 'error', message: 'test message', timestamp: expect.any(Date),
+            });
+        });
+
+        it('add transport', () => {
+            const stub1 = jest.fn();
+            const stub2 = jest.fn();
+            logger.addTransport({ log: stub1 } as unknown as LogTransport);
+            logger.addTransport({ log: stub2 } as unknown as LogTransport);
+
+            logger.info('test');
+
+            expect(stub1).toBeCalledWith<[LogEntry]>({
+                level: 'info', message: 'test', timestamp: expect.any(Date),
+            });
+            expect(stub2).toBeCalledWith<[LogEntry]>({
+                level: 'info', message: 'test', timestamp: expect.any(Date),
+            });
+        });
+
+        it('remove transport', () => {
+            const stub1 = jest.fn();
+            const stub2 = jest.fn();
+            const transport1 = { log: stub1 } as unknown as LogTransport;
+            const transport2 = { log: stub2 } as unknown as LogTransport;
+            logger.addTransport(transport1);
+            logger.addTransport(transport2);
+
+            logger.info('test 1');
+            logger.removeTransport(transport2);
+            logger.info('test 2');
+            logger.removeTransport(transport1);
+            logger.info('test 3');
+
+            expect(stub1).toHaveBeenCalledTimes(2);
+            expect(stub2).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('ConsoleLogTransport', () => {
+        let log: jest.SpyInstance;
+        let warn: jest.SpyInstance;
+        let error: jest.SpyInstance;
+
+        let transport: ConsoleLogTransport;
+
+        beforeEach(() => {
+            transport = new ConsoleLogTransport();
+            log = jest.spyOn(console, 'log');
+            warn = jest.spyOn(console, 'warn');
+            error = jest.spyOn(console, 'error');
+        });
+
+        afterEach(() => {
+            log.mockReset();
+            warn.mockReset();
+            error.mockReset();
+        });
+
+        it('info', () => {
+            const date = new Date();
+            transport.log({ level: 'info', message: 'test', timestamp: date });
+
+            expect(log).toHaveBeenCalledWith('test');
+        });
+
+        it('warn', () => {
+            const date = new Date();
+            transport.log({ level: 'warn', message: 'test', timestamp: date });
+
+            expect(warn).toHaveBeenCalledWith('test');
+        });
+
+        it('error', () => {
+            const date = new Date();
+            transport.log({ level: 'error', message: 'test', timestamp: date });
+
+            expect(error).toHaveBeenCalledWith('test');
         });
     });
 });

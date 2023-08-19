@@ -1,4 +1,4 @@
 export interface GLHandleWrapper<T> {
-    id(): string;
+    toString(): string;
     glHandle(): T;
 }

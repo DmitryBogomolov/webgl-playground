@@ -17,10 +17,10 @@ const GL_STATIC_DRAW = WebGL.STATIC_DRAW;
 
 const EMPTY_PROGRAM = {
     dispose() { /* empty */ },
-    id() { return 'EMPTY_PROGRAM'; },
+    toString() { return 'EMPTY_PROGRAM'; },
     glHandle() { return null as unknown as WebGLProgram; },
     setUniform() { /* empty */ },
-} as Pick<Program, 'dispose' | 'id' | 'glHandle' | 'setUniform'> as unknown as Program;
+} as Pick<Program, 'dispose' | 'toString' | 'glHandle' | 'setUniform'> as unknown as Program;
 
 const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
     'points': WebGL.POINTS,
@@ -87,7 +87,7 @@ export class Primitive extends BaseObject {
 
     constructor(params: PrimitiveParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logger.info('init');
+        this._logInfo('init');
         this._runtime = params.runtime;
         this._vao = this._createVao();
         this._vertexBuffer = this._createBuffer();
@@ -95,7 +95,7 @@ export class Primitive extends BaseObject {
     }
 
     dispose(): void {
-        this._logger.info('dispose');
+        this._logInfo('dispose');
         this._runtime.gl().deleteBuffer(this._vertexBuffer);
         this._runtime.gl().deleteBuffer(this._indexBuffer);
         this._runtime.vaoExt().deleteVertexArrayOES(this._vao);
@@ -105,7 +105,7 @@ export class Primitive extends BaseObject {
     private _createVao(): WebGLVertexArrayObjectOES {
         const vao = this._runtime.vaoExt().createVertexArrayOES();
         if (!vao) {
-            throw this._logger.error('failed to create vertex array object');
+            throw this._logError('failed to create vertex array object');
         }
         return vao;
     }
@@ -113,16 +113,16 @@ export class Primitive extends BaseObject {
     private _createBuffer(): WebGLBuffer {
         const buffer = this._runtime.gl().createBuffer();
         if (!buffer) {
-            throw this._logger.error('failed to create buffer');
+            throw this._logError('failed to create buffer');
         }
         return buffer;
     }
 
     allocateVertexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error(`allocate_vertex_buffer(${size}): bad value`);
+            throw this._logError(`allocate_vertex_buffer(${size}): bad value`);
         }
-        this._logger.info(`allocate_vertex_buffer(${size})`);
+        this._logInfo(`allocate_vertex_buffer(${size})`);
         const gl = this._runtime.gl();
         this._vertexBufferSize = size;
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
@@ -131,9 +131,9 @@ export class Primitive extends BaseObject {
 
     allocateIndexBuffer(size: number): void {
         if (size < 0) {
-            throw this._logger.error(`allocate_index_buffer(${size}): bad value`);
+            throw this._logError(`allocate_index_buffer(${size}): bad value`);
         }
-        this._logger.info(`allocate_index_buffer(${size})`);
+        this._logInfo(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
         this._indexBufferSize = size;
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
@@ -141,14 +141,14 @@ export class Primitive extends BaseObject {
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logger.info(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
+        this._logInfo(`update_vertex_data(offset=${offset}, bytes=${vertexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(wrap(this._id, this._vertexBuffer));
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logger.info(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
+        this._logInfo(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
         const gl = this._runtime.gl();
         this._runtime.bindElementArrayBuffer(wrap(this._id, this._indexBuffer));
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
@@ -156,9 +156,9 @@ export class Primitive extends BaseObject {
 
     setVertexSchema(schema: PrimitiveVertexSchema): void {
         if (!schema) {
-            throw this._logger.error('set_vertex_schema: not defined');
+            throw this._logError('set_vertex_schema: not defined');
         }
-        this._logger.info(`set_vertex_schema(attributes=${schema.attributes.length})`);
+        this._logInfo(`set_vertex_schema(attributes=${schema.attributes.length})`);
         this._attributes = validateVertexSchema(schema);
         const gl = this._runtime.gl();
         try {
@@ -179,32 +179,32 @@ export class Primitive extends BaseObject {
 
     setIndexConfig(config: PrimitiveIndexConfig): void {
         if (!config) {
-            throw this._logger.error('set_index_config: not defined');
+            throw this._logError('set_index_config: not defined');
         }
         const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logger.info(
+        this._logInfo(
             `set_index_config:(count=${indexCount}, offset=${indexOffset}, type=${indexType}, mode=${primitiveMode})`);
         if (indexCount < 0) {
-            throw this._logger.error(`bad index count: ${indexCount}`);
+            throw this._logError(`bad index count: ${indexCount}`);
         }
         this._indexCount = indexCount;
         if (indexOffset !== undefined) {
             if (indexOffset < 0) {
-                throw this._logger.error(`bad index offset: ${indexOffset}`);
+                throw this._logError(`bad index offset: ${indexOffset}`);
             }
             this._indexOffset = indexOffset;
         }
         if (indexType !== undefined) {
             const value = INDEX_TYPE_MAP[indexType];
             if (value === undefined) {
-                throw this._logger.error(`bad index type: ${indexType}`);
+                throw this._logError(`bad index type: ${indexType}`);
             }
             this._indexType = value;
         }
         if (primitiveMode !== undefined) {
             const value = PRIMITIVE_MODE_MAP[primitiveMode];
             if (value === undefined) {
-                throw this._logger.error(`bad primitive mode: ${primitiveMode}`);
+                throw this._logError(`bad primitive mode: ${primitiveMode}`);
             }
             this._primitiveMode = value;
         }
@@ -219,18 +219,19 @@ export class Primitive extends BaseObject {
         if (this._program === program) {
             return;
         }
-        this._logger.info(`set_program(${prog.id()})`);
+        this._logInfo(`set_program(${prog})`);
         this._program = prog;
     }
 
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            this._logger.warn('render without program');
+            this._logWarn('render: no program');
             return;
         }
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(wrap(this._id, this._vao));
+        this._logInfo('render');
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }

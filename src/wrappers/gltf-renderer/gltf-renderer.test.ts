@@ -28,9 +28,8 @@ describe('gltf-renderer', () => {
 
         beforeEach(() => {
             runtime = {
-                id: () => 'stub/runtime',
                 logger: () => stubLogger,
-            } as Pick<Runtime, 'id' | 'logger'> as Runtime;
+            } as Pick<Runtime, 'logger'> as Runtime;
             renderer = new GlTFRenderer({ runtime, tag: 'tag/test' });
             loader = MockLoader.mock.instances[0];
         });
