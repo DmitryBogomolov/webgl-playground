@@ -78,7 +78,7 @@ export class Camera {
 
     setZNear(value: number): void {
         if (!(value > 0 && value < this._zFar)) {
-            throw new Error(`bad "zNear" value: ${value}`);
+            throw new Error(`zNear: bad value ${value}`);
         }
         if (this._zNear !== value) {
             this._zNear = value;
@@ -92,7 +92,7 @@ export class Camera {
 
     setZFar(value: number): void {
         if (!(value > 0 && value > this._zNear)) {
-            throw new Error(`bad "zFar" value: ${value}`);
+            throw new Error(`zFar: bad value ${value}`);
         }
         if (this._zFar !== value) {
             this._zFar = value;
@@ -109,8 +109,11 @@ export class Camera {
     }
 
     setViewportSize(value: Vec2): void {
-        if (!(isVec2(value) && value.x > 0 && value.y > 0)) {
-            throw new Error(`bad "viewportSize" value: ${value}`);
+        if (!isVec2(value)) {
+            throw new Error(`viewport size: bad value ${value}`);
+        }
+        if (!(value.x > 0 && value.y > 0)) {
+            throw new Error(`viewport size: bad value (${value.x}, ${value.y}}`);
         }
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
@@ -128,7 +131,7 @@ export class Camera {
 
     setYFov(value: number): void {
         if (!(value > 0)) {
-            throw new Error(`bad "yFOV" value: ${value}`);
+            throw new Error(`yFOV: bad value ${value}`);
         }
         if (this._yFov !== value) {
             this._yFov = value;
@@ -141,8 +144,11 @@ export class Camera {
     }
 
     setUpDir(value: Vec3): void {
-        if (!(isVec3(value) && !eq3(value, ZERO3))) {
-            throw new Error(`bad "upDir" value: ${value}`);
+        if (!isVec3(value)) {
+            throw new Error(`upDir: bad value ${value}`);
+        }
+        if (eq3(value, ZERO3)) {
+            throw new Error('upDir: bad value (0, 0, 0)');
         }
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
@@ -157,7 +163,7 @@ export class Camera {
 
     setCenterPos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw new Error(`bad "centerPos" value: ${value}`);
+            throw new Error(`centerPos: bad value ${value}`);
         }
         if (!eq3(this._centerPos, value)) {
             this._centerPos = clone3(value);
@@ -171,7 +177,7 @@ export class Camera {
 
     setEyePos(value: Vec3): void {
         if (!isVec3(value)) {
-            throw new Error(`bad "eyePos" value: ${value}`);
+            throw new Error(`eyePos: bad value ${value}`);
         }
         if (!eq3(this._eyePos, value)) {
             this._eyePos = clone3(value);
