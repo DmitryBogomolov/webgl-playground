@@ -33,16 +33,18 @@ import { color, isColor, colorEq } from '../common/color';
 
 const WebGL = WebGLRenderingContext.prototype;
 
-const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
-const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
-const GL_FRAMEBUFFER = WebGL.FRAMEBUFFER;
-const GL_RENDERBUFFER = WebGL.RENDERBUFFER;
-const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
-const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
-const GL_TEXTURE0 = WebGL.TEXTURE0;
-const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
-const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
-const GL_UNPACK_COLORSPACE_CONVERSION_WEBGL = WebGL.UNPACK_COLORSPACE_CONVERSION_WEBGL;
+const {
+    ARRAY_BUFFER: GL_ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER: GL_ELEMENT_ARRAY_BUFFER,
+    FRAMEBUFFER: GL_FRAMEBUFFER,
+    RENDERBUFFER: GL_RENDERBUFFER,
+    TEXTURE_2D: GL_TEXTURE_2D,
+    TEXTURE_CUBE_MAP: GL_TEXTURE_CUBE_MAP,
+    TEXTURE0: GL_TEXTURE0,
+    UNPACK_FLIP_Y_WEBGL: GL_UNPACK_FLIP_Y_WEBGL,
+    UNPACK_PREMULTIPLY_ALPHA_WEBGL: GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+    UNPACK_COLORSPACE_CONVERSION_WEBGL: GL_UNPACK_COLORSPACE_CONVERSION_WEBGL,
+} = WebGL;
 
 interface BindingsState {
     currentProgram: WebGLProgram | null;
@@ -223,8 +225,11 @@ export class Runtime extends BaseObject {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl',
-            { ...DEFAULT_CONTEXT_ATTRIBUTES, ...this._options.contextAttributes });
+        const options: WebGLContextAttributes = {
+            ...DEFAULT_CONTEXT_ATTRIBUTES,
+            ...this._options.contextAttributes,
+        };
+        const context = this._canvas.getContext('webgl', options);
         if (!context) {
             throw this._logError('failed to get webgl context');
         }
