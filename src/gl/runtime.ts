@@ -291,7 +291,8 @@ export class Runtime extends BaseObject {
         }
         this._logInfo(`set_size(width=${size.x}, height=${size.y})`);
         this._size = clone2(size);
-        this._canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
+        const dpr = getDpr();
+        this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
         this._canvas.width = this._canvasSize.x;
         this._canvas.height = this._canvasSize.y;
         this._sizeChanged.emit();
@@ -654,6 +655,10 @@ function getDefaultPixelStoreState(): PixelStoreState {
         pixelStoreUnpackPremultiplyAlphaWebgl: false,
         pixelStoreUnpackColorSpaceConversionWebgl: 'browser_default',
     };
+}
+
+function getDpr(): number {
+    return devicePixelRatio;
 }
 
 function createLogger(): Logger {
