@@ -22,8 +22,8 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { toStr } from '../utils/string-formatter';
+import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
 import { LoggerImpl, ConsoleLogTransport } from '../common/logger';
 import { RenderLoop } from './render-loop';
@@ -116,7 +116,7 @@ const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
 };
 
 const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
-    trackWindowResize: true,
+    trackElementResize: true,
     extensions: [],
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
@@ -132,6 +132,7 @@ export class Runtime extends BaseObject {
     private readonly _renderState: RenderState;
     private readonly _gl: WebGLRenderingContext;
     private readonly _vaoExt: OES_vertex_array_object;
+    private readonly _cancelResizeTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
     private _size: Vec2 = clone2(ZERO2);
     private _canvasSize: Vec2 = clone2(ZERO2);
@@ -156,10 +157,6 @@ export class Runtime extends BaseObject {
         this._contextRestored.emit();
     };
 
-    private readonly _handleWindowResize = (): void => {
-        this.adjustViewport();
-    };
-
     constructor(params: RuntimeParams) {
         super({ logger: createLogger(), ...params });
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
@@ -176,9 +173,9 @@ export class Runtime extends BaseObject {
         this._pixelStoreState = getDefaultPixelStoreState();
         this._renderState = makeRenderState({});
         this.adjustViewport();
-        if (this._options.trackWindowResize) {
-            onWindowResize(this._handleWindowResize);
-        }
+        this._cancelResizeTracking = createResizeTracker(
+            this._options.trackElementResize, this._canvas.parentElement!, () => this.adjustViewport(),
+        );
     }
 
     dispose(): void {
@@ -190,9 +187,7 @@ export class Runtime extends BaseObject {
         this._contextRestored.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        if (this._options.trackWindowResize) {
-            offWindowResize(this._handleWindowResize);
-        }
+        this._cancelResizeTracking();
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
@@ -687,6 +682,17 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
+}
+
+function createResizeTracker(enabled: boolean, element: HTMLElement, callback: () => void): () => void {
+    if (!enabled) {
+        return () => {/* empty */};
+    }
+    const ro = new ResizeObserver(throttle(callback, 250));
+    ro.observe(element);
+    return () => {
+        ro.disconnect();
+    };
 }
 
 class DefaultRenderTarget extends BaseObject implements RenderTarget {
