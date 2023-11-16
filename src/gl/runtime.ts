@@ -125,7 +125,7 @@ export class Runtime extends BaseObject {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _defaultRenderTarget;
+    private readonly _defaultRenderTarget: RenderTarget;
     private readonly _bindingsState: BindingsState;
     private readonly _clearState: ClearState;
     private readonly _pixelStoreState: PixelStoreState;
