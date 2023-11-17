@@ -10,6 +10,7 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
@@ -82,7 +83,7 @@ function main(): void {
         renderScene(state);
     });
 
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     camera.changed().on(() => {

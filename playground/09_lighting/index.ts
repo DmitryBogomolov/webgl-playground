@@ -9,6 +9,7 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
@@ -127,7 +128,7 @@ function main(): void {
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
     const _proj = mat4();
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         const { x, y } = runtime.canvasSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);

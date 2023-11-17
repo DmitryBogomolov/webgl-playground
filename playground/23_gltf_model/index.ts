@@ -6,6 +6,7 @@ import {
     vec3, mul3,
     spherical2zxy, deg2rad,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 
@@ -57,7 +58,7 @@ function main(): void {
 
     const renderer = new GlTFRenderer({ runtime });
 
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 

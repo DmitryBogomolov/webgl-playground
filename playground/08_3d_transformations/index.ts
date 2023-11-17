@@ -7,6 +7,7 @@ import {
 } from 'lib';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
+import { trackSize } from 'playground-utils/resizer';
 
 /**
  * 3D Transformations.
@@ -65,7 +66,7 @@ function main(): void {
         runtime.requestFrameRender();
     });
 
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         const { x, y } = runtime.canvasSize();
         perspective4x4({
             aspect: x / y,

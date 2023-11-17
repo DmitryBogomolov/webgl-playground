@@ -7,6 +7,7 @@ import {
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
@@ -77,7 +78,7 @@ function main(): void {
     [modelMat, normalMat, isCubeShown, camera.changed()].forEach(
         (proxy) => proxy.on(() => runtime.requestFrameRender()),
     );
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRequested().on(() => {

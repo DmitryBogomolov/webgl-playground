@@ -140,12 +140,7 @@ export class Runtime extends BaseObject {
 
     private readonly _contextLost = new EventEmitter();
     private readonly _contextRestored = new EventEmitter();
-
-    private readonly _sizeChanged = new EventEmitter((handler) => {
-        // Immediately notify subscriber so that it may perform initial calculation.
-        // TODO: Remove it. From the user perspective it looks weird.
-        handler();
-    });
+    private readonly _sizeChanged = new EventEmitter();
 
     private readonly _handleContextLost: EventListener = () => {
         this._logWarn('context is lost');

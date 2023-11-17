@@ -9,6 +9,7 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
@@ -45,7 +46,7 @@ function main(): void {
     // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
     const DISTANCE = fovSize2Dist(YFOV, 1);
 
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         identity4x4(proj);
         apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
         const { x, y } = runtime.canvasSize();
