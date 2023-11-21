@@ -3,9 +3,7 @@ import { EventEmitter } from '../common/event-emitter';
 
 export class RenderLoop {
     // (delta: number, timestamp: number) => void
-    private readonly _frameRequested = new EventEmitter<[number, number]>(() => {
-        this.update();
-    });
+    private readonly _frameRequested = new EventEmitter<[number, number]>();
     private readonly _handleFrame: FrameRequestCallback = (timestamp) => {
         this._requestId = 0;
         const delta = (timestamp - this._timestamp) || 0; // ms
