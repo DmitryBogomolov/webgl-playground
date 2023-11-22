@@ -1,4 +1,4 @@
-import { EventEmitter } from './event-emitter';
+import { EventEmitter, eventOnce, eventWait } from './event-emitter';
 
 describe('event-emitter', () => {
     describe('EventEmitter', () => {
@@ -186,6 +186,46 @@ describe('event-emitter', () => {
                 [3],
                 [4],
             ]);
+        });
+    });
+
+    describe('eventOnce', () => {
+        it('call handler once', () => {
+            const emitter = new EventEmitter<[number]>();
+            const stub = jest.fn();
+            eventOnce(emitter, stub);
+
+            emitter.emit(1);
+            emitter.emit(2);
+            emitter.emit(3);
+
+            expect(stub.mock.calls).toEqual([
+                [1],
+            ]);
+        });
+
+        it('cancel subscription', () => {
+            const emitter = new EventEmitter<[number]>();
+            const stub = jest.fn();
+            const cancel = eventOnce(emitter, stub);
+
+            cancel();
+            emitter.emit(1);
+
+            expect(stub.mock.calls).toEqual([]);
+        });
+    });
+
+    describe('eventWait', () => {
+        it('wait for event', async () => {
+            const emitter = new EventEmitter<[number]>();
+
+            setTimeout(() => {
+                emitter.emit(3);
+            }, 2);
+
+            const data = await eventWait(emitter);
+            expect(data).toEqual([3]);
         });
     });
 });

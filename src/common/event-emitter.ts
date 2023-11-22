@@ -62,3 +62,26 @@ class EventProxyImpl<T extends readonly unknown[]> implements EventProxy<T> {
         return this;
     }
 }
+
+export function eventOnce<T extends readonly unknown[] = []>(
+    proxy: EventProxy<T>, handler: EventHandler<T>,
+): () => void {
+    const wrapper: EventHandler<T> = (...args) => {
+        proxy.off(wrapper);
+        handler(...args);
+    };
+    proxy.on(wrapper);
+    return () => {
+        proxy.off(wrapper);
+    };
+}
+
+export function eventWait<T extends readonly unknown[] = []>(proxy: EventProxy<T>): Promise<T> {
+    return new Promise<T>((resolve) => {
+        const wrapper: EventHandler<T> = (...args) => {
+            proxy.off(wrapper);
+            resolve(args);
+        };
+        proxy.on(wrapper);
+    });
+}
