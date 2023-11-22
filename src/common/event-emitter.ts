@@ -3,12 +3,7 @@ import type { EventHandler, EventProxy } from './event-emitter.types';
 export class EventEmitter<T extends readonly unknown[] = []> implements EventProxy<T> {
     private readonly _handlers: EventHandler<T>[] = [];
     private readonly _proxy = new EventProxyImpl<T>(this);
-    private readonly _handlerAdded: (handler: EventHandler<T>) => void;
     private _emitHandlers: EventHandler<T>[] | null = null;
-
-    constructor(handlerAdded?: (handler: EventHandler<T>) => void) {
-        this._handlerAdded = handlerAdded || (() => { /* nothing */ });
-    }
 
     proxy(): EventProxy<T> {
         return this._proxy;
@@ -17,7 +12,6 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
     on(handler: EventHandler<T>): this {
         this._handlers.push(handler);
         this._emitHandlers = null;
-        this._handlerAdded(handler);
         return this;
     }
 
