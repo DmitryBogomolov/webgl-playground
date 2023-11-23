@@ -8,6 +8,7 @@ import {
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
 import { makeFigureRenderer } from './figure';
+import { trackSize } from 'playground-utils/resizer';
 
 /**
  * 2D Transformations.
@@ -34,7 +35,7 @@ function main(): void {
     const transformation3 = mat3() as Mat3Mut;
 
     const projection = mat3() as Mat3Mut;
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });

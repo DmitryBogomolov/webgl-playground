@@ -60,31 +60,9 @@ describe('render loop', () => {
             ]);
         });
 
-        it('request frame when callback is added', () => {
-            const loop = new RenderLoop();
-
-            loop.frameRequested().on(() => 0);
-
-            expect(mockRequestAnimationFrame.mock.calls).toEqual([
-                [expect.any(Function)],
-            ]);
-        });
-
-        it('do not request frame when callback is removed', () => {
-            const loop = new RenderLoop();
-            const func = (): number => 0;
-            loop.frameRequested().on(func);
-            triggerFrame(0);
-
-            loop.frameRequested().off(func);
-
-            expect(mockRequestAnimationFrame.mock.calls).toEqual([
-                [expect.any(Function)],
-            ]);
-        });
-
         it('invoke callback', () => {
             const loop = new RenderLoop();
+            loop.update();
             const callback = jest.fn();
             loop.frameRequested().on(callback);
 
@@ -103,6 +81,7 @@ describe('render loop', () => {
             mockRequestAnimationFrame.mockReturnValueOnce(2);
             mockRequestAnimationFrame.mockReturnValueOnce(3);
             const loop = new RenderLoop();
+            loop.update();
             const callback = jest.fn(() => {
                 loop.update();
             });
@@ -141,6 +120,7 @@ describe('render loop', () => {
 
         it('add or remove callbacks twice', () => {
             const loop = new RenderLoop();
+            loop.update();
             const callback = jest.fn();
 
             loop.frameRequested().on(callback);
@@ -170,6 +150,7 @@ describe('render loop', () => {
 
         it('remove all callbacks', () => {
             const loop = new RenderLoop();
+            loop.update();
             const callback1 = jest.fn();
             const callback2 = jest.fn();
             loop.frameRequested().on(callback1);

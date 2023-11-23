@@ -11,6 +11,7 @@ import {
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
@@ -124,7 +125,7 @@ function main(): void {
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     [camera.changed(), outlineThickness].forEach((emitter) => {

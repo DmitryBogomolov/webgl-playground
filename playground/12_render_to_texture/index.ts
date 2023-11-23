@@ -8,6 +8,7 @@ import {
     color,
     deg2rad,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeObject, makeTexturePlane } from './primitive';
@@ -108,7 +109,7 @@ function main(): void {
         targetModel,
     };
 
-    runtime.sizeChanged().on(() => {
+    trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 

@@ -28,7 +28,7 @@ export interface ReadPixelsOptions {
 }
 
 export interface RuntimeOptions {
-    readonly trackWindowResize?: boolean;
+    readonly trackElementResize?: boolean;
     readonly extensions?: ReadonlyArray<EXTENSION>;
     readonly contextAttributes?: WebGLContextAttributes;
 }

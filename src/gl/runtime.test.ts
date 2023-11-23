@@ -26,6 +26,10 @@ describe('runtime', () => {
             COLOR_BUFFER_BIT, DEPTH_BUFFER_BIT, STENCIL_BUFFER_BIT,
         } = WebGLRenderingContext.prototype;
 
+        class TestResizeObserver {
+            observe(): void { /* empty */ }
+        }
+
         beforeEach(() => {
             container = document.createElement('div');
             canvas = document.createElement('canvas');
@@ -52,10 +56,12 @@ describe('runtime', () => {
             } as Partial<WebGLRenderingContext> as WebGLRenderingContext;
             canvas.getContext = jest.fn().mockReturnValueOnce(ctx);
             document.createElement = jest.fn().mockReturnValueOnce(canvas);
+            Object.assign(global, { ResizeObserver: TestResizeObserver });
         });
 
         afterEach(() => {
             document.createElement = createElement;
+            Object.assign(global, { ResizeObserver: undefined });
         });
 
         it('create runtime', () => {
@@ -94,16 +100,6 @@ describe('runtime', () => {
                 // eslint-disable-next-line no-global-assign
                 devicePixelRatio = saved;
             }
-        });
-
-        it('notify size on subscription', () => {
-            const runtime = new Runtime({ element: container });
-            const handleSizeChanged = jest.fn();
-            runtime.sizeChanged().on(handleSizeChanged);
-
-            expect(handleSizeChanged.mock.calls).toEqual([
-                [],
-            ]);
         });
 
         it('update size', () => {

@@ -22,8 +22,8 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { onWindowResize, offWindowResize } from '../utils/resize-handler';
 import { toStr } from '../utils/string-formatter';
+import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
 import { LoggerImpl, ConsoleLogTransport } from '../common/logger';
 import { RenderLoop } from './render-loop';
@@ -33,16 +33,18 @@ import { color, isColor, colorEq } from '../common/color';
 
 const WebGL = WebGLRenderingContext.prototype;
 
-const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
-const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;
-const GL_FRAMEBUFFER = WebGL.FRAMEBUFFER;
-const GL_RENDERBUFFER = WebGL.RENDERBUFFER;
-const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
-const GL_TEXTURE_CUBE_MAP = WebGL.TEXTURE_CUBE_MAP;
-const GL_TEXTURE0 = WebGL.TEXTURE0;
-const GL_UNPACK_FLIP_Y_WEBGL = WebGL.UNPACK_FLIP_Y_WEBGL;
-const GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL = WebGL.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
-const GL_UNPACK_COLORSPACE_CONVERSION_WEBGL = WebGL.UNPACK_COLORSPACE_CONVERSION_WEBGL;
+const {
+    ARRAY_BUFFER: GL_ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER: GL_ELEMENT_ARRAY_BUFFER,
+    FRAMEBUFFER: GL_FRAMEBUFFER,
+    RENDERBUFFER: GL_RENDERBUFFER,
+    TEXTURE_2D: GL_TEXTURE_2D,
+    TEXTURE_CUBE_MAP: GL_TEXTURE_CUBE_MAP,
+    TEXTURE0: GL_TEXTURE0,
+    UNPACK_FLIP_Y_WEBGL: GL_UNPACK_FLIP_Y_WEBGL,
+    UNPACK_PREMULTIPLY_ALPHA_WEBGL: GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+    UNPACK_COLORSPACE_CONVERSION_WEBGL: GL_UNPACK_COLORSPACE_CONVERSION_WEBGL,
+} = WebGL;
 
 interface BindingsState {
     currentProgram: WebGLProgram | null;
@@ -114,7 +116,7 @@ const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
 };
 
 const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
-    trackWindowResize: true,
+    trackElementResize: true,
     extensions: [],
     contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
 };
@@ -123,13 +125,14 @@ export class Runtime extends BaseObject {
     private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _defaultRenderTarget;
+    private readonly _defaultRenderTarget: RenderTarget;
     private readonly _bindingsState: BindingsState;
     private readonly _clearState: ClearState;
     private readonly _pixelStoreState: PixelStoreState;
     private readonly _renderState: RenderState;
     private readonly _gl: WebGLRenderingContext;
     private readonly _vaoExt: OES_vertex_array_object;
+    private readonly _cancelResizeTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
     private _size: Vec2 = clone2(ZERO2);
     private _canvasSize: Vec2 = clone2(ZERO2);
@@ -137,12 +140,7 @@ export class Runtime extends BaseObject {
 
     private readonly _contextLost = new EventEmitter();
     private readonly _contextRestored = new EventEmitter();
-
-    private readonly _sizeChanged = new EventEmitter((handler) => {
-        // Immediately notify subscriber so that it may perform initial calculation.
-        // TODO: Remove it. From the user perspective it looks weird.
-        handler();
-    });
+    private readonly _sizeChanged = new EventEmitter();
 
     private readonly _handleContextLost: EventListener = () => {
         this._logWarn('context is lost');
@@ -152,10 +150,6 @@ export class Runtime extends BaseObject {
     private readonly _handleContextRestored: EventListener = () => {
         this._logWarn('context is restored');
         this._contextRestored.emit();
-    };
-
-    private readonly _handleWindowResize = (): void => {
-        this.adjustViewport();
     };
 
     constructor(params: RuntimeParams) {
@@ -174,9 +168,9 @@ export class Runtime extends BaseObject {
         this._pixelStoreState = getDefaultPixelStoreState();
         this._renderState = makeRenderState({});
         this.adjustViewport();
-        if (this._options.trackWindowResize) {
-            onWindowResize(this._handleWindowResize);
-        }
+        this._cancelResizeTracking = createResizeTracker(
+            this._options.trackElementResize, this._canvas.parentElement!, () => this.adjustViewport(),
+        );
     }
 
     dispose(): void {
@@ -188,9 +182,7 @@ export class Runtime extends BaseObject {
         this._contextRestored.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        if (this._options.trackWindowResize) {
-            offWindowResize(this._handleWindowResize);
-        }
+        this._cancelResizeTracking();
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
@@ -223,8 +215,11 @@ export class Runtime extends BaseObject {
     }
 
     private _getContext(): WebGLRenderingContext {
-        const context = this._canvas.getContext('webgl',
-            { ...DEFAULT_CONTEXT_ATTRIBUTES, ...this._options.contextAttributes });
+        const options: WebGLContextAttributes = {
+            ...DEFAULT_CONTEXT_ATTRIBUTES,
+            ...this._options.contextAttributes,
+        };
+        const context = this._canvas.getContext('webgl', options);
         if (!context) {
             throw this._logError('failed to get webgl context');
         }
@@ -286,7 +281,8 @@ export class Runtime extends BaseObject {
         }
         this._logInfo(`set_size(width=${size.x}, height=${size.y})`);
         this._size = clone2(size);
-        this._canvasSize = vec2((devicePixelRatio * size.x) | 0, (devicePixelRatio * size.y) | 0);
+        const dpr = getDpr();
+        this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
         this._canvas.width = this._canvasSize.x;
         this._canvas.height = this._canvasSize.y;
         this._sizeChanged.emit();
@@ -651,6 +647,10 @@ function getDefaultPixelStoreState(): PixelStoreState {
     };
 }
 
+function getDpr(): number {
+    return devicePixelRatio;
+}
+
 function createLogger(): Logger {
     const logger = new LoggerImpl();
     logger.addTransport(new ConsoleLogTransport());
@@ -677,6 +677,17 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
+}
+
+function createResizeTracker(enabled: boolean, element: HTMLElement, callback: () => void): () => void {
+    if (!enabled) {
+        return () => {/* empty */};
+    }
+    const ro = new ResizeObserver(throttle(callback, 250));
+    ro.observe(element);
+    return () => {
+        ro.disconnect();
+    };
 }
 
 class DefaultRenderTarget extends BaseObject implements RenderTarget {
