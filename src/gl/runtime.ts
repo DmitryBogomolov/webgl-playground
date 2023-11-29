@@ -138,18 +138,18 @@ export class Runtime extends BaseObject {
     private _canvasSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
-    private readonly _contextLost = new EventEmitter();
-    private readonly _contextRestored = new EventEmitter();
+    private readonly _contextLost = new EventEmitter<[{ readonly event: Event }]>();
+    private readonly _contextRestored = new EventEmitter<[{ readonly event: Event }]>();
     private readonly _sizeChanged = new EventEmitter();
 
-    private readonly _handleContextLost: EventListener = () => {
+    private readonly _handleContextLost: EventListener = (e) => {
         this._logWarn('context is lost');
-        this._contextLost.emit();
+        this._contextLost.emit({ event: e });
     };
 
-    private readonly _handleContextRestored: EventListener = () => {
+    private readonly _handleContextRestored: EventListener = (e) => {
         this._logWarn('context is restored');
-        this._contextRestored.emit();
+        this._contextRestored.emit({ event: e });
     };
 
     constructor(params: RuntimeParams) {
