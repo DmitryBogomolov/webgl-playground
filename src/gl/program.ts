@@ -172,18 +172,23 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     private readonly _uniforms: ShaderUniform[];
     private readonly _uniformsMap: Record<string, number>;
     private readonly _program: WebGLProgram;
+    private readonly _disposableCtx: DisposableContext;
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger(), ...params });
         this._logInfo('init');
         this._runtime = params.runtime;
         const gl = this._runtime.gl();
-        const ctx = new DisposableContext();
+        this._disposableCtx = new DisposableContext();
         try {
-            this._program = createProgram(gl, ctx);
+            this._program = createProgram(gl, this._disposableCtx);
             const prefix = buildSourcePrefix(params.defines);
-            this._vertShader = createShader(gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), ctx);
-            this._fragShader = createShader(gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), ctx);
+            this._vertShader = createShader(
+                gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), this._disposableCtx,
+            );
+            this._fragShader = createShader(
+                gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), this._disposableCtx,
+            );
             if (params.locations) {
                 bindAttributes(gl, this._program, params.locations);
             }
@@ -191,20 +196,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
             this._attributes = collectAttributes(gl, this._program);
             this._uniforms = collectUniforms(gl, this._program);
             this._uniformsMap = buildUniformsMap(this._uniforms);
-            ctx.release();
         } catch (err) {
+            this._disposableCtx.dispose();
             throw this._logError(err as Error);
-        } finally {
-            ctx.dispose();
         }
     }
 
     dispose(): void {
         this._logInfo('dispose');
-        const gl = this._runtime.gl();
-        gl.deleteShader(this._vertShader);
-        gl.deleteShader(this._fragShader);
-        gl.deleteProgram(this._program);
+        this._disposableCtx.dispose();
         this._dispose();
     }
 
