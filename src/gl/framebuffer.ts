@@ -11,25 +11,23 @@ import { Texture } from './texture-2d';
 
 const WebGL = WebGLRenderingContext.prototype;
 
-const GL_FRAMEBUFFER = WebGL.FRAMEBUFFER;
-const GL_RENDERBUFFER = WebGL.RENDERBUFFER;
-const GL_TEXTURE_2D = WebGL.TEXTURE_2D;
-const GL_COLOR_ATTACHMENT0 = WebGL.COLOR_ATTACHMENT0;
-const GL_DEPTH_ATTACHMENT = WebGL.DEPTH_ATTACHMENT;
-const GL_DEPTH_STENCIL_ATTACHMENT = WebGL.DEPTH_STENCIL_ATTACHMENT;
-const GL_DEPTH_COMPONENT16 = WebGL.DEPTH_COMPONENT16;
-const GL_DEPTH_STENCIL = WebGL.DEPTH_STENCIL;
-const GL_FRAMEBUFFER_COMPLETE = WebGL.FRAMEBUFFER_COMPLETE;
-const GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT = WebGL.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
-const GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = WebGL.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
-const GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS = WebGL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-const GL_FRAMEBUFFER_UNSUPPORTED = WebGL.FRAMEBUFFER_UNSUPPORTED;
+const {
+    FRAMEBUFFER: GL_FRAMEBUFFER,
+    RENDERBUFFER: GL_RENDERBUFFER,
+    TEXTURE_2D: GL_TEXTURE_2D,
+    COLOR_ATTACHMENT0: GL_COLOR_ATTACHMENT0,
+    DEPTH_ATTACHMENT: GL_DEPTH_ATTACHMENT,
+    DEPTH_STENCIL_ATTACHMENT: GL_DEPTH_STENCIL_ATTACHMENT,
+    DEPTH_COMPONENT16: GL_DEPTH_COMPONENT16,
+    DEPTH_STENCIL: GL_DEPTH_STENCIL,
+    FRAMEBUFFER_COMPLETE: GL_FRAMEBUFFER_COMPLETE,
+} = WebGL;
 
 const ERRORS_MAP: Mapping<number, string> = {
-    [GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT]: 'incomplete attachment',
-    [GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT]: 'missing attachment',
-    [GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: 'dimensions',
-    [GL_FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
+    [WebGL.FRAMEBUFFER_INCOMPLETE_ATTACHMENT]: 'incomplete attachment',
+    [WebGL.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT]: 'missing attachment',
+    [WebGL.FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: 'dimensions',
+    [WebGL.FRAMEBUFFER_UNSUPPORTED]: 'unsupported',
 };
 
 export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
@@ -172,7 +170,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         renderbuffer: WebGLFramebuffer | null,
     } {
         this._logInfo(`setup_attachment(${attachment}, ${size.x}x${size.y})`);
-        this._size = size;
+        this._size = clone2(size);
         let texture!: Texture;
         let depthTexture: Texture | null = null;
         let renderbuffer: WebGLRenderbuffer | null = null;
