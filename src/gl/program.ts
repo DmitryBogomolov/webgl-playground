@@ -166,13 +166,13 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
 
 export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
+    private readonly _disposableCtx: DisposableContext;
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
     private readonly _attributes: ShaderAttribute[];
     private readonly _uniforms: ShaderUniform[];
     private readonly _uniformsMap: Record<string, number>;
     private readonly _program: WebGLProgram;
-    private readonly _disposableCtx: DisposableContext;
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger(), ...params });
@@ -280,6 +280,9 @@ function buildSourcePrefix(defines: Mapping<string, string> | undefined): string
 }
 
 function combineSource(source: string, prefix: string): string {
+    if (!source) {
+        throw new Error('bad shader source');
+    }
     if (!prefix) {
         return source;
     }
