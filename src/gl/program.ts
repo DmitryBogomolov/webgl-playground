@@ -166,7 +166,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
 
 export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
-    private readonly _disposableCtx: DisposableContext;
+    private readonly _disposableCtx = new DisposableContext();
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
     private readonly _attributes: ShaderAttribute[];
@@ -179,7 +179,6 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         this._logInfo('init');
         this._runtime = params.runtime;
         const gl = this._runtime.gl();
-        this._disposableCtx = new DisposableContext();
         try {
             this._program = createProgram(gl, this._disposableCtx);
             const prefix = buildSourcePrefix(params.defines);
