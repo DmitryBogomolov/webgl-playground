@@ -1,6 +1,6 @@
 import type { FramebufferParams, FRAMEBUFFER_ATTACHMENT, FramebufferRuntime } from './framebuffer.types';
 import type { RenderTarget } from './render-target.types';
-import type { TextureRuntime, TEXTURE_FORMAT } from './texture-2d.types';
+import type { TextureRuntime } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
 import type { Vec2 } from '../geometry/vec2.types';
@@ -102,7 +102,8 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     private _attachTexture(): Texture {
         const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
-        resizeColorTexture(texture, this._size);
+        texture.setFormat('rgba');
+        resizeTexture(texture, this._size);
         this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -111,12 +112,13 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     private _attachDepthTexture(): Texture {
         const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
-        texture.setImageData({ size: this._size, data: null }, { format: 'depth_component32' });
+        texture.setFormat('depth_component32');
+        texture.setImageData({ size: this._size, data: null });
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
-        resizeDepthTexture(texture, this._size);
+        resizeTexture(texture, this._size);
         this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -139,11 +141,12 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     private _attachDepthStencilTexture(): Texture {
         const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
+        texture.setFormat('depth_stencil');
         texture.setParameters({
             mag_filter: 'nearest',
             min_filter: 'nearest',
         });
-        resizeDepthStencilTexture(texture, this._size);
+        resizeTexture(texture, this._size);
         this._runtime.gl().framebufferTexture2D(
             GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture.glHandle(), 0,
         );
@@ -216,14 +219,14 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         }
         this._size = clone2(size);
         this._logInfo(`resize(width=${size.x}, height=${size.y})`);
-        resizeColorTexture(this._texture, size);
+        resizeTexture(this._texture, size);
         if (this._depthTexture) {
             switch (this._attachment) {
             case 'color|depth':
-                resizeDepthTexture(this._texture, size);
+                resizeTexture(this._texture, size);
                 break;
             case 'color|depth|stencil':
-                resizeDepthStencilTexture(this._texture, size);
+                resizeTexture(this._texture, size);
                 break;
             }
         }
@@ -245,20 +248,8 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 }
 
-function resizeTexture(texture: Texture, size: Vec2, format: TEXTURE_FORMAT): void {
-    texture.setImageData({ size, data: null }, { format });
-}
-
-function resizeColorTexture(texture: Texture, size: Vec2): void {
-    resizeTexture(texture, size, 'rgba');
-}
-
-function resizeDepthTexture(texture: Texture, size: Vec2): void {
-    resizeTexture(texture, size, 'depth_component32');
-}
-
-function resizeDepthStencilTexture(texture: Texture, size: Vec2): void {
-    resizeTexture(texture, size, 'depth_stencil');
+function resizeTexture(texture: Texture, size: Vec2): void {
+    texture.setImageData({ size, data: null });
 }
 
 function resizeRenderbuffer(runtime: FramebufferRuntime, size: Vec2, format: number): void {

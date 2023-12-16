@@ -80,6 +80,8 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
     protected _size: Vec2 = clone2(ZERO2);
+    private _format: number = DEFAULT_TEXTURE_FORMAT;
+    private _type: number = DEFAULT_TEXTURE_TYPE;
     private _needMipmap: boolean = false;
     // Original default texture state is slightly different. This one seems to be more common.
     // Initial texture state is updated right after texture object is created.
@@ -132,36 +134,29 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
         gl.texParameteri(this._target, GL_PARAMETER_NAMES['min_filter'], MIN_FILTER_MAP['linear']);
     }
 
-    protected _beginDataUpdate(options: TextureImageDataOptions | undefined): { format: number, type: number } {
+    protected _beginDataUpdate(options: TextureImageDataOptions | undefined): void {
         // These defaults are implicitly duplicated. Find a way to solve it.
         let unpackFlipY = false;
         let unpackPremultiplyAlpha = false;
         let unpackColorSpaceConversion: UNPACK_COLORSPACE_CONVERSION = 'browser_default';
-        let format = DEFAULT_TEXTURE_FORMAT;
-        let type = DEFAULT_TEXTURE_TYPE;
         if (options) {
             unpackFlipY = !!(options.unpackFlipY || unpackFlipY);
             unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha || unpackPremultiplyAlpha);
             unpackColorSpaceConversion = options.unpackColorSpaceConversion || unpackColorSpaceConversion;
-            if (options.format) {
-                format = FORMAT_MAP[options.format] || DEFAULT_TEXTURE_FORMAT;
-                type = TYPE_MAP[options.format] || DEFAULT_TEXTURE_TYPE;
-            }
         }
         this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);
         this._runtime.setPixelStoreUnpackColorSpaceConversionWebgl(unpackColorSpaceConversion);
         this._bind();
-        return { format, type };
     }
 
-    protected _updateData(imageData: TextureImageData, target: number, format: number, type: number): void {
+    protected _updateData(imageData: TextureImageData, target: number): void {
         if (isTextureRawImageData(imageData)) {
             const { size, data } = imageData;
-            this._runtime.gl().texImage2D(target, 0, format, size.x, size.y, 0, format, type, data);
+            this._runtime.gl().texImage2D(target, 0, this._format, size.x, size.y, 0, this._format, this._type, data);
             this._size = clone2(size);
         } else {
-            this._runtime.gl().texImage2D(target, 0, format, format, type, imageData);
+            this._runtime.gl().texImage2D(target, 0, this._format, this._format, this._type, imageData);
             this._size = vec2((imageData as ImageData).width, (imageData as ImageData).height);
         }
         if (this._needMipmap) {
@@ -202,6 +197,11 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
                 this._generateMipmap();
             }
         }
+    }
+
+    setFormat(format: TEXTURE_FORMAT): void {
+        this._format = FORMAT_MAP[format] || DEFAULT_TEXTURE_FORMAT;
+        this._type = TYPE_MAP[format] || DEFAULT_TEXTURE_TYPE;
     }
 }
 
