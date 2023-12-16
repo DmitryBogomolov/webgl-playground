@@ -16,7 +16,7 @@ import { DisposableContext } from '../../utils/disposable-context';
 import { toStr } from '../../utils/string-formatter';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene } from './scene';
-import { createPrograms, destroyPrograms } from './program';
+import { createPrograms } from './program';
 import { createTextures } from './texture';
 
 function isRawData(data: GlTFRendererData): data is GlTFRendererRawData {
@@ -33,6 +33,7 @@ export class GlTFRenderer extends BaseObject {
     private readonly _wrappers: PrimitiveWrapper[] = [];
     private readonly _programs: Program[] = [];
     private readonly _textures: Texture[] = [];
+    private _disposableCtx = new DisposableContext();
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
@@ -45,18 +46,8 @@ export class GlTFRenderer extends BaseObject {
 
     dispose(): void {
         this._loader.dispose();
-        this._disposeElements();
+        this._disposableCtx.dispose();
         this._dispose();
-    }
-
-    private _disposeElements(): void {
-        for (const wrapper of this._wrappers) {
-            wrapper.primitive.dispose();
-        }
-        destroyPrograms(this._programs);
-        for (const texture of this._textures.values()) {
-            texture.dispose();
-        }
     }
 
     private async _load(url: string): Promise<ArrayBufferView> {
@@ -72,12 +63,10 @@ export class GlTFRenderer extends BaseObject {
             const wrappers = processScene(asset, this._runtime, context);
             const programs = createPrograms(wrappers, this._runtime, context);
             const textures = await createTextures(asset, this._runtime, context);
-            this._setup(wrappers, programs, textures);
-            context.release();
+            this._setup(wrappers, programs, textures, context);
         } catch (err) {
-            throw this._logError(err as Error);
-        } finally {
             context.dispose();
+            throw this._logError(err as Error);
         }
     }
 
@@ -111,8 +100,10 @@ export class GlTFRenderer extends BaseObject {
         wrappers: ReadonlyArray<PrimitiveWrapper>,
         programs: ReadonlyArray<Program>,
         textures: ReadonlyArray<Texture>,
+        ctx: DisposableContext,
     ): void {
-        this._disposeElements();
+        this._disposableCtx.dispose();
+        this._disposableCtx = ctx;
         this._wrappers.length = 0;
         this._wrappers.push(...wrappers);
         this._programs.length = 0;
