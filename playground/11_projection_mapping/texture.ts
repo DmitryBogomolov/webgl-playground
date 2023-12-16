@@ -16,10 +16,8 @@ export function makeColorTexture(runtime: Runtime): Texture {
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });
-    texture.setImageData(
-        { size: { x: 8, y: 8 }, data },
-        { format: 'luminance' },
-    );
+    texture.setFormat('luminance');
+    texture.setImageData({ size: { x: 8, y: 8 }, data });
     return texture;
 }
 

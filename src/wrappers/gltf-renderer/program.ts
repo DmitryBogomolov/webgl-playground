@@ -101,9 +101,3 @@ export function createPrograms(
     }
     return programs;
 }
-
-export function destroyPrograms(programs: ReadonlyArray<Program>): void {
-    for (const program of programs) {
-        releaseProgram(program);
-    }
-}

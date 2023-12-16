@@ -6,7 +6,7 @@ export type FRAMEBUFFER_ATTACHMENT = ('color' | 'color|depth' | 'color|depth|ste
 
 export type FramebufferRuntime = Pick<
     Runtime,
-    'gl' | 'logger' | 'bindFramebuffer' | 'bindRenderbuffer'
+    'gl' | 'logger' | 'bindFramebuffer' | 'bindTexture' | 'bindRenderbuffer'
 >;
 
 export interface FramebufferParams extends BaseObjectParams {

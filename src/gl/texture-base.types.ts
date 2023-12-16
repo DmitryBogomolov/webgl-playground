@@ -26,7 +26,6 @@ export interface TextureImageDataOptions {
     readonly unpackFlipY?: boolean;
     readonly unpackPremultiplyAlpha?: boolean;
     readonly unpackColorSpaceConversion?: UNPACK_COLORSPACE_CONVERSION;
-    readonly format?: TEXTURE_FORMAT;
 }
 
 export interface TextureRawImageData {

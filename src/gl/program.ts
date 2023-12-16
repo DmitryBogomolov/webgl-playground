@@ -166,6 +166,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
 
 export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
+    private readonly _disposableCtx = new DisposableContext();
     private readonly _vertShader: WebGLShader;
     private readonly _fragShader: WebGLShader;
     private readonly _attributes: ShaderAttribute[];
@@ -178,12 +179,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         this._logInfo('init');
         this._runtime = params.runtime;
         const gl = this._runtime.gl();
-        const ctx = new DisposableContext();
         try {
-            this._program = createProgram(gl, ctx);
+            this._program = createProgram(gl, this._disposableCtx);
             const prefix = buildSourcePrefix(params.defines);
-            this._vertShader = createShader(gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), ctx);
-            this._fragShader = createShader(gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), ctx);
+            this._vertShader = createShader(
+                gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), this._disposableCtx,
+            );
+            this._fragShader = createShader(
+                gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), this._disposableCtx,
+            );
             if (params.locations) {
                 bindAttributes(gl, this._program, params.locations);
             }
@@ -191,20 +195,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
             this._attributes = collectAttributes(gl, this._program);
             this._uniforms = collectUniforms(gl, this._program);
             this._uniformsMap = buildUniformsMap(this._uniforms);
-            ctx.release();
         } catch (err) {
+            this._disposableCtx.dispose();
             throw this._logError(err as Error);
-        } finally {
-            ctx.dispose();
         }
     }
 
     dispose(): void {
         this._logInfo('dispose');
-        const gl = this._runtime.gl();
-        gl.deleteShader(this._vertShader);
-        gl.deleteShader(this._fragShader);
-        gl.deleteProgram(this._program);
+        this._disposableCtx.dispose();
         this._dispose();
     }
 
@@ -280,6 +279,9 @@ function buildSourcePrefix(defines: Mapping<string, string> | undefined): string
 }
 
 function combineSource(source: string, prefix: string): string {
+    if (!source) {
+        throw new Error('bad shader source');
+    }
     if (!prefix) {
         return source;
     }
