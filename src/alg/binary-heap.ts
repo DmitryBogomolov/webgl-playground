@@ -1,4 +1,4 @@
-type CmpFunc<T> = (lhs: T, rhs: T) => boolean;
+import type { BinaryHeapCmpFunc } from './binary-head.types';
 
 function getParentIdx(idx: number): number {
     return (idx - 1) >> 1;
@@ -14,11 +14,11 @@ function swap<T>(elements: T[], i: number, j: number): void {
     elements[j] = tmp;
 }
 
-function compare<T>(elements: T[], i: number, j: number, cmp: CmpFunc<T>): boolean {
+function compare<T>(elements: ReadonlyArray<T>, i: number, j: number, cmp: BinaryHeapCmpFunc<T>): boolean {
     return cmp(elements[i], elements[j]);
 }
 
-function swim<T>(elements: T[], idx: number, cmp: CmpFunc<T>): void {
+function swim<T>(elements: T[], idx: number, cmp: BinaryHeapCmpFunc<T>): void {
     for (let childIdx = idx; childIdx > 0;) {
         const parentIdx = getParentIdx(childIdx);
         if (compare(elements, parentIdx, childIdx, cmp)) {
@@ -29,7 +29,7 @@ function swim<T>(elements: T[], idx: number, cmp: CmpFunc<T>): void {
     }
 }
 
-function sink<T>(elements: T[], idx: number, cmp: CmpFunc<T>): void {
+function sink<T>(elements: T[], idx: number, cmp: BinaryHeapCmpFunc<T>): void {
     const len = elements.length;
     for (let parentIdx = idx; parentIdx < len >> 1;) {
         let childIdx = getChildIdx(parentIdx);
@@ -49,10 +49,10 @@ function defaultCmp<T>(lhs: T, rhs: T): boolean {
 }
 
 export class BinaryHeap<T> {
-    private readonly _cmpFunc: CmpFunc<T>;
+    private readonly _cmpFunc: BinaryHeapCmpFunc<T>;
     private _elements: T[] = [];
 
-    constructor(cmpFunc: (lhs: T, rhs: T) => boolean = defaultCmp) {
+    constructor(cmpFunc: BinaryHeapCmpFunc<T> = defaultCmp) {
         this._cmpFunc = cmpFunc;
     }
 
