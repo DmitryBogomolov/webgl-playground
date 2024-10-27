@@ -170,9 +170,6 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
 
 export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
-    private readonly _disposableCtx = new DisposableContext();
-    private readonly _vertShader: WebGLShader;
-    private readonly _fragShader: WebGLShader;
     private readonly _attributes: ShaderAttribute[];
     private readonly _uniforms: ShaderUniform[];
     private readonly _uniformsMap: Record<string, number>;
@@ -183,31 +180,19 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         this._logInfo('init');
         this._runtime = params.runtime;
         const gl = this._runtime.gl();
-        try {
-            this._program = createProgram(gl, this._disposableCtx);
-            const prefix = buildSourcePrefix(params.defines);
-            this._vertShader = createShader(
-                gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), this._disposableCtx,
-            );
-            this._fragShader = createShader(
-                gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), this._disposableCtx,
-            );
-            if (params.locations) {
-                bindAttributes(gl, this._program, params.locations);
-            }
-            linkProgram(gl, this._program, this._vertShader, this._fragShader);
-            this._attributes = collectAttributes(gl, this._program);
-            this._uniforms = collectUniforms(gl, this._program);
-            this._uniformsMap = buildUniformsMap(this._uniforms);
-        } catch (err) {
-            this._disposableCtx.dispose();
-            throw this._logError(err as Error);
-        }
+        const prefix = buildSourcePrefix(params.defines);
+        const vertSource = combineSource(params.vertShader, prefix);
+        const fragSource = combineSource(params.fragShader, prefix);
+        const { program, attributes, uniforms } = setupProgram(gl, vertSource, fragSource, params.locations);
+        this._program = program;
+        this._attributes = attributes;
+        this._uniforms = uniforms;
+        this._uniformsMap = buildUniformsMap(this._uniforms);
     }
 
     dispose(): void {
         this._logInfo('dispose');
-        this._disposableCtx.dispose();
+        this._runtime.gl().deleteProgram(this._program);
         this._dispose();
     }
 
@@ -246,16 +231,37 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 }
 
-function createProgram(gl: WebGLRenderingContext, ctx: DisposableContext): WebGLProgram {
+function setupProgram(
+    gl: WebGLRenderingContext,
+    vertSource: string,
+    fragSource: string,
+    locations: Mapping<string, number> | undefined,
+): {
+    program: WebGLProgram;
+    attributes: ShaderAttribute[];
+    uniforms: ShaderUniform[];
+} {
     const program = gl.createProgram();
     if (!program) {
         throw new Error('failed to create program');
     }
-    function dispose(): void {
+    const ctx = new DisposableContext();
+    try {
+        const vertShader = createShader(gl, GL_VERTEX_SHADER, vertSource, ctx);
+        const fragShader = createShader(gl, GL_FRAGMENT_SHADER, fragSource, ctx);
+        if (locations) {
+            bindAttributes(gl, program, locations);
+        }
+        linkProgram(gl, program, vertShader, fragShader);
+        const attributes = collectAttributes(gl, program);
+        const uniforms = collectUniforms(gl, program);
+        return { program, attributes, uniforms };
+    } catch (e) {
         gl.deleteProgram(program);
+        throw e;
+    } finally {
+        ctx.dispose();
     }
-    ctx.add({ dispose });
-    return program;
 }
 
 function createShader(gl: WebGLRenderingContext, type: number, source: string, ctx: DisposableContext): WebGLShader {
@@ -299,7 +305,10 @@ function bindAttributes(gl: WebGLRenderingContext, program: WebGLProgram, locati
 }
 
 function linkProgram(
-    gl: WebGLRenderingContext, program: WebGLProgram, vertShader: WebGLShader, fragShader: WebGLShader,
+    gl: WebGLRenderingContext,
+    program: WebGLProgram,
+    vertShader: WebGLShader,
+    fragShader: WebGLShader,
 ): void {
     gl.attachShader(program, vertShader);
     gl.attachShader(program, fragShader);

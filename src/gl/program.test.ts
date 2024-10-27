@@ -10,6 +10,7 @@ describe('program', () => {
         let runtime: Runtime;
         let createProgram: jest.Mock;
         let createShader: jest.Mock;
+        let deleteShader: jest.Mock;
         let useProgram: jest.Mock;
         let shaderSource: jest.Mock;
         let compileShader: jest.Mock;
@@ -25,6 +26,7 @@ describe('program', () => {
             fShader = { tag: 'fragment-shader' };
             createProgram = jest.fn().mockReturnValue(program);
             createShader = jest.fn().mockReturnValueOnce(vShader).mockReturnValueOnce(fShader);
+            deleteShader = jest.fn();
             useProgram = jest.fn();
             shaderSource = jest.fn();
             compileShader = jest.fn();
@@ -36,6 +38,7 @@ describe('program', () => {
             ctx = {
                 createProgram,
                 createShader,
+                deleteShader,
                 useProgram,
                 shaderSource,
                 compileShader,
@@ -80,6 +83,10 @@ describe('program', () => {
             ]);
             expect(linkProgram.mock.calls).toEqual([
                 [program],
+            ]);
+            expect(deleteShader.mock.calls).toEqual([
+                [vShader],
+                [fShader],
             ]);
         });
     });
