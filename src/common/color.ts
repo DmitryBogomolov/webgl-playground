@@ -23,20 +23,21 @@ export function color(r: number, g: number, b: number, a: number = 1): Color {
 }
 
 export function isColor(arg: unknown): arg is Color {
-    const clr = arg as Color;
     return Boolean(
-        clr
-        && Number.isFinite(clr.r)
-        && Number.isFinite(clr.g)
-        && Number.isFinite(clr.b)
-        && Number.isFinite(clr.a),
+        arg &&
+        Number.isFinite((arg as Color).r) &&
+        Number.isFinite((arg as Color).g) &&
+        Number.isFinite((arg as Color).b) &&
+        Number.isFinite((arg as Color).a),
     );
 }
 
-export function colorEq(clr1: Color, clr2: Color, eps: number = 1E-7): boolean {
-    return clr1 === clr2 || (
-        Math.abs(clr1.r - clr2.r) <= eps && Math.abs(clr1.g - clr2.g) <= eps
-        && Math.abs(clr1.b - clr2.b) <= eps && Math.abs(clr1.a - clr2.a) <= eps
+export function colorEq(lhs: Color, rhs: Color, eps: number = 1E-7): boolean {
+    return lhs === rhs || (
+        Math.abs(lhs.r - rhs.r) <= eps &&
+        Math.abs(lhs.g - rhs.g) <= eps &&
+        Math.abs(lhs.b - rhs.b) <= eps &&
+        Math.abs(lhs.a - rhs.a) <= eps
     );
 }
 
@@ -49,7 +50,7 @@ export function uint2color(hex: number): Color {
     const g = ((hex >>> 8) & 0xFF) / 0xFF;
     const b = ((hex >>> 16) & 0xFF) / 0xFF;
     const a = ((hex >>> 24) & 0xFF) / 0xFF;
-    return { r, g, b, a };
+    return color(r, g, b, a);
 }
 
 function toHex(val: number): string {
@@ -66,7 +67,7 @@ function fromHex(val: string): number {
 
 export function hex2color(hex: string): Color {
     if (hex[0] !== '#') {
-        return colors.NONE;
+        return color(0, 0, 0, 0);
     }
     const len = hex.length - 1;
     let r = '', g = '', b = '', a = '';
