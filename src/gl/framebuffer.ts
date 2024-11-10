@@ -7,7 +7,6 @@ import type { Vec2 } from '../geometry/vec2.types';
 import { BaseObject } from './base-object';
 import { vec2, eq2, clone2 } from '../geometry/vec2';
 import { Texture } from './texture-2d';
-import { DisposableContext } from '../utils/disposable-context';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -48,7 +47,6 @@ interface AttachmentInfo {
 
 export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
     private readonly _runtime: FramebufferRuntime;
-    private readonly _disposableCtx = new DisposableContext();
     private readonly _framebuffer: WebGLFramebuffer;
     private readonly _texture: Texture;
     private readonly _depthTexture: Texture | null;
@@ -57,23 +55,33 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     constructor(params: FramebufferParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
+        this._logInfo(`init(${params.attachment}, ${params.size.x}x${params.size.y}, ${params.useDepthTexture})`);
         this._runtime = params.runtime;
+        this._size = clone2(params.size);
+        let info!: ReturnType<typeof setupFramebuffer>;
         try {
-            this._framebuffer = this._createFramebuffer();
-            const info = this._setup(params.attachment, params.size, !!params.useDepthTexture);
-            this._texture = info.texture;
-            this._depthTexture = info.depthTexture;
-            this._renderbuffer = info.renderbuffer;
+            info = setupFramebuffer(
+                this._runtime,
+                params.attachment,
+                this._id,
+                this._size,
+                !!params.useDepthTexture,
+            );
         } catch (err) {
-            this._disposableCtx.dispose();
             throw this._logError(err as Error);
         }
+        this._framebuffer = info.framebuffer;
+        this._texture = info.texture;
+        this._depthTexture = info.depthTexture;
+        this._renderbuffer = info.renderbuffer;
     }
 
     dispose(): void {
         this._logInfo('dispose');
-        this._disposableCtx.dispose();
+        this._runtime.gl().deleteFramebuffer(this._framebuffer);
+        this._texture.dispose();
+        this._depthTexture?.dispose();
+        this._renderbuffer?.dispose();
         this._dispose();
     }
 
@@ -93,107 +101,12 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         return this._depthTexture;
     }
 
-    private _createFramebuffer(): WebGLFramebuffer {
-        const gl = this._runtime.gl();
-        const framebuffer = gl.createFramebuffer();
-        if (!framebuffer) {
-            throw new Error('failed to create framebuffer');
-        }
-        function dispose(): void {
-            gl.deleteFramebuffer(framebuffer);
-        }
-        this._disposableCtx.add({ dispose });
-        return framebuffer;
-    }
-
-    private _attachTexture(format: TEXTURE_FORMAT, params: TextureParameters, attachment: number): Texture {
-        const texture = new Texture({ runtime: this._runtime as unknown as TextureRuntime });
-        this._disposableCtx.add(texture);
-        texture.setFormat(format);
-        texture.setParameters(params);
-        attachTexture(this._runtime, attachment, texture);
-        resizeTexture(texture, this._size);
-        return texture;
-    }
-
-    private _attachRenderbuffer(format: number, attachment: number): Renderbuffer {
-        const renderbuffer = new Renderbuffer(this._runtime, this._id, format);
-        this._disposableCtx.add(renderbuffer);
-        attachRenderbuffer(this._runtime, attachment, renderbuffer);
-        resizeRenderbuffer(renderbuffer, this._size);
-        return renderbuffer;
-    }
-
-    private _setupColor(): AttachmentInfo {
-        const texture = this._attachTexture('rgba', COLOR_TEXTURE_PARAMS, GL_COLOR_ATTACHMENT0);
-        return {
-            texture,
-            depthTexture: null,
-            renderbuffer: null,
-        };
-    }
-
-    private _setupColorDepth(useDepthTexture: boolean): AttachmentInfo {
-        const info = this._setupColor();
-        const depthTexture = useDepthTexture
-            ? this._attachTexture('depth_component32', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
-        const renderbuffer = useDepthTexture
-            ? null : this._attachRenderbuffer(GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
-        return {
-            ...info,
-            depthTexture,
-            renderbuffer,
-        };
-    }
-
-    private _setupColorDepthStencil(useDepthTexture: boolean): AttachmentInfo {
-        const info = this._setupColor();
-        const depthTexture = useDepthTexture
-            ? this._attachTexture('depth_stencil', DEPTH_STENCIL_TEXTURE_PARAMS, GL_DEPTH_STENCIL_ATTACHMENT) : null;
-        const renderbuffer = useDepthTexture
-            ? null : this._attachRenderbuffer(GL_DEPTH_STENCIL, GL_DEPTH_STENCIL_ATTACHMENT);
-        return {
-            ...info,
-            depthTexture,
-            renderbuffer,
-        };
-    }
-
-    private _setup(attachment: FRAMEBUFFER_ATTACHMENT, size: Vec2, useDepthTexture: boolean): AttachmentInfo {
-        this._logInfo(`setup_attachment(${attachment}, ${size.x}x${size.y})`);
-        this._size = clone2(size);
-        let info: AttachmentInfo;
-        try {
-            this._runtime.bindFramebuffer(this);
-            switch (attachment) {
-            case 'color':
-                info = this._setupColor();
-                break;
-            case 'color|depth':
-                info = this._setupColorDepth(useDepthTexture);
-                break;
-            case 'color|depth|stencil':
-                info = this._setupColorDepthStencil(useDepthTexture);
-                break;
-            default:
-                throw new Error(`bad attachment type: ${attachment}`);
-            }
-            const status = this._runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
-            if (status !== GL_FRAMEBUFFER_COMPLETE) {
-                throw new Error(`failed to setup attachment: ${ERRORS_MAP[status]}`);
-            }
-        } finally {
-            this._runtime.bindFramebuffer(null);
-        }
-        return info;
-    }
-
     resize(size: Vec2): void {
         if (eq2(this._size, size)) {
             return;
         }
         this._size = clone2(size);
-        this._logInfo(`resize(width=${size.x}, height=${size.y})`);
+        this._logInfo(`resize(x=${size.x}, y=${size.y})`);
         resizeTexture(this._texture, size);
         if (this._depthTexture) {
             resizeTexture(this._depthTexture, size);
@@ -202,6 +115,138 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             resizeRenderbuffer(this._renderbuffer, size);
         }
     }
+}
+
+function setupFramebuffer(
+    runtime: FramebufferRuntime,
+    attachment: FRAMEBUFFER_ATTACHMENT,
+    id: string,
+    size: Vec2,
+    useDepthTexture: boolean,
+): AttachmentInfo & { framebuffer: WebGLFramebuffer } {
+    const gl = runtime.gl();
+    const framebuffer = gl.createFramebuffer();
+    if (!framebuffer) {
+        throw new Error('failed to create framebuffer');
+    }
+    let info!: AttachmentInfo;
+    try {
+        runtime.bindFramebufferRaw(framebuffer);
+        switch (attachment) {
+        case 'color':
+            info = setupColorAttachment(runtime, size);
+            break;
+        case 'color|depth':
+            info = setupColorDepthAttachment(runtime, id, size, useDepthTexture);
+            break;
+        case 'color|depth|stencil':
+            info = setupColorDepthStencilAttachment(runtime, id, size, useDepthTexture);
+            break;
+        default:
+            throw new Error(`bad attachment type: ${attachment}`);
+        }
+        const status = runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
+        if (status !== GL_FRAMEBUFFER_COMPLETE) {
+            throw new Error(`failed to setup attachment: ${ERRORS_MAP[status]}`);
+        }
+        return { framebuffer, ...info };
+    } catch (err) {
+        gl.deleteFramebuffer(framebuffer);
+        info?.texture?.dispose();
+        info?.depthTexture?.dispose();
+        info?.renderbuffer?.dispose();
+        throw err;
+
+    } finally {
+        runtime.bindFramebufferRaw(null);
+    }
+}
+
+function setupTexture(
+    runtime: FramebufferRuntime,
+    size: Vec2,
+    format: TEXTURE_FORMAT,
+    params: TextureParameters,
+    attachment: number,
+): Texture {
+    const texture = new Texture({ runtime: runtime as unknown as TextureRuntime });
+    texture.setFormat(format);
+    texture.setParameters(params);
+    attachTexture(runtime, attachment, texture);
+    resizeTexture(texture, size);
+    return texture;
+}
+
+function setupRenderbuffer(
+    runtime: FramebufferRuntime,
+    id: string,
+    size: Vec2,
+    format: number,
+    attachment: number,
+): Renderbuffer {
+    const renderbuffer = new Renderbuffer(runtime, id, format);
+    attachRenderbuffer(runtime, attachment, renderbuffer);
+    resizeRenderbuffer(renderbuffer, size);
+    return renderbuffer;
+}
+
+function setupColorAttachment(runtime: FramebufferRuntime, size: Vec2): AttachmentInfo {
+    const texture = setupTexture(runtime, size, 'rgba', COLOR_TEXTURE_PARAMS, GL_COLOR_ATTACHMENT0);
+    return {
+        texture,
+        depthTexture: null,
+        renderbuffer: null,
+    };
+}
+
+function setupColorDepthAttachment(
+    runtime: FramebufferRuntime,
+    id: string,
+    size: Vec2,
+    useDepthTexture: boolean,
+): AttachmentInfo {
+    const info = setupColorAttachment(runtime, size);
+    const depthTexture = useDepthTexture
+        ? setupTexture(runtime, size, 'depth_component32', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
+    const renderbuffer = useDepthTexture
+        ? null : setupRenderbuffer(runtime, id, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
+    return {
+        ...info,
+        depthTexture,
+        renderbuffer,
+    };
+}
+
+function setupColorDepthStencilAttachment(
+    runtime: FramebufferRuntime,
+    id: string,
+    size: Vec2,
+    useDepthTexture: boolean,
+): AttachmentInfo {
+    const info = setupColorAttachment(runtime, size);
+    const depthTexture = useDepthTexture
+        ? setupTexture(
+            runtime,
+            size,
+            'depth_stencil',
+            DEPTH_STENCIL_TEXTURE_PARAMS,
+            GL_DEPTH_STENCIL_ATTACHMENT,
+        )
+        : null;
+    const renderbuffer = useDepthTexture
+        ? null
+        : setupRenderbuffer(
+            runtime,
+            id,
+            size,
+            GL_DEPTH_STENCIL,
+            GL_DEPTH_STENCIL_ATTACHMENT,
+        );
+    return {
+        ...info,
+        depthTexture,
+        renderbuffer,
+    };
 }
 
 function resizeTexture(texture: Texture, size: Vec2): void {

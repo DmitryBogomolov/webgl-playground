@@ -564,6 +564,10 @@ export class Runtime extends BaseObject {
         this._bindingsState.framebuffer = handle;
     }
 
+    bindFramebufferRaw(handle: WebGLFramebuffer | null): void {
+        this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
+    }
+
     getDefaultRenderTarget(): RenderTarget {
         return this._defaultRenderTarget;
     }
