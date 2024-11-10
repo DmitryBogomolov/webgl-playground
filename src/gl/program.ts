@@ -13,7 +13,6 @@ import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
 import { isColor } from '../common/color';
 import { toStr } from '../utils/string-formatter';
-import { DisposableContext } from '../utils/disposable-context';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -179,14 +178,23 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         super({ logger: params.runtime.logger(), ...params });
         this._logInfo('init');
         this._runtime = params.runtime;
-        const gl = this._runtime.gl();
         const prefix = buildSourcePrefix(params.defines);
         const vertSource = combineSource(params.vertShader, prefix);
         const fragSource = combineSource(params.fragShader, prefix);
-        const { program, attributes, uniforms } = setupProgram(gl, vertSource, fragSource, params.locations);
-        this._program = program;
-        this._attributes = attributes;
-        this._uniforms = uniforms;
+        let info!: ReturnType<typeof setupProgram>;
+        try {
+            info = setupProgram(
+                this._runtime.gl(),
+                vertSource,
+                fragSource,
+                params.locations,
+            );
+        } catch (err) {
+            this._logError(err as Error);
+        }
+        this._program = info.program;
+        this._attributes = info.attributes;
+        this._uniforms = info.uniforms;
         this._uniformsMap = buildUniformsMap(this._uniforms);
     }
 
@@ -245,34 +253,47 @@ function setupProgram(
     if (!program) {
         throw new Error('failed to create program');
     }
-    const ctx = new DisposableContext();
+    const vertShader = createShader(gl, GL_VERTEX_SHADER, vertSource);
+    const fragShader = createShader(gl, GL_FRAGMENT_SHADER, fragSource);
+    if (locations) {
+        bindAttributes(gl, program, locations);
+    }
+    gl.attachShader(program, vertShader);
+    gl.attachShader(program, fragShader);
+    gl.linkProgram(program);
+    gl.deleteShader(vertShader);
+    gl.deleteShader(fragShader);
+    let attributes: ShaderAttribute[];
+    let uniforms: ShaderUniform[];
     try {
-        const vertShader = createShader(gl, GL_VERTEX_SHADER, vertSource, ctx);
-        const fragShader = createShader(gl, GL_FRAGMENT_SHADER, fragSource, ctx);
-        if (locations) {
-            bindAttributes(gl, program, locations);
+        if (!gl.getProgramParameter(program, GL_LINK_STATUS)) {
+            const linkInfo = gl.getProgramInfoLog(program)!;
+            const vertexInfo = gl.getShaderInfoLog(vertShader);
+            const fragmentInfo = gl.getShaderInfoLog(fragShader);
+            let message = linkInfo;
+            if (vertexInfo) {
+                message += '\n' + vertexInfo;
+            }
+            if (fragmentInfo) {
+                message += '\n' + fragmentInfo;
+            }
+            gl.deleteProgram(program);
+            throw new Error(message);
         }
-        linkProgram(gl, program, vertShader, fragShader);
-        const attributes = collectAttributes(gl, program);
-        const uniforms = collectUniforms(gl, program);
+        attributes = collectAttributes(gl, program);
+        uniforms = collectUniforms(gl, program);
         return { program, attributes, uniforms };
-    } catch (e) {
+    } catch (err) {
         gl.deleteProgram(program);
-        throw e;
-    } finally {
-        ctx.dispose();
+        throw err;
     }
 }
 
-function createShader(gl: WebGLRenderingContext, type: number, source: string, ctx: DisposableContext): WebGLShader {
+function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
     const shader = gl.createShader(type)!;
     if (!shader) {
         throw new Error('failed to create shader');
     }
-    function dispose(): void {
-        gl.deleteShader(shader);
-    }
-    ctx.add({ dispose });
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     return shader;
@@ -301,30 +322,6 @@ function combineSource(source: string, prefix: string): string {
 function bindAttributes(gl: WebGLRenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
     for (const [name, location] of Object.entries(locations)) {
         gl.bindAttribLocation(program, location, name);
-    }
-}
-
-function linkProgram(
-    gl: WebGLRenderingContext,
-    program: WebGLProgram,
-    vertShader: WebGLShader,
-    fragShader: WebGLShader,
-): void {
-    gl.attachShader(program, vertShader);
-    gl.attachShader(program, fragShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, GL_LINK_STATUS)) {
-        const linkInfo = gl.getProgramInfoLog(program)!;
-        const vertexInfo = gl.getShaderInfoLog(vertShader);
-        const fragmentInfo = gl.getShaderInfoLog(fragShader);
-        let message = linkInfo;
-        if (vertexInfo) {
-            message += '\n' + vertexInfo;
-        }
-        if (fragmentInfo) {
-            message += '\n' + fragmentInfo;
-        }
-        throw new Error(message);
     }
 }
 
