@@ -125,8 +125,11 @@ export class Primitive extends BaseObject {
         this._logInfo(`allocate_index_buffer(${size})`);
         const gl = this._runtime.gl();
         this._indexBufferSize = size;
+        // Vertex array object must also be bound because element array buffer should not be bound without it.
+        this._runtime.bindVertexArrayObject(this._vao);
         this._runtime.bindElementArrayBuffer(this._indexBuffer);
         gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
+        this._runtime.bindVertexArrayObject(null);
     }
 
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
@@ -139,8 +142,11 @@ export class Primitive extends BaseObject {
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logInfo(`update_index_data(offset=${offset}, bytes=${indexData.byteLength})`);
         const gl = this._runtime.gl();
+        // Vertex array object must also be bound because element array buffer should not be bound without it.
+        this._runtime.bindVertexArrayObject(this._vao);
         this._runtime.bindElementArrayBuffer(this._indexBuffer);
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
+        this._runtime.bindVertexArrayObject(null);
     }
 
     setVertexSchema(schema: PrimitiveVertexSchema): void {
