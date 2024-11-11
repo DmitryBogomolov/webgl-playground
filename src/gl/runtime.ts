@@ -449,16 +449,23 @@ export class Runtime extends BaseObject {
             return;
         }
         this._logInfo(`bind_array_buffer(${buffer})`);
+        // https://www.khronos.org/opengl/wiki/vertex_Specification
+        // A call to `glBindBuffer`to set the GL_ARRAY_BUFFER binding is NOT modifying the current VAO's state.
         this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
         this._bindingsState.arrayBuffer = handle;
     }
 
     bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
+        if (this._bindingsState.vertexArrayObject === null) {
+            throw this._logError(`bind_element_array_buffer(${buffer}): vertex array object not bound`);
+        }
         const handle = unwrapGLHandle(buffer);
         if (this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] === handle) {
             return;
         }
         this._logInfo(`bind_element_array_buffer(${buffer})`);
+        // https://www.khronos.org/opengl/wiki/vertex_Specification
+        // If no VAO is bound, then you cannot bind a buffer object to GL_ELEMENT_ARRAY_BUFFER.
         this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
         this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] = handle;
     }
