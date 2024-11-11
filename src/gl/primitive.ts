@@ -8,7 +8,6 @@ import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
 import { BaseObject } from './base-object';
-import { DisposableContext } from '../utils/disposable-context';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -77,7 +76,6 @@ export class Primitive extends BaseObject {
     private readonly _vao: VertexArrayObject;
     private readonly _vertexBuffer: Buffer;
     private readonly _indexBuffer: Buffer;
-    private readonly _disposableCtx = new DisposableContext();
     private _vertexBufferSize: number = 0;
     private _indexBufferSize: number = 0;
     private _attributes: VertexAttributeInfo[] = [];
@@ -91,19 +89,13 @@ export class Primitive extends BaseObject {
         super({ logger: params.runtime.logger(), ...params });
         this._logInfo('init');
         this._runtime = params.runtime;
-        try {
-            this._vao = new VertexArrayObject(this._runtime, this._id);
-            this._vertexBuffer = new Buffer(this._runtime, this._id);
-            this._indexBuffer = new Buffer(this._runtime, this._id);
-        } catch (err) {
-            this._disposableCtx.dispose();
-            throw this._logError(err as Error);
-        }
+        this._vao = new VertexArrayObject(this._runtime, this._id);
+        this._vertexBuffer = new Buffer(this._runtime, this._id);
+        this._indexBuffer = new Buffer(this._runtime, this._id);
     }
 
     dispose(): void {
         this._logInfo('dispose');
-        this._disposableCtx.dispose();
         this._dispose();
     }
 
@@ -225,8 +217,7 @@ export class Primitive extends BaseObject {
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            this._logWarn('render: no program');
-            return;
+            throw this._logError('render: no program');
         }
         this._logInfo('render');
         this._runtime.useProgram(this._program);
