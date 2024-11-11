@@ -155,8 +155,12 @@ export class Primitive extends BaseObject {
             this._runtime.bindArrayBuffer(this._vertexBuffer);
             for (const attr of this._attributes) {
                 gl.vertexAttribPointer(
-                    attr.location, attr.rank, attr.type,
-                    attr.normalized, attr.stride, attr.offset,
+                    attr.location,
+                    attr.rank,
+                    attr.type,
+                    attr.normalized,
+                    attr.stride,
+                    attr.offset,
                 );
                 gl.enableVertexAttribArray(attr.location);
             }
@@ -218,9 +222,9 @@ export class Primitive extends BaseObject {
             this._logWarn('render: no program');
             return;
         }
+        this._logInfo('render');
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(this._vao);
-        this._logInfo('render');
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
