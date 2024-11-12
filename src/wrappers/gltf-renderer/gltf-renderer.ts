@@ -32,6 +32,7 @@ export class GlTFRenderer extends BaseObject {
     private readonly _wrappers: PrimitiveWrapper[] = [];
     private readonly _programs: Program[] = [];
     private readonly _textures: Texture[] = [];
+    private _changeTracker: number = 0;
     private _projMat: Mat4 = identity4x4();
     private _viewMat: Mat4 = identity4x4();
     private _eyePosition: Vec3 = vec3(0, 0, 0);
@@ -54,9 +55,14 @@ export class GlTFRenderer extends BaseObject {
     }
 
     async setData(data: GlTFRendererData): Promise<void> {
+        const tracker = ++this._changeTracker;
         const { source, resolveUri } = await this._processData(data);
         try {
             const asset = await parseGlTF(source, resolveUri);
+            // For parallel `setData` requests. Last one wins.
+            if (this._changeTracker !== tracker) {
+                return;
+            }
             const wrappers = processScene(asset, this._runtime);
             const programs = createPrograms(wrappers, this._runtime);
             const textures = await createTextures(asset, this._runtime);
