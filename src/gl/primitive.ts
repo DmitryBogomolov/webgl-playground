@@ -2,6 +2,7 @@ import type {
     PrimitiveParams, PrimitiveRuntime,
     PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
     PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    PrimitiveConfig,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
@@ -101,6 +102,14 @@ export class Primitive extends BaseObject {
         this._vao.dispose();
         this._vertexBuffer.dispose();
         this._indexBuffer.dispose();
+    }
+
+    setup(config: PrimitiveConfig): void {
+        this._logMethod('setup', {
+            vertex: config.vertexData.byteLength,
+            index: config.indexData.byteLength,
+        });
+        // TODO...
     }
 
     allocateVertexBuffer(size: number): void {

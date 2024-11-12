@@ -27,6 +27,14 @@ export interface VertexAttributeDefinition {
     readonly offset?: number;
 }
 
+export interface PrimitiveConfig {
+    readonly vertexSchema: PrimitiveVertexSchema;
+    readonly vertexData: BufferSource;
+    readonly indexData: BufferSource;
+    readonly indexType?: INDEX_TYPE;
+    readonly primitiveMode?: PRIMITIVE_MODE;
+}
+
 export interface VertexAttributeInfo {
     readonly location: number;
     readonly type: number;
