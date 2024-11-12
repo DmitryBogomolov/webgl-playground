@@ -7,6 +7,7 @@ import type { Vec2 } from '../geometry/vec2.types';
 import { BaseObject } from './base-object';
 import { vec2, eq2, clone2 } from '../geometry/vec2';
 import { Texture } from './texture-2d';
+import { toArgStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -55,7 +56,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     constructor(params: FramebufferParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logInfo(`init(${params.attachment}, ${params.size.x}x${params.size.y}, ${params.useDepthTexture})`);
+        this._logMethod('init', `${params.attachment}, ${params.size.x}x${params.size.y}, ${params.useDepthTexture})`);
         this._runtime = params.runtime;
         this._size = clone2(params.size);
         let info!: ReturnType<typeof setupFramebuffer>;
@@ -77,7 +78,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._logMethod('dispose', '');
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
         this._texture.dispose();
         this._depthTexture?.dispose();
@@ -106,7 +107,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this._logInfo(`resize(x=${size.x}, y=${size.y})`);
+        this._logMethod('resize', toArgStr(size));
         resizeTexture(this._texture, size);
         if (this._depthTexture) {
             resizeTexture(this._depthTexture, size);

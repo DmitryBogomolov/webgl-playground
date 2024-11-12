@@ -27,3 +27,20 @@ export function toStr(obj: unknown): string {
     }
     return String(obj);
 }
+
+export function toArgStr(obj: unknown): string {
+    if (obj === null || obj === undefined) {
+        return String(obj);
+    }
+    const type = typeof obj;
+    if (type === 'symbol') {
+        return String(obj);
+    }
+    if (Array.isArray(obj)) {
+        return obj.join(', ');
+    }
+    if (type === 'object') {
+        return Object.entries(obj).map(([key, val]) => `${key}=${val}`).join(', ');
+    }
+    return String(obj);
+}

@@ -12,7 +12,7 @@ import { BaseObject } from '../../gl/base-object';
 import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
-import { toStr } from '../../utils/string-formatter';
+import { toArgStr, toStr } from '../../utils/string-formatter';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene, destroyScene } from './scene';
 import { createPrograms, destroyPrograms } from './program';
@@ -119,19 +119,19 @@ export class GlTFRenderer extends BaseObject {
     }
 
     setProjMat(mat: Mat4): void {
-        this._logInfo(`set_proj_mat(${toStr(mat)})`);
+        this._logMethod('set_proj_mat', toArgStr(mat));
         this._projMat = clone4x4(mat);
     }
 
     setViewMat(mat: Mat4): void {
-        this._logInfo(`set_view_mat(${toStr(mat)})`);
+        this._logMethod('set_view_mat', toArgStr(mat));
         this._viewMat = clone4x4(mat);
         const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
         this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
-        this._logInfo(`set_light_direction(${toStr(lightDirection)})`);
+        this._logMethod('set_light_direction', toArgStr(lightDirection));
         this._lightDirection = norm3(lightDirection);
     }
 

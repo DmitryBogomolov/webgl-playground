@@ -6,6 +6,7 @@ import type {
     BLEND_FUNC,
 } from './render-state.types';
 import type { GLValuesMap } from './gl-values-map.types';
+import { toArgStr } from '../utils/string-formatter';
 
 type RenderStateValidator<T extends keyof RenderState> = (
     value: RenderState[T],
@@ -14,7 +15,7 @@ type RenderStateComparer<T extends keyof RenderState> = (
     lhs: RenderState[T], rhs: RenderState[T],
 ) => boolean;
 type RenderStateUpdater<T extends keyof RenderState> = (
-    value: RenderState[T], gl: WebGLRenderingContext, log: (msg: string) => void,
+    value: RenderState[T], gl: WebGLRenderingContext, logMethod: (name: string, arg: unknown) => void,
 ) => void;
 
 type RenderStateValidators = {
@@ -84,24 +85,10 @@ const BLEND_FUNC_MAP_DST: GLValuesMap<BLEND_FUNC> = {
     'one|one_minus_src_alpha': WebGL.ONE_MINUS_SRC_ALPHA,
 };
 
-function checkFuncArg(
-    condition: boolean,
-    name: string,
-    arg: unknown,
-    toStr: (x: unknown) => string = String,
-): void {
+function checkFuncArg(condition: boolean, name: string, arg: unknown): void {
     if (!condition) {
-        throw new Error(`${name}(${toStr(arg)}): bad value`);
+        throw new Error(`${name}(${toArgStr(arg)}): bad value`);
     }
-}
-
-function logFuncCall(
-    log: (msg: string) => void,
-    name: string,
-    arg: unknown,
-    toStr: (x: unknown) => string = String,
-): void {
-    log(`${name}(${toStr(arg)})`);
 }
 
 function isBoolean(value: unknown): value is boolean {
@@ -110,16 +97,6 @@ function isBoolean(value: unknown): value is boolean {
 
 function isNumber(value: unknown): value is number {
     return typeof value === 'number';
-}
-
-function stencilFuncToStr(stencilFunc: unknown): string {
-    const { func, ref, mask } = stencilFunc as StencilFuncState;
-    return `func=${func}, ref=${ref}, mask=${mask}`;
-}
-
-function stencilOpToStr(stencilOp: unknown): string {
-    const { fail, zfail, zpass } = stencilOp as StencilOpState;
-    return `fail=${fail}, zfail=${zfail}, zpass=${zpass}`;
 }
 
 const RENDER_STATE_VALIDATORS: RenderStateValidators = {
@@ -154,7 +131,7 @@ const RENDER_STATE_VALIDATORS: RenderStateValidators = {
         const func = STENCIL_FUNC_MAP[stencilFunc.func];
         const ref = Number(stencilFunc.ref);
         const mask = Number(stencilFunc.mask);
-        checkFuncArg(func > 0 && mask > 0 && ref > 0, 'set_stencil_func', stencilFunc, stencilFuncToStr);
+        checkFuncArg(func > 0 && mask > 0 && ref > 0, 'set_stencil_func', stencilFunc);
         return { func: stencilFunc.func, ref, mask };
     },
 
@@ -163,7 +140,7 @@ const RENDER_STATE_VALIDATORS: RenderStateValidators = {
         const fail = STENCIL_OP_MAP[stencilOp.fail];
         const zfail = STENCIL_OP_MAP[stencilOp.zfail];
         const zpass = STENCIL_OP_MAP[stencilOp.zpass];
-        checkFuncArg(fail > 0 && zfail > 0 && zpass > 0, 'set_stencil_op', stencilOp, stencilOpToStr);
+        checkFuncArg(fail > 0 && zfail > 0 && zpass > 0, 'set_stencil_op', stencilOp);
         return { fail: stencilOp.fail, zfail: stencilOp.zfail, zpass: stencilOp.zpass };
     },
 
@@ -217,8 +194,8 @@ const RENDER_STATE_COMPARERS: RenderStateComparers = {
 };
 
 const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
-    depthTest: (depthTest, gl, log) => {
-        logFuncCall(log, 'set_depth_test', depthTest);
+    depthTest: (depthTest, gl, logMethod) => {
+        logMethod('set_depth_test', depthTest);
         if (depthTest) {
             gl.enable(GL_DEPTH_TEST);
         } else {
@@ -226,18 +203,18 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    depthMask: (depthMask, gl, log) => {
-        logFuncCall(log, 'set_depth_mask', depthMask);
+    depthMask: (depthMask, gl, logMethod) => {
+        logMethod('set_depth_mask', depthMask);
         gl.depthMask(depthMask);
     },
 
-    depthFunc: (depthFunc, gl, log) => {
-        logFuncCall(log, 'set_depth_func', depthFunc);
+    depthFunc: (depthFunc, gl, logMethod) => {
+        logMethod('set_depth_func', depthFunc);
         gl.depthFunc(DEPTH_FUNC_MAP[depthFunc]);
     },
 
-    stencilTest: (stencilTest, gl, log) => {
-        logFuncCall(log, 'set_stencil_test', stencilTest);
+    stencilTest: (stencilTest, gl, logMethod) => {
+        logMethod('set_stencil_test', stencilTest);
         if (stencilTest) {
             gl.enable(GL_STENCIL_TEST);
         } else {
@@ -245,23 +222,31 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    stencilMask: (stencilMask, gl, log) => {
-        logFuncCall(log, 'set_stencil_mask', stencilMask);
+    stencilMask: (stencilMask, gl, logMethod) => {
+        logMethod('set_stencil_mask', stencilMask);
         gl.stencilMask(stencilMask);
     },
 
-    stencilFunc: (stencilFunc, gl, log) => {
-        logFuncCall(log, 'set_stencil_func', stencilFunc, stencilFuncToStr);
-        gl.stencilFunc(STENCIL_FUNC_MAP[stencilFunc.func], stencilFunc.ref, stencilFunc.mask);
+    stencilFunc: (stencilFunc, gl, logMethod) => {
+        logMethod('set_stencil_func', toArgStr(stencilFunc));
+        gl.stencilFunc(
+            STENCIL_FUNC_MAP[stencilFunc.func],
+            stencilFunc.ref,
+            stencilFunc.mask,
+        );
     },
 
-    stencilOp: (stencilOp, gl, log) => {
-        logFuncCall(log, 'set_stencil_op', stencilOp, stencilOpToStr);
-        gl.stencilOp(STENCIL_OP_MAP[stencilOp.fail], STENCIL_OP_MAP[stencilOp.zfail], STENCIL_OP_MAP[stencilOp.zpass]);
+    stencilOp: (stencilOp, gl, logMethod) => {
+        logMethod('set_stencil_op', toArgStr(stencilOp));
+        gl.stencilOp(
+            STENCIL_OP_MAP[stencilOp.fail],
+            STENCIL_OP_MAP[stencilOp.zfail],
+            STENCIL_OP_MAP[stencilOp.zpass],
+        );
     },
 
-    culling: (culling, gl, log) => {
-        logFuncCall(log, 'set_culling', culling);
+    culling: (culling, gl, logMethod) => {
+        logMethod('set_culling', culling);
         if (culling) {
             gl.enable(GL_CULL_FACE);
         } else {
@@ -269,13 +254,13 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    cullFace: (cullFace, gl, log) => {
-        logFuncCall(log, 'set_cull_face', cullFace);
+    cullFace: (cullFace, gl, logMethod) => {
+        logMethod('set_cull_face', cullFace);
         gl.cullFace(CULL_FACE_MAP[cullFace]);
     },
 
-    blending: (blending, gl, log) => {
-        logFuncCall(log, 'set_blending', blending);
+    blending: (blending, gl, logMethod) => {
+        logMethod('set_blending', blending);
         if (blending) {
             gl.enable(GL_BLEND);
         } else {
@@ -283,8 +268,8 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    blendFunc: (blendFunc, gl, log) => {
-        logFuncCall(log, 'set_blend_func', blendFunc);
+    blendFunc: (blendFunc, gl, logMethod) => {
+        logMethod('set_blend_func', blendFunc);
         gl.blendFunc(BLEND_FUNC_MAP_SRC[blendFunc], BLEND_FUNC_MAP_DST[blendFunc]);
     },
 };
@@ -308,7 +293,10 @@ export function isRenderState(state: RenderState): boolean {
 }
 
 export function applyRenderState(
-    currentState: RenderState, appliedState: RenderState, gl: WebGLRenderingContext, log: (msg: string) => void,
+    currentState: RenderState,
+    appliedState: RenderState,
+    gl: WebGLRenderingContext,
+    logMethod: (name: string, arg: unknown) => void,
 ): boolean {
     if (currentState === appliedState) {
         return false;
@@ -328,7 +316,7 @@ export function applyRenderState(
     for (const key of keys) {
         const val = appliedState[key];
         const update = RENDER_STATE_UPDATERS[key];
-        update(val as never, gl, log);
+        update(val as never, gl, logMethod);
         changes[key] = val;
     }
     Object.assign(currentState, changes);

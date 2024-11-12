@@ -94,14 +94,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
 
     constructor(params: TextureParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
+        this._logMethod('init', '');
         this._runtime = params.runtime;
         this._texture = this._createTexture();
         this._initTextureState();
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._logMethod('dispose', '');
         this._runtime.gl().deleteTexture(this._texture);
         this._dispose();
     }
@@ -165,14 +165,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     private _generateMipmap(): void {
-        this._logInfo('generate_mipmap');
+        this._logMethod('generate_mipmap', '');
         this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
         if (!params) {
-            throw this._logError('set_parameters: not defined');
+            throw this._logMethodError('set_parameters', '_', 'not defined');
         }
         for (const entry of Object.entries(params)) {
             const key = entry[0] as keyof State;
@@ -180,10 +180,10 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logError(`set_paramater(${key} = ${val}): bad value`);
+                    throw this._logMethodError('set_paramaters', `${key}=${val}`, 'bad value');
                 }
                 if (this._state[key] !== val) {
-                    this._logInfo(`set_parameter(${key} = ${val})`);
+                    this._logMethod('set_parameters', `${key}=${val}`);
                     this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
                     this._state[key] = val as never;

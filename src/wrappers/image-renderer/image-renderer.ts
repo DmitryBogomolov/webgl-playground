@@ -17,7 +17,7 @@ import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
 import { memoize } from '../../utils/memoizer';
-import { toStr } from '../../utils/string-formatter';
+import { toArgStr } from '../../utils/string-formatter';
 import { makeImage } from '../../utils/image-maker';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -82,7 +82,7 @@ export class ImageRenderer extends BaseObject {
 
     async setImageData(data: ImageRendererImageData): Promise<void> {
         if (!data) {
-            throw this._logError('set_image_data: not defined');
+            throw this._logMethodError('set_image_data', '_', 'not defined');
         }
         let imageData: TextureImageData;
         let unpackFlipY = false;
@@ -100,7 +100,7 @@ export class ImageRenderer extends BaseObject {
             log = 'tex_image_source';
             imageData = data;
         }
-        this._logInfo(`set_image_data(${log})`);
+        this._logMethod('set_image_data', log);
         this._texture.setImageData(imageData, { unpackFlipY });
         this._matDirty = this._texmatDirty = true;
     }
@@ -111,12 +111,12 @@ export class ImageRenderer extends BaseObject {
 
     setTextureUnit(unit: number): void {
         if (!(unit >= 0)) {
-            throw this._logError(`set_texture_unit(${unit}): bad value`);
+            throw this._logMethodError('set_texture_unit', unit, 'bad value');
         }
         if (this._textureUnit === unit) {
             return;
         }
-        this._logInfo(`set_texture_unit(${unit})`);
+        this._logMethod('set_texture_unit', unit);
         this._textureUnit = unit;
     }
 
@@ -126,12 +126,12 @@ export class ImageRenderer extends BaseObject {
 
     setRegion(region: ImageRendererRegion): void {
         if (!region) {
-            throw this._logError('set_region: not defined');
+            throw this._logMethodError('set_region', '_', 'not defined');
         }
         if (compareRegions(this._region, region)) {
             return;
         }
-        this._logInfo(`set_region(${toStr(region)})`);
+        this._logMethod('set_region', toArgStr(region));
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -142,18 +142,18 @@ export class ImageRenderer extends BaseObject {
 
     setLocation(location: ImageRendererLocation): void {
         if (!location) {
-            throw this._logError('set_location: not defined');
+            throw this._logMethodError('set_location', '_', 'not defined');
         }
         if (
             (location.x1 === undefined && location.x2 === undefined) ||
             (location.y1 === undefined && location.y2 === undefined)
         ) {
-            throw this._logError(`set_location: not enough data: ${toStr(location)}`);
+            throw this._logMethodError('set_location', toArgStr(location), 'not enough data');
         }
         if (compareLocations(this._location, location)) {
             return;
         }
-        this._logInfo(`set_location(${toStr(location)})`);
+        this._logMethod('set_location', toArgStr(location));
         this._location = { ...location };
         this._matDirty = true;
     }

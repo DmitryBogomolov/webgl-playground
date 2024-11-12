@@ -176,7 +176,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
+        this._logMethod('init', '');
         this._runtime = params.runtime;
         const prefix = buildSourcePrefix(params.defines);
         const vertSource = combineSource(params.vertShader, prefix);
@@ -199,7 +199,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._logMethod('dispose', '');
         this._runtime.gl().deleteProgram(this._program);
         this._dispose();
     }
@@ -217,7 +217,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logInfo(`set_uniform(${name}: ${toStr(value)})`);
+        this._logMethod('set_uniform', `${name}: ${toStr(value)}`);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
