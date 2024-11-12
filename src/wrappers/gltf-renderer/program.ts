@@ -1,7 +1,6 @@
 import type { Mapping } from '../../common/mapping.types';
 import type { Runtime } from '../../gl/runtime';
 import type { PrimitiveWrapper } from './primitive.types';
-import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Program } from '../../gl/program';
 import { LOCATIONS } from './attr-locations';
 import vertShader from './shaders/shader.vert';
@@ -89,15 +88,18 @@ function makeShaderSource(source: string, definitions: Mapping<string, string>):
     return lines.join('\n');
 }
 
-export function createPrograms(
-    wrappers: ReadonlyArray<PrimitiveWrapper>, runtime: Runtime, ctx: DisposableContextProxy,
-): Program[] {
+export function createPrograms(wrappers: Iterable<PrimitiveWrapper>, runtime: Runtime): Program[] {
     const programs: Program[] = [];
     for (const wrapper of wrappers) {
         const program = lockProgram(runtime, wrapper.description);
-        ctx.add({ dispose: () => { releaseProgram(program); } });
         wrapper.primitive.setProgram(program);
         programs.push(program);
     }
     return programs;
+}
+
+export function destroyPrograms(programs: Iterable<Program>): void {
+    for (const program of programs) {
+        releaseProgram(program);
+    }
 }
