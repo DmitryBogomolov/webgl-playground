@@ -98,6 +98,9 @@ export class Primitive extends BaseObject {
     dispose(): void {
         this._logMethod('dispose', '');
         this._dispose();
+        this._vao.dispose();
+        this._vertexBuffer.dispose();
+        this._indexBuffer.dispose();
     }
 
     allocateVertexBuffer(size: number): void {
