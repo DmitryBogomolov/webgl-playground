@@ -2,21 +2,24 @@ import type { GlTFAsset } from '../../gltf/asset.types';
 import type { GlTFTexture } from '../../gltf/texture.types';
 import type { TextureImageDataOptions } from '../../gl/texture-base.types';
 import type { Runtime } from '../../gl/runtime';
-import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Texture } from '../../gl/texture-2d';
 import { getTextureInfo } from '../../gltf/texture';
 
-export function createTextures(
-    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
-): Promise<Texture[]> {
+export function createTextures(asset: GlTFAsset, runtime: Runtime): Promise<Texture[]> {
     const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
     const tasks: Promise<Texture>[] = [];
     for (let i = 0; i < count; ++i) {
         const textureData = getTextureInfo(asset, i);
-        const task = createTexture(textureData, runtime, context);
+        const task = createTexture(textureData, runtime);
         tasks.push(task);
     }
     return Promise.all(tasks);
+}
+
+export function destroyTextures(textures: Iterable<Texture>): void {
+    for (const texture of textures) {
+        texture.dispose();
+    }
 }
 
 const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
@@ -25,14 +28,11 @@ const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
     unpackPremultiplyAlpha: false,
 };
 
-async function createTexture(
-    textureInfo: GlTFTexture, runtime: Runtime, context: DisposableContextProxy,
-): Promise<Texture> {
+async function createTexture(textureInfo: GlTFTexture, runtime: Runtime): Promise<Texture> {
     const { data, mimeType, sampler } = textureInfo;
     const blob = new Blob([data], { type: mimeType });
     const bitmap = await createImageBitmap(blob);
     const texture = new Texture({ runtime });
-    context.add(texture);
     texture.setParameters({
         wrap_s: sampler.wrapS,
         wrap_t: sampler.wrapT,
@@ -42,3 +42,4 @@ async function createTexture(
     texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
     return texture;
 }
+

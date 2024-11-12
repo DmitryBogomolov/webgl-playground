@@ -13,7 +13,6 @@ import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
 import { isColor } from '../common/color';
 import { toStr } from '../utils/string-formatter';
-import { DisposableContext } from '../utils/disposable-context';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -54,12 +53,16 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
 type UniformSetter = (gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE) => void;
 type UniformSettersMap = Partial<Mapping<SHADER_UNIFORM_TYPE, UniformSetter>>;
 
+function raiseError(name: string, value: unknown): Error {
+    throw new Error(`bad value for "${name}" uniform: ${toStr(value)}`);
+}
+
 const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     'bool': (gl, { location }, value) => {
         if (typeof value === 'number' || typeof value === 'boolean') {
             gl.uniform1i(location, Number(value));
         } else {
-            throw new Error(`bad value for "bool" uniform: ${toStr(value)}`);
+            raiseError('bool', value);
         }
 
     },
@@ -69,7 +72,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 1)) {
             gl.uniform1f(location, value[0]);
         } else {
-            throw new Error(`bad value for "float" uniform: ${toStr(value)}`);
+            raiseError('float', value);
         }
     },
     'float2': (gl, { location }, value) => {
@@ -78,7 +81,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 2)) {
             gl.uniform2f(location, value[0], value[1]);
         } else {
-            throw new Error(`bad value for "vec2" uniform: ${toStr(value)}`);
+            raiseError('vec2', value);
         }
     },
     'float3': (gl, { location }, value) => {
@@ -89,7 +92,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform3f(location, value.r, value.g, value.b);
         } else {
-            throw new Error(`bad value for "vec3" uniform: ${toStr(value)}`);
+            raiseError('vec3', value);
         }
     },
     'float4': (gl, { location }, value) => {
@@ -100,21 +103,21 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isColor(value)) {
             gl.uniform4f(location, value.r, value.g, value.b, value.a);
         } else {
-            throw new Error(`bad value for "vec4" uniform: ${toStr(value)}`);
+            raiseError('vec4', value);
         }
     },
     'sampler2D': (gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw new Error(`bad value for "sampler2D" uniform: ${toStr(value)}`);
+            raiseError('sampler2D', value);
         }
     },
     'samplerCube': (gl, { location }, value) => {
         if (typeof value === 'number') {
             gl.uniform1i(location, value);
         } else {
-            throw new Error(`bad value for "samplerCube" uniform: ${toStr(value)}`);
+            raiseError('samplerCube', value);
         }
     },
     'float2x2': (gl, { location }, value) => {
@@ -123,7 +126,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 4)) {
             gl.uniformMatrix2fv(location, false, value);
         } else {
-            throw new Error(`bad value for "mat2" uniform: ${toStr(value)}`);
+            raiseError('mat2', value);
         }
     },
     'float3x3': (gl, { location }, value) => {
@@ -132,7 +135,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 9)) {
             gl.uniformMatrix3fv(location, false, value);
         } else {
-            throw new Error(`bad value for "mat3" uniform: ${toStr(value)}`);
+            raiseError('mat3', value);
         }
     },
     'float4x4': (gl, { location }, value) => {
@@ -141,7 +144,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else if (isNumArray(value, 16)) {
             gl.uniformMatrix4fv(location, false, value);
         } else {
-            throw new Error(`bad value for "mat4" uniform: ${toStr(value)}`);
+            raiseError('mat4', value);
         }
     },
 };
@@ -151,7 +154,7 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
         if (isNumArray(value, arraySize)) {
             gl.uniform1iv(location, value);
         } else {
-            throw new Error(`bad value for "bool[${arraySize}]" uniform: ${toStr(value)}`);
+            raiseError(`bool[${arraySize}]`, value);
         }
 
     },
@@ -159,16 +162,13 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
         if (isNumArray(value, arraySize)) {
             gl.uniform1fv(location, value);
         } else {
-            throw new Error(`bad value for "float[${arraySize}]" uniform: ${toStr(value)}`);
+            raiseError(`float[${arraySize}]`, value);
         }
     },
 };
 
 export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
     private readonly _runtime: ProgramRuntime;
-    private readonly _disposableCtx = new DisposableContext();
-    private readonly _vertShader: WebGLShader;
-    private readonly _fragShader: WebGLShader;
     private readonly _attributes: ShaderAttribute[];
     private readonly _uniforms: ShaderUniform[];
     private readonly _uniformsMap: Record<string, number>;
@@ -176,34 +176,31 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
+        this._logMethod('init', '');
         this._runtime = params.runtime;
-        const gl = this._runtime.gl();
+        const prefix = buildSourcePrefix(params.defines);
+        const vertSource = combineSource(params.vertShader, prefix);
+        const fragSource = combineSource(params.fragShader, prefix);
+        let info!: ReturnType<typeof setupProgram>;
         try {
-            this._program = createProgram(gl, this._disposableCtx);
-            const prefix = buildSourcePrefix(params.defines);
-            this._vertShader = createShader(
-                gl, GL_VERTEX_SHADER, combineSource(params.vertShader, prefix), this._disposableCtx,
+            info = setupProgram(
+                this._runtime.gl(),
+                vertSource,
+                fragSource,
+                params.locations,
             );
-            this._fragShader = createShader(
-                gl, GL_FRAGMENT_SHADER, combineSource(params.fragShader, prefix), this._disposableCtx,
-            );
-            if (params.locations) {
-                bindAttributes(gl, this._program, params.locations);
-            }
-            linkProgram(gl, this._program, this._vertShader, this._fragShader);
-            this._attributes = collectAttributes(gl, this._program);
-            this._uniforms = collectUniforms(gl, this._program);
-            this._uniformsMap = buildUniformsMap(this._uniforms);
         } catch (err) {
-            this._disposableCtx.dispose();
-            throw this._logError(err as Error);
+            this._logError(err as Error);
         }
+        this._program = info.program;
+        this._attributes = info.attributes;
+        this._uniforms = info.uniforms;
+        this._uniformsMap = buildUniformsMap(this._uniforms);
     }
 
     dispose(): void {
-        this._logInfo('dispose');
-        this._disposableCtx.dispose();
+        this._logMethod('dispose', '');
+        this._runtime.gl().deleteProgram(this._program);
         this._dispose();
     }
 
@@ -220,7 +217,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logInfo(`set_uniform(${name}: ${toStr(value)})`);
+        this._logMethod('set_uniform', `${name}: ${toStr(value)}`);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
@@ -242,27 +239,61 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 }
 
-function createProgram(gl: WebGLRenderingContext, ctx: DisposableContext): WebGLProgram {
+function setupProgram(
+    gl: WebGLRenderingContext,
+    vertSource: string,
+    fragSource: string,
+    locations: Mapping<string, number> | undefined,
+): {
+    program: WebGLProgram;
+    attributes: ShaderAttribute[];
+    uniforms: ShaderUniform[];
+} {
     const program = gl.createProgram();
     if (!program) {
         throw new Error('failed to create program');
     }
-    function dispose(): void {
-        gl.deleteProgram(program);
+    const vertShader = createShader(gl, GL_VERTEX_SHADER, vertSource);
+    const fragShader = createShader(gl, GL_FRAGMENT_SHADER, fragSource);
+    if (locations) {
+        bindAttributes(gl, program, locations);
     }
-    ctx.add({ dispose });
-    return program;
+    gl.attachShader(program, vertShader);
+    gl.attachShader(program, fragShader);
+    gl.linkProgram(program);
+    gl.deleteShader(vertShader);
+    gl.deleteShader(fragShader);
+    let attributes: ShaderAttribute[];
+    let uniforms: ShaderUniform[];
+    try {
+        if (!gl.getProgramParameter(program, GL_LINK_STATUS)) {
+            const linkInfo = gl.getProgramInfoLog(program)!;
+            const vertexInfo = gl.getShaderInfoLog(vertShader);
+            const fragmentInfo = gl.getShaderInfoLog(fragShader);
+            let message = linkInfo;
+            if (vertexInfo) {
+                message += '\n' + vertexInfo;
+            }
+            if (fragmentInfo) {
+                message += '\n' + fragmentInfo;
+            }
+            gl.deleteProgram(program);
+            throw new Error(message);
+        }
+        attributes = collectAttributes(gl, program);
+        uniforms = collectUniforms(gl, program);
+        return { program, attributes, uniforms };
+    } catch (err) {
+        gl.deleteProgram(program);
+        throw err;
+    }
 }
 
-function createShader(gl: WebGLRenderingContext, type: number, source: string, ctx: DisposableContext): WebGLShader {
+function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
     const shader = gl.createShader(type)!;
     if (!shader) {
         throw new Error('failed to create shader');
     }
-    function dispose(): void {
-        gl.deleteShader(shader);
-    }
-    ctx.add({ dispose });
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     return shader;
@@ -291,27 +322,6 @@ function combineSource(source: string, prefix: string): string {
 function bindAttributes(gl: WebGLRenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
     for (const [name, location] of Object.entries(locations)) {
         gl.bindAttribLocation(program, location, name);
-    }
-}
-
-function linkProgram(
-    gl: WebGLRenderingContext, program: WebGLProgram, vertShader: WebGLShader, fragShader: WebGLShader,
-): void {
-    gl.attachShader(program, vertShader);
-    gl.attachShader(program, fragShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, GL_LINK_STATUS)) {
-        const linkInfo = gl.getProgramInfoLog(program)!;
-        const vertexInfo = gl.getShaderInfoLog(vertShader);
-        const fragmentInfo = gl.getShaderInfoLog(fragShader);
-        let message = linkInfo;
-        if (vertexInfo) {
-            message += '\n' + vertexInfo;
-        }
-        if (fragmentInfo) {
-            message += '\n' + fragmentInfo;
-        }
-        throw new Error(message);
     }
 }
 

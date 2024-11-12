@@ -28,7 +28,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
 
     constructor(params: BaseChannelParams<RecvT>) {
         super(params);
-        this._logInfo('init');
+        this._logMethod('init', '');
         if (!params.carrier) {
             throw this._logError('carrier is not defined');
         }
@@ -92,7 +92,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._logMethod('dispose', '');
         this._cancelFlush();
         this._carrier.removeEventListener('message', this._handleMessage);
         this._carrier.close();

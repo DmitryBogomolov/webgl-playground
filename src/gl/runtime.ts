@@ -22,7 +22,7 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
-import { toStr } from '../utils/string-formatter';
+import { toArgStr } from '../utils/string-formatter';
 import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
 import { LoggerImpl, ConsoleLogTransport } from '../common/logger';
@@ -152,10 +152,12 @@ export class Runtime extends BaseObject {
         this._contextRestored.emit({ event: e });
     };
 
+    private readonly _logMethodRef = this._logMethod.bind(this);
+
     constructor(params: RuntimeParams) {
         super({ logger: createLogger(), ...params });
         this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
-        this._logInfo('init');
+        this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext();
         this._vaoExt = this._getVaoExt();
@@ -169,12 +171,14 @@ export class Runtime extends BaseObject {
         this._renderState = makeRenderState({});
         this.adjustViewport();
         this._cancelResizeTracking = createResizeTracker(
-            this._options.trackElementResize, this._canvas.parentElement!, () => this.adjustViewport(),
+            this._options.trackElementResize,
+            this._canvas.parentElement!,
+            () => this.adjustViewport(),
         );
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._logMethod('dispose', '');
         this._renderLoop.cancel();
         this._renderLoop.clearCallbacks();
         this._sizeChanged.clear();
@@ -259,7 +263,7 @@ export class Runtime extends BaseObject {
         if (eq2(this._viewportSize, size)) {
             return;
         }
-        this._logInfo(`update_viewport(${size.x}, ${size.y})`);
+        this._logMethod('update_viewport', toArgStr(size));
         this._gl.viewport(0, 0, size.x, size.y);
         this._viewportSize = clone2(size);
     }
@@ -274,12 +278,12 @@ export class Runtime extends BaseObject {
 
     setSize(size: Vec2): boolean {
         if (!isVec2(size)) {
-            throw this._logError(`set_size(${size}): bad value`);
+            throw this._logMethodError('set_size', toArgStr(size), 'bad value');
         }
         if (eq2(this._size, size)) {
             return false;
         }
-        this._logInfo(`set_size(width=${size.x}, height=${size.y})`);
+        this._logMethod('set_size', toArgStr(size));
         this._size = clone2(size);
         const dpr = getDpr();
         this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
@@ -304,15 +308,15 @@ export class Runtime extends BaseObject {
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         const value = BUFFER_MASK_MAP[mask];
-        this._logInfo(`clear_buffer(${mask})`);
+        this._logMethod('clear_buffer', mask);
         this._gl.clear(value);
     }
 
     setRenderState(state: Readonly<RenderState>): boolean {
         if (!isRenderState(state)) {
-            throw this._logError(`set_render_state(${toStr(state)}): bad value`);
+            throw this._logMethodError('set_render_state', toArgStr(state), 'bad value');
         }
-        return applyRenderState(this._renderState, state, this._gl, (msg) => this._logInfo(msg));
+        return applyRenderState(this._renderState, state, this._gl, this._logMethodRef);
     }
 
     getClearColor(): Color {
@@ -321,13 +325,13 @@ export class Runtime extends BaseObject {
 
     setClearColor(clearColor: Color): boolean {
         if (!isColor(clearColor)) {
-            throw this._logError(`set_clear_color(${clearColor}): bad value`);
+            throw this._logMethodError('set_clear_color', toArgStr(clearColor), 'bad value');
         }
         if (colorEq(this._clearState.clearColor, clearColor)) {
             return false;
         }
         const { r, g, b, a } = clearColor;
-        this._logInfo(`set_clear_color(${r}, ${g}, ${b}, ${a})`);
+        this._logMethod('set_clear_color', toArgStr(clearColor));
         this._gl.clearColor(r, g, b, a);
         this._clearState.clearColor = color(r, g, b, a);
         return true;
@@ -339,12 +343,12 @@ export class Runtime extends BaseObject {
 
     setClearDepth(clearDepth: number): boolean {
         if (!(0 <= clearDepth && clearDepth <= 1)) {
-            throw this._logError(`set_clear_depth(${clearDepth}): bad value`);
+            throw this._logMethodError('set_clear_depth', clearDepth, 'bad value');
         }
         if (this._clearState.clearDepth === clearDepth) {
             return false;
         }
-        this._logInfo(`set_clear_depth(${clearDepth})`);
+        this._logMethod('set_clear_depth', clearDepth);
         this._gl.clearDepth(Number(clearDepth));
         this._clearState.clearDepth = Number(clearDepth);
         return true;
@@ -356,12 +360,12 @@ export class Runtime extends BaseObject {
 
     setClearStencil(clearStencil: number): boolean {
         if (!(0 <= clearStencil && clearStencil <= 1)) {
-            throw this._logError(`set_clear_stencil(${clearStencil}): bad value`);
+            throw this._logMethodError('set_clear_stencil', clearStencil, 'bad value');
         }
         if (this._clearState.clearStencil === clearStencil) {
             return false;
         }
-        this._logInfo(`set_clear_stencil(${clearStencil})`);
+        this._logMethod('set_clear_stencil', clearStencil);
         this._gl.clearStencil(Number(clearStencil));
         this._clearState.clearStencil = Number(clearStencil);
         return true;
@@ -428,7 +432,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.currentProgram === handle) {
             return;
         }
-        this._logInfo(`use_program(${program})`);
+        this._logMethod('use_program', program);
         this._gl.useProgram(handle);
         this._bindingsState.currentProgram = handle;
     }
@@ -438,7 +442,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.vertexArrayObject === handle) {
             return;
         }
-        this._logInfo(`bind_vertex_array_object(${vertexArrayObject})`);
+        this._logMethod('bind_vertex_array_object', vertexArrayObject);
         this._vaoExt.bindVertexArrayOES(handle);
         this._bindingsState.vertexArrayObject = handle;
     }
@@ -448,17 +452,24 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.arrayBuffer === buffer) {
             return;
         }
-        this._logInfo(`bind_array_buffer(${buffer})`);
+        this._logMethod('bind_array_buffer', buffer);
+        // https://www.khronos.org/opengl/wiki/vertex_Specification
+        // A call to `glBindBuffer`to set the GL_ARRAY_BUFFER binding is NOT modifying the current VAO's state.
         this._gl.bindBuffer(GL_ARRAY_BUFFER, handle);
         this._bindingsState.arrayBuffer = handle;
     }
 
     bindElementArrayBuffer(buffer: GLHandleWrapper<WebGLBuffer> | null): void {
+        if (this._bindingsState.vertexArrayObject === null) {
+            throw this._logMethodError('bind_element_array_buffer', buffer, 'vertex array object not bound');
+        }
         const handle = unwrapGLHandle(buffer);
         if (this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] === handle) {
             return;
         }
-        this._logInfo(`bind_element_array_buffer(${buffer})`);
+        this._logMethod('bind_element_array_buffer', buffer);
+        // https://www.khronos.org/opengl/wiki/vertex_Specification
+        // If no VAO is bound, then you cannot bind a buffer object to GL_ELEMENT_ARRAY_BUFFER.
         this._gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle);
         this._bindingsState.elementArrayBuffers[this._bindingsState.vertexArrayObject as number] = handle;
     }
@@ -468,7 +479,7 @@ export class Runtime extends BaseObject {
         if ((this._bindingsState.boundTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logInfo(`bind_texture(${texture})`);
+        this._logMethod('bind_texture', texture);
         this._gl.bindTexture(GL_TEXTURE_2D, handle);
         this._bindingsState.boundTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -478,7 +489,7 @@ export class Runtime extends BaseObject {
         if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] || null) === handle) {
             return;
         }
-        this._logInfo(`bind_cube_texture(${texture})`);
+        this._logMethod('bind_cube_texture', texture);
         this._gl.bindTexture(GL_TEXTURE_CUBE_MAP, handle);
         this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] = handle;
     }
@@ -489,7 +500,7 @@ export class Runtime extends BaseObject {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logInfo(`set_texture_unit(${unit}, ${texture})`);
+            this._logMethod('set_texture_unit', toArgStr({ unit, texture }));
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -502,7 +513,7 @@ export class Runtime extends BaseObject {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
-            this._logInfo(`set_cube_texture_unit(${unit}, ${texture})`);
+            this._logMethod('set_cube_texture_unit', toArgStr({ unit, texture }));
             this._gl.activeTexture(GL_TEXTURE0 + unit);
             this._bindingsState.textureUnit = unit;
         }
@@ -517,7 +528,7 @@ export class Runtime extends BaseObject {
         if (this._pixelStoreState.pixelStoreUnpackFlipYWebgl === unpackFlipYWebgl) {
             return false;
         }
-        this._logInfo(`unpack_flip_y_webgl(${unpackFlipYWebgl})`);
+        this._logMethod('unpack_flip_y_webgl', unpackFlipYWebgl);
         this._gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, Boolean(unpackFlipYWebgl));
         this._pixelStoreState.pixelStoreUnpackFlipYWebgl = Boolean(unpackFlipYWebgl);
         return true;
@@ -531,7 +542,7 @@ export class Runtime extends BaseObject {
         if (this._pixelStoreState.pixelStoreUnpackPremultiplyAlphaWebgl === unpackPremultiplyAlphaWebgl) {
             return false;
         }
-        this._logInfo(`unpack_premultiply_alpha_webgl(${unpackPremultiplyAlphaWebgl})`);
+        this._logMethod('unpack_premultiply_alpha_webgl', unpackPremultiplyAlphaWebgl);
         this._gl.pixelStorei(GL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, Boolean(unpackPremultiplyAlphaWebgl));
         this._pixelStoreState.pixelStoreUnpackPremultiplyAlphaWebgl = Boolean(unpackPremultiplyAlphaWebgl);
         return true;
@@ -547,7 +558,7 @@ export class Runtime extends BaseObject {
         if (this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl === unpackColorSpaceConversionWebgl) {
             return false;
         }
-        this._logInfo(`unpack_colorspace_conversion_webgl(${unpackColorSpaceConversionWebgl})`);
+        this._logMethod('unpack_colorspace_conversion_webgl', unpackColorSpaceConversionWebgl);
         const value = UNPACK_COLORSPACE_CONVERSION_MAP[unpackColorSpaceConversionWebgl];
         this._gl.pixelStorei(GL_UNPACK_COLORSPACE_CONVERSION_WEBGL, value);
         this._pixelStoreState.pixelStoreUnpackColorSpaceConversionWebgl = unpackColorSpaceConversionWebgl;
@@ -559,9 +570,13 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.framebuffer === handle) {
             return;
         }
-        this._logInfo(`bind_framebuffer(${framebuffer})`);
+        this._logMethod('bind_framebuffer', framebuffer);
         this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
         this._bindingsState.framebuffer = handle;
+    }
+
+    bindFramebufferRaw(handle: WebGLFramebuffer | null): void {
+        this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
     }
 
     getDefaultRenderTarget(): RenderTarget {
@@ -579,7 +594,7 @@ export class Runtime extends BaseObject {
         if (this._renderTarget === renderTarget) {
             return;
         }
-        this._logInfo(`set_render_target(${renderTarget})`);
+        this._logMethod('set_render_target', renderTarget);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
         this._updateViewport((renderTarget || this._defaultRenderTarget).size());
         this._renderTarget = renderTarget;
@@ -590,7 +605,7 @@ export class Runtime extends BaseObject {
         if (this._bindingsState.renderbuffer === handle) {
             return;
         }
-        this._logInfo(`bind_renderbuffer(${renderbuffer})`);
+        this._logMethod('bind_renderbuffer', renderbuffer);
         this._gl.bindRenderbuffer(GL_RENDERBUFFER, handle);
         this._bindingsState.renderbuffer = handle;
     }

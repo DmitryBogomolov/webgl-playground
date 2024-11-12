@@ -5,7 +5,6 @@ import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
 import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
-import type { DisposableContextProxy } from '../../utils/disposable-context.types';
 import { Primitive } from '../../gl/primitive';
 import { inversetranspose4x4 } from '../../geometry/mat4';
 import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
@@ -35,8 +34,10 @@ const VALID_TEXCOORD_TYPES = makeValidTypes('float2', 'ubyte2', 'ushort2');
 type GLTF_INDEX_TYPE = Extract<GlTF_ACCESSOR_TYPE, 'ubyte' | 'ushort' | 'uint'>;
 
 export function createPrimitive(
-    primitive: GlTFSchema.MeshPrimitive, transform: Mat4,
-    asset: GlTFAsset, runtime: Runtime, context: DisposableContextProxy,
+    primitive: GlTFSchema.MeshPrimitive,
+    transform: Mat4,
+    asset: GlTFAsset,
+    runtime: Runtime,
 ): PrimitiveWrapper {
     const {
         POSITION: positionIdx,
@@ -85,7 +86,6 @@ export function createPrimitive(
     ) : null;
 
     const result = new Primitive({ runtime });
-    context.add(result);
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     result.allocateVertexBuffer(totalVertexDataSize);

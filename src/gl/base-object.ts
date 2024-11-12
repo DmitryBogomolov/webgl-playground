@@ -31,6 +31,14 @@ export abstract class BaseObject {
         this._logger.info(this._id + '.' + message);
     }
 
+    protected _logMethod(method: string, args: unknown): void {
+        this._logInfo(`${method}(${args})`);
+    }
+
+    protected _logMethodError(method: string, args: unknown, err: string): void {
+        throw this._logError(`${method}(${args}): ${err}`);
+    }
+
     protected _logWarn(message: string): void {
         this._logger.warn(this._id + '.' + message);
     }

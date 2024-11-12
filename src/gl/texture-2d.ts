@@ -12,7 +12,7 @@ export class Texture extends TextureBase {
         if (!imageData) {
             throw this._logError('set_image_data: not defined');
         }
-        this._logInfo(`set_image_data(${textureImageDataToStr(imageData)})`);
+        this._logMethod('set_image_data', textureImageDataToStr(imageData));
         this._beginDataUpdate(options);
         this._updateData(imageData, this._target);
     }

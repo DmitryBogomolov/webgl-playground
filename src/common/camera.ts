@@ -63,9 +63,7 @@ export class Camera {
 
     setProjType(value: CAMERA_PROJECTION): void {
         const impl = PROJ_TYPE_TO_IMPL_MAP[value];
-        if (!impl) {
-            throw new Error(`bad "projType" value: ${value}`);
-        }
+        check(!!impl, 'ProjType', value);
         if (this._projImpl !== impl) {
             this._projImpl = impl;
             this._markProjDirty();
@@ -77,9 +75,7 @@ export class Camera {
     }
 
     setZNear(value: number): void {
-        if (!(value > 0 && value < this._zFar)) {
-            throw new Error(`zNear: bad value ${value}`);
-        }
+        check(value > 0 && value < this._zFar, 'zNear', value);
         if (this._zNear !== value) {
             this._zNear = value;
             this._markProjDirty();
@@ -91,9 +87,7 @@ export class Camera {
     }
 
     setZFar(value: number): void {
-        if (!(value > 0 && value > this._zNear)) {
-            throw new Error(`zFar: bad value ${value}`);
-        }
+        check(value > 0 && value > this._zNear, 'zFar', value);
         if (this._zFar !== value) {
             this._zFar = value;
             this._markProjDirty();
@@ -109,12 +103,8 @@ export class Camera {
     }
 
     setViewportSize(value: Vec2): void {
-        if (!isVec2(value)) {
-            throw new Error(`viewport size: bad value ${value}`);
-        }
-        if (!(value.x > 0 && value.y > 0)) {
-            throw new Error(`viewport size: bad value (${value.x}, ${value.y}}`);
-        }
+        check(isVec2(value), 'viewportSize', value);
+        check(value.x > 0 && value.y > 0, 'viewportSize', `(${value.x}, ${value.y}}`);
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
             this._markProjDirty();
@@ -130,9 +120,7 @@ export class Camera {
     }
 
     setYFov(value: number): void {
-        if (!(value > 0)) {
-            throw new Error(`yFOV: bad value ${value}`);
-        }
+        check(value > 0, 'yFOV', value);
         if (this._yFov !== value) {
             this._yFov = value;
             this._markProjDirty();
@@ -144,12 +132,8 @@ export class Camera {
     }
 
     setUpDir(value: Vec3): void {
-        if (!isVec3(value)) {
-            throw new Error(`upDir: bad value ${value}`);
-        }
-        if (eq3(value, ZERO3)) {
-            throw new Error('upDir: bad value (0, 0, 0)');
-        }
+        check(isVec3(value), 'upDir', value);
+        check(!eq3(value, ZERO3), 'upDir', '(0, 0, 0)');
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
             this._upDir = clone3(upDir);
@@ -162,9 +146,7 @@ export class Camera {
     }
 
     setCenterPos(value: Vec3): void {
-        if (!isVec3(value)) {
-            throw new Error(`centerPos: bad value ${value}`);
-        }
+        check(isVec3(value), 'centerPos', value);
         if (!eq3(this._centerPos, value)) {
             this._centerPos = clone3(value);
             this._markViewDirty();
@@ -176,9 +158,7 @@ export class Camera {
     }
 
     setEyePos(value: Vec3): void {
-        if (!isVec3(value)) {
-            throw new Error(`eyePos: bad value ${value}`);
-        }
+        check(isVec3(value), 'eyePos', value);
         if (!eq3(this._eyePos, value)) {
             this._eyePos = clone3(value);
             this._markViewDirty();
@@ -324,3 +304,9 @@ const PROJ_TYPE_TO_IMPL_MAP: Mapping<CAMERA_PROJECTION, ProjImpl> = {
     'perspective': perspectiveImpl,
     'orthographic': orthographicImpl,
 };
+
+function check(condition: boolean, name: string, value: unknown): void {
+    if (!condition) {
+        throw new Error(`${name}: bad value ${value}`);
+    }
+}
