@@ -20,6 +20,7 @@ describe('framebuffer', () => {
         let createFramebuffer: jest.Mock;
         let deleteFramebuffer: jest.Mock;
         let bindFramebuffer: jest.Mock;
+        let bindFramebufferRaw: jest.Mock;
         let framebufferTexture2D: jest.Mock;
         let checkFramebufferStatus: jest.Mock;
         let bindTexture: jest.Mock;
@@ -45,6 +46,7 @@ describe('framebuffer', () => {
             framebufferTexture2D = jest.fn();
             checkFramebufferStatus = jest.fn();
             bindFramebuffer = jest.fn();
+            bindFramebufferRaw = jest.fn();
             bindTexture = jest.fn();
             ctx = {
                 createFramebuffer,
@@ -56,6 +58,7 @@ describe('framebuffer', () => {
                 gl: () => ctx,
                 logger: () => null,
                 bindFramebuffer,
+                bindFramebufferRaw,
                 bindTexture,
             } as unknown as Runtime;
         });
