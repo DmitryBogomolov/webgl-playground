@@ -9,7 +9,7 @@ import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
 import { BaseObject } from './base-object';
-import { toArgStr } from '../utils/string-formatter';
+import { toStr, toArgStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -71,6 +71,11 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'ushort': WebGL.UNSIGNED_SHORT,
     'uint': WebGL.UNSIGNED_INT,
 };
+const INDEX_SIZE_MAP: GLValuesMap<INDEX_TYPE> = {
+    'ubyte': 1,
+    'ushort': 2,
+    'uint': 4,
+};
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'ushort';
 
 export class Primitive extends BaseObject {
@@ -105,11 +110,42 @@ export class Primitive extends BaseObject {
     }
 
     setup(config: PrimitiveConfig): void {
-        this._logMethod('setup', {
-            vertex: config.vertexData.byteLength,
-            index: config.indexData.byteLength,
-        });
-        // TODO...
+        if (!config) {
+            throw this._logMethodError('setup', '_', 'not defined');
+        }
+        this._logMethod('setup', toArgStr({
+            vertexData: config.vertexData.byteLength,
+            indexData: config.indexData.byteLength,
+            schema: toStr(config.vertexSchema.attributes),
+            indexType: config.indexType,
+            primitiveMode: config.primitiveMode,
+        }));
+        const attributes = validateVertexSchema(config.vertexSchema);
+        const gl = this._runtime.gl();
+        try {
+            this._runtime.bindVertexArrayObject(this._vao);
+            this._runtime.bindArrayBuffer(this._vertexBuffer);
+            for (const attr of attributes) {
+                gl.vertexAttribPointer(
+                    attr.location,
+                    attr.rank,
+                    attr.type,
+                    attr.normalized,
+                    attr.stride,
+                    attr.offset,
+                );
+                gl.enableVertexAttribArray(attr.location);
+            }
+            this._runtime.bindElementArrayBuffer(this._indexBuffer);
+
+            gl.bufferData(GL_ARRAY_BUFFER, config.vertexData, GL_STATIC_DRAW);
+            gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, config.indexData, GL_STATIC_DRAW);
+        } finally {
+            this._runtime.bindVertexArrayObject(null);
+        }
+        this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode || DEFAULT_PRIMITIVE_MODE];
+        this._indexType = INDEX_TYPE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
+        this._indexCount = config.indexData.byteLength / INDEX_SIZE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
     }
 
     allocateVertexBuffer(size: number): void {
@@ -226,15 +262,15 @@ export class Primitive extends BaseObject {
         this._program = prog;
     }
 
-    render(): void {
+    render(indexOffset: number = 0): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
             throw this._logError('cannot render without program');
         }
-        this._logMethod('render', '');
+        this._logMethod('render', toArgStr({ indexOffset }));
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(this._vao);
-        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
+        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, indexOffset || this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
 }
