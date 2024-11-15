@@ -69,10 +69,13 @@ describe('image-renderer', () => {
 
         it('create instance', () => {
             expect(MockPrimitive).toBeCalledWith({ runtime, tag: 'ImageRenderer:shared:stub/runtime' });
-            expect(primitive.allocateVertexBuffer).toBeCalledWith(32);
-            expect(primitive.updateVertexData).toBeCalledWith(new Float32Array([-1, -1, +1, -1, +1, +1, -1, +1]));
-            expect(primitive.allocateIndexBuffer).toBeCalledWith(12);
-            expect(primitive.updateIndexData).toBeCalledWith(new Uint16Array([0, 1, 2, 2, 3, 0]));
+            expect(primitive.setup).toBeCalledWith({
+                vertexData: new Float32Array([-1, -1, +1, -1, +1, +1, -1, +1]),
+                indexData: new Uint16Array([0, 1, 2, 2, 3, 0]),
+                vertexSchema: {
+                    attributes: [{ type: 'float2' }],
+                },
+            });
 
             expect(MockProgram).toBeCalledWith({
                 runtime,
