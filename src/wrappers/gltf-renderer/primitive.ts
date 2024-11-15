@@ -3,7 +3,7 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
+import type { PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import { Primitive } from '../../gl/primitive';
 import { inversetranspose4x4 } from '../../geometry/mat4';
@@ -88,11 +88,12 @@ export function createPrimitive(
     const result = new Primitive({ runtime });
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
-    result.allocateVertexBuffer(totalVertexDataSize);
     const vertexAttributes: VertexAttributeDefinition[] = [];
-
+    const vertexSchema: PrimitiveVertexSchema = {
+        attributes: vertexAttributes,
+    };
     const vertexDataCtx: SetVertexDataCtx = {
-        primitive: result,
+        data: new Uint8Array(totalVertexDataSize),
         attributes: vertexAttributes,
         offset: 0,
     };
@@ -110,17 +111,11 @@ export function createPrimitive(
     if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
-
-    result.setVertexSchema({
-        attributes: vertexAttributes,
-    });
-
-    result.allocateIndexBuffer(indexInfo.data.byteLength);
-    result.updateIndexData(indexInfo.data);
-    result.setIndexConfig({
-        indexCount: indexInfo.count,
+    result.setup({
+        vertexData: vertexDataCtx.data,
+        indexData: indexInfo.data,
+        vertexSchema,
         indexType: indexInfo.type as GLTF_INDEX_TYPE,
-        primitiveMode: 'triangles',
     });
 
     const material = getMaterialInfo(asset.gltf, primitive);
@@ -178,15 +173,15 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
 }
 
 interface SetVertexDataCtx {
-    readonly primitive: Primitive;
     readonly attributes: VertexAttributeDefinition[];
+    readonly data: Uint8Array;
     offset: number;
 }
 
 function setVertexData(
     ctx: SetVertexDataCtx, location: number, info: AttributeInfo, normalized: boolean | undefined,
 ): void {
-    ctx.primitive.updateVertexData(info.data, ctx.offset);
+    ctx.data.set(info.data, ctx.offset);
     ctx.attributes.push({
         location,
         type: info.type as VERTEX_ATTRIBUTE_TYPE,
