@@ -7,6 +7,7 @@ import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { TextureImageData } from '../../gl/texture-2d.types';
 import type { Runtime } from '../../gl/runtime';
+import type { PrimitiveVertexSchema } from '../../gl/primitive.types';
 import { eq2, isVec2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
@@ -320,26 +321,20 @@ function releasePrimitive(runtime: Runtime): void {
 
 function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
     const primitive = new Primitive({ runtime, tag });
-    const vertices = new Float32Array([
+    const vertexData = new Float32Array([
         -1, -1,
         +1, -1,
         +1, +1,
         -1, +1,
     ]);
-    const indices = new Uint16Array([
+    const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
     ]);
-    primitive.allocateVertexBuffer(vertices.byteLength);
-    primitive.updateVertexData(vertices);
-    primitive.allocateIndexBuffer(indices.byteLength);
-    primitive.updateIndexData(indices);
-    primitive.setVertexSchema({
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float2' }],
-    });
-    primitive.setIndexConfig({
-        indexCount: indices.length,
-    });
+    };
+    primitive.setup({ vertexData, indexData, vertexSchema });
 
     const program = new Program({
         runtime,
