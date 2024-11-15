@@ -28,9 +28,9 @@ export interface VertexAttributeDefinition {
 }
 
 export interface PrimitiveConfig {
+    readonly vertexData: BufferSource | number;
+    readonly indexData: BufferSource | number;
     readonly vertexSchema: PrimitiveVertexSchema;
-    readonly vertexData: BufferSource;
-    readonly indexData: BufferSource;
     readonly indexType?: INDEX_TYPE;
     readonly primitiveMode?: PRIMITIVE_MODE;
 }
