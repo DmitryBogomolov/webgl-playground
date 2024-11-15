@@ -1,7 +1,7 @@
 import type {
     PrimitiveParams, PrimitiveRuntime,
     PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
-    PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    INDEX_TYPE, PRIMITIVE_MODE,
     PrimitiveConfig,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
@@ -83,12 +83,8 @@ export class Primitive extends BaseObject {
     private readonly _vao: VertexArrayObject;
     private readonly _vertexBuffer: Buffer;
     private readonly _indexBuffer: Buffer;
-    private _vertexBufferSize: number = 0;
-    private _indexBufferSize: number = 0;
-    private _attributes: VertexAttributeInfo[] = [];
     private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
     private _indexCount: number = 0;
-    private _indexOffset: number = 0;
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
@@ -169,35 +165,6 @@ export class Primitive extends BaseObject {
         this._indexCount = indexDataLength / INDEX_SIZE_MAP[this._indexType];
     }
 
-    // TODO_REMOVE
-    allocateVertexBuffer(size: number): void {
-        console.warn('allocateVertexBuffer: OBSOLETE');
-        if (size < 0) {
-            throw this._logMethodError('allocate_vertex_buffer', size, 'bad value');
-        }
-        this._logMethod('allocate_vertex_buffer', size);
-        const gl = this._runtime.gl();
-        this._vertexBufferSize = size;
-        this._runtime.bindArrayBuffer(this._vertexBuffer);
-        gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
-    }
-
-    // TODO_REMOVE
-    allocateIndexBuffer(size: number): void {
-        console.warn('allocateIndexBuffer: OBSOLETE');
-        if (size < 0) {
-            throw this._logMethodError('allocate_index_buffer', size, 'bad value');
-        }
-        this._logMethod('allocate_index_buffer', size);
-        const gl = this._runtime.gl();
-        this._indexBufferSize = size;
-        // Vertex array object must also be bound because element array buffer should not be bound without it.
-        this._runtime.bindVertexArrayObject(this._vao);
-        this._runtime.bindElementArrayBuffer(this._indexBuffer);
-        gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
-        this._runtime.bindVertexArrayObject(null);
-    }
-
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logMethod('update_vertex_data', toArgStr({ vertexData: vertexData.byteLength, offset }));
         const gl = this._runtime.gl();
@@ -212,69 +179,6 @@ export class Primitive extends BaseObject {
         this._runtime.bindVertexArrayObject(this._vao);
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
         this._runtime.bindVertexArrayObject(null);
-    }
-
-    // TODO_REMOVE
-    setVertexSchema(schema: PrimitiveVertexSchema): void {
-        console.warn('setVertexSchema: OBSOLETE');
-        if (!schema) {
-            throw this._logMethodError('set_vertex_schema', '_', 'not defined');
-        }
-        this._logMethod('set_vertex_schema', `attributes=${schema.attributes.length}`);
-        this._attributes = validateVertexSchema(schema);
-        const gl = this._runtime.gl();
-        try {
-            this._runtime.bindVertexArrayObject(this._vao);
-            this._runtime.bindArrayBuffer(this._vertexBuffer);
-            for (const attr of this._attributes) {
-                gl.vertexAttribPointer(
-                    attr.location,
-                    attr.rank,
-                    attr.type,
-                    attr.normalized,
-                    attr.stride,
-                    attr.offset,
-                );
-                gl.enableVertexAttribArray(attr.location);
-            }
-            this._runtime.bindElementArrayBuffer(this._indexBuffer);
-        } finally {
-            this._runtime.bindVertexArrayObject(null);
-        }
-    }
-
-    // TODO_REMOVE
-    setIndexConfig(config: PrimitiveIndexConfig): void {
-        console.warn('setIndexConfig: OBSOLETE');
-        if (!config) {
-            throw this._logMethodError('set_index_config', '_', 'not defined');
-        }
-        const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logMethod('set_index_config', toArgStr(config));
-        if (indexCount < 0) {
-            throw this._logError(`bad index count: ${indexCount}`);
-        }
-        this._indexCount = indexCount;
-        if (indexOffset !== undefined) {
-            if (indexOffset < 0) {
-                throw this._logError(`bad index offset: ${indexOffset}`);
-            }
-            this._indexOffset = indexOffset;
-        }
-        if (indexType !== undefined) {
-            const value = INDEX_TYPE_MAP[indexType];
-            if (value === undefined) {
-                throw this._logError(`bad index type: ${indexType}`);
-            }
-            this._indexType = value;
-        }
-        if (primitiveMode !== undefined) {
-            const value = PRIMITIVE_MODE_MAP[primitiveMode];
-            if (value === undefined) {
-                throw this._logError(`bad primitive mode: ${primitiveMode}`);
-            }
-            this._primitiveMode = value;
-        }
     }
 
     program(): Program {
@@ -298,7 +202,7 @@ export class Primitive extends BaseObject {
         this._logMethod('render', toArgStr({ indexOffset }));
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(this._vao);
-        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, indexOffset || this._indexOffset);
+        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, indexOffset || 0);
         this._runtime.bindVertexArrayObject(null);
     }
 }

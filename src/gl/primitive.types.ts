@@ -49,13 +49,6 @@ export interface PrimitiveVertexSchema {
     readonly attributes: ReadonlyArray<VertexAttributeDefinition>;
 }
 
-export interface PrimitiveIndexConfig {
-    readonly indexCount: number;
-    readonly indexOffset?: number;
-    readonly indexType?: INDEX_TYPE;
-    readonly primitiveMode?: PRIMITIVE_MODE;
-}
-
 export type PrimitiveRuntime = Pick<
     Runtime,
     | 'gl' | 'vaoExt' | 'logger'
