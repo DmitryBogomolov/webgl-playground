@@ -1,4 +1,4 @@
-import { Runtime, Primitive, Program, Texture, makeImage } from 'lib';
+import { Runtime, Primitive, Program, Texture, makeImage, PrimitiveVertexSchema } from 'lib';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -50,26 +50,20 @@ function makePrimitive(runtime: Runtime): Primitive {
         fragShader,
     });
     const primitive = new Primitive({ runtime });
-    const vertices = new Float32Array([
+    const vertexData = new Float32Array([
         -1, -1,
         +1, -1,
         +1, +1,
         -1, +1,
     ]);
-    const indices = new Uint16Array([
+    const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
     ]);
-    primitive.allocateVertexBuffer(vertices.byteLength);
-    primitive.updateVertexData(vertices);
-    primitive.allocateIndexBuffer(indices.byteLength);
-    primitive.updateIndexData(indices);
-    primitive.setVertexSchema({
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float2' }],
-    });
-    primitive.setIndexConfig({
-        indexCount: indices.length,
-    });
+    };
+    primitive.setup({ vertexData, indexData, vertexSchema });
     primitive.setProgram(program);
     return primitive;
 }

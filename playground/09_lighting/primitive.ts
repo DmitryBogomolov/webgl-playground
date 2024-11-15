@@ -7,7 +7,7 @@ import pointFragShader from './shaders/point.frag';
 import spotVertShader from './shaders/spot.vert';
 import spotFragShader from './shaders/spot.frag';
 
-const schema: PrimitiveVertexSchema = {
+const vertexSchema: PrimitiveVertexSchema = {
     attributes: [
         { type: 'float3' },
         { type: 'float3' },
@@ -45,19 +45,13 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter(vertexSchema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
     }
     const indexData = new Uint16Array(indices);
-
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setup({ vertexData, indexData, vertexSchema });
 
     return primitive;
 }

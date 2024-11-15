@@ -8,7 +8,7 @@ export interface PrimitiveFactory {
 }
 
 export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
-    const schema: PrimitiveVertexSchema = {
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
@@ -34,19 +34,14 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     return (clr) => {
         const primitive = new Primitive({ runtime });
         const vertexData = new ArrayBuffer(points.length * VERTEX_SIZE);
-        const writer = new VertexWriter(schema, vertexData);
+        const writer = new VertexWriter(vertexSchema, vertexData);
         for (let i = 0; i < points.length; ++i) {
             writer.writeAttribute(i, 0, points[i]);
             writer.writeAttribute(i, 1, clr);
         }
         const indexData = new Uint16Array([0, 1, 2]);
 
-        primitive.allocateVertexBuffer(vertexData.byteLength);
-        primitive.updateVertexData(vertexData);
-        primitive.allocateIndexBuffer(indexData.byteLength);
-        primitive.updateIndexData(indexData);
-        primitive.setVertexSchema(schema);
-        primitive.setIndexConfig({ indexCount: indexData.length });
+        primitive.setup({ vertexData, indexData, vertexSchema });
         primitive.setProgram(program);
 
         return primitive;

@@ -14,7 +14,7 @@ import wireframeFragShader from './shaders/wireframe.frag';
 
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
     const primitive = new Primitive({ runtime });
-    const schema: PrimitiveVertexSchema = {
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
@@ -22,18 +22,13 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
     };
     const VERTEX_SIZE = 24;
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter(vertexSchema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
     }
     const indexData = new Uint16Array(indices);
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setIndexConfig({ indexCount: indexData.length });
-    primitive.setVertexSchema(schema);
+    primitive.setup({ vertexData, indexData, vertexSchema });
     return primitive;
 }
 
@@ -64,7 +59,7 @@ export function makeCube(runtime: Runtime, size: number): Primitive {
 export function makeWireframe(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertices = new Float32Array([
+    const vertexData = new Float32Array([
         -1, -1, +1,
         +1, -1, +1,
         +1, +1, +1,
@@ -74,23 +69,15 @@ export function makeWireframe(runtime: Runtime): Primitive {
         +1, +1, -1,
         -1, +1, -1,
     ]);
-    const indices = new Uint16Array([
+    const indexData = new Uint16Array([
         0, 1, 1, 2, 2, 3, 3, 0,
         0, 4, 1, 5, 2, 6, 3, 7,
         4, 5, 5, 6, 6, 7, 7, 4,
     ]);
-
-    primitive.allocateVertexBuffer(vertices.byteLength);
-    primitive.updateVertexData(vertices);
-    primitive.allocateIndexBuffer(indices.byteLength);
-    primitive.updateIndexData(indices);
-    primitive.setVertexSchema({
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float3' }],
-    });
-    primitive.setIndexConfig({
-        indexCount: indices.length,
-        primitiveMode: 'lines',
-    });
+    };
+    primitive.setup({ vertexData, indexData, vertexSchema, primitiveMode: 'lines' });
 
     const program = new Program({
         runtime,
