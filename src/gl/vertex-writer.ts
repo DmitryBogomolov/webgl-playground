@@ -41,6 +41,25 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
     [4]: unwrap4,
 };
 
+export function writeVertexData<T>(vertices: ReadonlyArray<T>, schema: PrimitiveVertexSchema): ArrayBuffer {
+    const attributes = validateVertexSchema(schema);
+    const totalSize = calculateVertexSize(attributes);
+    const buffer = new ArrayBuffer(vertices.length * totalSize);
+    const writer = new VertexWriter(schema, buffer);
+    for (let i = 0; i < vertices.length; ++i) {
+        const vertex = vertices[i];
+    }
+    return buffer;
+}
+
+function calculateVertexSize(attributes: Iterable<VertexAttributeInfo>): number {
+    let size = 0;
+    for (const attribute of attributes) {
+        size += attribute.size;
+    }
+    return size;
+}
+
 export class VertexWriter {
     private readonly _target: ArrayBufferView;
     private readonly _attributes: VertexAttributeInfo[];
