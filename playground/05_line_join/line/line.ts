@@ -33,9 +33,14 @@ export class Line {
             vertShader: params.vertShader,
             fragShader: params.fragShader,
         });
-        this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
-        this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
-        this._primitive.setVertexSchema(params.schema);
+        this._primitive.setup({
+            vertexData: this._vertexBuffer.byteLength,
+            indexData: this._indexBuffer.byteLength,
+            vertexSchema: params.schema,
+        });
+        // this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
+        // this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
+        // this._primitive.setVertexSchema(params.schema);
         this._primitive.setProgram(program);
     }
 
@@ -74,8 +79,8 @@ export class Line {
         this._vertexBuffer = vertexBuffer;
         this._indexBuffer = indexBuffer;
         this._capacity = capacity;
-        this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
-        this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
+        // this._primitive.allocateVertexBuffer(this._vertexBuffer.byteLength);
+        // this._primitive.allocateIndexBuffer(this._indexBuffer.byteLength);
     }
 
     private _writeVertices(vertices: ReadonlyArray<Vertex>): void {
@@ -98,9 +103,11 @@ export class Line {
         this._writeIndexes(vertexCount);
         const vertexDataSize = this._getVertexBufferSize(vertexCount);
         const indexDataSize = this._getIndexBufferSize(vertexCount);
-        this._primitive.updateVertexData(this._vertexBuffer.slice(0, vertexDataSize));
-        this._primitive.updateIndexData(this._indexBuffer.slice(0, indexDataSize));
-        this._primitive.setIndexConfig({ indexCount: indexDataSize / 2 });
+        // this._primitive.updateVertexData(this._vertexBuffer.slice(0, vertexDataSize));
+        // this._primitive.updateIndexData(this._indexBuffer.slice(0, indexDataSize));
+        this._primitive.setVertexData(this._vertexBuffer.slice(0, vertexDataSize));
+        this._primitive.setIndexData(this._indexBuffer.slice(0, indexDataSize));
+        // this._primitive.setIndexConfig({ indexCount: indexDataSize / 2 });
     }
 
     private _updateSegments(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {

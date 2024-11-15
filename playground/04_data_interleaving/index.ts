@@ -69,7 +69,7 @@ function makeSoAPrimitive(
 }
 
 function makePrimitive(
-    runtime: Runtime, schema: PrimitiveVertexSchema, arrayBufferSize: number,
+    runtime: Runtime, vertexSchema: PrimitiveVertexSchema, arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
     const program = new Program({
@@ -80,20 +80,16 @@ function makePrimitive(
     const primitive = new Primitive({ runtime });
 
     const vertexData = new ArrayBuffer(arrayBufferSize);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter(vertexSchema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const { position, color, factor } = vertices[i];
         writer.writeAttribute(i, 0, position);
         writer.writeAttribute(i, 1, color);
         writer.writeAttribute(i, 2, factor);
     }
+    const indexData = new Uint16Array(indices);
 
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indices.length * 2);
-    primitive.updateIndexData(new Uint16Array(indices));
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indices.length });
+    primitive.setup({ vertexData, indexData, vertexSchema });
     primitive.setProgram(program);
 
     return primitive;

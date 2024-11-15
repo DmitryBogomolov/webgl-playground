@@ -85,7 +85,7 @@ function runWorker(runtime: Runtime, state: State): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const schema: PrimitiveVertexSchema = {
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [{ type: 'float2' }],
     };
     const program = new Program({
@@ -103,19 +103,14 @@ function makePrimitive(runtime: Runtime): Primitive {
     ];
 
     const vertexData = new ArrayBuffer(vertices.length * 8);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter(vertexSchema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         const vertex = vertices[i];
         writer.writeAttribute(i, 0, vertex);
     }
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setup({ vertexData, indexData, vertexSchema });
     primitive.setProgram(program);
 
     return primitive;
