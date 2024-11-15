@@ -304,7 +304,7 @@ export class Primitive extends BaseObject {
 }
 
 function isBufferSource(arg: unknown): arg is BufferSource {
-    return !!arg && 'byteLength' in (arg as BufferSource);
+    return !!arg && (arg as BufferSource).byteLength >= 0;
 }
 
 export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {

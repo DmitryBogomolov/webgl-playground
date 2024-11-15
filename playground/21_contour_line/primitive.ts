@@ -6,7 +6,7 @@ import contourVertShader from './shaders/contour.vert';
 import contourFragShader from './shaders/contour.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const schema: PrimitiveVertexSchema = {
+    const vertexSchema: PrimitiveVertexSchema = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
@@ -16,7 +16,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(schema, vertexData);
+    const writer = new VertexWriter(vertexSchema, vertexData);
     for (let i = 0; i < vertices.length; ++i) {
         writer.writeAttribute(i, 0, vertices[i].position);
         writer.writeAttribute(i, 1, vertices[i].normal);
@@ -24,12 +24,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
     const indexData = new Uint16Array(indices);
 
     const primitive = new Primitive({ runtime });
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setVertexSchema(schema);
-    primitive.setIndexConfig({ indexCount: indexData.length });
+    primitive.setup({ vertexData, indexData, vertexSchema });
 
     const program = new Program({
         runtime,
@@ -56,9 +51,11 @@ const CONTOUR_VERTEX_SIZE = 28;
 
 export function makeContourPrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
-    primitive.allocateVertexBuffer(CONTOUR_VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS);
-    primitive.allocateIndexBuffer(INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS);
-    primitive.setVertexSchema(contourSchema);
+    primitive.setup({
+        vertexData: CONTOUR_VERTEX_SIZE * VERTEX_PER_SEGMENT * MAX_CONTOUR_SEGMENTS,
+        indexData: INDEX_PER_SEGMENT * 2 * MAX_CONTOUR_SEGMENTS,
+        vertexSchema: contourSchema,
+    });
 
     const program = new Program({
         runtime,
@@ -101,12 +98,8 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
         );
     }
 
-    primitive.updateVertexData(vertexData);
-    primitive.updateIndexData(indexData);
-    primitive.setIndexConfig({
-        indexCount: indexData.length,
-        primitiveMode: 'triangles',
-    });
+    primitive.updateVertexData(vertexData, 0);
+    primitive.updateIndexData(indexData, 0);
 }
 
 function pickIndex(i: number, length: number): number {

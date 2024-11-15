@@ -103,11 +103,8 @@ export class Line {
         this._writeIndexes(vertexCount);
         const vertexDataSize = this._getVertexBufferSize(vertexCount);
         const indexDataSize = this._getIndexBufferSize(vertexCount);
-        // this._primitive.updateVertexData(this._vertexBuffer.slice(0, vertexDataSize));
-        // this._primitive.updateIndexData(this._indexBuffer.slice(0, indexDataSize));
         this._primitive.setVertexData(this._vertexBuffer.slice(0, vertexDataSize));
         this._primitive.setIndexData(this._indexBuffer.slice(0, indexDataSize));
-        // this._primitive.setIndexConfig({ indexCount: indexDataSize / 2 });
     }
 
     private _updateSegments(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {

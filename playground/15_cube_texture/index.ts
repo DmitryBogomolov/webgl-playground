@@ -1,3 +1,4 @@
+import type { PrimitiveVertexSchema } from 'lib';
 import {
     Runtime, createRenderState,
     Primitive,
@@ -76,20 +77,12 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertexData[3 * i + 2] = z;
     }
     const indexData = new Uint16Array(indices);
+    const vertexSchema: PrimitiveVertexSchema = {
+        attributes: [{ type: 'float3' }],
+    };
 
     const primitive = new Primitive({ runtime });
-
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setVertexSchema({
-        attributes: [{ type: 'float3' }],
-    });
-    primitive.setIndexConfig({
-        indexCount: indexData.length,
-    });
-
+    primitive.setup({ vertexData, indexData, vertexSchema });
     const program = new Program({
         runtime,
         vertShader,
