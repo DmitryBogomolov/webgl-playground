@@ -43,12 +43,12 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
 
 export class VertexWriter {
     private readonly _target: ArrayBufferView;
-    private readonly _attributes: VertexAttributeInfo[];
+    private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
     constructor(schema: PrimitiveVertexSchema, target: ArrayBufferLike) {
         this._target = wrapBuffer(target);
-        this._attributes = validateVertexSchema(schema);
+        this._attributes = validateVertexSchema(schema).attributes;
     }
 
     private _getView(type: number): TypedArray {

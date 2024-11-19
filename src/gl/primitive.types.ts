@@ -45,8 +45,14 @@ export interface VertexAttributeInfo {
     readonly stride: number;
 }
 
+// TODO_THIS: Rename to VertexSchemaDefinition
 export interface PrimitiveVertexSchema {
     readonly attributes: ReadonlyArray<VertexAttributeDefinition>;
+}
+
+export interface VertexSchemaInfo {
+    readonly vertexSize: number;
+    readonly attributes: ReadonlyArray<VertexAttributeInfo>;
 }
 
 export type PrimitiveRuntime = Pick<

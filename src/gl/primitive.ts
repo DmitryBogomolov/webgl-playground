@@ -1,8 +1,8 @@
 import type {
     PrimitiveParams, PrimitiveRuntime,
-    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
-    INDEX_TYPE, PRIMITIVE_MODE,
     PrimitiveConfig,
+    PrimitiveVertexSchema, VertexAttributeInfo, VertexSchemaInfo,
+    VERTEX_ATTRIBUTE_TYPE, INDEX_TYPE, PRIMITIVE_MODE,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
@@ -35,7 +35,13 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }> = {
+interface TypeInfo {
+    readonly type: number;
+    readonly rank: number;
+    readonly size: number;
+}
+
+const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, TypeInfo> = {
     'byte': { type: WebGL.BYTE, rank: 1, size: 1 },
     'byte2': { type: WebGL.BYTE, rank: 2, size: 1 },
     'byte3': { type: WebGL.BYTE, rank: 3, size: 1 },
@@ -117,7 +123,7 @@ export class Primitive extends BaseObject {
             indexType: config.indexType,
             primitiveMode: config.primitiveMode,
         }));
-        const attributes = validateVertexSchema(config.vertexSchema);
+        const { attributes } = validateVertexSchema(config.vertexSchema);
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(this._vao);
@@ -211,31 +217,58 @@ function isBufferSource(arg: unknown): arg is BufferSource {
     return !!arg && (arg as BufferSource).byteLength >= 0;
 }
 
-export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {
-    let currentOffset = 0;
+export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexSchemaInfo {
     const list: VertexAttributeInfo[] = [];
+    let currentOffset = 0;
+    let totalSize = 0;
+    const locations = new Set<number>();
     for (let i = 0; i < schema.attributes.length; ++i) {
         const attribute = schema.attributes[i];
-        const location = attribute.location !== undefined ? attribute.location : i;
-        if (location < 0) {
-            throw new Error(`attribute ${i}: bad location: ${location}`);
+
+        let { location, offset, stride } = attribute;
+        if (location !== undefined) {
+            if (location < 0) {
+                throw new Error(`attribute ${i} - bad location: ${location}`);
+            }
+        } else {
+            location = i;
         }
+        if (locations.has(location)) {
+            throw new Error(`attribute ${i} - duplicate location: ${location}`);
+        }
+        locations.add(location);
+
         const typeInfo = ATTRIBUTE_TYPE_MAP[attribute.type];
         if (!typeInfo) {
-            throw new Error(`attribute ${i}: bad type: ${attribute.type}`);
+            throw new Error(`attribute ${i} - bad type: ${attribute.type}`);
         }
-        const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
-        if (attribute.offset === undefined) {
-            currentOffset += align(typeInfo.rank * typeInfo.size);
+        const byteSize = getAttrByteSize(typeInfo);
+
+        if (offset !== undefined) {
+            if (offset < 0 || offset % typeInfo.size !== 0) {
+                throw new Error(`attribute ${i} - bad offset ${offset}`);
+            }
+        } else {
+            offset = -1;
         }
-        if (offset !== 0 && (offset % typeInfo.size !== 0)) {
-            throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
+
+        if (stride !== undefined) {
+            if (stride % typeInfo.size !== 0 || stride < byteSize) {
+                throw new Error(`attribute ${i} - bad stride ${stride}`);
+            }
+            if (offset === -1) {
+                throw new Error(`attribute ${i} - no offset`);
+            }
+        } else {
+            stride = -1;
+            if (offset === -1) {
+                offset = currentOffset;
+                currentOffset += byteSize;
+            }
         }
-        const stride = attribute.stride !== undefined ? attribute.stride : 0;
-        if (stride !== 0 && (stride % typeInfo.size !== 0 || stride < typeInfo.rank * typeInfo.size)) {
-            throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
-        }
-        const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
+
+        const normalized = isNormalizable(typeInfo) && Boolean(attribute.normalized);
+
         list.push({
             location,
             ...typeInfo,
@@ -243,19 +276,29 @@ export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttri
             stride,
             normalized,
         });
+        totalSize += byteSize;
     }
     for (let i = 0; i < list.length; ++i) {
         const item = list[i];
-        if (item.stride === 0) {
-            list[i] = { ...item, stride: currentOffset };
+        if (item.stride === -1) {
+            // @ts-ignore Part of object initialization.
+            item.stride = currentOffset;
         }
     }
-    return list;
+    return { attributes: list, vertexSize: totalSize };
 }
 
 function align(bytes: number): number {
     const residue = bytes % 4;
     return residue === 0 ? bytes : bytes + (4 - residue);
+}
+
+function getAttrByteSize(typeInfo: TypeInfo): number {
+    return align(typeInfo.rank * typeInfo.size);
+}
+
+function isNormalizable(typeInfo: TypeInfo): boolean {
+    return typeInfo.type !== WebGL.FLOAT;
 }
 
 class VertexArrayObject implements GLHandleWrapper<WebGLVertexArrayObjectOES> {
