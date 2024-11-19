@@ -1,4 +1,4 @@
-import { Runtime, Primitive, Program, Texture, makeImage, PrimitiveVertexSchema } from 'lib';
+import { Runtime, Primitive, Program, Texture, makeImage, VertexSchemaDefinition } from 'lib';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -60,7 +60,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float2' }],
     };
     primitive.setup({ vertexData, indexData, vertexSchema });

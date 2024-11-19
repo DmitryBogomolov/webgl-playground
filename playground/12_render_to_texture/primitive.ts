@@ -1,4 +1,4 @@
-import type { Runtime, PrimitiveVertexSchema } from 'lib';
+import type { Runtime, VertexSchemaDefinition } from 'lib';
 import {
     Primitive,
     Program,
@@ -14,7 +14,7 @@ import texturePlaneFragShader from './shaders/texture-plane.frag';
 export function makeObject(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
@@ -45,7 +45,7 @@ export function makeObject(runtime: Runtime): Primitive {
 export function makeTexturePlane(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float2' },

@@ -1,4 +1,4 @@
-import type { Runtime, PrimitiveVertexSchema } from 'lib';
+import type { Runtime, VertexSchemaDefinition } from 'lib';
 import { Primitive, Program, Texture } from 'lib';
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
@@ -14,7 +14,7 @@ export function makeLabelPrimitive(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float2' }],
     };
 

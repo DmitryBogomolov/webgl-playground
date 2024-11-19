@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema } from 'lib';
+import type { VertexSchemaDefinition } from 'lib';
 import {
     Runtime, createRenderState,
     Primitive,
@@ -77,7 +77,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertexData[3 * i + 2] = z;
     }
     const indexData = new Uint16Array(indices);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float3' }],
     };
 

@@ -1,9 +1,9 @@
-import type { PrimitiveVertexSchema } from './primitive.types';
+import type { VertexSchemaDefinition } from './primitive.types';
 import { VertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
     describe('VertexWriter', () => {
-        const schema: PrimitiveVertexSchema = {
+        const schema: VertexSchemaDefinition = {
             attributes: [
                 { type: 'float2' },
                 { type: 'short' },

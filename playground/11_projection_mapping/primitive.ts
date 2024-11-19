@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema, Runtime, VertexData, VertexIndexData } from 'lib';
+import type { VertexSchemaDefinition, Runtime, VertexData, VertexIndexData } from 'lib';
 import {
     Primitive,
     Program,
@@ -23,7 +23,7 @@ function makePrimitive(
     runtime: Runtime, program: Program, { vertices, indices }: VertexIndexData<VertexData>,
 ): Primitive {
     const primitive = new Primitive({ runtime });
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float2' },
@@ -96,7 +96,7 @@ export function makeWireframe(runtime: Runtime): Primitive {
         0, 4, 1, 5, 2, 6, 3, 7,
         4, 5, 5, 6, 6, 7, 7, 4,
     ]);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float3' }],
     };
 

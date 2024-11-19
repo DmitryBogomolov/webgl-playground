@@ -1,9 +1,9 @@
-import type { PrimitiveVertexSchema, Runtime } from 'lib';
+import type { VertexSchemaDefinition, Runtime } from 'lib';
 import type { Vertex } from '../vertex';
 import { LoggerImpl, Primitive, Program, VertexWriter } from 'lib';
 
 export interface LineParams {
-    readonly schema: PrimitiveVertexSchema;
+    readonly schema: VertexSchemaDefinition;
     readonly vertShader: string;
     readonly fragShader: string;
     getVertexSize(): number;

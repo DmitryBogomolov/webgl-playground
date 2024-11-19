@@ -1,4 +1,4 @@
-import type { Runtime, PrimitiveVertexSchema } from 'lib';
+import type { Runtime, VertexSchemaDefinition } from 'lib';
 import { Primitive, Program, VertexWriter, generateCube, UNIT3 } from 'lib';
 import skyboxVertShader from './shaders/skybox.vert';
 import skyboxFragShader from './shaders/skybox.frag';
@@ -16,7 +16,7 @@ export function makeQuad(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float2' }],
     };
 
@@ -34,7 +34,7 @@ export function makeQuad(runtime: Runtime): Primitive {
 }
 
 export function makeCube(runtime: Runtime): Primitive {
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },

@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema, Runtime } from 'lib';
+import type { VertexSchemaDefinition, Runtime } from 'lib';
 import { Primitive, Program } from 'lib';
 import vertShader from './shaders/texture.vert';
 import fragShader from './shaders/texture.frag';
@@ -16,7 +16,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float2' }],
     };
     primitive.setup({ vertexData, indexData, vertexSchema });

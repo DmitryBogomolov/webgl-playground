@@ -1,4 +1,4 @@
-import type { Runtime, VertexData, VertexIndexData, PrimitiveVertexSchema, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, VertexData, VertexIndexData, VertexSchemaDefinition, Vec3, Mat4, Color } from 'lib';
 import {
     Primitive,
     Program,
@@ -121,7 +121,7 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
 }
 
 function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },

@@ -1,4 +1,4 @@
-import type { Runtime, PrimitiveVertexSchema, Vec3, Mat4, Mat4Mut } from 'lib';
+import type { Runtime, VertexSchemaDefinition, Vec3, Mat4, Mat4Mut } from 'lib';
 import {
     Primitive,
     Program,
@@ -25,7 +25,7 @@ export interface ObjectsFactory {
 }
 
 export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },

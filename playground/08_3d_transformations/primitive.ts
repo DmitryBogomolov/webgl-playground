@@ -1,4 +1,4 @@
-import type { Color, PrimitiveVertexSchema } from 'lib';
+import type { Color, VertexSchemaDefinition } from 'lib';
 import { Runtime, Primitive, Program, vec3, color, generateCube, VertexWriter } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -6,7 +6,7 @@ import fragShader from './shaders/shader.frag';
 export function makePrimitive(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'ubyte3', normalized: true },

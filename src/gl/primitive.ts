@@ -1,7 +1,7 @@
 import type {
     PrimitiveParams, PrimitiveRuntime,
     PrimitiveConfig,
-    PrimitiveVertexSchema, VertexAttributeInfo, VertexSchemaInfo,
+    VertexSchemaDefinition, VertexAttributeInfo, VertexSchemaInfo,
     VERTEX_ATTRIBUTE_TYPE, INDEX_TYPE, PRIMITIVE_MODE,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
@@ -217,7 +217,7 @@ function isBufferSource(arg: unknown): arg is BufferSource {
     return !!arg && (arg as BufferSource).byteLength >= 0;
 }
 
-export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexSchemaInfo {
+export function validateVertexSchema(schema: VertexSchemaDefinition): VertexSchemaInfo {
     const list: VertexAttributeInfo[] = [];
     let currentOffset = 0;
     let totalSize = 0;

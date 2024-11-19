@@ -1,4 +1,4 @@
-import type { Runtime, PrimitiveVertexSchema, Vec2 } from 'lib';
+import type { Runtime, VertexSchemaDefinition, Vec2 } from 'lib';
 import { Primitive, Program, VertexWriter, generateCube, UNIT3, vec3, vec4 } from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
@@ -6,7 +6,7 @@ import contourVertShader from './shaders/contour.vert';
 import contourFragShader from './shaders/contour.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
@@ -41,7 +41,7 @@ const MAX_CONTOUR_SEGMENTS = 6;
 const VERTEX_PER_SEGMENT = 4;
 const INDEX_PER_SEGMENT = 6;
 
-const contourSchema: PrimitiveVertexSchema = {
+const contourSchema: VertexSchemaDefinition = {
     attributes: [
         { type: 'float3' },
         { type: 'float4' },

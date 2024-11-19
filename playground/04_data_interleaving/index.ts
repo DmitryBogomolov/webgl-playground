@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema, Color, Vec2 } from 'lib';
+import type { VertexSchemaDefinition, Color, Vec2 } from 'lib';
 import {
     Runtime,
     Primitive,
@@ -45,7 +45,7 @@ function main(): void {
 function makeAoSPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema: PrimitiveVertexSchema = {
+    const schema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
@@ -58,7 +58,7 @@ function makeAoSPrimitive(
 function makeSoAPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema: PrimitiveVertexSchema = {
+    const schema: VertexSchemaDefinition = {
         attributes: [
             { type: 'float2', offset: 16, stride: 8 },
             { type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
@@ -69,7 +69,7 @@ function makeSoAPrimitive(
 }
 
 function makePrimitive(
-    runtime: Runtime, vertexSchema: PrimitiveVertexSchema, arrayBufferSize: number,
+    runtime: Runtime, vertexSchema: VertexSchemaDefinition, arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
     const program = new Program({

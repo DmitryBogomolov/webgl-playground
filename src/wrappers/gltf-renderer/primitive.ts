@@ -3,7 +3,9 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/primitive.types';
+import type {
+    VertexSchemaDefinition, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition,
+} from '../../gl/primitive.types';
 import type { Runtime } from '../../gl/runtime';
 import { Primitive } from '../../gl/primitive';
 import { inversetranspose4x4 } from '../../geometry/mat4';
@@ -89,7 +91,7 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     const vertexAttributes: VertexAttributeDefinition[] = [];
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: vertexAttributes,
     };
     const vertexDataCtx: SetVertexDataCtx = {

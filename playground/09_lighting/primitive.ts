@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema, Runtime, Vec3 } from 'lib';
+import type { VertexSchemaDefinition, Runtime, Vec3 } from 'lib';
 import { Primitive, Program, generateSphere, VertexWriter } from 'lib';
 import directionalVertShader from './shaders/directional.vert';
 import directionalFragShader from './shaders/directional.frag';
@@ -7,7 +7,7 @@ import pointFragShader from './shaders/point.frag';
 import spotVertShader from './shaders/spot.vert';
 import spotFragShader from './shaders/spot.frag';
 
-const vertexSchema: PrimitiveVertexSchema = {
+const vertexSchema: VertexSchemaDefinition = {
     attributes: [
         { type: 'float3' },
         { type: 'float3' },

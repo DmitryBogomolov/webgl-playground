@@ -1,4 +1,4 @@
-import type { PrimitiveVertexSchema, VertexAttributeInfo } from './primitive.types';
+import type { VertexSchemaDefinition, VertexAttributeInfo } from './primitive.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Mapping } from '../common/mapping.types';
 import { validateVertexSchema } from './primitive';
@@ -46,7 +46,7 @@ export class VertexWriter {
     private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
-    constructor(schema: PrimitiveVertexSchema, target: ArrayBufferLike) {
+    constructor(schema: VertexSchemaDefinition, target: ArrayBufferLike) {
         this._target = wrapBuffer(target);
         this._attributes = validateVertexSchema(schema).attributes;
     }

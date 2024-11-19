@@ -30,7 +30,7 @@ export interface VertexAttributeDefinition {
 export interface PrimitiveConfig {
     readonly vertexData: BufferSource | number;
     readonly indexData: BufferSource | number;
-    readonly vertexSchema: PrimitiveVertexSchema;
+    readonly vertexSchema: VertexSchemaDefinition;
     readonly indexType?: INDEX_TYPE;
     readonly primitiveMode?: PRIMITIVE_MODE;
 }
@@ -45,8 +45,7 @@ export interface VertexAttributeInfo {
     readonly stride: number;
 }
 
-// TODO_THIS: Rename to VertexSchemaDefinition
-export interface PrimitiveVertexSchema {
+export interface VertexSchemaDefinition {
     readonly attributes: ReadonlyArray<VertexAttributeDefinition>;
 }
 

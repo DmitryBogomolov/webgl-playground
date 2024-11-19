@@ -1,4 +1,4 @@
-import type { Color, PrimitiveVertexSchema, Vec2 } from 'lib';
+import type { Color, VertexSchemaDefinition, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
 import { Runtime, Primitive, Program, VertexWriter, ForegroundChannel, color, vec2 } from 'lib';
 import { CONNECTION_ID } from './connection';
@@ -85,7 +85,7 @@ function runWorker(runtime: Runtime, state: State): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: PrimitiveVertexSchema = {
+    const vertexSchema: VertexSchemaDefinition = {
         attributes: [{ type: 'float2' }],
     };
     const program = new Program({
