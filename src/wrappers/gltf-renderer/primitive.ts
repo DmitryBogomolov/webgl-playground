@@ -5,7 +5,7 @@ import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
 import type {
     VertexSchemaDefinition, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition,
-} from '../../gl/primitive.types';
+} from '../../gl/vertex-schema.types';
 import type { Runtime } from '../../gl/runtime';
 import { Primitive } from '../../gl/primitive';
 import { inversetranspose4x4 } from '../../geometry/mat4';

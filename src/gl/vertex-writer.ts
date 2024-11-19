@@ -1,7 +1,7 @@
-import type { VertexSchemaDefinition, VertexAttributeInfo } from './primitive.types';
+import type { VertexSchemaDefinition, VertexAttributeInfo } from './vertex-schema.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Mapping } from '../common/mapping.types';
-import { validateVertexSchema } from './primitive';
+import { validateVertexSchema } from './vertex-schema';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';

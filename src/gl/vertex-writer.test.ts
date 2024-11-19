@@ -1,4 +1,4 @@
-import type { VertexSchemaDefinition } from './primitive.types';
+import type { VertexSchemaDefinition } from './vertex-schema.types';
 import { VertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
