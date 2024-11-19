@@ -123,6 +123,7 @@ export class Primitive extends BaseObject {
             indexType: config.indexType,
             primitiveMode: config.primitiveMode,
         }));
+        // TODO_THIS: Accept VertexSchemaInfo.
         const { attributes } = validateVertexSchema(config.vertexSchema);
         const gl = this._runtime.gl();
         try {

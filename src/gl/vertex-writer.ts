@@ -46,6 +46,7 @@ export class VertexWriter {
     private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
+    // TODO_THIS: Accept VertexSchemaInfo.
     constructor(schema: VertexSchemaDefinition, target: ArrayBufferLike) {
         this._target = wrapBuffer(target);
         this._attributes = validateVertexSchema(schema).attributes;
