@@ -4,8 +4,9 @@ import {
     Program,
     vec2,
     vec3,
-    generateSphere, generateCube, generatePlaneZ, VertexWriter,
+    generateSphere, generateCube, generatePlaneZ,
     parseVertexSchema,
+    writeVertexData,
 } from 'lib';
 import vertShader from './shaders/mapping.vert';
 import fragShader from './shaders/mapping.frag';
@@ -30,15 +31,8 @@ function makePrimitive(
             { type: 'float2' },
         ],
     });
-    const VERTEX_SIZE = 20;
 
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        const { position, texcoord } = vertices[i];
-        writer.writeAttribute(i, 0, position);
-        writer.writeAttribute(i, 1, texcoord);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.texcoord]));
     const indexData = new Uint16Array(indices);
 
     primitive.setup({ vertexData, indexData, vertexSchema });

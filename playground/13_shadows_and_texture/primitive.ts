@@ -3,8 +3,9 @@ import {
     Primitive,
     Program,
     generateCube, generateSphere,
-    UNIT3, mul3, VertexWriter,
+    UNIT3, mul3,
     parseVertexSchema,
+    writeVertexData,
 } from 'lib';
 import sceneVertShader from './shaders/scene.vert';
 import sceneFragShader from './shaders/scene.frag';
@@ -21,13 +22,7 @@ function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexDat
             { type: 'float3' },
         ],
     });
-    const VERTEX_SIZE = 24;
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 0, vertices[i].position);
-        writer.writeAttribute(i, 1, vertices[i].normal);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.normal]));
     const indexData = new Uint16Array(indices);
     primitive.setup({ vertexData, indexData, vertexSchema });
     return primitive;

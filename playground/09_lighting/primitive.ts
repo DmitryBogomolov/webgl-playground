@@ -1,5 +1,5 @@
 import type { Runtime, Vec3 } from 'lib';
-import { Primitive, Program, generateSphere, VertexWriter, parseVertexSchema } from 'lib';
+import { Primitive, Program, generateSphere, parseVertexSchema, writeVertexData } from 'lib';
 import directionalVertShader from './shaders/directional.vert';
 import directionalFragShader from './shaders/directional.frag';
 import pointVertShader from './shaders/point.vert';
@@ -13,7 +13,6 @@ const vertexSchema = parseVertexSchema({
         { type: 'float3' },
     ],
 });
-const VERTEX_SIZE = 24;
 
 export function makeDirectionalProgram(runtime: Runtime): Program {
     return new Program({
@@ -44,12 +43,7 @@ export function makePrimitive(runtime: Runtime, partition: number, size: Vec3): 
 
     const { vertices, indices } = generateSphere(size, ({ position, normal }) => ({ position, normal }), partition);
 
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 0, vertices[i].position);
-        writer.writeAttribute(i, 1, vertices[i].normal);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.normal]));
     const indexData = new Uint16Array(indices);
     primitive.setup({ vertexData, indexData, vertexSchema });
 

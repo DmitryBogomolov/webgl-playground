@@ -1,5 +1,7 @@
 import type { Runtime, Vec2 } from 'lib';
-import { Primitive, Program, VertexWriter, generateCube, UNIT3, vec3, vec4, parseVertexSchema } from 'lib';
+import {
+    Primitive, Program, generateCube, UNIT3, vec3, vec4, parseVertexSchema, VertexWriter, writeVertexData,
+} from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
 import contourVertShader from './shaders/contour.vert';
@@ -12,15 +14,9 @@ export function makePrimitive(runtime: Runtime): Primitive {
             { type: 'float3' },
         ],
     });
-    const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 0, vertices[i].position);
-        writer.writeAttribute(i, 1, vertices[i].normal);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.normal]));
     const indexData = new Uint16Array(indices);
 
     const primitive = new Primitive({ runtime });

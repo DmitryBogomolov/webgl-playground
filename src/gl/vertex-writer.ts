@@ -40,6 +40,24 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
     [4]: unwrap4,
 };
 
+export function writeVertexData<T>(
+    vertices: ReadonlyArray<T>,
+    vertexSchema: VertexSchemaInfo,
+    getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
+): ArrayBuffer {
+    const vertexData = new ArrayBuffer(vertices.length * vertexSchema.vertexSize);
+    const writer = new VertexWriter(vertexSchema, vertexData);
+    const attrCount = vertexSchema.attributes.length;
+    for (let vertexIdx = 0; vertexIdx < vertices.length; ++vertexIdx) {
+        const vertex = vertices[vertexIdx];
+        const values = getVertexValues(vertex);
+        for (let attrIdx = 0; attrIdx < attrCount; ++attrIdx) {
+            writer.writeAttribute(vertexIdx, attrIdx, values[attrIdx]);
+        }
+    }
+    return vertexData;
+}
+
 export class VertexWriter {
     private readonly _target: ArrayBufferView;
     private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;

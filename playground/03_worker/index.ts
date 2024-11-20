@@ -1,6 +1,6 @@
 import type { Color, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import { Runtime, Primitive, Program, VertexWriter, ForegroundChannel, color, vec2, parseVertexSchema } from 'lib';
+import { Runtime, Primitive, Program, ForegroundChannel, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -102,12 +102,7 @@ function makePrimitive(runtime: Runtime): Primitive {
         vec2(-1, +1),
     ];
 
-    const vertexData = new ArrayBuffer(vertices.length * 8);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        const vertex = vertices[i];
-        writer.writeAttribute(i, 0, vertex);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex]));
     const indexData = new Uint16Array([0, 1, 2, 2, 3, 0]);
 
     primitive.setup({ vertexData, indexData, vertexSchema });

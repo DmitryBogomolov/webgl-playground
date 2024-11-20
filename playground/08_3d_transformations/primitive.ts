@@ -1,5 +1,5 @@
 import type { Color } from 'lib';
-import { Runtime, Primitive, Program, vec3, color, generateCube, VertexWriter, parseVertexSchema } from 'lib';
+import { Runtime, Primitive, Program, vec3, color, generateCube, parseVertexSchema, writeVertexData } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -12,7 +12,6 @@ export function makePrimitive(runtime: Runtime): Primitive {
             { type: 'ubyte3', normalized: true },
         ],
     });
-    const VERTEX_SIZE = 16;
     const program = new Program({
         runtime,
         vertShader,
@@ -40,13 +39,7 @@ export function makePrimitive(runtime: Runtime): Primitive {
         return { pos: position, clr: clrs[key] };
     });
 
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        const { pos, clr } = vertices[i];
-        writer.writeAttribute(i, 0, pos);
-        writer.writeAttribute(i, 1, clr);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.pos, vertex.clr]));
     const indexData = new Uint16Array(indices);
 
     primitive.setup({ vertexData, indexData, vertexSchema });

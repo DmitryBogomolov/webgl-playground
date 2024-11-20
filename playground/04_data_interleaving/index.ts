@@ -3,10 +3,10 @@ import {
     Runtime,
     Primitive,
     Program,
-    VertexWriter,
     color,
     vec2,
     parseVertexSchema,
+    writeVertexData,
 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -53,7 +53,7 @@ function makeAoSPrimitive(
             { type: 'ubyte', normalized: true },
         ],
     });
-    return makePrimitive(runtime, schema, vertices.length * 16, vertices, indices);
+    return makePrimitive(runtime, schema, vertices, indices);
 }
 
 function makeSoAPrimitive(
@@ -66,13 +66,12 @@ function makeSoAPrimitive(
             { type: 'ubyte', normalized: true, offset: 48, stride: 4 },
         ],
     });
-    return makePrimitive(runtime, schema, 64, vertices, indices);
+    return makePrimitive(runtime, schema, vertices, indices);
 }
 
 function makePrimitive(
     runtime: Runtime,
     vertexSchema: VertexSchemaInfo,
-    arrayBufferSize: number,
     vertices: ReadonlyArray<Vertex>,
     indices: ReadonlyArray<number>,
 ): Primitive {
@@ -83,14 +82,11 @@ function makePrimitive(
     });
     const primitive = new Primitive({ runtime });
 
-    const vertexData = new ArrayBuffer(arrayBufferSize);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        const { position, color, factor } = vertices[i];
-        writer.writeAttribute(i, 0, position);
-        writer.writeAttribute(i, 1, color);
-        writer.writeAttribute(i, 2, factor);
-    }
+    const vertexData = writeVertexData(
+        vertices,
+        vertexSchema,
+        (vertex) => ([vertex.position, vertex.color, vertex.factor]),
+    );
     const indexData = new Uint16Array(indices);
 
     primitive.setup({ vertexData, indexData, vertexSchema });

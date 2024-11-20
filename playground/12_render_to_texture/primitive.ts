@@ -4,8 +4,9 @@ import {
     Program,
     vec2,
     UNIT3,
-    generateCube, generatePlaneZ, VertexWriter,
+    generateCube, generatePlaneZ,
     parseVertexSchema,
+    writeVertexData,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -21,15 +22,9 @@ export function makeObject(runtime: Runtime): Primitive {
             { type: 'float3' },
         ],
     });
-    const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 0, vertices[i].position);
-        writer.writeAttribute(i, 1, vertices[i].normal);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.normal]));
     const indexData = new Uint16Array(indices);
     primitive.setup({ vertexData, indexData, vertexSchema });
 
@@ -52,15 +47,9 @@ export function makeTexturePlane(runtime: Runtime): Primitive {
             { type: 'float2' },
         ],
     });
-    const VERTEX_SIZE = 20;
 
     const { vertices, indices } = generatePlaneZ(vec2(2, 2), (vertex) => vertex);
-    const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
-    const writer = new VertexWriter(vertexSchema, vertexData);
-    for (let i = 0; i < vertices.length; ++i) {
-        writer.writeAttribute(i, 0, vertices[i].position);
-        writer.writeAttribute(i, 1, vertices[i].texcoord);
-    }
+    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.position, vertex.texcoord]));
     const indexData = new Uint16Array(indices);
     primitive.setup({ vertexData, indexData, vertexSchema });
 
