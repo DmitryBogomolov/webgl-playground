@@ -1,10 +1,10 @@
 import type { VERTEX_ATTRIBUTE_TYPE, VertexSchemaInfo } from './vertex-schema.types';
-import { validateVertexSchema } from './vertex-schema';
+import { parseVertexSchema } from './vertex-schema';
 
 describe('vertex-schema', () => {
-    describe('validateVertexSchema', () => {
+    describe('parseVertexSchema', () => {
         it('handle empty list', () => {
-            const attrs = validateVertexSchema({ attributes: [] });
+            const attrs = parseVertexSchema({ attributes: [] });
 
             expect(attrs).toEqual<VertexSchemaInfo>({
                 vertexSize: 0,
@@ -14,7 +14,7 @@ describe('vertex-schema', () => {
 
         it('validate type', () => {
             try {
-                validateVertexSchema({
+                parseVertexSchema({
                     attributes: [{ type: 'test3' as VERTEX_ATTRIBUTE_TYPE }],
                 });
                 expect(true).toBe(false);
@@ -24,7 +24,7 @@ describe('vertex-schema', () => {
         });
 
         it('validate schema', () => {
-            const attrs = validateVertexSchema({
+            const attrs = parseVertexSchema({
                 attributes: [
                     { type: 'float4' },
                     { type: 'byte3', normalized: true },
@@ -67,7 +67,7 @@ describe('vertex-schema', () => {
         });
 
         it('allow custom stride and offset', () => {
-            const attrs = validateVertexSchema({
+            const attrs = parseVertexSchema({
                 attributes: [
                     { type: 'float2', offset: 4, stride: 24 },
                     { type: 'short3', offset: 48, stride: 12 },

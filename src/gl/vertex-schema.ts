@@ -42,7 +42,7 @@ const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, TypeInfo> = {
     'float4': { type: WebGL.FLOAT, rank: 4, size: 4 },
 };
 
-export function validateVertexSchema(schema: VertexSchemaDefinition): VertexSchemaInfo {
+export function parseVertexSchema(schema: VertexSchemaDefinition): VertexSchemaInfo {
     const list: VertexAttributeInfo[] = [];
     let currentOffset = 0;
     let totalSize = 0;
