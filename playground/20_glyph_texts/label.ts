@@ -1,6 +1,6 @@
-import type { Runtime, VertexSchemaDefinition, Vec2 } from 'lib';
+import type { Runtime, Vec2 } from 'lib';
 import type { GlyphAtlas } from './glyph';
-import { Primitive, Program, vec2 } from 'lib';
+import { Primitive, Program, vec2, parseVertexSchema } from 'lib';
 import vertShader from './shaders/label.vert';
 import fragShader from './shaders/label.frag';
 
@@ -50,12 +50,12 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
 
     const vertexData = new Float32Array(vertices);
     const indexData = new Uint16Array(indices);
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float2' },
             { type: 'float2' },
         ],
-    };
+    });
 
     const primitive = new Primitive({ runtime });
     primitive.setup({ vertexData, indexData, vertexSchema });

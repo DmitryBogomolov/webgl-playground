@@ -1,18 +1,18 @@
 import type { Runtime, Vec2, Vec4 } from 'lib';
 import type { LineParams } from '../line';
-import { vec4 } from 'lib';
+import { parseVertexSchema, vec4 } from 'lib';
 import { Line, writeSegmentIndexes } from '../line';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
 
 const roundParams: LineParams = {
-    schema: {
+    schema: parseVertexSchema({
         attributes: [
             { type: 'float4' },
             { type: 'float2' },
             { type: 'ubyte4', normalized: true },
         ],
-    },
+    }),
     vertShader,
     fragShader,
     getVertexSize() {

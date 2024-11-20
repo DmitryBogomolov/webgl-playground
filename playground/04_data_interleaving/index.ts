@@ -1,4 +1,4 @@
-import type { VertexSchemaDefinition, Color, Vec2 } from 'lib';
+import type { Color, Vec2, VertexSchemaInfo } from 'lib';
 import {
     Runtime,
     Primitive,
@@ -6,6 +6,7 @@ import {
     VertexWriter,
     color,
     vec2,
+    parseVertexSchema,
 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -45,32 +46,35 @@ function main(): void {
 function makeAoSPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema: VertexSchemaDefinition = {
+    const schema = parseVertexSchema({
         attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
             { type: 'ubyte', normalized: true },
         ],
-    };
+    });
     return makePrimitive(runtime, schema, vertices.length * 16, vertices, indices);
 }
 
 function makeSoAPrimitive(
     runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
 ): Primitive {
-    const schema: VertexSchemaDefinition = {
+    const schema = parseVertexSchema({
         attributes: [
             { type: 'float2', offset: 16, stride: 8 },
             { type: 'ubyte3', normalized: true, offset: 0, stride: 4 },
             { type: 'ubyte', normalized: true, offset: 48, stride: 4 },
         ],
-    };
+    });
     return makePrimitive(runtime, schema, 64, vertices, indices);
 }
 
 function makePrimitive(
-    runtime: Runtime, vertexSchema: VertexSchemaDefinition, arrayBufferSize: number,
-    vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+    runtime: Runtime,
+    vertexSchema: VertexSchemaInfo,
+    arrayBufferSize: number,
+    vertices: ReadonlyArray<Vertex>,
+    indices: ReadonlyArray<number>,
 ): Primitive {
     const program = new Program({
         runtime,

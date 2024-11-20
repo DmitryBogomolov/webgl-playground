@@ -1,10 +1,11 @@
-import type { Runtime, VertexSchemaDefinition } from 'lib';
+import type { Runtime } from 'lib';
 import {
     Primitive,
     Program,
     vec2,
     UNIT3,
     generateCube, generatePlaneZ, VertexWriter,
+    parseVertexSchema,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -14,12 +15,12 @@ import texturePlaneFragShader from './shaders/texture-plane.frag';
 export function makeObject(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
@@ -45,12 +46,12 @@ export function makeObject(runtime: Runtime): Primitive {
 export function makeTexturePlane(runtime: Runtime): Primitive {
     const primitive = new Primitive({ runtime });
 
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float2' },
         ],
-    };
+    });
     const VERTEX_SIZE = 20;
 
     const { vertices, indices } = generatePlaneZ(vec2(2, 2), (vertex) => vertex);

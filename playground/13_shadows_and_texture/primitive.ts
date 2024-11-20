@@ -1,9 +1,10 @@
-import type { VertexSchemaDefinition, Runtime, VertexData, VertexIndexData } from 'lib';
+import type { Runtime, VertexData, VertexIndexData } from 'lib';
 import {
     Primitive,
     Program,
     generateCube, generateSphere,
     UNIT3, mul3, VertexWriter,
+    parseVertexSchema,
 } from 'lib';
 import sceneVertShader from './shaders/scene.vert';
 import sceneFragShader from './shaders/scene.frag';
@@ -14,12 +15,12 @@ import wireframeFragShader from './shaders/wireframe.frag';
 
 function make(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexData>): Primitive {
     const primitive = new Primitive({ runtime });
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);
     const writer = new VertexWriter(vertexSchema, vertexData);
@@ -74,9 +75,9 @@ export function makeWireframe(runtime: Runtime): Primitive {
         0, 4, 1, 5, 2, 6, 3, 7,
         4, 5, 5, 6, 6, 7, 7, 4,
     ]);
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float3' }],
-    };
+    });
     primitive.setup({ vertexData, indexData, vertexSchema, primitiveMode: 'lines' });
 
     const program = new Program({

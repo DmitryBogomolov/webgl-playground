@@ -1,15 +1,15 @@
-import type { Runtime, VertexSchemaDefinition } from 'lib';
-import { Primitive, Program, generateCube, VertexWriter, UNIT3 } from 'lib';
+import type { Runtime } from 'lib';
+import { Primitive, Program, generateCube, VertexWriter, UNIT3, parseVertexSchema } from 'lib';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
 

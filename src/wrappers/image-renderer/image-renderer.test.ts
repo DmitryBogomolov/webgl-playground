@@ -73,7 +73,10 @@ describe('image-renderer', () => {
                 vertexData: new Float32Array([-1, -1, +1, -1, +1, +1, -1, +1]),
                 indexData: new Uint16Array([0, 1, 2, 2, 3, 0]),
                 vertexSchema: {
-                    attributes: [{ type: 'float2' }],
+                    vertexSize: 8,
+                    attributes: [
+                        { location: 0, type: 105, rank: 2, size: 4, offset: 0, stride: 8, normalized: false },
+                    ],
                 },
             });
 

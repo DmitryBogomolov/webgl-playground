@@ -7,6 +7,7 @@ import {
     Texture,
     Tracker,
     vec2, ZERO2, sub2, mul2, inv2,
+    parseVertexSchema,
 } from 'lib';
 import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
@@ -144,9 +145,9 @@ function makePrimitive(runtime: Runtime): Primitive {
     primitive.setup({
         vertexData,
         indexData,
-        vertexSchema: {
+        vertexSchema: parseVertexSchema({
             attributes: [{ type: 'float2' }],
-        },
+        }),
     });
 
     const program = new Program({

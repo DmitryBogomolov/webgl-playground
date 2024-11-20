@@ -3,11 +3,10 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type {
-    VertexSchemaDefinition, VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition,
-} from '../../gl/vertex-schema.types';
+import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/vertex-schema.types';
 import type { Runtime } from '../../gl/runtime';
 import { Primitive } from '../../gl/primitive';
+import { parseVertexSchema } from '../../gl/vertex-schema';
 import { inversetranspose4x4 } from '../../geometry/mat4';
 import { getAccessorType, getAccessorStride, getAccessorBinaryData } from '../../gltf/accessor';
 import { getPrimitiveMode } from '../../gltf/primitive';
@@ -91,9 +90,9 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     const vertexAttributes: VertexAttributeDefinition[] = [];
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: vertexAttributes,
-    };
+    });
     const vertexDataCtx: SetVertexDataCtx = {
         data: new Uint8Array(totalVertexDataSize),
         attributes: vertexAttributes,

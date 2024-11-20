@@ -1,4 +1,3 @@
-import type { VertexSchemaDefinition } from 'lib';
 import {
     Runtime, createRenderState,
     Primitive,
@@ -8,6 +7,7 @@ import {
     generateCube,
     UNIT3, mul3,
     deg2rad, spherical2zxy,
+    parseVertexSchema,
 } from 'lib';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
@@ -77,9 +77,9 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertexData[3 * i + 2] = z;
     }
     const indexData = new Uint16Array(indices);
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float3' }],
-    };
+    });
 
     const primitive = new Primitive({ runtime });
     primitive.setup({ vertexData, indexData, vertexSchema });

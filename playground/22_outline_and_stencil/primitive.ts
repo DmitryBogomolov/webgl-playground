@@ -1,4 +1,4 @@
-import type { Runtime, VertexData, VertexIndexData, VertexSchemaDefinition, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, VertexData, VertexIndexData, Vec3, Mat4, Color } from 'lib';
 import {
     Primitive,
     Program,
@@ -7,6 +7,7 @@ import {
     vec2,
     norm3, add3,
     translation4x4,
+    parseVertexSchema,
 } from 'lib';
 import objectVertShader from './shaders/object.vert';
 import objectFragShader from './shaders/object.frag';
@@ -121,13 +122,13 @@ function makePlaneVertexInfo({ position, normal }: VertexData): VertexInfo {
 }
 
 function makePrimitive(runtime: Runtime, { vertices, indices }: VertexIndexData<VertexInfo>): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 36;
 
     const vertexData = new ArrayBuffer(vertices.length * VERTEX_SIZE);

@@ -1,17 +1,17 @@
-import type { Runtime, VertexSchemaDefinition, Vec2 } from 'lib';
-import { Primitive, Program, VertexWriter, generateCube, UNIT3, vec3, vec4 } from 'lib';
+import type { Runtime, Vec2 } from 'lib';
+import { Primitive, Program, VertexWriter, generateCube, UNIT3, vec3, vec4, parseVertexSchema } from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
 import contourVertShader from './shaders/contour.vert';
 import contourFragShader from './shaders/contour.frag';
 
 export function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
@@ -41,12 +41,12 @@ const MAX_CONTOUR_SEGMENTS = 6;
 const VERTEX_PER_SEGMENT = 4;
 const INDEX_PER_SEGMENT = 6;
 
-const contourSchema: VertexSchemaDefinition = {
+const contourSchema = parseVertexSchema({
     attributes: [
         { type: 'float3' },
         { type: 'float4' },
     ],
-};
+});
 const CONTOUR_VERTEX_SIZE = 28;
 
 export function makeContourPrimitive(runtime: Runtime): Primitive {

@@ -1,5 +1,5 @@
-import type { VertexSchemaDefinition, Runtime, Vec3 } from 'lib';
-import { Primitive, Program, generateSphere, VertexWriter } from 'lib';
+import type { Runtime, Vec3 } from 'lib';
+import { Primitive, Program, generateSphere, VertexWriter, parseVertexSchema } from 'lib';
 import directionalVertShader from './shaders/directional.vert';
 import directionalFragShader from './shaders/directional.frag';
 import pointVertShader from './shaders/point.vert';
@@ -7,12 +7,12 @@ import pointFragShader from './shaders/point.frag';
 import spotVertShader from './shaders/spot.vert';
 import spotFragShader from './shaders/spot.frag';
 
-const vertexSchema: VertexSchemaDefinition = {
+const vertexSchema = parseVertexSchema({
     attributes: [
         { type: 'float3' },
         { type: 'float3' },
     ],
-};
+});
 const VERTEX_SIZE = 24;
 
 export function makeDirectionalProgram(runtime: Runtime): Program {

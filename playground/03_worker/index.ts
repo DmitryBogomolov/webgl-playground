@@ -1,6 +1,6 @@
-import type { Color, VertexSchemaDefinition, Vec2 } from 'lib';
+import type { Color, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import { Runtime, Primitive, Program, VertexWriter, ForegroundChannel, color, vec2 } from 'lib';
+import { Runtime, Primitive, Program, VertexWriter, ForegroundChannel, color, vec2, parseVertexSchema } from 'lib';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -85,9 +85,9 @@ function runWorker(runtime: Runtime, state: State): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float2' }],
-    };
+    });
     const program = new Program({
         runtime,
         vertShader,

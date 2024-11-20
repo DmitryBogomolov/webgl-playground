@@ -7,7 +7,6 @@ import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { TextureImageData } from '../../gl/texture-2d.types';
 import type { Runtime } from '../../gl/runtime';
-import type { VertexSchemaDefinition } from '../../gl/vertex-schema.types';
 import { eq2, isVec2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
@@ -17,6 +16,7 @@ import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
+import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { toArgStr } from '../../utils/string-formatter';
 import { makeImage } from '../../utils/image-maker';
@@ -331,9 +331,9 @@ function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float2' }],
-    };
+    });
     primitive.setup({ vertexData, indexData, vertexSchema });
 
     const program = new Program({

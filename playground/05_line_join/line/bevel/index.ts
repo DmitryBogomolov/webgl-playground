@@ -1,18 +1,18 @@
 import type { Runtime, Vec2, Vec3, Vec4 } from 'lib';
 import type { LineParams } from '../line';
-import { vec3, vec4 } from 'lib';
+import { parseVertexSchema, vec3, vec4 } from 'lib';
 import { Line, writeSegmentIndexes } from '../line';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
 
 const bevelParams: LineParams = {
-    schema: {
+    schema: parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float4' },
             { type: 'ubyte4', normalized: true },
         ],
-    },
+    }),
     vertShader,
     fragShader,
     getVertexSize() {

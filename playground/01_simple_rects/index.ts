@@ -1,5 +1,5 @@
-import type { VertexSchemaDefinition, Vec2, Color } from 'lib';
-import { Runtime, Program, Primitive, VertexWriter, colors, vec2 } from 'lib';
+import type { Vec2, Color } from 'lib';
+import { Runtime, Program, Primitive, VertexWriter, colors, vec2, parseVertexSchema } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -26,12 +26,12 @@ function main(): void {
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float2' },
             { type: 'ubyte4', normalized: true },
         ],
-    };
+    });
     const program = new Program({
         runtime,
         vertShader,

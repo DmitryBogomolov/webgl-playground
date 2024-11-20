@@ -1,5 +1,5 @@
-import type { Runtime, Color, Vec2, VertexSchemaDefinition } from 'lib';
-import { Primitive, Program, VertexWriter, vec2 } from 'lib';
+import type { Runtime, Color, Vec2 } from 'lib';
+import { Primitive, Program, VertexWriter, parseVertexSchema, vec2 } from 'lib';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -8,12 +8,12 @@ export interface PrimitiveFactory {
 }
 
 export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float2' },
             { type: 'ubyte3', normalized: true },
         ],
-    };
+    });
     const VERTEX_SIZE = 12;
     const program = new Program({
         runtime,

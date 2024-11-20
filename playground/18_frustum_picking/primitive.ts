@@ -1,10 +1,11 @@
-import type { Runtime, VertexSchemaDefinition, Vec3, Mat4, Mat4Mut } from 'lib';
+import type { Runtime, Vec3, Mat4, Mat4Mut } from 'lib';
 import {
     Primitive,
     Program,
     VertexWriter,
     generateCube,
     UNIT3, identity4x4, apply4x4, scaling4x4, rotation4x4, translation4x4, inversetranspose4x4,
+    parseVertexSchema,
 } from 'lib';
 import itemVertShader from './shaders/item.vert';
 import itemFragShader from './shaders/item.frag';
@@ -25,12 +26,12 @@ export interface ObjectsFactory {
 }
 
 export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);

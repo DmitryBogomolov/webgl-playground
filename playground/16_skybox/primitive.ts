@@ -1,5 +1,5 @@
-import type { Runtime, VertexSchemaDefinition } from 'lib';
-import { Primitive, Program, VertexWriter, generateCube, UNIT3 } from 'lib';
+import type { Runtime } from 'lib';
+import { Primitive, Program, VertexWriter, generateCube, UNIT3, parseVertexSchema } from 'lib';
 import skyboxVertShader from './shaders/skybox.vert';
 import skyboxFragShader from './shaders/skybox.frag';
 import reflectVertShader from './shaders/reflect.vert';
@@ -16,9 +16,9 @@ export function makeQuad(runtime: Runtime): Primitive {
         0, 1, 2,
         2, 3, 0,
     ]);
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float2' }],
-    };
+    });
 
     const primitive = new Primitive({ runtime });
     primitive.setup({ vertexData, indexData, vertexSchema });
@@ -34,12 +34,12 @@ export function makeQuad(runtime: Runtime): Primitive {
 }
 
 export function makeCube(runtime: Runtime): Primitive {
-    const vertexSchema: VertexSchemaDefinition = {
+    const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
             { type: 'float3' },
         ],
-    };
+    });
     const VERTEX_SIZE = 24;
 
     const { vertices, indices } = generateCube(UNIT3, (vertex) => vertex);
