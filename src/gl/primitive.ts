@@ -5,7 +5,6 @@ import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
 import { BaseObject } from './base-object';
-import { validateVertexSchema } from './vertex-schema';
 import { toStr, toArgStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
@@ -83,8 +82,7 @@ export class Primitive extends BaseObject {
             indexType: config.indexType,
             primitiveMode: config.primitiveMode,
         }));
-        // TODO_THIS: Accept VertexSchemaInfo.
-        const { attributes } = validateVertexSchema(config.vertexSchema);
+        const { attributes } = config.vertexSchema;
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(this._vao);

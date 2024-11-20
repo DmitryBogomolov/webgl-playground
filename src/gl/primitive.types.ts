@@ -1,6 +1,6 @@
 import type { Runtime } from './runtime';
 import type { BaseObjectParams } from './base-object.types';
-import type { VertexSchemaDefinition } from './vertex-schema.types';
+import type { VertexSchemaInfo } from './vertex-schema.types';
 
 export type INDEX_TYPE = (
     'ubyte' | 'ushort' | 'uint'
@@ -13,7 +13,7 @@ export type PRIMITIVE_MODE = (
 export interface PrimitiveConfig {
     readonly vertexData: BufferSource | number;
     readonly indexData: BufferSource | number;
-    readonly vertexSchema: VertexSchemaDefinition;
+    readonly vertexSchema: VertexSchemaInfo;
     readonly indexType?: INDEX_TYPE;
     readonly primitiveMode?: PRIMITIVE_MODE;
 }

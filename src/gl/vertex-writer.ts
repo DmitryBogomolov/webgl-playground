@@ -1,7 +1,6 @@
-import type { VertexSchemaDefinition, VertexAttributeInfo } from './vertex-schema.types';
+import type { VertexAttributeInfo, VertexSchemaInfo } from './vertex-schema.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Mapping } from '../common/mapping.types';
-import { validateVertexSchema } from './vertex-schema';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -46,10 +45,9 @@ export class VertexWriter {
     private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
-    // TODO_THIS: Accept VertexSchemaInfo.
-    constructor(schema: VertexSchemaDefinition, target: ArrayBufferLike) {
+    constructor(schema: VertexSchemaInfo, target: ArrayBufferLike) {
         this._target = wrapBuffer(target);
-        this._attributes = validateVertexSchema(schema).attributes;
+        this._attributes = schema.attributes;
     }
 
     private _getView(type: number): TypedArray {
