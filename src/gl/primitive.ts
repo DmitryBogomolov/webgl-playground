@@ -49,6 +49,7 @@ export class Primitive extends BaseObject {
     private readonly _vertexBuffer: Buffer;
     private readonly _indexBuffer: Buffer;
     private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
+    private _indexOffset: number = 0;
     private _indexCount: number = 0;
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
@@ -146,6 +147,12 @@ export class Primitive extends BaseObject {
         this._runtime.bindVertexArrayObject(null);
     }
 
+    updateIndexRange(indexOffset: number, indexCount: number): void {
+        this._logMethod('update_index_range', toArgStr({ offset: indexOffset, count: indexCount }));
+        this._indexOffset = indexOffset;
+        this._indexCount = indexCount;
+    }
+
     program(): Program {
         return this._program;
     }
@@ -159,15 +166,15 @@ export class Primitive extends BaseObject {
         this._program = prog;
     }
 
-    render(indexOffset: number = 0): void {
+    render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
             throw this._logError('cannot render without program');
         }
-        this._logMethod('render', toArgStr({ indexOffset }));
+        this._logMethod('render', '');
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArrayObject(this._vao);
-        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, indexOffset || 0);
+        gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
         this._runtime.bindVertexArrayObject(null);
     }
 }
