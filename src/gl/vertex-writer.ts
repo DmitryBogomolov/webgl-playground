@@ -41,19 +41,20 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
 };
 
 export function writeVertexData<T>(
-    vertices: ReadonlyArray<T>,
+    vertices: Iterable<T> & { readonly length: number },
     vertexSchema: VertexSchemaInfo,
     getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
 ): ArrayBuffer {
     const vertexData = new ArrayBuffer(vertices.length * vertexSchema.vertexSize);
     const writer = new VertexWriter(vertexSchema, vertexData);
     const attrCount = vertexSchema.attributes.length;
-    for (let vertexIdx = 0; vertexIdx < vertices.length; ++vertexIdx) {
-        const vertex = vertices[vertexIdx];
+    let vertexIdx = 0;
+    for (const vertex of vertices) {
         const values = getVertexValues(vertex);
         for (let attrIdx = 0; attrIdx < attrCount; ++attrIdx) {
             writer.writeAttribute(vertexIdx, attrIdx, values[attrIdx]);
         }
+        ++vertexIdx;
     }
     return vertexData;
 }
