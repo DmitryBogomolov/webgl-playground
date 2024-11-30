@@ -1,6 +1,6 @@
 import type { Runtime, Vec2, Vec3, Vec4 } from 'lib';
 import {
-    Primitive, Program, generateCube, UNIT3, vec3, vec4, parseVertexSchema, VertexWriter, writeVertexData,
+    Primitive, Program, generateCube, UNIT3, vec3, vec4, parseVertexSchema, writeVertexData,
 } from 'lib';
 import vertShader from './shaders/object.vert';
 import fragShader from './shaders/object.frag';
