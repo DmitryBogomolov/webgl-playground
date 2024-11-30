@@ -71,6 +71,7 @@ export class Primitive extends BaseObject {
         this._indexBuffer.dispose();
     }
 
+    /** Setup attributes, vertex and index data, primitive mode, index range */
     setup(config: PrimitiveConfig): void {
         if (!config) {
             throw this._logMethodError('setup', '_', 'not defined');
@@ -109,15 +110,17 @@ export class Primitive extends BaseObject {
         this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode || DEFAULT_PRIMITIVE_MODE];
         this._indexType = INDEX_TYPE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
         const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
-        this._indexCount = indexDataLength / INDEX_SIZE_MAP[this._indexType];
+        this._setIndexRange(indexDataLength);
     }
 
+    /** Reset vertex data */
     setVertexData(vertexData: BufferSource | number): void {
         this._logMethod('set_vertex_data', isBufferSource(vertexData) ? vertexData.byteLength : vertexData);
         this._runtime.bindArrayBuffer(this._vertexBuffer);
         this._runtime.gl().bufferData(GL_ARRAY_BUFFER, vertexData as number, GL_STATIC_DRAW);
     }
 
+    /** Reset index data */
     setIndexData(indexData: BufferSource | number): void {
         this._logMethod('set_index_data', isBufferSource(indexData) ? indexData.byteLength : indexData);
         try {
@@ -128,9 +131,15 @@ export class Primitive extends BaseObject {
             this._runtime.bindVertexArrayObject(null);
         }
         const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
-        this._indexCount = indexDataLength / INDEX_SIZE_MAP[this._indexType];
+        this._setIndexRange(indexDataLength);
     }
 
+    private _setIndexRange(byteLength: number): void {
+        this._indexOffset = 0;
+        this._indexCount = byteLength / INDEX_SIZE_MAP[this._indexType];
+    }
+
+    /** Change part of vertex data */
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
         this._logMethod('update_vertex_data', toArgStr({ vertexData: vertexData.byteLength, offset }));
         const gl = this._runtime.gl();
@@ -138,6 +147,7 @@ export class Primitive extends BaseObject {
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
     }
 
+    /** Change part of index data */
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
         this._logMethod('update_index_data', toArgStr({ indexData: indexData.byteLength, offset }));
         const gl = this._runtime.gl();
@@ -147,7 +157,15 @@ export class Primitive extends BaseObject {
         this._runtime.bindVertexArrayObject(null);
     }
 
+    /** Change index range */
     updateIndexRange(indexOffset: number, indexCount: number): void {
+        if (indexOffset < 0 || indexCount < 0) {
+            throw this._logMethodError(
+                'update_index_range',
+                toArgStr({ offset: indexOffset, count: indexCount }),
+                'bad values',
+            );
+        }
         this._logMethod('update_index_range', toArgStr({ offset: indexOffset, count: indexCount }));
         this._indexOffset = indexOffset;
         this._indexCount = indexCount;
@@ -169,7 +187,7 @@ export class Primitive extends BaseObject {
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            throw this._logError('cannot render without program');
+            throw this._logMethodError('render', '_', 'cannot render without program');
         }
         this._logMethod('render', '');
         this._runtime.useProgram(this._program);
