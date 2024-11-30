@@ -40,7 +40,7 @@ export function toArgStr(obj: unknown): string {
         return obj.join(', ');
     }
     if (type === 'object') {
-        return Object.entries(obj)
+        return Object.entries(obj as {})
             .filter(([_, val]) => val !== undefined)
             .map(([key, val]) => `${key}=${val}`)
             .join(', ');
