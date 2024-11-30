@@ -14,6 +14,8 @@ const vertexSchema = parseVertexSchema({
 });
 
 export class BevelLine extends LineBase {
+    private readonly _buffer = new Uint8Array(4 * 4 * vertexSchema.vertexSize);
+
     constructor(runtime: Runtime) {
         super(runtime, {
             vertexSchema,
@@ -51,7 +53,7 @@ export class BevelLine extends LineBase {
         for (let i = startIdx; i <= endIdx; ++i) {
             makeVertices(list, vertices, i);
         }
-        const vertexData = writeVertexData(list, vertexSchema, eigen);
+        const vertexData = writeVertexData(list, vertexSchema, eigen, this._buffer);
         const offset = startIdx * 4 * vertexSchema.vertexSize;
         return [vertexData, offset];
     }

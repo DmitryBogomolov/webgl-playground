@@ -44,8 +44,10 @@ export function writeVertexData<T>(
     vertices: Iterable<T> & { readonly length: number },
     vertexSchema: VertexSchemaInfo,
     getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
+    out?: Uint8Array,
 ): Uint8Array {
-    const vertexData = new Uint8Array(vertices.length * vertexSchema.vertexSize);
+    const byteLength = vertices.length * vertexSchema.vertexSize;
+    const vertexData = out ? new Uint8Array(out.buffer, out.byteOffset, byteLength) : new Uint8Array(byteLength);
     const writer = new VertexWriter(vertexSchema, vertexData);
     const attrCount = vertexSchema.attributes.length;
     let vertexIdx = 0;
