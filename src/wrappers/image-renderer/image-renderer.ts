@@ -196,8 +196,11 @@ function compareLocations(lhs: ImageRendererLocation, rhs: ImageRendererLocation
 }
 
 function getRange(
-    viewportSize: number, textureSize: number,
-    offset1: number | undefined, offset2: number | undefined, size: number | undefined,
+    viewportSize: number,
+    textureSize: number,
+    offset1: number | undefined,
+    offset2: number | undefined,
+    size: number | undefined,
 ): [number, number] {
     const p1 = offset1 !== undefined ? -viewportSize / 2 + offset1 : undefined;
     const p2 = offset2 !== undefined ? +viewportSize / 2 - offset2 : undefined;
@@ -206,7 +209,9 @@ function getRange(
 }
 
 function getActualSize(
-    textureSize: number, offset1: number | undefined, offset2: number | undefined,
+    textureSize: number,
+    offset1: number | undefined,
+    offset2: number | undefined,
 ): number {
     const size = textureSize - Math.min(offset1 || 0, textureSize) - Math.min(offset2 || 0, textureSize);
     return Math.abs(size);
@@ -220,8 +225,11 @@ function compareUpdateLocationMatrixArgs(
 }
 
 function updateLocationMatrix(
-    mat: Mat4Mut, viewportSize: Vec2, textureSize: Vec2,
-    location: ImageRendererLocation, region: ImageRendererRegion,
+    mat: Mat4Mut,
+    viewportSize: Vec2,
+    textureSize: Vec2,
+    location: ImageRendererLocation,
+    region: ImageRendererRegion,
 ): void {
     // Because of "region" options actual texture size may be less than original texture.
     const xActual = getActualSize(textureSize.x, region.x1, region.x2);
@@ -262,7 +270,9 @@ function compareUpdateRegionMatrixArgs(
 }
 
 function updateRegionMatrix(
-    mat: Mat4Mut, textureSize: Vec2, region: ImageRendererRegion,
+    mat: Mat4Mut,
+    textureSize: Vec2,
+    region: ImageRendererRegion,
 ): void {
     // Texture part boundaries in "[0, 1] * [0, 1]" space.
     const x1 = (region.x1 || 0) / textureSize.x;

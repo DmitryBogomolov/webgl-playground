@@ -13,7 +13,9 @@ const INDEX_TYPE_TO_VIEW: Mapping<GLTF_INDEX_TYPE, IndexViewCtor> = {
 };
 
 export function generateNormals(
-    positionData: Uint8Array, indicesData: Uint8Array, indicesType: GlTF_ACCESSOR_TYPE,
+    positionData: Uint8Array,
+    indicesData: Uint8Array,
+    indicesType: GlTF_ACCESSOR_TYPE,
 ): Uint8Array {
     const positions = new Float32Array(
         positionData.buffer, positionData.byteOffset, positionData.byteLength >> 2,

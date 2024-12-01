@@ -180,7 +180,10 @@ interface SetVertexDataCtx {
 }
 
 function setVertexData(
-    ctx: SetVertexDataCtx, location: number, info: AttributeInfo, normalized: boolean | undefined,
+    ctx: SetVertexDataCtx,
+    location: number,
+    info: AttributeInfo,
+    normalized: boolean | undefined,
 ): void {
     ctx.data.set(info.data, ctx.offset);
     ctx.attributes.push({
