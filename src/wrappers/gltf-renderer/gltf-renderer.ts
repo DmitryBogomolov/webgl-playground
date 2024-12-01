@@ -76,7 +76,7 @@ export class GlTFRenderer extends BaseObject {
         data: GlTFRendererData,
     ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
         if (!data) {
-            throw this._logError('set_data: not defined');
+            throw this._logMethodError('set_data', '', 'not defined');
         }
         if (isRawData(data)) {
             const source = data.data;
@@ -95,7 +95,7 @@ export class GlTFRenderer extends BaseObject {
             const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
             return { source, resolveUri };
         }
-        throw this._logError(`set_data(${toStr(data)}): bad value`);
+        throw this._logMethodError('set_data', toStr(data), 'bad value');
     }
 
     private _reset(): void {
