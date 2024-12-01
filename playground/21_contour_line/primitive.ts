@@ -97,7 +97,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
 
     primitive.updateVertexData(vertexData, 0);
     primitive.updateIndexData(indexData, 0);
-    primitive.updateIndexRange(0, indices.length);
+    primitive.updateIndexRange({ indexCount: indices.length });
 }
 
 function pickIndex(i: number, length: number): number {

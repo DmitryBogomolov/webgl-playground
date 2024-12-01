@@ -1,5 +1,5 @@
 import type {
-    PrimitiveRuntime, PrimitiveParams, PrimitiveConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    PrimitiveRuntime, PrimitiveParams, PrimitiveConfig, PrimitiveIndexRange, INDEX_TYPE, PRIMITIVE_MODE,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
@@ -158,17 +158,21 @@ export class Primitive extends BaseObject {
     }
 
     /** Change index range */
-    updateIndexRange(indexOffset: number, indexCount: number): void {
-        if (indexOffset < 0 || indexCount < 0) {
-            throw this._logMethodError(
-                'update_index_range',
-                toArgStr({ offset: indexOffset, count: indexCount }),
-                'bad values',
-            );
+    updateIndexRange(range: PrimitiveIndexRange): void {
+        if (!range) {
+            throw this._logMethodError('update_index_range', '_', 'not defined');
         }
-        this._logMethod('update_index_range', toArgStr({ offset: indexOffset, count: indexCount }));
-        this._indexOffset = indexOffset;
-        this._indexCount = indexCount;
+        const { indexOffset, indexCount } = range;
+        if (indexOffset! < 0 || indexCount! < 0) {
+            throw this._logMethodError('update_index_range', toArgStr(range), 'bad values');
+        }
+        this._logMethod('update_index_range', toArgStr(range));
+        if (indexOffset! > 0) {
+            this._indexOffset = indexOffset!;
+        }
+        if (indexCount! > 0) {
+            this._indexCount = indexCount!;
+        }
     }
 
     program(): Program {

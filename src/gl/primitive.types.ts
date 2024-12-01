@@ -18,6 +18,11 @@ export interface PrimitiveConfig {
     readonly primitiveMode?: PRIMITIVE_MODE;
 }
 
+export interface PrimitiveIndexRange {
+    readonly indexOffset?: number;
+    readonly indexCount?: number;
+}
+
 export type PrimitiveRuntime = Pick<
     Runtime,
     | 'gl' | 'vaoExt' | 'logger'
