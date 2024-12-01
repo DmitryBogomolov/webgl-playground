@@ -25,18 +25,25 @@ export class RoundLine extends LineBase {
     }
 
     protected _writeVertices(vertices: ReadonlyArray<Vertex>): ArrayBuffer {
-        const list: RoundVertex[] = [];
-        for (let i = 0; i < vertices.length - 1; ++i) {
-            makeVertices(list, vertices, i);
-        }
-        return writeVertexData(list, vertexSchema, (t) => t);
+        return writeVertexData(
+            {
+                length: (vertices.length - 1) * 4,
+                *[Symbol.iterator]() {
+                    for (let i = 0; i < vertices.length - 1; ++i) {
+                        yield *makeVertices(vertices, i);
+                    }
+                },
+            },
+            vertexSchema,
+            eigen,
+        );
     }
 
     protected _writeIndexes(vertexCount: number): ArrayBuffer {
         const list: number[] = [];
         const segmentCount = vertexCount - 1;
         for (let i = 0; i < segmentCount; ++i) {
-            makeIndices(list, i * 4);
+            makeIndexes(list, i * 4);
         }
         return new Uint16Array(list);
     }
@@ -45,11 +52,19 @@ export class RoundLine extends LineBase {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments.
         const startIdx = Math.max(idx - 1, 0);
         const endIdx = Math.min(idx, vertices.length - 2);
-        const list: RoundVertex[] = [];
-        for (let i = startIdx; i <= endIdx; ++i) {
-            makeVertices(list, vertices, i);
-        }
-        const vertexData = writeVertexData(list, vertexSchema, eigen, this._buffer);
+        const vertexData = writeVertexData(
+            {
+                length: (endIdx - startIdx + 1) * 4,
+                *[Symbol.iterator]() {
+                    for (let i = startIdx; i <= endIdx; ++i) {
+                        yield *makeVertices(vertices, i);
+                    }
+                },
+            },
+            vertexSchema,
+            eigen,
+            this._buffer,
+        );
         const offset = startIdx * 4 * vertexSchema.vertexSize;
         return [vertexData, offset];
     }
@@ -65,7 +80,7 @@ function makePositionAttr(position: Vec2, crossSide: number, lateralSide: number
     return vec4(position.x, position.y, crossSide, lateralSide);
 }
 
-function makeVertices(list: RoundVertex[], vertices: ReadonlyArray<Vertex>, i: number): void {
+function* makeVertices(vertices: ReadonlyArray<Vertex>, i: number): Iterable<RoundVertex> {
     const start = vertices[i];
     const end = vertices[i + 1];
 
@@ -74,15 +89,14 @@ function makeVertices(list: RoundVertex[], vertices: ReadonlyArray<Vertex>, i: n
     const startColor = start.color;
     const endColor = end.color;
 
-    list.push(
-        [makePositionAttr(start.position, +1, -1), startOther, startColor],
-        [makePositionAttr(start.position, -1, -1), startOther, startColor],
-        [makePositionAttr(end.position, -1, +1), endOther, endColor],
-        [makePositionAttr(end.position, +1, +1), endOther, endColor],
-    );
+    yield [makePositionAttr(start.position, +1, -1), startOther, startColor];
+    yield [makePositionAttr(start.position, -1, -1), startOther, startColor];
+    // In end-start direction (-1) is (+1) in start-end direction
+    yield [makePositionAttr(end.position, -1, +1), endOther, endColor];
+    yield [makePositionAttr(end.position, +1, +1), endOther, endColor];
 }
 
-function makeIndices(list: number[], base: number): void {
+function makeIndexes(list: number[], base: number): void {
     list.push(
         base + 0,
         base + 2,

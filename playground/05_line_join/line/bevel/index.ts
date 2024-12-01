@@ -25,20 +25,27 @@ export class BevelLine extends LineBase {
     }
 
     protected _writeVertices(vertices: ReadonlyArray<Vertex>): ArrayBuffer {
-        const list: BevelVertex[] = [];
-        for (let i = 0; i < vertices.length - 1; ++i) {
-            makeVertices(list, vertices, i);
-        }
-        return writeVertexData(list, vertexSchema, (t) => t);
+        return writeVertexData(
+            {
+                length: (vertices.length - 1) * 4,
+                *[Symbol.iterator]() {
+                    for (let i = 0; i < vertices.length - 1; ++i) {
+                        yield *makeVertices(vertices, i);
+                    }
+                },
+            },
+            vertexSchema,
+            eigen,
+        );
     }
 
     protected _writeIndexes(vertexCount: number): ArrayBuffer {
         const list: number[] = [];
         const segmentCount = vertexCount - 1;
         for (let i = 0; i < segmentCount; ++i) {
-            makeIndices(list, i * 4);
+            makeIndexes(list, i * 4);
             if (i < segmentCount - 1) {
-                makeIndices(list, i * 4 + 2);
+                makeIndexes(list, i * 4 + 2);
             }
         }
         return new Uint16Array(list);
@@ -49,11 +56,19 @@ export class BevelLine extends LineBase {
         // and segments (k-2, k-1) and (k+1, k+2) as before/after part.
         const startIdx = Math.max(idx - 2, 0);
         const endIdx = Math.min(idx + 1, vertices.length - 2);
-        const list: BevelVertex[] = [];
-        for (let i = startIdx; i <= endIdx; ++i) {
-            makeVertices(list, vertices, i);
-        }
-        const vertexData = writeVertexData(list, vertexSchema, eigen, this._buffer);
+        const vertexData = writeVertexData(
+            {
+                length: (endIdx - startIdx + 1) * 4,
+                *[Symbol.iterator]() {
+                    for (let i = startIdx; i <= endIdx; ++i) {
+                        yield *makeVertices(vertices, i);
+                    }
+                },
+            },
+            vertexSchema,
+            eigen,
+            this._buffer,
+        );
         const offset = startIdx * 4 * vertexSchema.vertexSize;
         return [vertexData, offset];
     }
@@ -73,7 +88,7 @@ function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
     return vec4(other.x, other.y, outer.x, outer.y);
 }
 
-function makeVertices(list: BevelVertex[], vertices: ReadonlyArray<Vertex>, i: number): void {
+function* makeVertices(vertices: ReadonlyArray<Vertex>, i: number): Iterable<BevelVertex> {
     const start = vertices[i];
     const end = vertices[i + 1];
     const before = vertices[i - 1] || end;
@@ -84,16 +99,14 @@ function makeVertices(list: BevelVertex[], vertices: ReadonlyArray<Vertex>, i: n
     const startColor = start.color;
     const endColor = end.color;
 
-    list.push(
-        [makePositionAttr(start.position, +1), startOther, startColor],
-        [makePositionAttr(start.position, -1), startOther, startColor],
-        // In end-start direction (-1) is (+1) in start-end direction.
-        [makePositionAttr(end.position, -1), endOther, endColor],
-        [makePositionAttr(end.position, +1), endOther, endColor],
-    );
+    yield [makePositionAttr(start.position, +1), startOther, startColor];
+    yield [makePositionAttr(start.position, -1), startOther, startColor];
+    // In end-start direction (-1) is (+1) in start-end direction
+    yield [makePositionAttr(end.position, -1), endOther, endColor];
+    yield [makePositionAttr(end.position, +1), endOther, endColor];
 }
 
-function makeIndices(list: number[], base: number): void {
+function makeIndexes(list: number[], base: number): void {
     list.push(
         base + 0,
         base + 2,
