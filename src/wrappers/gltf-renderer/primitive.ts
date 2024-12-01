@@ -90,9 +90,6 @@ export function createPrimitive(
 
     const totalVertexDataSize = calculateTotalSize([positionInfo, normalInfo, colorInfo, texcoordInfo]);
     const vertexAttributes: VertexAttributeDefinition[] = [];
-    const vertexSchema = parseVertexSchema({
-        attributes: vertexAttributes,
-    });
     const vertexDataCtx: SetVertexDataCtx = {
         data: new Uint8Array(totalVertexDataSize),
         attributes: vertexAttributes,
@@ -112,6 +109,9 @@ export function createPrimitive(
     if (vertexDataCtx.offset !== totalVertexDataSize) {
         throw new Error('data offset mismatch');
     }
+    const vertexSchema = parseVertexSchema({
+        attributes: vertexAttributes,
+    });
     result.setup({
         vertexData: vertexDataCtx.data,
         indexData: indexInfo.data,
