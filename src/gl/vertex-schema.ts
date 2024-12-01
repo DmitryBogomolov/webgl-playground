@@ -43,6 +43,12 @@ const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, TypeInfo> = {
 };
 
 export function parseVertexSchema(schema: VertexSchemaDefinition): VertexSchemaInfo {
+    if (!schema) {
+        throw new Error('schema not defined');
+    }
+    if (schema.attributes.length === 0) {
+        throw new Error('schema has no attributes');
+    }
     const list: VertexAttributeInfo[] = [];
     let currentOffset = 0;
     let totalSize = 0;
