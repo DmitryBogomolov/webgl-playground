@@ -4,12 +4,9 @@ import { parseVertexSchema } from './vertex-schema';
 describe('vertex-schema', () => {
     describe('parseVertexSchema', () => {
         it('handle empty list', () => {
-            const attrs = parseVertexSchema({ attributes: [] });
-
-            expect(attrs).toEqual<VertexSchemaInfo>({
-                vertexSize: 0,
-                attributes: [],
-            });
+            expect(() => {
+                parseVertexSchema({ attributes: [] });
+            }).toThrow('schema has no attributes');
         });
 
         it('validate type', () => {
