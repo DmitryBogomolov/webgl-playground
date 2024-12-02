@@ -1,7 +1,6 @@
-import type { PrimitiveVertexSchema, VertexAttributeInfo } from './primitive.types';
+import type { VertexAttributeInfo, VertexSchemaInfo } from './vertex-schema.types';
 import type { ATTRIBUTE_VALUE } from './vertex-writer.types';
 import type { Mapping } from '../common/mapping.types';
-import { validateVertexSchema } from './primitive';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -41,14 +40,35 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
     [4]: unwrap4,
 };
 
+export function writeVertexData<T>(
+    vertices: Iterable<T> & { readonly length: number },
+    vertexSchema: VertexSchemaInfo,
+    getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
+    out?: Uint8Array,
+): Uint8Array {
+    const byteLength = vertices.length * vertexSchema.vertexSize;
+    const vertexData = out ? new Uint8Array(out.buffer, out.byteOffset, byteLength) : new Uint8Array(byteLength);
+    const writer = new VertexWriter(vertexSchema, vertexData);
+    const attrCount = vertexSchema.attributes.length;
+    let vertexIdx = 0;
+    for (const vertex of vertices) {
+        const values = getVertexValues(vertex);
+        for (let attrIdx = 0; attrIdx < attrCount; ++attrIdx) {
+            writer.writeAttribute(vertexIdx, attrIdx, values[attrIdx]);
+        }
+        ++vertexIdx;
+    }
+    return vertexData;
+}
+
 export class VertexWriter {
     private readonly _target: ArrayBufferView;
-    private readonly _attributes: VertexAttributeInfo[];
+    private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
-    constructor(schema: PrimitiveVertexSchema, target: ArrayBufferLike) {
+    constructor(schema: VertexSchemaInfo, target: ArrayBufferLike) {
         this._target = wrapBuffer(target);
-        this._attributes = validateVertexSchema(schema);
+        this._attributes = schema.attributes;
     }
 
     private _getView(type: number): TypedArray {

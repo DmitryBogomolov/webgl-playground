@@ -5,8 +5,8 @@ import type {
 } from './image-renderer.types';
 import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
-import type { TextureImageData } from '../../gl/texture-2d.types';
 import type { Runtime } from '../../gl/runtime';
+import type { EventProxy } from '../../common/event-emitter.types';
 import { eq2, isVec2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
@@ -16,6 +16,8 @@ import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
+import { EventEmitter } from '../../common/event-emitter';
+import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { toArgStr } from '../../utils/string-formatter';
 import { makeImage } from '../../utils/image-maker';
@@ -36,6 +38,7 @@ export class ImageRenderer extends BaseObject {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
+    private readonly _changed = new EventEmitter();
     private _textureUnit: number = 0;
     private _renderTargetSize: Vec2;
     private _region: ImageRendererRegion = {};
@@ -56,6 +59,7 @@ export class ImageRenderer extends BaseObject {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
+        this._changed.clear();
         this._dispose();
     }
 
@@ -76,33 +80,27 @@ export class ImageRenderer extends BaseObject {
         return texture;
     }
 
+    private _notifyChanged(): void {
+        this._changed.emit();
+    }
+
+    changed(): EventProxy {
+        return this._changed.proxy();
+    }
+
     imageSize(): Vec2 {
         return this._texture.size();
     }
 
-    async setImageData(data: ImageRendererImageData): Promise<void> {
+    setImageData(data: ImageRendererImageData): void {
         if (!data) {
             throw this._logMethodError('set_image_data', '_', 'not defined');
         }
-        let imageData: TextureImageData;
-        let unpackFlipY = false;
-        let log: string;
-        if (isRawData(data)) {
-            log = 'raw';
-            imageData = data;
-            unpackFlipY = true;
-        } else if (isUrlData(data)) {
-            log = `url(${data.url})`;
-            const img = await makeImage({ url: data.url });
-            imageData = img;
-            unpackFlipY = true;
-        } else {
-            log = 'tex_image_source';
-            imageData = data;
-        }
-        this._logMethod('set_image_data', log);
-        this._texture.setImageData(imageData, { unpackFlipY });
-        this._matDirty = this._texmatDirty = true;
+        this._logMethod('set_image_data', dataToStr(data));
+        updateTexture(this._texture, data, () => {
+            this._matDirty = this._texmatDirty = true;
+            this._notifyChanged();
+        });
     }
 
     getTextureUnit(): number {
@@ -185,6 +183,31 @@ export class ImageRenderer extends BaseObject {
     }
 }
 
+function dataToStr(data: ImageRendererImageData): string {
+    if (isRawData(data)) {
+        return toArgStr({ length: data.data.byteLength, size: data.size });
+    } else if (isUrlData(data)) {
+        return `url(${data.url})`;
+    } else {
+        return 'tex_image_source';
+    }
+}
+
+function updateTexture(texture: Texture, data: ImageRendererImageData, callback: () => void): void {
+    if (isUrlData(data)) {
+        makeImage({ url: data.url }).then(
+            (image) => {
+                texture.setImageData(image, { unpackFlipY: true });
+                callback();
+            },
+            console.error,
+        );
+    } else {
+        texture.setImageData(data, { unpackFlipY: isRawData(data) });
+        callback();
+    }
+}
+
 function compareRegions(lhs: ImageRendererRegion, rhs: ImageRendererRegion): boolean {
     return lhs.x1 === rhs.x1 && lhs.x2 === rhs.x2 && lhs.y1 === rhs.y1 && lhs.y2 === rhs.y2
         && lhs.rotation === rhs.rotation;
@@ -195,8 +218,11 @@ function compareLocations(lhs: ImageRendererLocation, rhs: ImageRendererLocation
 }
 
 function getRange(
-    viewportSize: number, textureSize: number,
-    offset1: number | undefined, offset2: number | undefined, size: number | undefined,
+    viewportSize: number,
+    textureSize: number,
+    offset1: number | undefined,
+    offset2: number | undefined,
+    size: number | undefined,
 ): [number, number] {
     const p1 = offset1 !== undefined ? -viewportSize / 2 + offset1 : undefined;
     const p2 = offset2 !== undefined ? +viewportSize / 2 - offset2 : undefined;
@@ -205,7 +231,9 @@ function getRange(
 }
 
 function getActualSize(
-    textureSize: number, offset1: number | undefined, offset2: number | undefined,
+    textureSize: number,
+    offset1: number | undefined,
+    offset2: number | undefined,
 ): number {
     const size = textureSize - Math.min(offset1 || 0, textureSize) - Math.min(offset2 || 0, textureSize);
     return Math.abs(size);
@@ -219,8 +247,11 @@ function compareUpdateLocationMatrixArgs(
 }
 
 function updateLocationMatrix(
-    mat: Mat4Mut, viewportSize: Vec2, textureSize: Vec2,
-    location: ImageRendererLocation, region: ImageRendererRegion,
+    mat: Mat4Mut,
+    viewportSize: Vec2,
+    textureSize: Vec2,
+    location: ImageRendererLocation,
+    region: ImageRendererRegion,
 ): void {
     // Because of "region" options actual texture size may be less than original texture.
     const xActual = getActualSize(textureSize.x, region.x1, region.x2);
@@ -261,7 +292,9 @@ function compareUpdateRegionMatrixArgs(
 }
 
 function updateRegionMatrix(
-    mat: Mat4Mut, textureSize: Vec2, region: ImageRendererRegion,
+    mat: Mat4Mut,
+    textureSize: Vec2,
+    region: ImageRendererRegion,
 ): void {
     // Texture part boundaries in "[0, 1] * [0, 1]" space.
     const x1 = (region.x1 || 0) / textureSize.x;
@@ -320,26 +353,20 @@ function releasePrimitive(runtime: Runtime): void {
 
 function createPrimitive(runtime: Runtime, tag: string | undefined): Primitive {
     const primitive = new Primitive({ runtime, tag });
-    const vertices = new Float32Array([
+    const vertexData = new Float32Array([
         -1, -1,
         +1, -1,
         +1, +1,
         -1, +1,
     ]);
-    const indices = new Uint16Array([
+    const indexData = new Uint16Array([
         0, 1, 2,
         2, 3, 0,
     ]);
-    primitive.allocateVertexBuffer(vertices.byteLength);
-    primitive.updateVertexData(vertices);
-    primitive.allocateIndexBuffer(indices.byteLength);
-    primitive.updateIndexData(indices);
-    primitive.setVertexSchema({
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float2' }],
     });
-    primitive.setIndexConfig({
-        indexCount: indices.length,
-    });
+    primitive.setup({ vertexData, indexData, vertexSchema });
 
     const program = new Program({
         runtime,

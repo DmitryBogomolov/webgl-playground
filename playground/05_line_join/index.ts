@@ -1,4 +1,4 @@
-import type { Line } from './line/line';
+import type { LineBase } from './line/line';
 import { Runtime } from 'lib';
 import { State } from './state';
 import { BevelLine } from './line/bevel';
@@ -17,7 +17,7 @@ export type DESCRIPTION = never;
 
 main();
 
-interface LineConstructor<T extends Line> {
+interface LineConstructor<T extends LineBase> {
     new(runtime: Runtime): T;
 }
 
@@ -39,7 +39,7 @@ function main(): void {
     setupTracker(runtimeRound, tree, state);
 }
 
-function setupLine<T extends Line>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
+function setupLine<T extends LineBase>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
     const line = new ctor(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();

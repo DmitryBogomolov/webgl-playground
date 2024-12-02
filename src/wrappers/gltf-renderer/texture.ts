@@ -1,19 +1,35 @@
 import type { GlTFAsset } from '../../gltf/asset.types';
-import type { GlTFTexture } from '../../gltf/texture.types';
 import type { TextureImageDataOptions } from '../../gl/texture-base.types';
 import type { Runtime } from '../../gl/runtime';
 import { Texture } from '../../gl/texture-2d';
 import { getTextureInfo } from '../../gltf/texture';
 
-export function createTextures(asset: GlTFAsset, runtime: Runtime): Promise<Texture[]> {
-    const count = asset.gltf.textures ? asset.gltf.textures.length : 0;
-    const tasks: Promise<Texture>[] = [];
+export function createTextures(asset: GlTFAsset, runtime: Runtime, callback: () => void): Texture[] {
+    const count = asset.gltf.textures?.length || 0;
+    const tasks: Promise<void>[] = [];
+    const textures: Texture[] = [];
     for (let i = 0; i < count; ++i) {
-        const textureData = getTextureInfo(asset, i);
-        const task = createTexture(textureData, runtime);
+        const { data, mimeType, sampler } = getTextureInfo(asset, i);
+        const texture = new Texture({ runtime });
+        texture.setParameters({
+            wrap_s: sampler.wrapS,
+            wrap_t: sampler.wrapT,
+            mag_filter: sampler.magFilter,
+            min_filter: sampler.minFilter,
+        });
+        const blob = new Blob([data], { type: mimeType });
+        const task = createImageBitmap(blob).then((bitmap) => {
+            texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
+        });
+        textures.push(texture);
         tasks.push(task);
     }
-    return Promise.all(tasks);
+    void Promise.all(tasks)
+        .catch((err) => {
+            console.error(err);
+        })
+        .then(callback);
+    return textures;
 }
 
 export function destroyTextures(textures: Iterable<Texture>): void {
@@ -27,19 +43,3 @@ const TEXTURE_DATA_OPTIONS: TextureImageDataOptions = {
     unpackColorSpaceConversion: 'none',
     unpackPremultiplyAlpha: false,
 };
-
-async function createTexture(textureInfo: GlTFTexture, runtime: Runtime): Promise<Texture> {
-    const { data, mimeType, sampler } = textureInfo;
-    const blob = new Blob([data], { type: mimeType });
-    const bitmap = await createImageBitmap(blob);
-    const texture = new Texture({ runtime });
-    texture.setParameters({
-        wrap_s: sampler.wrapS,
-        wrap_t: sampler.wrapT,
-        mag_filter: sampler.magFilter,
-        min_filter: sampler.minFilter,
-    });
-    texture.setImageData(bitmap, TEXTURE_DATA_OPTIONS);
-    return texture;
-}
-

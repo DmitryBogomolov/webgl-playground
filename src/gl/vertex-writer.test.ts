@@ -1,15 +1,15 @@
-import type { PrimitiveVertexSchema } from './primitive.types';
+import { parseVertexSchema } from './vertex-schema';
 import { VertexWriter } from './vertex-writer';
 
 describe('vertex writer', () => {
     describe('VertexWriter', () => {
-        const schema: PrimitiveVertexSchema = {
+        const schema = parseVertexSchema({
             attributes: [
                 { type: 'float2' },
                 { type: 'short' },
                 { type: 'ubyte3' },
             ],
-        };
+        });
 
         it('write attributes', () => {
             const dv = new DataView(new ArrayBuffer(100));

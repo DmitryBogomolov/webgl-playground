@@ -7,6 +7,7 @@ import {
     generateCube,
     UNIT3, mul3,
     deg2rad, spherical2zxy,
+    parseVertexSchema,
 } from 'lib';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
@@ -76,20 +77,12 @@ function makePrimitive(runtime: Runtime): Primitive {
         vertexData[3 * i + 2] = z;
     }
     const indexData = new Uint16Array(indices);
-
-    const primitive = new Primitive({ runtime });
-
-    primitive.allocateVertexBuffer(vertexData.byteLength);
-    primitive.updateVertexData(vertexData);
-    primitive.allocateIndexBuffer(indexData.byteLength);
-    primitive.updateIndexData(indexData);
-    primitive.setVertexSchema({
+    const vertexSchema = parseVertexSchema({
         attributes: [{ type: 'float3' }],
     });
-    primitive.setIndexConfig({
-        indexCount: indexData.length,
-    });
 
+    const primitive = new Primitive({ runtime });
+    primitive.setup({ vertexData, indexData, vertexSchema });
     const program = new Program({
         runtime,
         vertShader,

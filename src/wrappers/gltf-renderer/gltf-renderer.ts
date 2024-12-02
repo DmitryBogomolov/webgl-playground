@@ -8,7 +8,9 @@ import type { Runtime } from '../../gl/runtime';
 import type { PrimitiveWrapper } from './primitive.types';
 import type { Program } from '../../gl/program';
 import type { Texture } from '../../gl/texture-2d';
+import type { EventProxy } from '../../common/event-emitter.types';
 import { BaseObject } from '../../gl/base-object';
+import { EventEmitter } from '../../common/event-emitter';
 import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
 import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
@@ -28,6 +30,7 @@ function isUrlData(data: GlTFRendererData): data is GlTFRendererUrlData {
 
 export class GlTFRenderer extends BaseObject {
     private readonly _runtime: Runtime;
+    private readonly _changed = new EventEmitter();
     private readonly _loader: Loader = new Loader();
     private readonly _wrappers: PrimitiveWrapper[] = [];
     private readonly _programs: Program[] = [];
@@ -44,6 +47,7 @@ export class GlTFRenderer extends BaseObject {
     }
 
     dispose(): void {
+        this._changed.clear();
         this._loader.dispose();
         this._reset();
         this._dispose();
@@ -65,7 +69,9 @@ export class GlTFRenderer extends BaseObject {
             }
             const wrappers = processScene(asset, this._runtime);
             const programs = createPrograms(wrappers, this._runtime);
-            const textures = await createTextures(asset, this._runtime);
+            const textures = createTextures(asset, this._runtime, () => {
+                this._notifyChanged();
+            });
             this._setup(wrappers, programs, textures);
         } catch (err) {
             throw this._logError(err as Error);
@@ -76,7 +82,7 @@ export class GlTFRenderer extends BaseObject {
         data: GlTFRendererData,
     ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
         if (!data) {
-            throw this._logError('set_data: not defined');
+            throw this._logMethodError('set_data', '', 'not defined');
         }
         if (isRawData(data)) {
             const source = data.data;
@@ -95,7 +101,7 @@ export class GlTFRenderer extends BaseObject {
             const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
             return { source, resolveUri };
         }
-        throw this._logError(`set_data(${toStr(data)}): bad value`);
+        throw this._logMethodError('set_data', toStr(data), 'bad value');
     }
 
     private _reset(): void {
@@ -116,6 +122,14 @@ export class GlTFRenderer extends BaseObject {
         this._programs.push(...programs);
         this._textures.length = 0;
         this._textures.push(...textures);
+    }
+
+    private _notifyChanged(): void {
+        this._changed.emit();
+    }
+
+    changed(): EventProxy {
+        return this._changed.proxy();
     }
 
     setProjMat(mat: Mat4): void {

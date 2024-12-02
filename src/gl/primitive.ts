@@ -1,14 +1,11 @@
 import type {
-    PrimitiveParams, PrimitiveRuntime,
-    PrimitiveVertexSchema, VERTEX_ATTRIBUTE_TYPE, VertexAttributeInfo,
-    PrimitiveIndexConfig, INDEX_TYPE, PRIMITIVE_MODE,
+    PrimitiveRuntime, PrimitiveParams, PrimitiveConfig, PrimitiveIndexRange, INDEX_TYPE, PRIMITIVE_MODE,
 } from './primitive.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
-import type { Mapping } from '../common/mapping.types';
 import { BaseObject } from './base-object';
-import { toArgStr } from '../utils/string-formatter';
+import { toStr, toArgStr } from '../utils/string-formatter';
 
 const WebGL = WebGLRenderingContext.prototype;
 
@@ -34,41 +31,15 @@ const PRIMITIVE_MODE_MAP: GLValuesMap<PRIMITIVE_MODE> = {
 };
 const DEFAULT_PRIMITIVE_MODE: PRIMITIVE_MODE = 'triangles';
 
-const ATTRIBUTE_TYPE_MAP: Mapping<VERTEX_ATTRIBUTE_TYPE, { type: number, rank: number, size: number }> = {
-    'byte': { type: WebGL.BYTE, rank: 1, size: 1 },
-    'byte2': { type: WebGL.BYTE, rank: 2, size: 1 },
-    'byte3': { type: WebGL.BYTE, rank: 3, size: 1 },
-    'byte4': { type: WebGL.BYTE, rank: 4, size: 1 },
-    'ubyte': { type: WebGL.UNSIGNED_BYTE, rank: 1, size: 1 },
-    'ubyte2': { type: WebGL.UNSIGNED_BYTE, rank: 2, size: 1 },
-    'ubyte3': { type: WebGL.UNSIGNED_BYTE, rank: 3, size: 1 },
-    'ubyte4': { type: WebGL.UNSIGNED_BYTE, rank: 4, size: 1 },
-    'short': { type: WebGL.SHORT, rank: 1, size: 2 },
-    'short2': { type: WebGL.SHORT, rank: 2, size: 2 },
-    'short3': { type: WebGL.SHORT, rank: 3, size: 2 },
-    'short4': { type: WebGL.SHORT, rank: 4, size: 2 },
-    'ushort': { type: WebGL.UNSIGNED_SHORT, rank: 1, size: 2 },
-    'ushort2': { type: WebGL.UNSIGNED_SHORT, rank: 2, size: 2 },
-    'ushort3': { type: WebGL.UNSIGNED_SHORT, rank: 3, size: 2 },
-    'ushort4': { type: WebGL.UNSIGNED_SHORT, rank: 4, size: 2 },
-    'int': { type: WebGL.INT, rank: 1, size: 4 },
-    'int2': { type: WebGL.INT, rank: 2, size: 4 },
-    'int3': { type: WebGL.INT, rank: 3, size: 4 },
-    'int4': { type: WebGL.INT, rank: 4, size: 4 },
-    'uint': { type: WebGL.UNSIGNED_INT, rank: 1, size: 4 },
-    'uint2': { type: WebGL.UNSIGNED_INT, rank: 2, size: 4 },
-    'uint3': { type: WebGL.UNSIGNED_INT, rank: 3, size: 4 },
-    'uint4': { type: WebGL.UNSIGNED_INT, rank: 4, size: 4 },
-    'float': { type: WebGL.FLOAT, rank: 1, size: 4 },
-    'float2': { type: WebGL.FLOAT, rank: 2, size: 4 },
-    'float3': { type: WebGL.FLOAT, rank: 3, size: 4 },
-    'float4': { type: WebGL.FLOAT, rank: 4, size: 4 },
-};
-
 const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'ubyte': WebGL.UNSIGNED_BYTE,
     'ushort': WebGL.UNSIGNED_SHORT,
     'uint': WebGL.UNSIGNED_INT,
+};
+const INDEX_SIZE_MAP: Readonly<Record<number, number>> = {
+    [WebGL.UNSIGNED_BYTE]: 1,
+    [WebGL.UNSIGNED_SHORT]: 2,
+    [WebGL.UNSIGNED_INT]: 4,
 };
 const DEFAULT_INDEX_TYPE: INDEX_TYPE = 'ushort';
 
@@ -77,12 +48,9 @@ export class Primitive extends BaseObject {
     private readonly _vao: VertexArrayObject;
     private readonly _vertexBuffer: Buffer;
     private readonly _indexBuffer: Buffer;
-    private _vertexBufferSize: number = 0;
-    private _indexBufferSize: number = 0;
-    private _attributes: VertexAttributeInfo[] = [];
     private _primitiveMode: number = PRIMITIVE_MODE_MAP[DEFAULT_PRIMITIVE_MODE];
-    private _indexCount: number = 0;
     private _indexOffset: number = 0;
+    private _indexCount: number = 0;
     private _indexType: number = INDEX_TYPE_MAP[DEFAULT_INDEX_TYPE];
     private _program: Program = EMPTY_PROGRAM;
 
@@ -98,61 +66,30 @@ export class Primitive extends BaseObject {
     dispose(): void {
         this._logMethod('dispose', '');
         this._dispose();
+        this._vao.dispose();
+        this._vertexBuffer.dispose();
+        this._indexBuffer.dispose();
     }
 
-    allocateVertexBuffer(size: number): void {
-        if (size < 0) {
-            throw this._logMethodError('allocate_vertex_buffer', size, 'bad value');
+    /** Setup attributes, vertex and index data, primitive mode, index range */
+    setup(config: PrimitiveConfig): void {
+        if (!config) {
+            throw this._logMethodError('setup', '_', 'not defined');
         }
-        this._logMethod('allocate_vertex_buffer', size);
-        const gl = this._runtime.gl();
-        this._vertexBufferSize = size;
-        this._runtime.bindArrayBuffer(this._vertexBuffer);
-        gl.bufferData(GL_ARRAY_BUFFER, this._vertexBufferSize, GL_STATIC_DRAW);
-    }
-
-    allocateIndexBuffer(size: number): void {
-        if (size < 0) {
-            throw this._logMethodError('allocate_index_buffer', size, 'bad value');
-        }
-        this._logMethod('allocate_index_buffer', size);
-        const gl = this._runtime.gl();
-        this._indexBufferSize = size;
-        // Vertex array object must also be bound because element array buffer should not be bound without it.
-        this._runtime.bindVertexArrayObject(this._vao);
-        this._runtime.bindElementArrayBuffer(this._indexBuffer);
-        gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, this._indexBufferSize, GL_STATIC_DRAW);
-        this._runtime.bindVertexArrayObject(null);
-    }
-
-    updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logMethod('update_vertex_data', `offset=${offset}, bytes=${vertexData.byteLength}`);
-        const gl = this._runtime.gl();
-        this._runtime.bindArrayBuffer(this._vertexBuffer);
-        gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
-    }
-
-    updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logMethod('update_index_data', `offset=${offset}, bytes=${indexData.byteLength}`);
-        const gl = this._runtime.gl();
-        // Vertex array object must also be bound because element array buffer should not be bound without it.
-        this._runtime.bindVertexArrayObject(this._vao);
-        this._runtime.bindElementArrayBuffer(this._indexBuffer);
-        gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
-        this._runtime.bindVertexArrayObject(null);
-    }
-
-    setVertexSchema(schema: PrimitiveVertexSchema): void {
-        if (!schema) {
-            throw this._logMethodError('set_vertex_schema', '_', 'not defined');
-        }
-        this._logMethod('set_vertex_schema', `attributes=${schema.attributes.length}`);
-        this._attributes = validateVertexSchema(schema);
+        const { vertexData, indexData } = config;
+        this._logMethod('setup', toArgStr({
+            vertexData: isBufferSource(vertexData) ? vertexData.byteLength : vertexData,
+            indexData: isBufferSource(indexData) ? indexData.byteLength : indexData,
+            schema: toStr(config.vertexSchema.attributes),
+            indexType: config.indexType,
+            primitiveMode: config.primitiveMode,
+        }));
+        const { attributes } = config.vertexSchema;
         const gl = this._runtime.gl();
         try {
             this._runtime.bindVertexArrayObject(this._vao);
             this._runtime.bindArrayBuffer(this._vertexBuffer);
-            for (const attr of this._attributes) {
+            for (const attr of attributes) {
                 gl.vertexAttribPointer(
                     attr.location,
                     attr.rank,
@@ -164,40 +101,77 @@ export class Primitive extends BaseObject {
                 gl.enableVertexAttribArray(attr.location);
             }
             this._runtime.bindElementArrayBuffer(this._indexBuffer);
+
+            gl.bufferData(GL_ARRAY_BUFFER, vertexData as number, GL_STATIC_DRAW);
+            gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, indexData as number, GL_STATIC_DRAW);
         } finally {
             this._runtime.bindVertexArrayObject(null);
         }
+        this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode || DEFAULT_PRIMITIVE_MODE];
+        this._indexType = INDEX_TYPE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
+        const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
+        this._setIndexRange(indexDataLength);
     }
 
-    setIndexConfig(config: PrimitiveIndexConfig): void {
-        if (!config) {
-            throw this._logMethodError('set_index_config', '_', 'not defined');
+    /** Reset vertex data */
+    setVertexData(vertexData: BufferSource | number): void {
+        this._logMethod('set_vertex_data', isBufferSource(vertexData) ? vertexData.byteLength : vertexData);
+        this._runtime.bindArrayBuffer(this._vertexBuffer);
+        this._runtime.gl().bufferData(GL_ARRAY_BUFFER, vertexData as number, GL_STATIC_DRAW);
+    }
+
+    /** Reset index data */
+    setIndexData(indexData: BufferSource | number): void {
+        this._logMethod('set_index_data', isBufferSource(indexData) ? indexData.byteLength : indexData);
+        try {
+            // Vertex array object must be bound because element array binding is part of its state.
+            this._runtime.bindVertexArrayObject(this._vao);
+            this._runtime.gl().bufferData(GL_ELEMENT_ARRAY_BUFFER, indexData as number, GL_STATIC_DRAW);
+        } finally {
+            this._runtime.bindVertexArrayObject(null);
         }
-        const { indexCount, indexOffset, indexType, primitiveMode } = config;
-        this._logMethod('set_index_config', toArgStr(config));
-        if (indexCount < 0) {
-            throw this._logError(`bad index count: ${indexCount}`);
+        const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
+        this._setIndexRange(indexDataLength);
+    }
+
+    private _setIndexRange(byteLength: number): void {
+        this._indexOffset = 0;
+        this._indexCount = byteLength / INDEX_SIZE_MAP[this._indexType];
+    }
+
+    /** Change part of vertex data */
+    updateVertexData(vertexData: BufferSource, offset: number = 0): void {
+        this._logMethod('update_vertex_data', toArgStr({ vertexData: vertexData.byteLength, offset }));
+        const gl = this._runtime.gl();
+        this._runtime.bindArrayBuffer(this._vertexBuffer);
+        gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
+    }
+
+    /** Change part of index data */
+    updateIndexData(indexData: BufferSource, offset: number = 0): void {
+        this._logMethod('update_index_data', toArgStr({ indexData: indexData.byteLength, offset }));
+        const gl = this._runtime.gl();
+        // Vertex array object must be bound because element array binding is part of its state.
+        this._runtime.bindVertexArrayObject(this._vao);
+        gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
+        this._runtime.bindVertexArrayObject(null);
+    }
+
+    /** Change index range */
+    updateIndexRange(range: PrimitiveIndexRange): void {
+        if (!range) {
+            throw this._logMethodError('update_index_range', '_', 'not defined');
         }
-        this._indexCount = indexCount;
-        if (indexOffset !== undefined) {
-            if (indexOffset < 0) {
-                throw this._logError(`bad index offset: ${indexOffset}`);
-            }
-            this._indexOffset = indexOffset;
+        const { indexOffset, indexCount } = range;
+        if (indexOffset! < 0 || indexCount! < 0) {
+            throw this._logMethodError('update_index_range', toArgStr(range), 'bad values');
         }
-        if (indexType !== undefined) {
-            const value = INDEX_TYPE_MAP[indexType];
-            if (value === undefined) {
-                throw this._logError(`bad index type: ${indexType}`);
-            }
-            this._indexType = value;
+        this._logMethod('update_index_range', toArgStr(range));
+        if (indexOffset! > 0) {
+            this._indexOffset = indexOffset!;
         }
-        if (primitiveMode !== undefined) {
-            const value = PRIMITIVE_MODE_MAP[primitiveMode];
-            if (value === undefined) {
-                throw this._logError(`bad primitive mode: ${primitiveMode}`);
-            }
-            this._primitiveMode = value;
+        if (indexCount! > 0) {
+            this._indexCount = indexCount!;
         }
     }
 
@@ -217,7 +191,7 @@ export class Primitive extends BaseObject {
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            throw this._logError('cannot render without program');
+            throw this._logMethodError('render', '_', 'cannot render without program');
         }
         this._logMethod('render', '');
         this._runtime.useProgram(this._program);
@@ -227,51 +201,8 @@ export class Primitive extends BaseObject {
     }
 }
 
-export function validateVertexSchema(schema: PrimitiveVertexSchema): VertexAttributeInfo[] {
-    let currentOffset = 0;
-    const list: VertexAttributeInfo[] = [];
-    for (let i = 0; i < schema.attributes.length; ++i) {
-        const attribute = schema.attributes[i];
-        const location = attribute.location !== undefined ? attribute.location : i;
-        if (location < 0) {
-            throw new Error(`attribute ${i}: bad location: ${location}`);
-        }
-        const typeInfo = ATTRIBUTE_TYPE_MAP[attribute.type];
-        if (!typeInfo) {
-            throw new Error(`attribute ${i}: bad type: ${attribute.type}`);
-        }
-        const offset = attribute.offset !== undefined ? attribute.offset : currentOffset;
-        if (attribute.offset === undefined) {
-            currentOffset += align(typeInfo.rank * typeInfo.size);
-        }
-        if (offset !== 0 && (offset % typeInfo.size !== 0)) {
-            throw new Error(`attribute ${i}: bad offset ${offset} for ${attribute.type}`);
-        }
-        const stride = attribute.stride !== undefined ? attribute.stride : 0;
-        if (stride !== 0 && (stride % typeInfo.size !== 0 || stride < typeInfo.rank * typeInfo.size)) {
-            throw new Error(`attribute ${i}: bad stride ${stride} for ${attribute.type}`);
-        }
-        const normalized = typeInfo.type !== WebGL.FLOAT && Boolean(attribute.normalized);
-        list.push({
-            location,
-            ...typeInfo,
-            offset,
-            stride,
-            normalized,
-        });
-    }
-    for (let i = 0; i < list.length; ++i) {
-        const item = list[i];
-        if (item.stride === 0) {
-            list[i] = { ...item, stride: currentOffset };
-        }
-    }
-    return list;
-}
-
-function align(bytes: number): number {
-    const residue = bytes % 4;
-    return residue === 0 ? bytes : bytes + (4 - residue);
+function isBufferSource(arg: unknown): arg is BufferSource {
+    return !!arg && (arg as BufferSource).byteLength >= 0;
 }
 
 class VertexArrayObject implements GLHandleWrapper<WebGLVertexArrayObjectOES> {

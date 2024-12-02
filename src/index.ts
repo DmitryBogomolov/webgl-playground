@@ -47,6 +47,8 @@ export * from './alg/figures';
 export * from './gl/render-loop';
 export * from './gl/vertex-writer.types';
 export * from './gl/vertex-writer';
+export * from './gl/vertex-schema.types';
+export * from './gl/vertex-schema';
 export * from './gl/runtime.types';
 export * from './gl/render-target.types';
 export * from './gl/runtime';
