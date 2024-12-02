@@ -44,7 +44,14 @@ function main(): void {
     const camera = new Camera();
     camera.setEyePos(vec3(0, 3, 5));
 
-    camera.changed().on(() => runtime.requestFrameRender());
+    const renderer = new GlTFRenderer({ runtime });
+
+    camera.changed().on(() => {
+        runtime.requestFrameRender();
+    });
+    renderer.changed().on(() => {
+        runtime.requestFrameRender();
+    });
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
@@ -56,30 +63,21 @@ function main(): void {
         camera.setEyePos(cameraPos);
     });
 
-    const renderer = new GlTFRenderer({ runtime });
-
     trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
-
         renderer.setProjMat(camera.getProjMat());
         renderer.setViewMat(camera.getViewMat());
-
         renderer.render();
     });
 
     const selectedModelName = observable(MODELS[0].name);
     selectedModelName.on((selected) => {
         const model = MODELS.find(({ name }) => name === selected)!;
-        renderer.setData({ url: `/static/gltf-models/${model.path}` }).then(
-            () => {
-                runtime.requestFrameRender();
-            },
-            console.error,
-        );
+        renderer.setData({ url: `/static/gltf-models/${model.path}` }).catch(console.error);
     });
 
     createControls(container, [
