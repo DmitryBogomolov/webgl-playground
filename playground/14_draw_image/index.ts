@@ -26,19 +26,15 @@ function main(): void {
     const imageLeaves = new ImageRenderer({ runtime, tag: 'image/leaves' });
     imageLeaves.setTextureUnit(5);
 
-    imageCells.setImageData(generateTextureData()).catch(console.error);
-    imageLetter.setImageData({ url: '/static/f-letter.png' }).then(
-        () => {
+    imageCells.setImageData(generateTextureData());
+    imageLetter.setImageData({ url: '/static/f-letter.png' });
+    imageLeaves.setImageData({ url: '/static/leaves.jpg' });
+
+    [imageCells, imageLeaves, imageLeaves].forEach((image) => {
+        image.changed().on(() => {
             runtime.requestFrameRender();
-        },
-        console.error,
-    );
-    imageLeaves.setImageData({ url: '/static/leaves.jpg' }).then(
-        () => {
-            runtime.requestFrameRender();
-        },
-        console.error,
-    );
+        });
+    });
 
     let step = 0;
     const SPEED = 0.1;

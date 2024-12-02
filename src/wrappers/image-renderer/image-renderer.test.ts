@@ -161,19 +161,28 @@ describe('image-renderer', () => {
             );
         });
 
-        it('set image data / raw', async () => {
+        it('set image data / raw', () => {
             const testData = { size: { x: 60, y: 50 }, data: new Uint8Array([1, 2, 3, 4]) };
+            let changed = false;
+            renderer.changed().on(() => {
+                changed = true;
+            });
 
-            await renderer.setImageData(testData);
+            renderer.setImageData(testData);
 
+            expect(changed).toEqual(true);
             expect(texture.setImageData).toBeCalledWith(testData, { unpackFlipY: true });
         });
 
         it('set image data / url', async () => {
             const testData = { tag: 'test-data' };
             (makeImage as jest.Mock).mockResolvedValue(testData);
+            const promise = new Promise<void>((resolve) => {
+                renderer.changed().on(resolve);
+            });
 
-            await renderer.setImageData({ url: '/test-url' });
+            renderer.setImageData({ url: '/test-url' });
+            await promise;
 
             expect(makeImage).toBeCalledWith({ url: '/test-url' });
             expect(texture.setImageData).toBeCalledWith(testData, { unpackFlipY: true });

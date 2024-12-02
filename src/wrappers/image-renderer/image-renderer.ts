@@ -5,8 +5,8 @@ import type {
 } from './image-renderer.types';
 import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
-import type { TextureImageData } from '../../gl/texture-2d.types';
 import type { Runtime } from '../../gl/runtime';
+import type { EventProxy } from '../../common/event-emitter.types';
 import { eq2, isVec2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
@@ -16,6 +16,7 @@ import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
+import { EventEmitter } from '../../common/event-emitter';
 import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { toArgStr } from '../../utils/string-formatter';
@@ -37,6 +38,7 @@ export class ImageRenderer extends BaseObject {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
+    private readonly _changed = new EventEmitter();
     private _textureUnit: number = 0;
     private _renderTargetSize: Vec2;
     private _region: ImageRendererRegion = {};
@@ -57,6 +59,7 @@ export class ImageRenderer extends BaseObject {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
+        this._changed.clear();
         this._dispose();
     }
 
@@ -77,33 +80,27 @@ export class ImageRenderer extends BaseObject {
         return texture;
     }
 
+    private _notifyChanged(): void {
+        this._changed.emit();
+    }
+
+    changed(): EventProxy {
+        return this._changed.proxy();
+    }
+
     imageSize(): Vec2 {
         return this._texture.size();
     }
 
-    async setImageData(data: ImageRendererImageData): Promise<void> {
+    setImageData(data: ImageRendererImageData): void {
         if (!data) {
             throw this._logMethodError('set_image_data', '_', 'not defined');
         }
-        let imageData: TextureImageData;
-        let unpackFlipY = false;
-        let log: string;
-        if (isRawData(data)) {
-            log = 'raw';
-            imageData = data;
-            unpackFlipY = true;
-        } else if (isUrlData(data)) {
-            log = `url(${data.url})`;
-            const img = await makeImage({ url: data.url });
-            imageData = img;
-            unpackFlipY = true;
-        } else {
-            log = 'tex_image_source';
-            imageData = data;
-        }
-        this._logMethod('set_image_data', log);
-        this._texture.setImageData(imageData, { unpackFlipY });
-        this._matDirty = this._texmatDirty = true;
+        this._logMethod('set_image_data', dataToStr(data));
+        updateTexture(this._texture, data, () => {
+            this._matDirty = this._texmatDirty = true;
+            this._notifyChanged();
+        });
     }
 
     getTextureUnit(): number {
@@ -183,6 +180,31 @@ export class ImageRenderer extends BaseObject {
         program.setUniform('u_texmat', this._texmat);
         program.setUniform('u_texture', this._textureUnit);
         this._primitive.render();
+    }
+}
+
+function dataToStr(data: ImageRendererImageData): string {
+    if (isRawData(data)) {
+        return toArgStr({ length: data.data.byteLength, size: data.size });
+    } else if (isUrlData(data)) {
+        return `url(${data.url})`;
+    } else {
+        return 'tex_image_source';
+    }
+}
+
+function updateTexture(texture: Texture, data: ImageRendererImageData, callback: () => void): void {
+    if (isUrlData(data)) {
+        makeImage({ url: data.url }).then(
+            (image) => {
+                texture.setImageData(image, { unpackFlipY: true });
+                callback();
+            },
+            console.error,
+        );
+    } else {
+        texture.setImageData(data, { unpackFlipY: isRawData(data) });
+        callback();
     }
 }
 
