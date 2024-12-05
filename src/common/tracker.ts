@@ -8,11 +8,13 @@ export class Tracker {
     private readonly _onStart?: TrackerHandler;
     private readonly _onMove?: TrackerHandler;
     private readonly _onEnd?: TrackerHandler;
+    private readonly _onHover?: TrackerHandler;
     private readonly _onClick?: TrackerHandler;
     private readonly _onDblClick?: TrackerHandler;
     private readonly _pointerDownHandler?: (e: PointerEvent) => void;
     private readonly _pointerMoveHandler?: (e: PointerEvent) => void;
     private readonly _pointerUpHandler?: (e: PointerEvent) => void;
+    private readonly _hoverHandler?: (e: PointerEvent) => void;
     private readonly _clickHandler?: (e: MouseEvent) => void;
     private readonly _dblClickHandler?: (e: MouseEvent) => void;
 
@@ -27,6 +29,11 @@ export class Tracker {
             this._pointerMoveHandler = (e) => this._handlePointerMove(e);
             this._pointerUpHandler = (e) => this._handlePointerUp(e);
             this._element.addEventListener('pointerdown', this._pointerDownHandler);
+        }
+        if (params.onHover) {
+            this._onHover = params.onHover;
+            this._hoverHandler = (e) => this._handleHover(e);
+            this._element.addEventListener('pointermove', this._hoverHandler);
         }
         if (params.onClick) {
             this._onClick = params.onClick;
@@ -58,6 +65,12 @@ export class Tracker {
         this._onEnd!({ coords, nativeEvent: e });
     }
 
+    private _handleHover(e: PointerEvent): void {
+        e.preventDefault();
+        const coords = this._getEventCoords(e);
+        this._onHover!({ coords, nativeEvent: e });
+    }
+
     private _handleClick(e: MouseEvent): void {
         e.preventDefault();
         const coords = this._getEventCoords(e);
@@ -86,6 +99,9 @@ export class Tracker {
         if (this._pointerDownHandler) {
             this._element.removeEventListener('pointerdown', this._pointerDownHandler);
             this._removeDocumentListeners();
+        }
+        if (this._hoverHandler) {
+            this._element.removeEventListener('pointermove', this._hoverHandler);
         }
         if (this._clickHandler) {
             this._element.removeEventListener('click', this._clickHandler);

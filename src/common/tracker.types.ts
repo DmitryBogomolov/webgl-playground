@@ -10,6 +10,7 @@ export interface TrackerHandler {
 }
 
 export interface TrackerParams {
+    readonly onHover?: TrackerHandler;
     readonly onStart?: TrackerHandler;
     readonly onMove?: TrackerHandler;
     readonly onEnd?: TrackerHandler;
