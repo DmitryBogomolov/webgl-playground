@@ -101,6 +101,15 @@ export function norm2(v: Vec2, out: Vec2Mut = v2()): Vec2 {
     return mul2(v, 1 / len2(v), out);
 }
 
+export function rotate2(v: Vec2, rotation: number, out: Vec2Mut = v2()): Vec2 {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    return upd2(out,
+        c * v.x - s * v.y,
+        s * v.x + c * v.y,
+    );
+}
+
 const _dist2_aux = v2();
 export function dist2(a: Vec2, b: Vec2): number {
     return len2(sub2(a, b, _dist2_aux));
