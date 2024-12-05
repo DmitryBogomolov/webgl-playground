@@ -52,3 +52,14 @@ TODO: Mention source when these files are updated to a newer version.
 
 leaves.jpg  
 Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
+
+
+///
+TODO
+
+tracker - ctor params -> events
+remove several canvas cases
+animation toggles
+camera - mouse+keyboard
+console logs - batching
+main - function for all demos
