@@ -117,10 +117,10 @@ function main(): void {
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
     runtime.frameRequested().on((delta) => {
-        if (animationFlag()) {
+        if (animationFlag() && delta < 250) {
             textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
-            textureCamera.setEyePos(textureCameraPos);
         }
+        textureCamera.setEyePos(textureCameraPos);
 
         renderToTexture(state);
         renderScene(state);
