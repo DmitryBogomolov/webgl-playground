@@ -108,9 +108,11 @@ function main(): void {
 
         const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
 
-        animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
-        const dx = Number(animationFlag()) * ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
-        const dy = Number(animationFlag()) * ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
+        if (delta < 250) {
+            animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
+        }
+        const dx = ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
+        const dy = ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
 
         identity4x4(mat);
         apply4x4(mat, xrotation4x4, deg2rad(xRotation()));
