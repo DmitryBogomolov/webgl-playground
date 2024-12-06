@@ -89,13 +89,12 @@ function main(): void {
         }
     }
 
-    new Tracker(container, {
-        onStart(e) {
-            processPointerPosition(e.coords);
-        },
-        onMove(e) {
-            processPointerPosition(e.coords);
-        },
+    const tracker = new Tracker(container);
+    tracker.event('start').on((e) => {
+        processPointerPosition(e.coords);
+    });
+    tracker.event('move').on((e) => {
+        processPointerPosition(e.coords);
     });
 
     function doLayout(): void {

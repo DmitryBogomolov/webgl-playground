@@ -1,19 +1,11 @@
-import { Vec2 } from '../geometry/vec2.types';
+import type { Vec2 } from '../geometry/vec2.types';
+import type { EventProxy } from './event-emitter.types';
 
 export interface TrackerEvent {
     readonly nativeEvent: PointerEvent | MouseEvent;
     readonly coords: Vec2;
 }
 
-export interface TrackerHandler {
-    (e: TrackerEvent): void;
-}
+export type TRACKER_EVENTS = 'click' | 'dblclick' | 'hover' | 'start' | 'move' | 'end';
 
-export interface TrackerParams {
-    readonly onHover?: TrackerHandler;
-    readonly onStart?: TrackerHandler;
-    readonly onMove?: TrackerHandler;
-    readonly onEnd?: TrackerHandler;
-    readonly onClick?: TrackerHandler;
-    readonly onDblClick?: TrackerHandler;
-}
+export type TrackerEventProxy = EventProxy<[TrackerEvent]>;

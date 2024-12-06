@@ -57,7 +57,6 @@ Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
 ///
 TODO
 
-tracker - ctor params -> events
 remove several canvas cases
 animation toggles
 camera - mouse+keyboard

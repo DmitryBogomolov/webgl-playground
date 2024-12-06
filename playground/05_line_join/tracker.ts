@@ -1,4 +1,4 @@
-import type { Runtime, Vec2, Vec2Mut } from 'lib';
+import type { Runtime, TrackerEvent, Vec2, Vec2Mut } from 'lib';
 import type { SearchTree } from './search-tree';
 import type { State } from './state';
 import {
@@ -116,58 +116,67 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         state.setThickness(thickness);
     }
 
-    const tracker = new Tracker(canvas, {
-        onDblClick({ coords }) {
-            if (action !== 'none') {
-                return;
-            }
-            if (targetVertex.location === 'center') {
-                if (state.vertices.length <= 2) {
-                    return;
-                }
-                state.removeVertex(targetVertex.idx);
-            } else {
-                state.addVertex(state.vertices.length, getNdcCoords(coords));
-            }
-            targetVertex = stubVertex;
-            processPointerPosition(coords);
-        },
-        onHover({ coords }) {
-            if (action !== 'none') {
-                return;
-            }
-            processPointerPosition(coords);
-        },
-        onStart() {
-            if (action !== 'none') {
-                return;
-            }
+    function onHover({ coords }: TrackerEvent): void {
+        if (action !== 'none') {
+            return;
+        }
+        processPointerPosition(coords);
+    }
 
-            switch (targetVertex.location) {
-            case 'center':
-                action = 'move_vertex';
-                break;
-            case 'border':
-                action = 'change_thickness';
-                break;
+    function onDblClick({ coords }: TrackerEvent): void {
+        if (action !== 'none') {
+            return;
+        }
+        if (targetVertex.location === 'center') {
+            if (state.vertices.length <= 2) {
+                return;
             }
-        },
-        onMove({ coords }) {
-            switch (action) {
-            case 'move_vertex':
-                moveVertex(coords);
-                break;
-            case 'change_thickness':
-                changeThickness(coords);
-                break;
-            }
-        },
-        onEnd({ coords }) {
-            action = 'none';
-            targetVertex = stubVertex;
-            processPointerPosition(coords);
-        },
-    });
+            state.removeVertex(targetVertex.idx);
+        } else {
+            state.addVertex(state.vertices.length, getNdcCoords(coords));
+        }
+        targetVertex = stubVertex;
+        processPointerPosition(coords);
+    }
+
+    function onStart(): void {
+        if (action !== 'none') {
+            return;
+        }
+
+        switch (targetVertex.location) {
+        case 'center':
+            action = 'move_vertex';
+            break;
+        case 'border':
+            action = 'change_thickness';
+            break;
+        }
+    }
+
+    function onMove({ coords }: TrackerEvent): void {
+        switch (action) {
+        case 'move_vertex':
+            moveVertex(coords);
+            break;
+        case 'change_thickness':
+            changeThickness(coords);
+            break;
+        }
+    }
+
+    function onEnd({ coords }: TrackerEvent): void {
+        action = 'none';
+        targetVertex = stubVertex;
+        processPointerPosition(coords);
+    }
+
+    const tracker = new Tracker(canvas);
+    tracker.event('hover').on(onHover);
+    tracker.event('start').on(onStart);
+    tracker.event('move').on(onMove);
+    tracker.event('end').on(onEnd);
+    tracker.event('dblclick').on(onDblClick);
 
     return () => tracker.dispose();
 }
