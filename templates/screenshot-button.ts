@@ -23,9 +23,14 @@ function createButton(runtime: Runtime): void {
     const button = document.createElement('button');
     button.className = 'btn screenshot-button';
     button.textContent = 'screenshot';
-    button.addEventListener('click', async () => {
-        const blob = await takeCanvasSnapshot(runtime);
-        downloadBlob(blob, PLAYGROUND_NAME);
+    button.addEventListener('click', () => {
+        takeCanvasSnapshot(runtime)
+            .then((blob) => {
+                downloadBlob(blob, PLAYGROUND_NAME);
+            })
+            .catch((err) => {
+                console.error('screenshot error', err);
+            });
     });
     runtime.canvas().parentElement!.appendChild(button);
 }
