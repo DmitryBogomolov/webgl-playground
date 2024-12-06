@@ -62,4 +62,5 @@ remove several canvas cases
 animation toggles
 camera - mouse+keyboard
 console logs - batching
-main - function for all demos
+main - function for all demos (and some kind of disposing)
+camera - some visual controls? rgb-arrows
