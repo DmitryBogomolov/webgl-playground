@@ -58,7 +58,6 @@ Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
 TODO
 
 remove several canvas cases
-animation toggles
 camera - mouse+keyboard
 console logs - batching
 main - function for all demos (and some kind of disposing)

@@ -5,9 +5,11 @@ import {
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
+import { observable } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
-import { trackSize } from 'playground-utils/resizer';
 
 /**
  * 3D Transformations.
@@ -51,19 +53,30 @@ function main(): void {
     const viewProj = mat4() as Mat4Mut;
     const unit = identity4x4();
 
+    const animationFlag = observable(true);
+    animationFlag.on(() => {
+        runtime.requestFrameRender();
+    });
+
     runtime.frameRequested().on((delta) => {
         identity4x4(viewProj);
         mul4x4(view, viewProj, viewProj);
         mul4x4(proj, viewProj, viewProj);
-        figure1.update(viewProj, unit, delta);
-        figure2.update(viewProj, figure1.model(), delta);
-        figure3.update(viewProj, figure1.model(), delta);
+
+        if (delta < 250) {
+            figure1.update(viewProj, unit, delta);
+            figure2.update(viewProj, figure1.model(), delta);
+            figure3.update(viewProj, figure1.model(), delta);
+        }
 
         runtime.clearBuffer('color|depth');
         figure1.render();
         figure2.render();
         figure3.render();
-        runtime.requestFrameRender();
+
+        if (animationFlag()) {
+            runtime.requestFrameRender();
+        }
     });
 
     trackSize(runtime, () => {
@@ -75,4 +88,8 @@ function main(): void {
             zFar: 100,
         }, proj);
     });
+
+    createControls(container, [
+        { label: 'animation', checked: animationFlag },
+    ]);
 }

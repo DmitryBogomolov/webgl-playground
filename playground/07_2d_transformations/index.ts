@@ -5,10 +5,12 @@ import {
     vec2, mul2,
     mat3, projection3x3, mul3x3,
 } from 'lib';
+import { trackSize } from 'playground-utils/resizer';
+import { observable } from 'playground-utils/observable';
+import { createControls } from 'playground-utils/controls';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
 import { makeFigureRenderer } from './figure';
-import { trackSize } from 'playground-utils/resizer';
 
 /**
  * 2D Transformations.
@@ -40,16 +42,31 @@ function main(): void {
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });
 
+    const animationFlag = observable(true);
+    animationFlag.on(() => {
+        runtime.requestFrameRender();
+    });
+
     runtime.frameRequested().on((delta) => {
-        runtime.clearBuffer();
-        animate1(delta, transformation1);
-        animate2(delta, transformation2);
-        animate3(delta, transformation3);
+        if (delta < 250) {
+            animate1(delta, transformation1);
+            animate2(delta, transformation2);
+            animate3(delta, transformation3);
+        }
         mul3x3(transformation1, transformation2, transformation2);
         mul3x3(transformation1, transformation3, transformation3);
+
+        runtime.clearBuffer();
         render1(projection, transformation1);
         render2(projection, transformation2);
         render3(projection, transformation3);
-        runtime.requestFrameRender();
+
+        if (animationFlag()) {
+            runtime.requestFrameRender();
+        }
     });
+
+    createControls(container, [
+        { label: 'animation', checked: animationFlag },
+    ]);
 }
