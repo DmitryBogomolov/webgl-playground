@@ -12,6 +12,7 @@ import {
 import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
 
@@ -69,7 +70,6 @@ function main(): void {
         { offset: vec2(+1, +0.8), size: 0.15 },
     ] as const;
 
-    const animationFlag = observable(true);
     let animationAngle = 0;
 
     const PI2 = Math.PI * 2;
@@ -99,7 +99,7 @@ function main(): void {
         });
     });
 
-    [animationFlag, xRotation, yRotation, magFilter, minFilter]
+    [xRotation, yRotation, magFilter, minFilter]
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
     runtime.frameRequested().on((delta) => {
@@ -132,14 +132,10 @@ function main(): void {
             program.setUniform('u_size', mul2(unitSize, size));
             primitive.render();
         }
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
+        { label: 'animation', checked: animation(runtime) },
         { label: 'x rotation', min: -30, max: +30, value: xRotation },
         { label: 'y rotation', min: -30, max: +30, value: yRotation },
         { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
