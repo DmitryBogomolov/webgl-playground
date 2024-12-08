@@ -47,10 +47,10 @@ Playground for WebGL samples
 
 ### Static content
 
-bootstrap.min.css, bootstrap.min.css.map  
+bootstrap.min.css, bootstrap.min.css.map
 TODO: Mention source when these files are updated to a newer version.
 
-leaves.jpg  
+leaves.jpg
 Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
 
 
@@ -62,3 +62,4 @@ camera - mouse+keyboard
 console logs - batching
 main - function for all demos (and some kind of disposing)
 camera - some visual controls? rgb-arrows
+keep font-awesome in local server (and update credentials in readme)
