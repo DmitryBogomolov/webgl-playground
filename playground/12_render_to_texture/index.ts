@@ -11,6 +11,7 @@ import {
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { animation } from 'playground-utils/animation';
 import { makeObject, makeTexturePlane } from './primitive';
 
 /**
@@ -50,7 +51,6 @@ function main(): void {
         depthTest: true,
     }));
 
-    const animationFlag = observable(true);
     const xRotation = observable(0);
     const yRotation = observable(30);
 
@@ -113,25 +113,22 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
 
-    [animationFlag, targetModel]
-        .forEach((item) => item.on(() => runtime.requestFrameRender()));
+    targetModel.on(() => {
+        runtime.requestFrameRender();
+    });
 
     runtime.frameRequested().on((delta) => {
-        if (animationFlag() && delta < 250) {
+        if (delta < 250) {
             textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
         }
         textureCamera.setEyePos(textureCameraPos);
 
         renderToTexture(state);
         renderScene(state);
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
+        { label: 'animation', checked: animation(runtime) },
         { label: 'x rotation', value: xRotation, min: -45, max: +45 },
         { label: 'y rotation', value: yRotation, min: -45, max: +45 },
     ]);

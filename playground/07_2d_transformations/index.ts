@@ -6,8 +6,8 @@ import {
     mat3, projection3x3, mul3x3,
 } from 'lib';
 import { trackSize } from 'playground-utils/resizer';
-import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
 import { makeFigureRenderer } from './figure';
@@ -42,11 +42,6 @@ function main(): void {
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });
 
-    const animationFlag = observable(true);
-    animationFlag.on(() => {
-        runtime.requestFrameRender();
-    });
-
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
             animate1(delta, transformation1);
@@ -60,13 +55,9 @@ function main(): void {
         render1(projection, transformation1);
         render2(projection, transformation2);
         render3(projection, transformation3);
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
+        { label: 'animation', checked: animation(runtime) },
     ]);
 }

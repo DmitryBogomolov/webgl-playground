@@ -1,7 +1,7 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
 import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
+import { animation } from 'playground-utils/animation';
 import { createControls } from 'playground-utils/controls';
-import { observable } from 'playground-utils/observable';
 
 /**
  * Draw image util.
@@ -45,11 +45,6 @@ function main(): void {
     let step = 0;
     const SPEED = 0.1;
 
-    const animationFlag = observable(true);
-    animationFlag.on(() => {
-        runtime.requestFrameRender();
-    });
-
     runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color');
         if (delta < 250) {
@@ -60,14 +55,10 @@ function main(): void {
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
+        { label: 'animation', checked: animation(runtime) },
     ]);
 }
 
