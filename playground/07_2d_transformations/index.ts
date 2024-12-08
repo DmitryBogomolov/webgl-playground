@@ -6,7 +6,6 @@ import {
     mat3, projection3x3, mul3x3,
 } from 'lib';
 import { trackSize } from 'playground-utils/resizer';
-import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
@@ -57,7 +56,5 @@ function main(): void {
         render3(projection, transformation3);
     });
 
-    createControls(container, [
-        { label: 'animation', checked: animation(runtime) },
-    ]);
+    animation(runtime);
 }

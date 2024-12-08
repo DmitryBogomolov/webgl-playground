@@ -1,7 +1,6 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
 import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
 import { animation } from 'playground-utils/animation';
-import { createControls } from 'playground-utils/controls';
 
 /**
  * Draw image util.
@@ -53,9 +52,7 @@ function main(): void {
         render3(size, imageLetter, step);
     });
 
-    createControls(container, [
-        { label: 'animation', checked: animation(runtime) },
-    ]);
+    animation(runtime);
 }
 
 function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void {

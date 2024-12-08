@@ -128,10 +128,11 @@ function main(): void {
     });
 
     createControls(container, [
-        { label: 'animation', checked: animation(runtime) },
         { label: 'x rotation', value: xRotation, min: -45, max: +45 },
         { label: 'y rotation', value: yRotation, min: -45, max: +45 },
     ]);
+
+    animation(runtime);
 }
 
 function renderToTexture({

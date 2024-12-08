@@ -135,10 +135,11 @@ function main(): void {
     });
 
     createControls(container, [
-        { label: 'animation', checked: animation(runtime) },
         { label: 'x rotation', min: -30, max: +30, value: xRotation },
         { label: 'y rotation', min: -30, max: +30, value: yRotation },
         { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
         { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter },
     ]);
+
+    animation(runtime);
 }

@@ -6,7 +6,6 @@ import {
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { trackSize } from 'playground-utils/resizer';
-import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
@@ -80,7 +79,5 @@ function main(): void {
         }, proj);
     });
 
-    createControls(container, [
-        { label: 'animation', checked: animation(runtime) },
-    ]);
+    animation(runtime);
 }
