@@ -53,6 +53,8 @@ TODO: Mention source when these files are updated to a newer version.
 leaves.jpg
 Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
 
+play-solid.svg, pause-solid.svg
+Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
 ///
 TODO
@@ -62,4 +64,4 @@ camera - mouse+keyboard
 console logs - batching
 main - function for all demos (and some kind of disposing)
 camera - some visual controls? rgb-arrows
-keep font-awesome in local server (and update credentials in readme)
+
