@@ -28,23 +28,38 @@ interface Vertex {
 }
 
 function main(): void {
-    const containerAoS = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-aos')!;
-    const containerSoA = document.querySelector<HTMLElement>(PLAYGROUND_ROOT + '-soa')!;
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime({ element: container });
+    alignLabels(container);
 
-    const vertices: Vertex[] = [
-        { position: vec2(-1, -1), color: color(0, 1, 0), factor: 0.3 },
-        { position: vec2(+1, -1), color: color(0, 0, 1), factor: 0.5 },
-        { position: vec2(+1, +1), color: color(0, 1, 0), factor: 0.7 },
-        { position: vec2(-1, +1), color: color(0, 0, 1), factor: 0.9 },
-    ];
+    const vertices1 = makeVertices({ x: -1, y: 0 }, { x: +1, y: +1 });
+    const vertices2 = makeVertices({ x: -1, y: -1 }, { x: +1, y: 0 });
     const indices = [0, 1, 2, 2, 3, 0];
 
-    setup(containerAoS, (runtime) => makeAoSPrimitive(runtime, vertices, indices));
-    setup(containerSoA, (runtime) => makeSoAPrimitive(runtime, vertices, indices));
+    const primitiveAoS = makeAoSPrimitive(runtime, vertices1, indices);
+    const primitiveSoA = makeSoAPrimitive(runtime, vertices2, indices);
+    runtime.frameRequested().on(() => {
+        runtime.clearBuffer();
+        primitiveAoS.render();
+        primitiveSoA.render();
+    });
+}
+
+function makeVertices(min: Vec2, max: Vec2): Vertex[] {
+    const { x: xMin, y: yMin } = min;
+    const { x: xMax, y: yMax } = max;
+    return [
+        { position: vec2(xMin, yMin), color: color(0, 1, 0), factor: 0.3 },
+        { position: vec2(xMax, yMin), color: color(0, 0, 1), factor: 0.5 },
+        { position: vec2(xMax, yMax), color: color(0, 1, 0), factor: 0.7 },
+        { position: vec2(xMin, yMax), color: color(0, 0, 1), factor: 0.9 },
+    ];
 }
 
 function makeAoSPrimitive(
-    runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+    runtime: Runtime,
+    vertices: ReadonlyArray<Vertex>,
+    indices: ReadonlyArray<number>,
 ): Primitive {
     const schema = parseVertexSchema({
         attributes: [
@@ -57,7 +72,9 @@ function makeAoSPrimitive(
 }
 
 function makeSoAPrimitive(
-    runtime: Runtime, vertices: ReadonlyArray<Vertex>, indices: ReadonlyArray<number>,
+    runtime: Runtime,
+    vertices: ReadonlyArray<Vertex>,
+    indices: ReadonlyArray<number>,
 ): Primitive {
     const schema = parseVertexSchema({
         attributes: [
@@ -95,11 +112,12 @@ function makePrimitive(
     return primitive;
 }
 
-function setup(container: HTMLElement, makePrimitive: (runtime: Runtime) => Primitive): void {
-    const runtime = new Runtime({ element: container });
-    const primitive = makePrimitive(runtime);
-    runtime.frameRequested().on(() => {
-        runtime.clearBuffer();
-        primitive.render();
-    });
+function alignLabels(container: HTMLElement): void {
+    const { top, height } = container.getBoundingClientRect();
+    const labelAoS = document.querySelector<HTMLElement>('#label-aos')!;
+    const labelSoA = document.querySelector<HTMLElement>('#label-soa')!;
+    const yAoS = Math.round(top);
+    const ySoA = Math.round(top + height / 2);
+    labelAoS.style.top = `${yAoS}px`;
+    labelSoA.style.top = `${ySoA}px`;
 }
