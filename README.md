@@ -59,7 +59,6 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 ///
 TODO
 
-remove several canvas cases
 camera - mouse+keyboard
 console logs - batching
 main - function for all demos (and some kind of disposing)
