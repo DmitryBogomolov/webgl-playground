@@ -3,7 +3,6 @@ import { parseVertexSchema, vec4, writeVertexData } from 'lib';
 import { LineBase } from '../line';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
-import { Vertex } from 'playground/05_line_join/vertex';
 
 const vertexSchema = parseVertexSchema({
     attributes: [
@@ -15,22 +14,25 @@ const vertexSchema = parseVertexSchema({
 
 export class RoundLine extends LineBase {
     private readonly _buffer = new Uint8Array(2 * 4 * vertexSchema.vertexSize);
+    private readonly _color: Color;
 
-    constructor(runtime: Runtime) {
+    constructor(runtime: Runtime, clr: Color) {
         super(runtime, {
             vertexSchema,
             vertShader,
             fragShader,
         });
+        this._color = clr;
     }
 
-    protected _writeVertices(vertices: ReadonlyArray<Vertex>): ArrayBuffer {
+    protected _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer {
+        const clr = this._color;
         return writeVertexData(
             {
                 length: (vertices.length - 1) * 4,
                 *[Symbol.iterator]() {
                     for (let i = 0; i < vertices.length - 1; ++i) {
-                        yield *makeVertices(vertices, i);
+                        yield *makeVertices(vertices, i, clr);
                     }
                 },
             },
@@ -48,16 +50,17 @@ export class RoundLine extends LineBase {
         return new Uint16Array(list);
     }
 
-    protected _updateVertex(vertices: ReadonlyArray<Vertex>, idx: number): [ArrayBuffer, number] {
+    protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments.
         const startIdx = Math.max(idx - 1, 0);
         const endIdx = Math.min(idx, vertices.length - 2);
+        const clr = this._color;
         const vertexData = writeVertexData(
             {
                 length: (endIdx - startIdx + 1) * 4,
                 *[Symbol.iterator]() {
                     for (let i = startIdx; i <= endIdx; ++i) {
-                        yield *makeVertices(vertices, i);
+                        yield *makeVertices(vertices, i, clr);
                     }
                 },
             },
@@ -80,20 +83,18 @@ function makePositionAttr(position: Vec2, crossSide: number, lateralSide: number
     return vec4(position.x, position.y, crossSide, lateralSide);
 }
 
-function* makeVertices(vertices: ReadonlyArray<Vertex>, i: number): Iterable<RoundVertex> {
+function* makeVertices(vertices: ReadonlyArray<Vec2>, i: number, clr: Color): Iterable<RoundVertex> {
     const start = vertices[i];
     const end = vertices[i + 1];
 
-    const startOther = end.position;
-    const endOther = start.position;
-    const startColor = start.color;
-    const endColor = end.color;
+    const startOther = end;
+    const endOther = start;
 
-    yield [makePositionAttr(start.position, +1, -1), startOther, startColor];
-    yield [makePositionAttr(start.position, -1, -1), startOther, startColor];
+    yield [makePositionAttr(start, +1, -1), startOther, clr];
+    yield [makePositionAttr(start, -1, -1), startOther, clr];
     // In end-start direction (-1) is (+1) in start-end direction
-    yield [makePositionAttr(end.position, -1, +1), endOther, endColor];
-    yield [makePositionAttr(end.position, +1, +1), endOther, endColor];
+    yield [makePositionAttr(end, -1, +1), endOther, clr];
+    yield [makePositionAttr(end, +1, +1), endOther, clr];
 }
 
 function makeIndexes(list: number[], base: number): void {

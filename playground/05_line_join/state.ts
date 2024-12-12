@@ -1,36 +1,15 @@
-import type { Color, Vec2 } from 'lib';
-import type { Vertex } from './vertex';
-import { color, vec2, clone2, EventEmitter } from 'lib';
-
-const pickColor = (function () {
-    const colorPool: ReadonlyArray<Color> = [
-        color(0, 0, 1),
-        color(0, 1, 0),
-        color(0, 1, 1),
-        color(1, 0, 0),
-        color(1, 0, 1),
-        color(1, 1, 0),
-    ];
-    let next = 0;
-
-    function pick(): Color {
-        const idx = next;
-        next = (next + 1) % colorPool.length;
-        return colorPool[idx];
-    }
-
-    return pick;
-}());
+import type { Vec2 } from 'lib';
+import { vec2, clone2, EventEmitter } from 'lib';
 
 export class State {
     readonly verticesChanged = new EventEmitter();
     readonly vertexUpdated = new EventEmitter<[number]>();
     readonly thicknessChanged = new EventEmitter();
-    vertices: Vertex[] = [
-        { position: vec2(-0.7, -0.8), color: pickColor() },
-        { position: vec2(-0.1, +0.5), color: pickColor() },
-        { position: vec2(+0.4, -0.5), color: pickColor() },
-        { position: vec2(+0.8, +0.6), color: pickColor() },
+    vertices: Vec2[] = [
+        vec2(-0.7, -0.8),
+        vec2(-0.1, +0.5),
+        vec2(+0.4, -0.5),
+        vec2(+0.8, +0.6),
     ];
     thickness: number = 50;
 
@@ -41,7 +20,7 @@ export class State {
     }
 
     addVertex(idx: number, position: Vec2): void {
-        this.vertices.splice(idx, 0, { position: clone2(position), color: pickColor() });
+        this.vertices.splice(idx, 0, clone2(position));
         this.verticesChanged.emit();
     }
 
@@ -51,7 +30,7 @@ export class State {
     }
 
     updateVertex(idx: number, position: Vec2): void {
-        this.vertices[idx].position = clone2(position);
+        this.vertices[idx] = clone2(position);
         this.vertexUpdated.emit(idx);
     }
 

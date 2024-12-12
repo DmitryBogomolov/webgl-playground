@@ -22,9 +22,7 @@ export class SearchTree {
     }
 
     private readonly _update = (): void => {
-        this._tree = new KDTree(
-            this._state.vertices.map((v) => v.position), this._axisFuncList, this._distFunc,
-        );
+        this._tree = new KDTree(this._state.vertices, this._axisFuncList, this._distFunc);
     };
 
     dispose(): void {

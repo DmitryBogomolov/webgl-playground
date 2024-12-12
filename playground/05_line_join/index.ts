@@ -1,5 +1,5 @@
 import type { LineBase } from './line/line';
-import { Runtime } from 'lib';
+import { Runtime, colors } from 'lib';
 import { State } from './state';
 import { BevelLine } from './line/bevel';
 import { RoundLine } from './line/round';
@@ -17,36 +17,31 @@ export type DESCRIPTION = never;
 
 main();
 
-interface LineConstructor<T extends LineBase> {
-    new(runtime: Runtime): T;
-}
-
 function main(): void {
-    const containerBevel = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-bevel')!;
-    const containerRound = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-round')!;
+    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
+    const runtime = new Runtime({ element: container });
 
     const state = new State();
 
-    const runtimeBevel = new Runtime({ element: containerBevel });
-    const runtimeRound = new Runtime({ element: containerRound });
+    const bevelLine = new BevelLine(runtime, colors.BLUE);
+    const roundLine = new RoundLine(runtime, colors.GREEN);
+    setupLine(bevelLine, runtime, state, 1);
+    setupLine(roundLine, runtime, state, 0.5);
 
-    setupLine(runtimeBevel, state, BevelLine);
-    setupLine(runtimeRound, state, RoundLine);
+    const tree = new SearchTree(() => runtime.size(), state);
 
-    const tree = new SearchTree(() => runtimeBevel.size(), state);
+    setupTracker(runtime, tree, state);
 
-    setupTracker(runtimeBevel, tree, state);
-    setupTracker(runtimeRound, tree, state);
-}
-
-function setupLine<T extends LineBase>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
-    const line = new ctor(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
-        line.render();
+        bevelLine.render();
+        roundLine.render();
     });
+}
+
+function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {
     state.thicknessChanged.on(() => {
-        line.setThickness(state.thickness);
+        line.setThickness(state.thickness * thicknessFactor);
         runtime.requestFrameRender();
     });
     state.verticesChanged.on(() => {
@@ -58,6 +53,5 @@ function setupLine<T extends LineBase>(runtime: Runtime, state: State, ctor: Lin
         runtime.requestFrameRender();
     });
     line.setVertices(state.vertices);
-    line.setThickness(state.thickness);
-    return line;
+    line.setThickness(state.thickness * thicknessFactor);
 }

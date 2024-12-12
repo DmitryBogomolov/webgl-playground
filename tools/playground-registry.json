@@ -32,7 +32,7 @@
         "title": "05 Line Join",
         "index": "index.ts",
         "worker": null,
-        "markup": "markup.html"
+        "markup": null
     },
     {
         "name": "06_texture_filters",
