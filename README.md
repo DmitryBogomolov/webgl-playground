@@ -63,4 +63,4 @@ camera - mouse+keyboard
 console logs - batching
 main - function for all demos (and some kind of disposing)
 camera - some visual controls? rgb-arrows
-
+try to remove demos registry
