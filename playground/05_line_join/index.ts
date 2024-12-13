@@ -28,7 +28,7 @@ function main(): void {
     setupLine(bevelLine, runtime, state, 1);
     setupLine(roundLine, runtime, state, 0.5);
 
-    const tree = new SearchTree(() => runtime.size(), state);
+    const tree = new SearchTree(runtime, state);
 
     setupTracker(runtime, tree, state);
 

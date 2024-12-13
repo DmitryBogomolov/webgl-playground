@@ -87,8 +87,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     }
 
     function processPointerPosition(coords: Vec2): void {
-        // TODO_THIS: Keep tree in px space. Get rid of coords conversion.
-        const vertexIdx = tree.findNearest(getNdcCoords(coords))!;
+        const vertexIdx = tree.findNearest(coords);
         if (targetVertex.idx !== vertexIdx) {
             targetVertex = {
                 idx: vertexIdx,
