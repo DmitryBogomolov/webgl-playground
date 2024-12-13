@@ -24,7 +24,7 @@ export class SearchTree {
 
     private readonly _update = (): void => {
         const size = this._runtime.size();
-        const vertices = this._state.vertices.map((v) => ndc2px(v, size));
+        const vertices = this._state.vertices().map((v) => ndc2px(v, size));
         this._tree = new KDTree(vertices, axisFuncList);
     };
 

@@ -47,9 +47,10 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     const canvas = runtime.canvas();
 
     function getVertexNormal(vertexIdx: number): Vec2 {
-        const curr = state.vertices[vertexIdx];
-        const next = state.vertices[vertexIdx + 1];
-        const prev = state.vertices[vertexIdx - 1];
+        const vertices = state.vertices();
+        const curr = vertices[vertexIdx];
+        const next = vertices[vertexIdx + 1];
+        const prev = vertices[vertexIdx - 1];
         const ret = getPxCoords(curr) as Vec2Mut;
         const nextDir = next ? sub2(getPxCoords(next), ret) : ZERO2;
         const prevDir = prev ? sub2(ret, getPxCoords(prev)) : ZERO2;
@@ -65,7 +66,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
             return 'center';
         }
         if (
-            equal(len, state.thickness / 2, BORDER_THRESHOLD) &&
+            equal(len, state.thickness() / 2, BORDER_THRESHOLD) &&
             equal(Math.abs(dot2(pointer, targetVertex.normal)) / len, 1, 0.1)
         ) {
             return 'border';
@@ -91,7 +92,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         if (targetVertex.idx !== vertexIdx) {
             targetVertex = {
                 idx: vertexIdx,
-                coords: getPxCoords(state.vertices[vertexIdx]),
+                coords: getPxCoords(state.vertices()[vertexIdx]),
                 normal: getVertexNormal(vertexIdx),
                 location: 'none',
             };
@@ -126,13 +127,14 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         if (action !== 'none') {
             return;
         }
+        const vertexCount = state.vertices().length;
         if (targetVertex.location === 'center') {
-            if (state.vertices.length <= 2) {
+            if (vertexCount <= 2) {
                 return;
             }
             state.removeVertex(targetVertex.idx);
         } else {
-            state.addVertex(state.vertices.length, getNdcCoords(coords));
+            state.addVertex(vertexCount, getNdcCoords(coords));
         }
         targetVertex = stubVertex;
         processPointerPosition(coords);

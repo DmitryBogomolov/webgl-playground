@@ -41,17 +41,17 @@ function main(): void {
 
 function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {
     state.thicknessChanged.on(() => {
-        line.setThickness(state.thickness * thicknessFactor);
+        line.setThickness(state.thickness() * thicknessFactor);
         runtime.requestFrameRender();
     });
     state.verticesChanged.on(() => {
-        line.setVertices(state.vertices);
+        line.setVertices(state.vertices());
         runtime.requestFrameRender();
     });
     state.vertexUpdated.on((idx) => {
-        line.updateVertex(state.vertices, idx);
+        line.updateVertex(state.vertices(), idx);
         runtime.requestFrameRender();
     });
-    line.setVertices(state.vertices);
-    line.setThickness(state.thickness * thicknessFactor);
+    line.setVertices(state.vertices());
+    line.setThickness(state.thickness() * thicknessFactor);
 }
