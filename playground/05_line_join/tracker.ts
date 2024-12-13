@@ -113,7 +113,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         const pointer = sub2(coords, targetVertex.coords);
         const len = Math.abs(dot2(pointer, targetVertex.normal)) * 2;
         const thickness = clamp(len, MIN_THICKNESS, MAX_THICKNESS) | 0;
-        state.setThickness(thickness);
+        state.thickness(thickness);
     }
 
     function onHover({ coords }: TrackerEvent): void {
@@ -179,5 +179,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     tracker.event('end').on(onEnd);
     tracker.event('dblclick').on(onDblClick);
 
-    return () => tracker.dispose();
+    return () => {
+        tracker.dispose();
+    };
 }

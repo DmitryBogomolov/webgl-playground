@@ -40,16 +40,16 @@ function main(): void {
 }
 
 function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {
-    state.thicknessChanged.on(() => {
-        line.setThickness(state.thickness() * thicknessFactor);
+    state.thickness.on((thickness) => {
+        line.setThickness(thickness * thicknessFactor);
         runtime.requestFrameRender();
     });
-    state.verticesChanged.on(() => {
+    state.changedVertices.on(() => {
         line.setVertices(state.vertices());
         runtime.requestFrameRender();
     });
-    state.vertexUpdated.on((idx) => {
-        line.updateVertex(state.vertices(), idx);
+    state.changedVertex.on(({ index }) => {
+        line.updateVertex(state.vertices(), index);
         runtime.requestFrameRender();
     });
     line.setVertices(state.vertices());
