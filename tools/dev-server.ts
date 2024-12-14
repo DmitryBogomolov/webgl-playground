@@ -49,6 +49,10 @@ export function setupHandlers(app: Application, playgrounds: ReadonlyArray<Playg
         return content;
     }
 
+
+    app.get('/favicon.ico', (_, res) => {
+        res.send('favicon');
+    });
     app.get('/', (_req, res) => {
         res.send(getRootPage());
     });
