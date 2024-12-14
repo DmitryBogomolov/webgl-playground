@@ -54,7 +54,7 @@ interface State {
 
 function main(): void {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container, options: { extensions: ['depth_texture'] } });
+    const runtime = new Runtime({ element: container, extensions: ['depth_texture'] });
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
