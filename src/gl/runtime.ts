@@ -145,8 +145,7 @@ export class Runtime extends BaseObject {
     private readonly _logMethodRef = this._logMethod.bind(this);
 
     constructor(params: RuntimeParams) {
-        // TODO: Remove `console` here.
-        super({ logger: console, ...params });
+        super(params);
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
