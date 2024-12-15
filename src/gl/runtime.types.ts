@@ -32,4 +32,4 @@ export interface RuntimeParams extends BaseObjectParams {
     readonly trackElementResize?: boolean;
     readonly extensions?: ReadonlyArray<EXTENSION>;
     readonly contextAttributes?: WebGLContextAttributes;
-};
+}
