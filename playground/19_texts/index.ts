@@ -1,6 +1,6 @@
-import type { Primitive, Texture, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, Primitive, Texture, Vec3, Mat4, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Camera,
     divc2,
     vec3, add3, mul3,
@@ -8,6 +8,7 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -47,8 +48,7 @@ interface State {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
 

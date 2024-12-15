@@ -1,10 +1,10 @@
 import type { Mat3Mut } from 'lib';
 import {
-    Runtime,
     color, colors,
     vec2, mul2,
     mat3, projection3x3, mul3x3,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
@@ -21,8 +21,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     const makePrimitive = makePrimitiveFactory(runtime);
     const render1 = makeFigureRenderer(makePrimitive, colors.BLUE, vec2(50, 50));

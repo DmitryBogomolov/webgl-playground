@@ -1,7 +1,7 @@
-import type { Primitive, Vec2, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, Primitive, Vec2, Vec3, Mat4, Color } from 'lib';
 import type { GlyphAtlas } from './glyph';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Texture,
     Camera,
     divc2,
@@ -10,6 +10,7 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -51,8 +52,7 @@ interface State {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
     const atlas = makeGlyphAtlas(FONT_SIZE);

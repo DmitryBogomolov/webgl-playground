@@ -1,7 +1,7 @@
 import type { Program, SHADER_UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     vec2,
     ZERO3, YUNIT3, vec3, neg3, mul3, norm3,
     mat4, perspective4x4, lookAt4x4, identity4x4,
@@ -9,6 +9,7 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -24,8 +25,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({
         depthTest: true,

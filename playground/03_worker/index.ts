@@ -1,6 +1,7 @@
-import type { Color, Vec2 } from 'lib';
+import type { Runtime, Color, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import { Runtime, Primitive, Program, ForegroundChannel, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
+import { Primitive, Program, ForegroundChannel, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -22,8 +23,7 @@ interface State {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
     const primitive = makePrimitive(runtime);
 
     const state: State = {

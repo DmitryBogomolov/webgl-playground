@@ -1,6 +1,5 @@
-import type { Color, Vec2, VertexSchemaInfo } from 'lib';
+import type { Runtime, Color, Vec2, VertexSchemaInfo } from 'lib';
 import {
-    Runtime,
     Primitive,
     Program,
     color,
@@ -8,6 +7,7 @@ import {
     parseVertexSchema,
     writeVertexData,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -28,8 +28,7 @@ interface Vertex {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     alignLabels(container);
 
     const vertices1 = makeVertices({ x: -1, y: 0 }, { x: +1, y: +1 });

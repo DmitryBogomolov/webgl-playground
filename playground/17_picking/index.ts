@@ -1,6 +1,6 @@
-import type { Program, Vec2, Color } from 'lib';
+import type { Runtime, Program, Vec2, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Framebuffer,
     Camera,
     vec2, ZERO2,
@@ -8,6 +8,7 @@ import {
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -40,8 +41,7 @@ interface State {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

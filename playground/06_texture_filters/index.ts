@@ -1,4 +1,6 @@
-import { Runtime, Primitive, Program, Texture, makeImage, parseVertexSchema } from 'lib';
+import type { Runtime } from 'lib';
+import { Primitive, Program, Texture, makeImage, parseVertexSchema } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -15,8 +17,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 

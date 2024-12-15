@@ -1,5 +1,7 @@
+import type { Runtime } from 'lib';
 import type { LineBase } from './line/line';
-import { Runtime, colors } from 'lib';
+import { setup } from 'playground-utils/setup';
+import { colors } from 'lib';
 import { State } from './state';
 import { BevelLine } from './line/bevel';
 import { RoundLine } from './line/round';
@@ -18,8 +20,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
 
     const state = new State();
 

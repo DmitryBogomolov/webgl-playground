@@ -1,6 +1,6 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Camera,
     color,
     vec2,
@@ -8,6 +8,7 @@ import {
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -34,8 +35,7 @@ interface PrimitiveData {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,

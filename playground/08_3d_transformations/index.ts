@@ -1,10 +1,11 @@
 import type { Mat4Mut } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     color,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
@@ -24,8 +25,7 @@ function main(): void {
     const CAMERA_DISTANCE = 13;
     const PI2 = Math.PI * 2;
 
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({
         depthTest: true,

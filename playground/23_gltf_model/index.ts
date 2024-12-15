@@ -1,11 +1,12 @@
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Camera,
     GlTFRenderer,
     color,
     vec3, mul3,
     spherical2zxy, deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -34,8 +35,7 @@ const MODELS: ReadonlyArray<ModelInfo> = [
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,

@@ -1,7 +1,6 @@
-import type { Vec2 } from 'lib';
+import type { Runtime, Vec2 } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime,
     Primitive,
     Program,
     Texture,
@@ -9,6 +8,7 @@ import {
     vec2, ZERO2, sub2, mul2, inv2,
     parseVertexSchema,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
@@ -52,8 +52,7 @@ interface Controls {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
     const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));

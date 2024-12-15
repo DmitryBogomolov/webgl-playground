@@ -1,5 +1,6 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
-import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
+import { createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 
 /**
@@ -13,8 +14,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,

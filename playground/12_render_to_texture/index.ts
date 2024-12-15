@@ -1,6 +1,6 @@
-import type { Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Framebuffer,
     Camera,
     vec3, YUNIT3, norm3, rotate3,
@@ -8,6 +8,7 @@ import {
     color,
     deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -45,8 +46,7 @@ interface State {
 }
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

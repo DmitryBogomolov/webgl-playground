@@ -1,7 +1,7 @@
 import type { Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     vec2, mul2,
     vec3,
@@ -9,6 +9,7 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -27,8 +28,7 @@ export type DESCRIPTION = never;
 main();
 
 function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,
