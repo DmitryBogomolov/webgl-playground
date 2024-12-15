@@ -1,7 +1,7 @@
 import type { Runtime } from '../../gl/runtime';
 import type { RenderTarget } from '../../gl/render-target.types';
 import type { Vec2 } from '../../geometry/vec2.types';
-import type { Logger } from '../../common/logger.types';
+import type { Logger } from '../../gl/base-object.types';
 import { ImageRenderer } from './image-renderer';
 
 import { Primitive } from '../../gl/primitive';

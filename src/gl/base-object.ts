@@ -1,8 +1,6 @@
-import type { BaseObjectParams } from './base-object.types';
-import type { Logger } from '../common/logger.types';
+import type { BaseObjectParams, Logger } from './base-object.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl } from '../common/logger';
 
 let nextId = 1;
 
@@ -14,7 +12,7 @@ export abstract class BaseObject {
     constructor(params: BaseObjectParams) {
         const name = params.name || this.constructor.name;
         this._id = `${name}#${params.tag || String(nextId++)}`;
-        this._logger = params.logger || new LoggerImpl();
+        this._logger = params.logger || stubLogger;
     }
 
     protected _dispose(): void {
@@ -77,3 +75,9 @@ function patchStack(err: Error, message: string): string | undefined {
     const k = err.stack.indexOf('\n');
     return prefix + message + err.stack.substring(k);
 }
+
+const stubLogger: Logger = {
+    info() { /* empty */ },
+    warn() { /* empty */ },
+    error() { /* empty */ },
+};

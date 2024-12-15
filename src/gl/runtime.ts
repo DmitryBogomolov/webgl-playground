@@ -15,7 +15,6 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
-import type { Logger } from '../common/logger.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
@@ -23,7 +22,6 @@ import { BaseObject } from './base-object';
 import { toArgStr } from '../utils/string-formatter';
 import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl, ConsoleLogTransport } from '../common/logger';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
@@ -147,7 +145,8 @@ export class Runtime extends BaseObject {
     private readonly _logMethodRef = this._logMethod.bind(this);
 
     constructor(params: RuntimeParams) {
-        super({ logger: createLogger(), ...params });
+        // TODO: Remove `console` here.
+        super({ logger: console, ...params });
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
@@ -655,12 +654,6 @@ function getDefaultPixelStoreState(): PixelStoreState {
 
 function getDpr(): number {
     return devicePixelRatio;
-}
-
-function createLogger(): Logger {
-    const logger = new LoggerImpl();
-    logger.addTransport(new ConsoleLogTransport());
-    return logger;
 }
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
