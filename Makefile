@@ -10,7 +10,4 @@ test:
 dev:
 	@npm run dev
 
-build-registry:
-	@npm run build-registry
-
 .PHONE: install check lint test dev build-registry
