@@ -1,4 +1,4 @@
-import type { Compiler, Configuration, EntryObject } from 'webpack';
+import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'path';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
@@ -28,6 +28,17 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
         }
     });
     return entry;
+}
+
+function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
+    return {
+        apply(compiler): void {
+            compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
+                const items = collectTemplates(playgrounds).map(({ path }) => path);
+                compilation.fileDependencies.addAll(items);
+            });
+        },
+    };
 }
 
 function config(playgrounds: ReadonlyArray<Playground>): Configuration {
@@ -95,14 +106,7 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             // As a result hot reload does not happen and page content is not updated.
             // Somehow "HtmlWebpackPlugin" solves this.
             new HtmlWebpackPlugin(),
-            {
-                apply(compiler: Compiler): void {
-                    compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-                        const items = collectTemplates(playgrounds).map(({ path }) => path);
-                        compilation.fileDependencies.addAll(items);
-                    });
-                },
-            },
+            watchPlugin(playgrounds),
         ],
         devServer: {
             port: PORT,
