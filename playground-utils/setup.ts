@@ -4,7 +4,7 @@ import { hasUrlParam } from './url';
 
 export function setup(params?: Partial<RuntimeParams>): { runtime: Runtime, container: HTMLElement } {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const logger = !hasUrlParam('no_logger') ? createLogger() : undefined;
+    const logger = !hasUrlParam('no-logger') ? createLogger() : undefined;
     const runtime = new Runtime({
         element: container,
         logger,
