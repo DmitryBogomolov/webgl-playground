@@ -65,9 +65,9 @@ export function setupHandlers(app: Application, playgrounds: ReadonlyArray<Playg
 function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: ReadonlyMap<string, string>): string {
     return Mustache.render(templates.get(ROOT_TEMPLATE_NAME)!, {
         title: 'WebGL Playground',
-        bootstrap_url: BOOTSTRAP_PATH,
-        bundle_url: `${ASSETS_PATH}/index.js`,
+        bootstrap_styles_url: BOOTSTRAP_PATH,
         styles_url: `${ASSETS_PATH}/index.css`,
+        bundle_url: `${ASSETS_PATH}/index.js`,
         playgrounds: playgrounds.map(
             ({ name, title }) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
         ),
@@ -79,9 +79,9 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
     return Mustache.render(templates.get(PLAYGROUND_TEMPLATE_NAME)!, {
         name,
         title: playground.title,
-        bootstrap_url: BOOTSTRAP_PATH,
+        bootstrap_styles_url: BOOTSTRAP_PATH,
+        styles_url: `${CONTENT_PATH}/playground.css`,
         bundle_url: `${ASSETS_PATH}/${name}.js`,
-        styles_url: `${ASSETS_PATH}/${name}.css`,
         worker_url: playground.worker ? `${ASSETS_PATH}/${name}_worker.js` : null,
         custom_markup: playground.markup ? templates.get(name)! : null,
     });

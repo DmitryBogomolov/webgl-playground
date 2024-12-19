@@ -62,3 +62,5 @@ TODO
 camera - mouse+keyboard
 main - function for all demos (and some kind of disposing)
 camera - some visual controls? rgb-arrows
+
+use html webpack plugin properly
