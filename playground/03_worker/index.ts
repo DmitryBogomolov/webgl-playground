@@ -5,7 +5,6 @@ import { setup } from 'playground-utils/setup';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
-import Worker from 'worker-loader!./worker';
 
 /**
  * Web worker.
@@ -45,7 +44,7 @@ function runWorker(runtime: Runtime, state: State): void {
     const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
     const channel = new ForegroundChannel<MainThreadMessage, WorkerMessage>({
-        worker: new Worker(),
+        worker: new Worker(WORKER_URL),
         connectionId: CONNECTION_ID,
         flushDelay: 5,
         handler: (message) => {
