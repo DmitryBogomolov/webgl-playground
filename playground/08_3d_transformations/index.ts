@@ -18,9 +18,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const CAMERA_HEIGHT = 3;
     const CAMERA_DISTANCE = 13;
     const PI2 = Math.PI * 2;

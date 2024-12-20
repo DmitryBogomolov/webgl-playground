@@ -14,9 +14,7 @@ import { convolutionKernels } from './convolution_kernels';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);

@@ -24,8 +24,6 @@ import { makeObjectsFactory, SceneItem } from './primitive';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
@@ -37,7 +35,7 @@ interface State {
     pixelCoord: Vec2;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,

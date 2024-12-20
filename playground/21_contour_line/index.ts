@@ -23,8 +23,6 @@ import { findContour } from './contour';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
@@ -37,7 +35,7 @@ interface State {
     readonly contourThickness: Observable<number>;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();

@@ -26,8 +26,6 @@ export type DESCRIPTION = never;
 
 const FONT_SIZE = 24;
 
-main();
-
 interface ObjectInfo {
     readonly modelMat: Mat4;
     readonly labels: ReadonlyArray<LabelInfo>;
@@ -47,7 +45,7 @@ interface State {
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();

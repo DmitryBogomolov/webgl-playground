@@ -26,8 +26,6 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
@@ -39,7 +37,7 @@ interface State {
     readonly texture: TextureCube;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);

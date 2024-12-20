@@ -32,9 +32,7 @@ const MODELS: ReadonlyArray<ModelInfo> = [
     { name: 'Cube', path: 'Cube/Cube.gltf' },
 ];
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({

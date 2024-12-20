@@ -31,8 +31,6 @@ import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } fr
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface ObjectInfo {
     readonly primitive: Primitive;
     readonly model: Mat4;
@@ -53,7 +51,7 @@ interface State {
     readonly wireframe: Primitive;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup({ extensions: ['depth_texture'] });
     runtime.setRenderState(createRenderState({
         depthTest: true,

@@ -17,9 +17,7 @@ import { setupTracker } from './tracker';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime } = setup();
 
     const state = new State();

@@ -19,15 +19,13 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface Vertex {
     readonly position: Vec2;
     readonly color: Color;
     readonly factor: number;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     alignLabels(container);
 

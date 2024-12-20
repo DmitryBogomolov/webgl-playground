@@ -33,8 +33,6 @@ export type DESCRIPTION = never;
 const TEXTURE_SIZE = 256;
 const OFFSET = 32;
 
-main();
-
 interface Rect {
     readonly xMin: number;
     readonly xMax: number;
@@ -51,7 +49,7 @@ interface Controls {
     readonly crossLinear: HTMLElement;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);

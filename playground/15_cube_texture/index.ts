@@ -25,9 +25,7 @@ import fragShader from './shaders/cube.frag';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,

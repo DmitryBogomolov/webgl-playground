@@ -14,14 +14,12 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     clr: Color;
     scale: number;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
 

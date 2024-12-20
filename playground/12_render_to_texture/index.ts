@@ -24,8 +24,6 @@ import { makeObject, makeTexturePlane } from './primitive';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface ObjectInfo {
     readonly clr: Color;
     readonly model: Mat4;
@@ -45,7 +43,7 @@ interface State {
     readonly targetModel: Observable<Mat4>;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,

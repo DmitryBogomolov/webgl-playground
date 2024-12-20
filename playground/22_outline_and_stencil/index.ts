@@ -29,8 +29,6 @@ import { makeModels } from './primitive';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
@@ -45,7 +43,7 @@ interface State {
     readonly selectedObjects: Set<number>;
 }
 
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
     const camera = new Camera();
     const framebuffer = new Framebuffer({

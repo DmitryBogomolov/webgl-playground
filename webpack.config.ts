@@ -19,17 +19,19 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
         },
     };
 
+    const filePath = path.join(TEMPLATES_DIR, 'playground.ts');
+    const loaderPath = path.join(__dirname, './tools/playground-loader.ts');
+
     playgrounds.forEach((playground) => {
         const { name } = playground;
+        const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
-            import: [
-                path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
-                getPlaygroundItemPath(name, playground.index),
-            ],
+            import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
         };
         if (playground.worker) {
+            const workerPath = getPlaygroundItemPath(name, playground.worker);
             entry[name + '_worker'] = {
-                import: getPlaygroundItemPath(name, playground.worker),
+                import: workerPath,
             };
         }
     });
@@ -38,7 +40,7 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
 
 function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
     return {
-        apply(compiler): void {
+        apply(compiler) {
             compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
                 const items = collectTemplates(playgrounds).map(({ path }) => path);
                 compilation.fileDependencies.addAll(items);

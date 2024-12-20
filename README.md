@@ -60,7 +60,7 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 TODO
 
 camera - mouse+keyboard
-main - function for all demos (and some kind of disposing)
+main - some kind of disposing for all demos (console command to recreate?)
 camera - some visual controls? rgb-arrows
 
 use html webpack plugin properly

@@ -22,9 +22,7 @@ import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgra
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({

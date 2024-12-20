@@ -18,9 +18,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     const makePrimitive = makePrimitiveFactory(runtime);
