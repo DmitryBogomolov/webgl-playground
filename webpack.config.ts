@@ -14,17 +14,23 @@ const PORT = Number(process.env.PORT) || 3001;
 
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
-        'index': path.join(TEMPLATES_DIR, 'index.ts'),
+        'index': {
+            import: path.join(TEMPLATES_DIR, 'index.ts'),
+        },
     };
 
     playgrounds.forEach((playground) => {
         const { name } = playground;
-        entry[name] = [
-            path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
-            getPlaygroundItemPath(name, playground.index),
-        ];
+        entry[name] = {
+            import: [
+                path.join(TEMPLATES_DIR, 'screenshot-button.ts'),
+                getPlaygroundItemPath(name, playground.index),
+            ],
+        };
         if (playground.worker) {
-            entry[name + '_worker'] = getPlaygroundItemPath(name, playground.worker);
+            entry[name + '_worker'] = {
+                import: getPlaygroundItemPath(name, playground.worker),
+            };
         }
     });
     return entry;
