@@ -1,9 +1,7 @@
 import { Runtime, takeCanvasSnapshot, downloadBlob } from 'lib';
+import { hasUrlParam } from 'playground-utils/url';
 
-const url = new URL(window.location.href);
-const flag = url.searchParams.get('screenshot');
-
-if (flag !== '0' && flag !== 'no') {
+if (!hasUrlParam('no-screenshot')) {
     patch();
 }
 
