@@ -1,5 +1,6 @@
-import type { Vec2, Color } from 'lib';
-import { Runtime, Program, Primitive, colors, vec2, parseVertexSchema, writeVertexData } from 'lib';
+import type { Runtime, Vec2, Color } from 'lib';
+import { Program, Primitive, colors, vec2, parseVertexSchema, writeVertexData } from 'lib';
+import { setup } from 'playground-utils/setup';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -8,21 +9,24 @@ import fragShader from './shaders/shader.frag';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface Vertex {
     readonly position: Vec2;
     readonly color: Color;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): () => void {
+    const { runtime } = setup();
     const primitive = makePrimitive(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });
+
+    return () => {
+        primitive.program().dispose();
+        primitive.dispose();
+        runtime.dispose();
+    };
 }
 
 function makePrimitive(runtime: Runtime): Primitive {

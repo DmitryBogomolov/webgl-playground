@@ -2,11 +2,10 @@ import path from 'path';
 import fs from 'fs';
 import type { Playground } from './playground.types';
 
-async function buildRegistry(playgroundRoot: string, registryRoot: string): Promise<void> {
+export async function buildRegistry(playgroundRoot: string): Promise<Playground[]> {
     const names = await fs.promises.readdir(playgroundRoot);
     const objects = await Promise.all(names.map((item) => checkDir(path.join(playgroundRoot, item))));
-    const content = JSON.stringify(objects.filter(Boolean), null, 4) + '\n';
-    await fs.promises.writeFile(path.join(registryRoot, 'playground-registry.json'), content, 'utf8');
+    return objects.filter(Boolean) as Playground[];
 }
 
 function capitalizeWord(word: string): string {
@@ -49,9 +48,3 @@ async function checkDir(dirPath: string): Promise<Playground | null> {
         markup: markupExists ? MARKUP_NAME : null,
     };
 }
-
-async function main(): Promise<void> {
-    await buildRegistry(path.join(__dirname, '../playground'), __dirname);
-}
-
-main().catch(console.error);

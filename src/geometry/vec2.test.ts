@@ -1,7 +1,7 @@
 import {
     ZERO2, UNIT2, XUNIT2, YUNIT2,
     eq2, isZero2, isUnit2, vec2str, clone2, neg2, inv2, len2, sqrlen2, norm2,
-    dot2, mul2, div2, mulc2, divc2, add2, sub2, dir2, dist2, sqrdist2, project2,
+    dot2, mul2, div2, mulc2, divc2, add2, sub2, rotate2, dir2, dist2, sqrdist2, project2,
 } from './vec2';
 
 describe('vec2', () => {
@@ -84,6 +84,11 @@ describe('vec2', () => {
 
     it('norm2', () => {
         expect(norm2({ x: 3, y: 4 })).toBeVec2({ x: 0.6, y: 0.8 });
+    });
+
+    it('rotate2', () => {
+        expect(rotate2({ x: 3, y: 4 }, Math.PI / 2)).toBeVec2({ x: -4, y: 3 });
+        expect(rotate2({ x: 3, y: 4 }, -Math.PI / 2)).toBeVec2({ x: 4, y: -3 });
     });
 
     it('dir2', () => {

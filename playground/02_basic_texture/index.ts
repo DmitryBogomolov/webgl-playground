@@ -1,7 +1,6 @@
-import type { Vec2 } from 'lib';
+import type { Runtime, Vec2 } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime,
     Primitive,
     Program,
     Texture,
@@ -9,6 +8,7 @@ import {
     vec2, ZERO2, sub2, mul2, inv2,
     parseVertexSchema,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
@@ -33,8 +33,6 @@ export type DESCRIPTION = never;
 const TEXTURE_SIZE = 256;
 const OFFSET = 32;
 
-main();
-
 interface Rect {
     readonly xMin: number;
     readonly xMax: number;
@@ -51,9 +49,8 @@ interface Controls {
     readonly crossLinear: HTMLElement;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
     const texcoord = observable(vec2(0.5 / TEXTURE_SIZE, 0.5 / TEXTURE_SIZE));
@@ -89,13 +86,12 @@ function main(): void {
         }
     }
 
-    new Tracker(container, {
-        onStart(e) {
-            processPointerPosition(e.coords);
-        },
-        onMove(e) {
-            processPointerPosition(e.coords);
-        },
+    const tracker = new Tracker(container);
+    tracker.event('start').on((e) => {
+        processPointerPosition(e.coords);
+    });
+    tracker.event('move').on((e) => {
+        processPointerPosition(e.coords);
     });
 
     function doLayout(): void {

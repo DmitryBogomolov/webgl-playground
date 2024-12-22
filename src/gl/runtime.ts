@@ -1,9 +1,7 @@
 import type {
-    RuntimeParams,
+    RuntimeParams, EXTENSION,
     READ_PIXELS_FORMAT, ReadPixelsOptions,
-    EXTENSION,
     UNPACK_COLORSPACE_CONVERSION,
-    RuntimeOptions,
 } from './runtime.types';
 import type {
     BUFFER_MASK,
@@ -17,7 +15,6 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
-import type { Logger } from '../common/logger.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
@@ -25,7 +22,6 @@ import { BaseObject } from './base-object';
 import { toArgStr } from '../utils/string-formatter';
 import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
-import { LoggerImpl, ConsoleLogTransport } from '../common/logger';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
@@ -106,6 +102,7 @@ const EXTENSION_MAP: Mapping<EXTENSION, string> = {
     'depth_texture': 'WEBGL_depth_texture',
 };
 
+const DEFAULT_TRACK_RESIZE = true;
 const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: true,
     depth: true,
@@ -115,14 +112,7 @@ const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     failIfMajorPerformanceCaveat: true,
 };
 
-const DEFAULT_RUNTIME_OPTIONS: Required<RuntimeOptions> = {
-    trackElementResize: true,
-    extensions: [],
-    contextAttributes: DEFAULT_CONTEXT_ATTRIBUTES,
-};
-
 export class Runtime extends BaseObject {
-    private readonly _options: Required<RuntimeOptions>;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
     private readonly _defaultRenderTarget: RenderTarget;
@@ -155,13 +145,12 @@ export class Runtime extends BaseObject {
     private readonly _logMethodRef = this._logMethod.bind(this);
 
     constructor(params: RuntimeParams) {
-        super({ logger: createLogger(), ...params });
-        this._options = { ...DEFAULT_RUNTIME_OPTIONS, ...params.options };
+        super(params);
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
-        this._gl = this._getContext();
+        this._gl = this._getContext(params.contextAttributes);
         this._vaoExt = this._getVaoExt();
-        this._enableExtensions();
+        this._enableExtensions(params.extensions || []);
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this._defaultRenderTarget = new DefaultRenderTarget(this, params.tag);
@@ -171,7 +160,7 @@ export class Runtime extends BaseObject {
         this._renderState = makeRenderState({});
         this.adjustViewport();
         this._cancelResizeTracking = createResizeTracker(
-            this._options.trackElementResize,
+            params.trackElementResize ?? DEFAULT_TRACK_RESIZE,
             this._canvas.parentElement!,
             () => this.adjustViewport(),
         );
@@ -198,7 +187,6 @@ export class Runtime extends BaseObject {
     private _disposeBindings(): void {
         this.bindVertexArrayObject(null);
         this.bindArrayBuffer(null);
-        this.bindElementArrayBuffer(null);
         this.useProgram(null);
         this.bindFramebuffer(null);
         this.bindRenderbuffer(null);
@@ -218,10 +206,10 @@ export class Runtime extends BaseObject {
         return this._vaoExt;
     }
 
-    private _getContext(): WebGLRenderingContext {
+    private _getContext(attrs: WebGLContextAttributes | undefined): WebGLRenderingContext {
         const options: WebGLContextAttributes = {
             ...DEFAULT_CONTEXT_ATTRIBUTES,
-            ...this._options.contextAttributes,
+            ...attrs,
         };
         const context = this._canvas.getContext('webgl', options);
         if (!context) {
@@ -246,8 +234,8 @@ export class Runtime extends BaseObject {
         return ext;
     }
 
-    private _enableExtensions(): void {
-        for (const ext of this._options.extensions) {
+    private _enableExtensions(extensions: Iterable<EXTENSION>): void {
+        for (const ext of extensions) {
             const name = EXTENSION_MAP[ext];
             if (!name) {
                 throw this._logError(`extension ${ext}: bad value`);
@@ -664,12 +652,6 @@ function getDefaultPixelStoreState(): PixelStoreState {
 
 function getDpr(): number {
     return devicePixelRatio;
-}
-
-function createLogger(): Logger {
-    const logger = new LoggerImpl();
-    logger.addTransport(new ConsoleLogTransport());
-    return logger;
 }
 
 function createCanvas(container: HTMLElement): HTMLCanvasElement {

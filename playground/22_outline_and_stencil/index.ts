@@ -1,8 +1,8 @@
-import type { Program, Vec2, Mat4Mut, Color } from 'lib';
+import type { Runtime, Program, Vec2, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Camera,
     Framebuffer,
     vec3, mul3,
@@ -11,6 +11,7 @@ import {
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -28,8 +29,6 @@ import { makeModels } from './primitive';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
@@ -44,9 +43,8 @@ interface State {
     readonly selectedObjects: Set<number>;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container, options: { contextAttributes: { stencil: true } } });
+export function main(): void {
+    const { runtime, container } = setup({ contextAttributes: { stencil: true } });
     const camera = new Camera();
     const framebuffer = new Framebuffer({
         runtime,

@@ -1,6 +1,6 @@
-import type { Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Framebuffer,
     Camera,
     vec3, YUNIT3, norm3, rotate3,
@@ -8,9 +8,11 @@ import {
     color,
     deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { animation } from 'playground-utils/animation';
 import { makeObject, makeTexturePlane } from './primitive';
 
 /**
@@ -21,8 +23,6 @@ import { makeObject, makeTexturePlane } from './primitive';
  * In second pass texture is rendered over a plane.
  */
 export type DESCRIPTION = never;
-
-main();
 
 interface ObjectInfo {
     readonly clr: Color;
@@ -43,14 +43,12 @@ interface State {
     readonly targetModel: Observable<Mat4>;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
 
-    const animationFlag = observable(true);
     const xRotation = observable(0);
     const yRotation = observable(30);
 
@@ -113,28 +111,26 @@ function main(): void {
         camera.setViewportSize(runtime.canvasSize());
     });
 
-    [animationFlag, targetModel]
-        .forEach((item) => item.on(() => runtime.requestFrameRender()));
+    targetModel.on(() => {
+        runtime.requestFrameRender();
+    });
 
     runtime.frameRequested().on((delta) => {
-        if (animationFlag()) {
+        if (delta < 250) {
             textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
-            textureCamera.setEyePos(textureCameraPos);
         }
+        textureCamera.setEyePos(textureCameraPos);
 
         renderToTexture(state);
         renderScene(state);
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
         { label: 'x rotation', value: xRotation, min: -45, max: +45 },
         { label: 'y rotation', value: yRotation, min: -45, max: +45 },
     ]);
+
+    animation(runtime);
 }
 
 function renderToTexture({

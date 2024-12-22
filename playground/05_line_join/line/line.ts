@@ -1,5 +1,4 @@
-import type { Runtime, VertexSchemaInfo } from 'lib';
-import type { Vertex } from '../vertex';
+import type { Runtime, VertexSchemaInfo, Vec2 } from 'lib';
 import { Primitive, Program } from 'lib';
 
 export interface LineParams {
@@ -9,9 +8,9 @@ export interface LineParams {
 }
 
 export abstract class LineBase {
-    private _thickness = 1;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
+    private _thickness = 1;
 
     constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
@@ -34,13 +33,13 @@ export abstract class LineBase {
         this._primitive.dispose();
     }
 
-    protected abstract _writeVertices(vertices: ReadonlyArray<Vertex>): ArrayBuffer;
+    protected abstract _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer;
 
     protected abstract _writeIndexes(vertexCount: number): ArrayBuffer;
 
-    protected abstract _updateVertex(vertices: ReadonlyArray<Vertex>, idx: number): [ArrayBuffer, number];
+    protected abstract _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number];
 
-    setVertices(vertices: ReadonlyArray<Vertex>): void {
+    setVertices(vertices: ReadonlyArray<Vec2>): void {
         const vertexCount = vertices.length;
         const vertexData = this._writeVertices(vertices);
         const indexData = this._writeIndexes(vertexCount);
@@ -48,7 +47,7 @@ export abstract class LineBase {
         this._primitive.setIndexData(indexData);
     }
 
-    updateVertex(vertices: ReadonlyArray<Vertex>, vertexIdx: number): void {
+    updateVertex(vertices: ReadonlyArray<Vec2>, vertexIdx: number): void {
         const [vertexData, offset] = this._updateVertex(vertices, vertexIdx);
         this._primitive.updateVertexData(vertexData, offset);
     }

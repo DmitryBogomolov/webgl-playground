@@ -1,12 +1,13 @@
-import type { Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
+import type { Runtime, Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Camera,
     mul3,
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -25,8 +26,6 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly camera: Camera;
@@ -38,9 +37,8 @@ interface State {
     readonly texture: TextureCube;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);

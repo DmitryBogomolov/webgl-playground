@@ -1,13 +1,15 @@
 import type { Mat4Mut } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     color,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
+import { trackSize } from 'playground-utils/resizer';
+import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
 import { makeFigureRenderer } from './figure';
-import { trackSize } from 'playground-utils/resizer';
 
 /**
  * 3D Transformations.
@@ -16,15 +18,12 @@ import { trackSize } from 'playground-utils/resizer';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
+export function main(): void {
     const CAMERA_HEIGHT = 3;
     const CAMERA_DISTANCE = 13;
     const PI2 = Math.PI * 2;
 
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+    const { runtime } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -55,15 +54,17 @@ function main(): void {
         identity4x4(viewProj);
         mul4x4(view, viewProj, viewProj);
         mul4x4(proj, viewProj, viewProj);
-        figure1.update(viewProj, unit, delta);
-        figure2.update(viewProj, figure1.model(), delta);
-        figure3.update(viewProj, figure1.model(), delta);
+
+        if (delta < 250) {
+            figure1.update(viewProj, unit, delta);
+            figure2.update(viewProj, figure1.model(), delta);
+            figure3.update(viewProj, figure1.model(), delta);
+        }
 
         runtime.clearBuffer('color|depth');
         figure1.render();
         figure2.render();
         figure3.render();
-        runtime.requestFrameRender();
     });
 
     trackSize(runtime, () => {
@@ -75,4 +76,6 @@ function main(): void {
             zFar: 100,
         }, proj);
     });
+
+    animation(runtime);
 }

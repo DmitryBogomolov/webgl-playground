@@ -1,5 +1,7 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
-import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
+import { createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
+import { setup } from 'playground-utils/setup';
+import { animation } from 'playground-utils/animation';
 
 /**
  * Draw image util.
@@ -9,11 +11,8 @@ import { Runtime, createRenderState, ImageRenderer, color, colors, color2uint } 
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -41,15 +40,17 @@ function main(): void {
 
     runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color');
-        step = (step + SPEED * delta / 1000) % 1;
+        if (delta < 250) {
+            step = (step + SPEED * delta / 1000) % 1;
+        }
 
         const size = runtime.getRenderTarget().size();
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
-
-        runtime.requestFrameRender();
     });
+
+    animation(runtime);
 }
 
 function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void {

@@ -47,8 +47,21 @@ Playground for WebGL samples
 
 ### Static content
 
-bootstrap.min.css, bootstrap.min.css.map  
+bootstrap.min.css, bootstrap.min.css.map
 TODO: Mention source when these files are updated to a newer version.
 
-leaves.jpg  
+leaves.jpg
 Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
+
+play-solid.svg, pause-solid.svg
+Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
+
+///
+TODO
+
+main - some kind of disposing for all demos (console command to recreate?)
+
+camera - mouse+keyboard
+camera - some visual controls? rgb-arrows
+
+use html webpack plugin properly

@@ -1,5 +1,6 @@
+import type { Runtime } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Primitive,
     Program,
     TextureCube,
@@ -9,6 +10,7 @@ import {
     deg2rad, spherical2zxy,
     parseVertexSchema,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -23,11 +25,8 @@ import fragShader from './shaders/cube.frag';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

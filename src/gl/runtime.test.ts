@@ -1,7 +1,5 @@
 import { Runtime, createRenderState } from './runtime';
 
-jest.mock('../common/logger');
-
 describe('runtime', () => {
     describe('Runtime', () => {
         let container: HTMLElement;

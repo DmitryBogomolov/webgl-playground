@@ -27,13 +27,9 @@ export interface ReadPixelsOptions {
     readonly format?: READ_PIXELS_FORMAT;
 }
 
-export interface RuntimeOptions {
+export interface RuntimeParams extends BaseObjectParams {
+    readonly element: HTMLElement;
     readonly trackElementResize?: boolean;
     readonly extensions?: ReadonlyArray<EXTENSION>;
     readonly contextAttributes?: WebGLContextAttributes;
 }
-
-export type RuntimeParams = Omit<BaseObjectParams, 'logger'> & {
-    readonly element: HTMLElement;
-    readonly options?: RuntimeOptions;
-};

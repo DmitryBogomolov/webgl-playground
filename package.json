@@ -11,8 +11,7 @@
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "bench:objects-create-access": "node ./benchmark/objects-create-access",
-    "bench:vec3-operations": "node ./benchmark/vec3-operations",
-    "build-registry": "TS_NODE_PROJECT=tsconfig.json ts-node ./tools/registry-builder.ts"
+    "bench:vec3-operations": "node ./benchmark/vec3-operations"
   },
   "keywords": [
     "webgl"

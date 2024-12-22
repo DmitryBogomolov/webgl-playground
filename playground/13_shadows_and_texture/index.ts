@@ -1,6 +1,6 @@
-import type { Primitive, Program, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, Primitive, Program, Vec3, Mat4, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Framebuffer,
     Camera,
     vec3, mul3,
@@ -8,6 +8,7 @@ import {
     colors, color,
     deg2rad, spherical2zxy,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -30,8 +31,6 @@ import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } fr
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface ObjectInfo {
     readonly primitive: Primitive;
     readonly model: Mat4;
@@ -52,9 +51,8 @@ interface State {
     readonly wireframe: Primitive;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container, options: { extensions: ['depth_texture'] } });
+export function main(): void {
+    const { runtime, container } = setup({ extensions: ['depth_texture'] });
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

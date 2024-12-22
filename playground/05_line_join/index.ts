@@ -1,5 +1,7 @@
+import type { Runtime } from 'lib';
 import type { LineBase } from './line/line';
-import { Runtime } from 'lib';
+import { setup } from 'playground-utils/setup';
+import { colors } from 'lib';
 import { State } from './state';
 import { BevelLine } from './line/bevel';
 import { RoundLine } from './line/round';
@@ -15,49 +17,40 @@ import { setupTracker } from './tracker';
  */
 export type DESCRIPTION = never;
 
-main();
-
-interface LineConstructor<T extends LineBase> {
-    new(runtime: Runtime): T;
-}
-
-function main(): void {
-    const containerBevel = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-bevel')!;
-    const containerRound = document.querySelector<HTMLDivElement>(PLAYGROUND_ROOT + '-round')!;
+export function main(): void {
+    const { runtime } = setup();
 
     const state = new State();
 
-    const runtimeBevel = new Runtime({ element: containerBevel });
-    const runtimeRound = new Runtime({ element: containerRound });
+    const bevelLine = new BevelLine(runtime, colors.BLUE);
+    const roundLine = new RoundLine(runtime, colors.GREEN);
+    setupLine(bevelLine, runtime, state, 1);
+    setupLine(roundLine, runtime, state, 0.5);
 
-    setupLine(runtimeBevel, state, BevelLine);
-    setupLine(runtimeRound, state, RoundLine);
+    const tree = new SearchTree(runtime, state);
 
-    const tree = new SearchTree(() => runtimeBevel.size(), state);
+    setupTracker(runtime, tree, state);
 
-    setupTracker(runtimeBevel, tree, state);
-    setupTracker(runtimeRound, tree, state);
-}
-
-function setupLine<T extends LineBase>(runtime: Runtime, state: State, ctor: LineConstructor<T>): T {
-    const line = new ctor(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
-        line.render();
+        bevelLine.render();
+        roundLine.render();
     });
-    state.thicknessChanged.on(() => {
-        line.setThickness(state.thickness);
+}
+
+function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {
+    state.thickness.on((thickness) => {
+        line.setThickness(thickness * thicknessFactor);
         runtime.requestFrameRender();
     });
-    state.verticesChanged.on(() => {
-        line.setVertices(state.vertices);
+    state.changedVertices.on(() => {
+        line.setVertices(state.vertices());
         runtime.requestFrameRender();
     });
-    state.vertexUpdated.on((idx) => {
-        line.updateVertex(state.vertices, idx);
+    state.changedVertex.on(({ index }) => {
+        line.updateVertex(state.vertices(), index);
         runtime.requestFrameRender();
     });
-    line.setVertices(state.vertices);
-    line.setThickness(state.thickness);
-    return line;
+    line.setVertices(state.vertices());
+    line.setThickness(state.thickness() * thicknessFactor);
 }

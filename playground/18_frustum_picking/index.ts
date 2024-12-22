@@ -1,6 +1,6 @@
-import type { Program, Vec2, Mat4Mut, Color } from 'lib';
+import type { Runtime, Program, Vec2, Mat4Mut, Color } from 'lib';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     Framebuffer,
     Camera,
     vec2, ZERO2,
@@ -9,6 +9,7 @@ import {
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -23,8 +24,6 @@ import { makeObjectsFactory, SceneItem } from './primitive';
  */
 export type DESCRIPTION = never;
 
-main();
-
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
@@ -36,9 +35,8 @@ interface State {
     pixelCoord: Vec2;
 }
 
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

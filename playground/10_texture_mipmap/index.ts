@@ -1,7 +1,7 @@
 import type { Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
-    Runtime, createRenderState,
+    createRenderState,
     TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER,
     vec2, mul2,
     vec3,
@@ -9,9 +9,11 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
+import { setup } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
 import { makeTexture } from './texture';
 
@@ -23,11 +25,8 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-main();
-
-function main(): void {
-    const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
-    const runtime = new Runtime({ element: container });
+export function main(): void {
+    const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -69,7 +68,6 @@ function main(): void {
         { offset: vec2(+1, +0.8), size: 0.15 },
     ] as const;
 
-    const animationFlag = observable(true);
     let animationAngle = 0;
 
     const PI2 = Math.PI * 2;
@@ -99,7 +97,7 @@ function main(): void {
         });
     });
 
-    [animationFlag, xRotation, yRotation, magFilter, minFilter]
+    [xRotation, yRotation, magFilter, minFilter]
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
     runtime.frameRequested().on((delta) => {
@@ -108,9 +106,11 @@ function main(): void {
 
         const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
 
-        animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
-        const dx = Number(animationFlag()) * ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
-        const dy = Number(animationFlag()) * ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
+        if (delta < 250) {
+            animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;
+        }
+        const dx = ANIMATION_RADIUS * 2 / xCanvas * Math.cos(animationAngle);
+        const dy = ANIMATION_RADIUS * 2 / yCanvas * Math.sin(animationAngle);
 
         identity4x4(mat);
         apply4x4(mat, xrotation4x4, deg2rad(xRotation()));
@@ -130,17 +130,14 @@ function main(): void {
             program.setUniform('u_size', mul2(unitSize, size));
             primitive.render();
         }
-
-        if (animationFlag()) {
-            runtime.requestFrameRender();
-        }
     });
 
     createControls(container, [
-        { label: 'animation', checked: animationFlag },
         { label: 'x rotation', min: -30, max: +30, value: xRotation },
         { label: 'y rotation', min: -30, max: +30, value: yRotation },
         { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
         { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter },
     ]);
+
+    animation(runtime);
 }
