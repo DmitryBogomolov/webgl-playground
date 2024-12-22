@@ -6,22 +6,28 @@ if (!hasUrlParam('no-screenshot')) {
 }
 
 function patch(): void {
+    let runtime: Runtime | null = null;
     // @ts-ignore Take method closest to constructor.
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { _getContext } = Runtime.prototype;
+    const { _getContext, _loseContext } = Runtime.prototype;
     // @ts-ignore Hook into constructor.
     Runtime.prototype._getContext = function (...args) {
-        setTimeout(() => createButton(this));
+        setTimeout(() => createButton(doScreenshot));
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        runtime = this;
         // @ts-ignore Call original method.
         return _getContext.apply(this, args);
     };
-}
+    // @ts-ignore Hook into destructor.
+    Runtime.prototype._loseContext = function (...args) {
+        runtime = null;
+        return _loseContext.apply(this, args);
+    };
 
-function createButton(runtime: Runtime): void {
-    const button = document.createElement('button');
-    button.className = 'btn screenshot-button';
-    button.textContent = 'screenshot';
-    button.addEventListener('click', () => {
+    function doScreenshot(): void {
+        if (!runtime) {
+            return;
+        }
         takeCanvasSnapshot(runtime)
             .then((blob) => {
                 downloadBlob(blob, PLAYGROUND_NAME);
@@ -29,6 +35,19 @@ function createButton(runtime: Runtime): void {
             .catch((err) => {
                 console.error('screenshot error', err);
             });
-    });
-    runtime.canvas().parentElement!.appendChild(button);
+    }
+}
+
+function createButton(doScreenshot: () => void): void {
+    const button = document.createElement('button');
+    button.className = 'btn screenshot-button';
+    button.textContent = 'screenshot';
+    button.addEventListener('click', doScreenshot);
+    document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!.appendChild(button);
+
+    // @ts-ignore Global.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const playground = (window.playground = window.playground || {});
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    playground.screenshot = doScreenshot;
 }
