@@ -48,6 +48,5 @@ function createButton(doScreenshot: () => void): void {
     // @ts-ignore Global.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const playground = (window.playground = window.playground || {});
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    playground.screenshot = doScreenshot;
+    Object.assign(playground, { screenshot: doScreenshot });
 }
