@@ -14,13 +14,19 @@ interface Vertex {
     readonly color: Color;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
         primitive.render();
     });
+
+    return () => {
+        primitive.program().dispose();
+        primitive.dispose();
+        runtime.dispose();
+    };
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
