@@ -8,7 +8,7 @@ import {
     vec2, ZERO2, sub2, mul2, inv2,
     parseVertexSchema,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
@@ -49,7 +49,7 @@ interface Controls {
     readonly crossLinear: HTMLElement;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
@@ -116,6 +116,10 @@ export function main(): void {
     });
 
     doLayout();
+
+    return () => {
+        disposeAll([primitive.program(), primitive, runtime, tracker, texcoord]);
+    };
 }
 
 function makeTexture(runtime: Runtime): Texture {
