@@ -187,7 +187,6 @@ export class Runtime extends BaseObject {
     private _disposeBindings(): void {
         this.bindVertexArrayObject(null);
         this.bindArrayBuffer(null);
-        this.bindElementArrayBuffer(null);
         this.useProgram(null);
         this.bindFramebuffer(null);
         this.bindRenderbuffer(null);

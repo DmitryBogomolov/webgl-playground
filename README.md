@@ -59,8 +59,9 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 ///
 TODO
 
-camera - mouse+keyboard
 main - some kind of disposing for all demos (console command to recreate?)
+
+camera - mouse+keyboard
 camera - some visual controls? rgb-arrows
 
 use html webpack plugin properly
