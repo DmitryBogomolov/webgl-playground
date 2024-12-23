@@ -8,7 +8,7 @@ import {
     colors, color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -51,7 +51,7 @@ interface State {
     readonly wireframe: Primitive;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup({ extensions: ['depth_texture'] });
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -103,7 +103,7 @@ export function main(): void {
     });
     depthCamera.setViewportSize(framebuffer.size());
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
@@ -145,7 +145,7 @@ export function main(): void {
         item.on(() => runtime.requestFrameRender());
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'view lon', value: viewLon, min: -180, max: +180 },
         { label: 'light lon', value: lightLon, min: -180, max: +180 },
         { label: 'light lat', value: lightLat, min: -60, max: +60 },
@@ -153,6 +153,15 @@ export function main(): void {
         { label: 'z near', value: zNear, min: 0.1, max: 2, step: 0.1 },
         { label: 'z far', value: zFar, min: 7, max: 20, step: 1 },
     ]);
+
+    return () => {
+        disposeAll([
+            viewLon, lightLon, lightLat, lightDist, zNear, zFar, lightPos,
+            ...state.objects.map((t) => t.primitive),
+            state.program, state.depthProgram, state.wireframe,
+            framebuffer, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 function makeObject(primitive: Primitive, offset: Vec3, clr: Color): ObjectInfo {
