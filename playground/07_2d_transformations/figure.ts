@@ -6,8 +6,8 @@ export interface FigureRenderer {
     (projection: Mat3, transformation: Mat3): void;
 }
 
-export function makeFigureRenderer(makePrimitive: PrimitiveFactory, clr: Color, size: Vec2): FigureRenderer {
-    const primitive = makePrimitive(clr);
+export function makeFigureRenderer(factory: PrimitiveFactory, clr: Color, size: Vec2): FigureRenderer {
+    const primitive = factory.createPrimitive(clr);
     const mat = mat3() as Mat3Mut;
     return (projection, transformation) => {
         identity3x3(mat);

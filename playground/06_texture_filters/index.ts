@@ -37,12 +37,12 @@ export function main(): () => void {
         primitive.render();
     });
 
-    const control = createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'kernel', options: convolutionKernels.map((kernel) => kernel.name), selection: kernelName },
     ]);
 
     return () => {
-        disposeAll([primitive.program(), primitive, runtime, currentKernel, kernelName, control]);
+        disposeAll([primitive.program(), primitive, runtime, currentKernel, kernelName, controlRoot]);
     };
 }
 

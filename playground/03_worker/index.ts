@@ -37,7 +37,7 @@ export function main(): () => void {
     const disposeWorker = runWorker(runtime, state);
 
     return () => {
-        disposeAll([primitive.program(), primitive, runtime, { dispose: disposeWorker }]);
+        disposeAll([primitive.program(), primitive, runtime, disposeWorker]);
     };
 }
 
