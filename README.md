@@ -65,3 +65,5 @@ camera - mouse+keyboard
 camera - some visual controls? rgb-arrows
 
 use html webpack plugin properly
+
+keep query parameters in links (can it be properly done?)
