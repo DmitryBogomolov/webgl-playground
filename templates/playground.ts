@@ -2,7 +2,7 @@ import './screenshot-button';
 // @ts-ignore Actual path is provided in loader.
 import { main } from '__PATH__';
 
-const doInit = main as () => void | (() => void);
+const doInit = main as () => (() => void);
 let isActive = false;
 let doDispose: (() => void) | null = null;
 
@@ -12,10 +12,7 @@ function init(): void {
     }
     isActive = true;
 
-    const ret = doInit();
-    if (ret) {
-        doDispose = ret;
-    }
+    doDispose = doInit();
 }
 
 function dispose(): void {
@@ -24,10 +21,8 @@ function dispose(): void {
     }
     isActive = false;
 
-    if (doDispose) {
-        doDispose();
-        doDispose = null;
-    }
+    doDispose!();
+    doDispose = null;
 }
 
 // @ts-ignore Global.
