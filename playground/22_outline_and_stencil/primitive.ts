@@ -42,6 +42,7 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
     objectProgram: Program,
     outlineProgram: Program,
     idProgram: Program,
+    disposeModels: () => void,
 } {
     const models: Model[] = [];
 
@@ -94,7 +95,16 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
         });
     }
 
-    return { models, objectProgram, outlineProgram, idProgram };
+    return { models, objectProgram, outlineProgram, idProgram, disposeModels };
+
+    function disposeModels(): void {
+        objectProgram.dispose();
+        outlineProgram.dispose();
+        idProgram.dispose();
+        for (const model of models) {
+            model.primitive.dispose();
+        }
+    }
 }
 
 function makeCubeVertexInfo({ position, normal }: VertexData): VertexInfo {

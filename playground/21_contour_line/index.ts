@@ -7,7 +7,7 @@ import {
     color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -35,7 +35,7 @@ interface State {
     readonly contourThickness: Observable<number>;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
@@ -65,11 +65,14 @@ export function main(): void {
     const contourEnabled = observable(true);
     const contourThickness = observable(16);
 
+    const primitive = makePrimitive(runtime);
+    const contourPrimitive = makeContourPrimitive(runtime);
+
     const state: State = {
         runtime,
         camera,
-        primitive: makePrimitive(runtime),
-        contourPrimitive: makeContourPrimitive(runtime),
+        primitive,
+        contourPrimitive,
         modelMat,
         modelClr: color(0.5, 0.1, 0.5),
         modelPoints: [
@@ -89,7 +92,7 @@ export function main(): void {
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     [camera.changed(), modelMat].forEach((emitter) => {
@@ -104,7 +107,7 @@ export function main(): void {
         });
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
@@ -113,6 +116,14 @@ export function main(): void {
         { label: 'enabled', checked: contourEnabled },
         { label: 'thickness', value: contourThickness, min: 0, max: 32 },
     ]);
+
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos, xRotation, yRotation, modelMat,
+            contourEnabled, contourThickness,
+            primitive, contourPrimitive, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 const objectRenderState = createRenderState({
