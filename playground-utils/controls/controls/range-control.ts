@@ -54,6 +54,13 @@ export class RangeControl extends BaseControl {
         this._root.appendChild(this._text);
     }
 
+    dispose(): void {
+        super.dispose();
+        this._input.removeEventListener('change', this._handleInputChange);
+        this._input.removeEventListener('input', this._handleInputChange);
+        this._options.value.off(this._handleValueChange);
+    }
+
     private _updateInput(): void {
         this._input.value = String(this._options.value());
     }

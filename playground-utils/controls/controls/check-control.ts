@@ -37,6 +37,13 @@ export class CheckControl extends BaseControl {
         this._root.appendChild(this._input);
     }
 
+    dispose(): void {
+        super.dispose();
+        this._input.removeEventListener('change', this._handleInputChange);
+        this._input.removeEventListener('input', this._handleInputChange);
+        this._options.checked.off(this._handleCheckedChange);
+    }
+
     private _updateInput(): void {
         this._input.checked = this._options.checked();
     }
