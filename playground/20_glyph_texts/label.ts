@@ -8,7 +8,7 @@ import fragShader from './shaders/label.frag';
 // All quads are aligned horizontally and cover [-1,+1]*[-1,+1] range.
 // Calculates texture coordinates for each quad based on glyph location in atlas.
 // Also calculates total pixel size of generated quad (required in shader to calculate actual position).
-export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: string): {
+export function makeStringPrimitive(runtime: Runtime, program: Program, atlas: GlyphAtlas, text: string): {
     primitive: Primitive,
     size: Vec2,
 } {
@@ -59,12 +59,6 @@ export function makeStringPrimitive(runtime: Runtime, atlas: GlyphAtlas, text: s
 
     const primitive = new Primitive({ runtime });
     primitive.setup({ vertexData, indexData, vertexSchema });
-
-    const program = new Program({
-        runtime,
-        vertShader,
-        fragShader,
-    });
     primitive.setProgram(program);
 
     return { primitive, size: vec2(fullWidth, fullHeight) };
@@ -96,4 +90,12 @@ export function getNextLabel(): string {
     const ret = LABELS_POOL[nextLabelIdx];
     nextLabelIdx = (nextLabelIdx + 1) % LABELS_POOL.length;
     return ret;
+}
+
+export function makeStringProgram(runtime: Runtime): Program {
+    return new Program({
+        runtime,
+        vertShader,
+        fragShader,
+    });
 }
