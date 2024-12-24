@@ -1,6 +1,6 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
 import { createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 
 /**
@@ -11,7 +11,7 @@ import { animation } from 'playground-utils/animation';
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -50,7 +50,11 @@ export function main(): void {
         render3(size, imageLetter, step);
     });
 
-    animation(runtime);
+    const animate = animation(runtime);
+
+    return () => {
+        disposeAll([imageCells, imageLetter, imageLeaves, runtime, animate]);
+    };
 }
 
 function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void {

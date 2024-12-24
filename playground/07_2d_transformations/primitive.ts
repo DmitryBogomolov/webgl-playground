@@ -4,7 +4,8 @@ import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
 export interface PrimitiveFactory {
-    (clr: Color): Primitive;
+    createPrimitive(clr: Color): Primitive;
+    dispose(): void;
 }
 
 export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
@@ -30,14 +31,26 @@ export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
         vec2(+dx, -dy),
     ];
 
-    return (clr) => {
-        const primitive = new Primitive({ runtime });
-        const vertexData = writeVertexData(points, vertexSchema, (point) => ([point, clr]));
-        const indexData = new Uint16Array([0, 1, 2]);
+    const primitives: Primitive[] = [];
 
-        primitive.setup({ vertexData, indexData, vertexSchema });
-        primitive.setProgram(program);
+    return {
+        createPrimitive: (clr) => {
+            const primitive = new Primitive({ runtime });
+            const vertexData = writeVertexData(points, vertexSchema, (point) => ([point, clr]));
+            const indexData = new Uint16Array([0, 1, 2]);
 
-        return primitive;
+            primitive.setup({ vertexData, indexData, vertexSchema });
+            primitive.setProgram(program);
+            primitives.push(primitive);
+
+            return primitive;
+        },
+
+        dispose: () => {
+            program.dispose();
+            for (const primitive of primitives) {
+                primitive.dispose();
+            }
+        },
     };
 }

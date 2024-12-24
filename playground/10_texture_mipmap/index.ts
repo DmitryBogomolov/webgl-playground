@@ -9,7 +9,7 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -25,7 +25,7 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -45,7 +45,7 @@ export function main(): void {
     // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
     const DISTANCE = fovSize2Dist(YFOV, 1);
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         identity4x4(proj);
         apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
         const { x, y } = runtime.canvasSize();
@@ -132,12 +132,19 @@ export function main(): void {
         }
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'x rotation', min: -30, max: +30, value: xRotation },
         { label: 'y rotation', min: -30, max: +30, value: yRotation },
         { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
         { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter },
     ]);
 
-    animation(runtime);
+    const animate = animation(runtime);
+
+    return () => {
+        disposeAll([
+            xRotation, yRotation, magFilter, minFilter,
+            primitive.program(), primitive, texture, runtime, animate, cancelTracking, controlRoot,
+        ]);
+    };
 }

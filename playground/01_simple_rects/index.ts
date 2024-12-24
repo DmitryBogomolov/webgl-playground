@@ -1,6 +1,6 @@
 import type { Runtime, Vec2, Color } from 'lib';
 import { Program, Primitive, colors, vec2, parseVertexSchema, writeVertexData } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -23,9 +23,7 @@ export function main(): () => void {
     });
 
     return () => {
-        primitive.program().dispose();
-        primitive.dispose();
-        runtime.dispose();
+        disposeAll([primitive.program(), primitive, runtime]);
     };
 }
 

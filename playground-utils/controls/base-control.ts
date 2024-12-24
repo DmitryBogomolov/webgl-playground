@@ -23,4 +23,8 @@ export abstract class BaseControl {
         container.appendChild(this._root);
         makeStyles(this._NAME, this._STYLES);
     }
+
+    dispose(): void {
+        this._root.remove();
+    }
 }

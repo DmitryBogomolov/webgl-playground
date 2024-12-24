@@ -7,7 +7,7 @@ import {
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -37,7 +37,7 @@ interface State {
     readonly texture: TextureCube;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
@@ -76,14 +76,14 @@ export function main(): void {
     [modelMat, normalMat, isCubeShown, camera.changed()].forEach(
         (proxy) => proxy.on(() => runtime.requestFrameRender()),
     );
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame({ runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture });
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -360, max: +360 },
         { label: 'camera lat', value: cameraLat, min: -80, max: +80 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 5, step: 0.2 },
@@ -91,6 +91,14 @@ export function main(): void {
         { label: 'model lat', value: modelLat, min: -90, max: +90 },
         { label: 'cube', checked: isCubeShown },
     ]);
+
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos, modelLon, modelLat, modelMat, normalMat, isCubeShown,
+            quad.program(), quad, cube.program(), cube, texture,
+            runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 const defaultRenderState = createRenderState({

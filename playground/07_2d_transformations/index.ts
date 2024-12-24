@@ -4,7 +4,7 @@ import {
     vec2, mul2,
     mat3, projection3x3, mul3x3,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
@@ -18,13 +18,13 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
-    const makePrimitive = makePrimitiveFactory(runtime);
-    const render1 = makeFigureRenderer(makePrimitive, colors.BLUE, vec2(50, 50));
-    const render2 = makeFigureRenderer(makePrimitive, colors.RED, vec2(30, 30));
-    const render3 = makeFigureRenderer(makePrimitive, colors.GREEN, vec2(20, 20));
+    const factory = makePrimitiveFactory(runtime);
+    const render1 = makeFigureRenderer(factory, colors.BLUE, vec2(50, 50));
+    const render2 = makeFigureRenderer(factory, colors.RED, vec2(30, 30));
+    const render3 = makeFigureRenderer(factory, colors.GREEN, vec2(20, 20));
     const animate1 = makeAnimation(vec2(800, 320), Math.PI / 6);
     const animate2 = makeAnimation(vec2(400, 160), -Math.PI / 2);
     const animate3 = makeAnimation(vec2(320, 200), +Math.PI / 3);
@@ -33,7 +33,7 @@ export function main(): void {
     const transformation3 = mat3() as Mat3Mut;
 
     const projection = mat3() as Mat3Mut;
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });
@@ -53,5 +53,9 @@ export function main(): void {
         render3(projection, transformation3);
     });
 
-    animation(runtime);
+    const animate = animation(runtime);
+
+    return () => {
+        disposeAll([factory, runtime, animate, cancelTracking]);
+    };
 }

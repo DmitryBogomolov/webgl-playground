@@ -21,6 +21,7 @@ export interface SceneItem {
 
 export interface ObjectsFactory {
     make(id: number, size: Vec3, axis: Vec3, rotation: number, position: Vec3): SceneItem;
+    dispose(): void;
     readonly program: Program;
     readonly idProgram: Program;
 }
@@ -64,7 +65,15 @@ export function makeObjectsFactory(runtime: Runtime): ObjectsFactory {
                 normalMat: inversetranspose4x4(mat),
             };
         },
+
         program,
+
         idProgram,
+
+        dispose: () => {
+            program.dispose();
+            idProgram.dispose();
+            primitive.dispose();
+        },
     };
 }

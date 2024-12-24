@@ -1,7 +1,7 @@
 import type { Runtime, Color, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
 import { Primitive, Program, ForegroundChannel, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { CONNECTION_ID } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -19,7 +19,7 @@ interface State {
     scale: number;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
 
@@ -34,10 +34,14 @@ export function main(): void {
         primitive.program().setUniform('u_color', state.clr);
         primitive.render();
     });
-    runWorker(runtime, state);
+    const disposeWorker = runWorker(runtime, state);
+
+    return () => {
+        disposeAll([primitive.program(), primitive, runtime, disposeWorker]);
+    };
 }
 
-function runWorker(runtime: Runtime, state: State): void {
+function runWorker(runtime: Runtime, state: State): () => void {
     const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
     const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
@@ -63,7 +67,7 @@ function runWorker(runtime: Runtime, state: State): void {
     let colorDelta = 0;
 
     let lastTime = performance.now();
-    setInterval(() => {
+    const interval = setInterval(() => {
         const time = performance.now();
         const delta = time - lastTime;
         lastTime = time;
@@ -79,6 +83,11 @@ function runWorker(runtime: Runtime, state: State): void {
             colorDelta = 0;
         }
     }, 25);
+
+    return () => {
+        channel.dispose();
+        clearInterval(interval);
+    };
 }
 
 function makePrimitive(runtime: Runtime): Primitive {

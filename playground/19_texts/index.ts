@@ -8,7 +8,7 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -45,7 +45,7 @@ interface State {
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new Camera();
@@ -61,30 +61,42 @@ export function main(): void {
         camera.setEyePos(cameraPos);
     });
 
+    const primitive = makePrimitive(runtime);
+    const labelPrimitive = makeLabelPrimitive(runtime);
+    const { objects, disposeObjects } = makeObjects(runtime);
+
     const state: State = {
         runtime,
         camera,
-        primitive: makePrimitive(runtime),
-        labelPrimitive: makeLabelPrimitive(runtime),
-        objects: makeObjects(runtime),
+        primitive,
+        labelPrimitive,
+        objects,
     };
 
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     camera.changed().on(() => {
         runtime.requestFrameRender();
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
     ]);
+
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos,
+            disposeObjects, primitive.program(), primitive, labelPrimitive.program(), labelPrimitive,
+            runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 const primitiveRenderState = createRenderState({
@@ -133,7 +145,7 @@ function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: St
     }
 }
 
-function makeObjects(runtime: Runtime): ObjectInfo[] {
+function makeObjects(runtime: Runtime): { objects: ObjectInfo[], disposeObjects: () => void } {
     const objects: ObjectInfo[] = [];
     const STEP = 2;
     let i = 0;
@@ -147,7 +159,15 @@ function makeObjects(runtime: Runtime): ObjectInfo[] {
             ++i;
         }
     }
-    return objects;
+    return { objects, disposeObjects };
+
+    function disposeObjects(): void {
+        for (const object of objects) {
+            for (const label of object.labels) {
+                label.texture.dispose();
+            }
+        }
+    }
 }
 
 function makeObjectLabels(runtime: Runtime, position: Vec3, id: string): LabelInfo[] {

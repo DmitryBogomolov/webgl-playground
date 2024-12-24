@@ -1,4 +1,4 @@
-import type { Runtime, Primitive, Vec2, Vec3, Mat4, Color } from 'lib';
+import type { Runtime, Primitive, Vec2, Vec3, Mat4, Color, Program } from 'lib';
 import type { GlyphAtlas } from './glyph';
 import {
     createRenderState,
@@ -10,12 +10,12 @@ import {
     color, colors,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
-import { makeStringPrimitive, getNextLabel } from './label';
+import { makeStringPrimitive, makeStringProgram, getNextLabel } from './label';
 import { makeGlyphAtlas } from './glyph';
 
 /**
@@ -49,13 +49,16 @@ interface State {
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
     const atlas = makeGlyphAtlas(FONT_SIZE);
-    const texture = new Texture({ runtime });
-    texture.setImageData(atlas.canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
+    const atlasTexture = new Texture({ runtime });
+    atlasTexture.setImageData(atlas.canvas, { unpackFlipY: true, unpackPremultiplyAlpha: true });
+
+    const primitive = makePrimitive(runtime);
+    const { objects, disposeObjects } = makeObjects(runtime, atlas);
 
     const camera = new Camera();
     const cameraLon = observable(0);
@@ -72,29 +75,35 @@ export function main(): void {
     const state: State = {
         runtime,
         camera,
-        atlasTexture: texture,
-        primitive: makePrimitive(runtime),
-        objects: makeObjects(runtime, atlas),
+        atlasTexture,
+        primitive,
+        objects,
     };
 
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     camera.changed().on(() => {
         runtime.requestFrameRender();
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
     ]);
 
-    // container.parentElement!.appendChild(atlas.canvas);
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos,
+            disposeObjects, primitive.program(), primitive, atlasTexture,
+            runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 const primitiveRenderState = createRenderState({
@@ -143,30 +152,40 @@ function renderScene({ runtime, camera, primitive, atlasTexture, objects }: Stat
     }
 }
 
-function makeObjects(runtime: Runtime, atlas: GlyphAtlas): ObjectInfo[] {
+function makeObjects(runtime: Runtime, atlas: GlyphAtlas): { objects: ObjectInfo[], disposeObjects: () => void } {
     const objects: ObjectInfo[] = [];
     const STEP = 2;
+    const program = makeStringProgram(runtime);
     for (let dx = -STEP; dx <= +STEP; dx += STEP) {
         for (let dy = -STEP; dy <= +STEP; dy += STEP) {
             const position = vec3(dx, dy, 0);
             objects.push({
                 modelMat: translation4x4(position),
-                labels: makeObjectLabels(runtime, position, atlas),
+                labels: makeObjectLabels(runtime, program, position, atlas),
             });
         }
     }
-    return objects;
+    return { objects, disposeObjects };
+
+    function disposeObjects(): void {
+        program.dispose();
+        for (const object of objects) {
+            for (const label of object.labels) {
+                label.primitive.dispose();
+            }
+        }
+    }
 }
 
-function makeObjectLabels(runtime: Runtime, position: Vec3, atlas: GlyphAtlas): LabelInfo[] {
+function makeObjectLabels(runtime: Runtime, program: Program, position: Vec3, atlas: GlyphAtlas): LabelInfo[] {
     return [
         {
-            ...makeStringPrimitive(runtime, atlas, getNextLabel()),
+            ...makeStringPrimitive(runtime, program, atlas, getNextLabel()),
             position: add3(position, vec3(-0.5, -0.5, -0.5)),
             color: colors.RED,
         },
         {
-            ...makeStringPrimitive(runtime, atlas, getNextLabel()),
+            ...makeStringPrimitive(runtime, program, atlas, getNextLabel()),
             position: add3(position, vec3(+0.5, +0.5, +0.5)),
             color: colors.BLUE,
         },

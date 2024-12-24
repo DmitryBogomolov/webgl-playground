@@ -40,6 +40,12 @@ export class SelectControl extends BaseControl {
         this._root.appendChild(this._select);
     }
 
+    dispose(): void {
+        super.dispose();
+        this._select.removeEventListener('change', this._handleSelectionChange);
+        this._options.selection.off(this._handleValueChange);
+    }
+
     private _updateSelectedIndex(): void {
         this._select.selectedIndex = this._options.options.indexOf(this._options.selection());
     }

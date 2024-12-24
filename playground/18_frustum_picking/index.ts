@@ -9,7 +9,7 @@ import {
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -35,7 +35,7 @@ interface State {
     pixelCoord: Vec2;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -46,7 +46,7 @@ export function main(): void {
         size: { x: 1, y: 1 },
     });
     const camera = new Camera();
-    const { objects, program, idProgram } = makeObjects(runtime);
+    const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
     const cameraLon = observable(0);
     const cameraLat = observable(20);
@@ -74,25 +74,35 @@ export function main(): void {
     };
 
     const getCoords = makeEventCoordsGetter(container);
-    container.addEventListener('pointermove', (e) => {
+    container.addEventListener('pointermove', handlePointerMove);
+
+    function handlePointerMove(e: PointerEvent): void {
         const coords = getCoords(e);
         // Flip Y coordinate.
         state.pixelCoord = vec2(coords.x, runtime.canvasSize().y - coords.y);
         runtime.requestFrameRender();
-    });
+    }
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
         { label: 'camera dist', value: cameraDist, min: 4, max: 16 },
     ]);
+
+    return () => {
+        container.removeEventListener('pointermove', handlePointerMove);
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos,
+            disposeObjects, framebuffer, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 function renderFrame(state: State): void {
@@ -138,9 +148,10 @@ function makeObjects(runtime: Runtime): {
     objects: ReadonlyArray<SceneItem>,
     program: Program,
     idProgram: Program,
+    disposeObjects: () => void,
  } {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { make: makeObject, program, idProgram } = makeObjectsFactory(runtime);
+    const { make: makeObject, program, idProgram, dispose: disposeObjects } = makeObjectsFactory(runtime);
     const objects: SceneItem[] = [
         makeObject(
             201, vec3(1, 0.9, 0.6), vec3(1, 0, 0), 0.3 * Math.PI, vec3(4, 0, 0),
@@ -155,5 +166,5 @@ function makeObjects(runtime: Runtime): {
             204, vec3(1, 0.9, 0.8), vec3(0, 1, 0), 0.2 * Math.PI, vec3(0, 0, -4),
         ),
     ];
-    return { objects, program, idProgram };
+    return { objects, program, idProgram, disposeObjects };
 }

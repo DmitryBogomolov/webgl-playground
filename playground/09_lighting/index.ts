@@ -9,7 +9,7 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -22,7 +22,7 @@ import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgra
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({
@@ -126,7 +126,7 @@ export function main(): void {
         .forEach((item) => item.on(() => runtime.requestFrameRender()));
 
     const _proj = mat4();
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         const { x, y } = runtime.canvasSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);
@@ -159,7 +159,7 @@ export function main(): void {
         }, modelViewProj, modelInvTrs);
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'rotation', min: -180, max: +180, value: rotation },
         { label: 'position', min: -5, max: +5, step: 0.5, value: position },
         { label: 'light lon', min: -180, max: +180, value: lightLon },
@@ -168,12 +168,25 @@ export function main(): void {
         { label: 'limit point', min: 0, max: 30, value: lightLimitPoint },
         { label: 'limit range', min: 0, max: 20, value: lightLimitRange },
     ]);
+
+    return () => {
+        disposeAll([
+            offsetCoeff, rotation, position, lightLon, lightLat, lightDistance, lightLimitPoint, lightLimitRange,
+            proj, view, model, modelViewProj, modelInvTrs,
+            lightDirection, lightPosition, lightLimit,
+            directionalProgram, pointProgram, spotProgram, primitive, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 function renderPrimitive(
-    program: Program, primitive: Primitive,
-    clr: Color, offset: number, uniforms: Record<string, SHADER_UNIFORM_VALUE>,
-    modelViewProj: Observable<Mat4>, modelInvTrs: Observable<Mat4>,
+    program: Program,
+    primitive: Primitive,
+    clr: Color,
+    offset: number,
+    uniforms: Record<string, SHADER_UNIFORM_VALUE>,
+    modelViewProj: Observable<Mat4>,
+    modelInvTrs: Observable<Mat4>,
 ): void {
     program.setUniform('u_offset', offset);
     program.setUniform('u_model_view_proj', modelViewProj());

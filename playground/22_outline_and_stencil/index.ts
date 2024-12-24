@@ -11,7 +11,7 @@ import {
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -43,7 +43,7 @@ interface State {
     readonly selectedObjects: Set<number>;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
     const camera = new Camera();
     const framebuffer = new Framebuffer({
@@ -65,7 +65,7 @@ export function main(): void {
 
     const outlineThickness = observable(10);
 
-    const { models, objectProgram, outlineProgram, idProgram } = makeModels(runtime, [
+    const { models, objectProgram, outlineProgram, idProgram, disposeModels } = makeModels(runtime, [
         {
             type: 'cube',
             size: vec3(1.2, 1.3, 1.4),
@@ -106,7 +106,9 @@ export function main(): void {
     };
 
     const getCoords = makeEventCoordsGetter(container);
-    container.addEventListener('click', (e) => {
+    container.addEventListener('click', handleClick);
+
+    function handleClick(e: MouseEvent): void {
         const coords = getCoords(e);
         // Flip Y coordinate.
         const objectId = findObjectId(state, { x: coords.x, y: runtime.canvasSize().y - coords.y });
@@ -118,12 +120,12 @@ export function main(): void {
             }
             runtime.requestFrameRender();
         }
-    });
+    }
 
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
     [camera.changed(), outlineThickness].forEach((emitter) => {
@@ -132,12 +134,20 @@ export function main(): void {
         });
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
         { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
         { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
     ]);
+
+    return () => {
+        container.removeEventListener('click', handleClick);
+        disposeAll([
+            cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness,
+            disposeModels, framebuffer, runtime, controlRoot, cancelTracking,
+        ]);
+    };
 }
 
 function renderScene(state: State): void {

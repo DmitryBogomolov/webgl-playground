@@ -8,7 +8,7 @@ import {
     color,
     deg2rad,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -43,7 +43,7 @@ interface State {
     readonly targetModel: Observable<Mat4>;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -107,7 +107,7 @@ export function main(): void {
         targetModel,
     };
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
@@ -125,12 +125,21 @@ export function main(): void {
         renderScene(state);
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'x rotation', value: xRotation, min: -45, max: +45 },
         { label: 'y rotation', value: yRotation, min: -45, max: +45 },
     ]);
 
-    animation(runtime);
+    const animate = animation(runtime);
+
+    return () => {
+        disposeAll([
+            xRotation, yRotation, targetModel,
+            state.texturePlane.program(), state.texturePlane,
+            state.object.program(), state.object,
+            framebuffer, runtime, controlRoot, animate, cancelTracking,
+        ]);
+    };
 }
 
 function renderToTexture({

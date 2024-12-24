@@ -8,7 +8,7 @@ import {
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -32,7 +32,7 @@ interface PrimitiveData {
     readonly offset: number;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -102,7 +102,7 @@ export function main(): void {
         mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
     });
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
@@ -139,7 +139,7 @@ export function main(): void {
         }
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'rotation', min: -180, max: +180, value: rotation },
         { label: 'position', min: -5, max: +5, step: 0.5, value: position },
         { label: 'proj dist', min: 0.2, max: 5, step: 0.2, value: projectionDist },
@@ -151,4 +151,14 @@ export function main(): void {
         { label: 'perspective', checked: isPerpsectiveProjection },
         { label: 'wifeframe', checked: isWireframeShown },
     ]);
+
+    return () => {
+        disposeAll([
+            rotation, position, projectionDist, projectionLon, projectionLat, projectionWidth, projectionHeight,
+            projectionFOV, isPerpsectiveProjection, isWireframeShown,
+            model, eyePosition, projectionSize, projectionFOV,
+            program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture,
+            runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
