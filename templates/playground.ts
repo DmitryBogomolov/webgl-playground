@@ -1,3 +1,5 @@
+import { hasUrlParam } from 'playground-utils/url';
+import { tapRuntime, setConsoleCommand } from './tap';
 import './screenshot-button';
 // @ts-ignore Actual path is provided in loader.
 import { main } from '__PATH__';
@@ -25,9 +27,34 @@ function dispose(): void {
     doDispose = null;
 }
 
-// @ts-ignore Global.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const playground = (window.playground = window.playground || {});
-Object.assign(playground, { init, dispose });
+function setupButton(): () => void {
+    let button = document.querySelector<HTMLButtonElement>('.btn.reset-button');
+    if (!button) {
+        button = document.createElement('button');
+        button.className = 'btn reset-button';
+        button.addEventListener('click', doCommand);
+    }
+    document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!.appendChild(button);
+    button.textContent = 'X';
+
+    return () => {
+        button!.textContent = 'O';
+    };
+
+    function doCommand(): void {
+        if (isActive) {
+            dispose();
+        } else {
+            init();
+        }
+    }
+}
+
+setConsoleCommand('init', init);
+setConsoleCommand('dispose', dispose);
+
+if (!hasUrlParam('no-reset')) {
+    tapRuntime(setupButton);
+}
 
 init();
