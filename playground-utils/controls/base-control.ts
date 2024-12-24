@@ -25,5 +25,6 @@ export abstract class BaseControl {
     }
 
     dispose(): void {
+        this._root.remove();
     }
 }
