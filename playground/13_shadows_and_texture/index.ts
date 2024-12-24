@@ -101,39 +101,45 @@ export function main(): () => void {
         useDepthTexture: true,
         size: { x: 512, y: 512 },
     });
+    const program = makeProgram(runtime);
+    const depthProgram = makeDepthProgram(runtime);
+    const wireframe = makeWireframe(runtime);
+
     depthCamera.setViewportSize(framebuffer.size());
 
     const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
+    const objects: ObjectInfo[] = [
+        makeObject(
+            makeCube(runtime, 1.8),
+            vec3(+2, 0, 1),
+            colors.CYAN,
+        ),
+        makeObject(
+            makeSphere(runtime, 1.5),
+            vec3(-1, 0, 1),
+            colors.MAGENTA,
+        ),
+        makeObject(
+            makeSphere(runtime, 1.2),
+            vec3(0, 0, -2),
+            colors.BLUE,
+        ),
+    ];
+
     const state: State = {
         runtime,
-        program: makeProgram(runtime),
-        depthProgram: makeDepthProgram(runtime),
+        program,
+        depthProgram,
         framebuffer,
         camera,
         depthCamera,
         backgroundColor: color(0.7, 0.7, 0.7),
         depthDataBackgroundColor: colors.WHITE,
-        objects: [
-            makeObject(
-                makeCube(runtime, 1.8),
-                vec3(+2, 0, 1),
-                colors.CYAN,
-            ),
-            makeObject(
-                makeSphere(runtime, 1.5),
-                vec3(-1, 0, 1),
-                colors.MAGENTA,
-            ),
-            makeObject(
-                makeSphere(runtime, 1.2),
-                vec3(0, 0, -2),
-                colors.BLUE,
-            ),
-        ],
-        wireframe: makeWireframe(runtime),
+        objects,
+        wireframe,
     };
 
     runtime.frameRequested().on(() => {
@@ -157,8 +163,8 @@ export function main(): () => void {
     return () => {
         disposeAll([
             viewLon, lightLon, lightLat, lightDist, zNear, zFar, lightPos,
-            ...state.objects.map((t) => t.primitive),
-            state.program, state.depthProgram, state.wireframe,
+            ...objects.map((t) => t.primitive),
+            program, depthProgram, wireframe,
             framebuffer, runtime, cancelTracking, controlRoot,
         ]);
     };
