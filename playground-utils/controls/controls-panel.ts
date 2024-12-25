@@ -12,6 +12,13 @@ export class ControlsPanel extends BaseControl {
         super(container);
     }
 
+    dispose(): void {
+        super.dispose();
+        for (const control of this._controls) {
+            control.dispose();
+        }
+    }
+
     addRangeControl(options: RangeControlOptions): this {
         this._controls.push(new RangeControl(this._root, options));
         return this;

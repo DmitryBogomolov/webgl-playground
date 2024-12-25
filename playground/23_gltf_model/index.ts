@@ -6,7 +6,7 @@ import {
     vec3, mul3,
     spherical2zxy, deg2rad,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -32,7 +32,7 @@ const MODELS: ReadonlyArray<ModelInfo> = [
     { name: 'Cube', path: 'Cube/Cube.gltf' },
 ];
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -61,7 +61,7 @@ export function main(): void {
         camera.setEyePos(cameraPos);
     });
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
@@ -78,9 +78,16 @@ export function main(): void {
         renderer.setData({ url: `/static/gltf-models/${model.path}` }).catch(console.error);
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
         { label: 'model', options: MODELS.map((info) => info.name), selection: selectedModelName },
     ]);
+
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraPos,
+            renderer, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }

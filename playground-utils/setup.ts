@@ -86,3 +86,13 @@ function createLogger(): Logger {
         }
     }
 }
+
+export function disposeAll(disposables: Iterable<{ dispose: () => void } | (() => void)>): void {
+    for (const disposable of disposables) {
+        if ('dispose' in disposable) {
+            disposable.dispose();
+        } else {
+            disposable();
+        }
+    }
+}

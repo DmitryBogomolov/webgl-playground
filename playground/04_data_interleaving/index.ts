@@ -7,7 +7,7 @@ import {
     parseVertexSchema,
     writeVertexData,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -25,7 +25,7 @@ interface Vertex {
     readonly factor: number;
 }
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     alignLabels(container);
 
@@ -40,6 +40,10 @@ export function main(): void {
         primitiveAoS.render();
         primitiveSoA.render();
     });
+
+    return () => {
+        disposeAll([primitiveAoS.program(), primitiveAoS, primitiveSoA.program(), primitiveSoA, runtime]);
+    };
 }
 
 function makeVertices(min: Vec2, max: Vec2): Vertex[] {

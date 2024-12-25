@@ -3,9 +3,12 @@ import { Runtime, Primitive, Program, vec3, color, generateCube, parseVertexSche
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
-export function makePrimitive(runtime: Runtime): Primitive {
-    const primitive = new Primitive({ runtime });
+export interface PrimitiveFactory {
+    createPrimitive(): Primitive;
+    dispose(): void;
+}
 
+export function makePrimitiveFactory(runtime: Runtime): PrimitiveFactory {
     const vertexSchema = parseVertexSchema({
         attributes: [
             { type: 'float3' },
@@ -39,10 +42,26 @@ export function makePrimitive(runtime: Runtime): Primitive {
         return { pos: position, clr: clrs[key] };
     });
 
-    const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.pos, vertex.clr]));
-    const indexData = new Uint16Array(indices);
+    const primitives: Primitive[] = [];
 
-    primitive.setup({ vertexData, indexData, vertexSchema });
-    primitive.setProgram(program);
-    return primitive;
+    return {
+        createPrimitive: () => {
+            const primitive = new Primitive({ runtime });
+            const vertexData = writeVertexData(vertices, vertexSchema, (vertex) => ([vertex.pos, vertex.clr]));
+            const indexData = new Uint16Array(indices);
+
+            primitive.setup({ vertexData, indexData, vertexSchema });
+            primitive.setProgram(program);
+            primitives.push(primitive);
+
+            return primitive;
+        },
+
+        dispose: () => {
+            program.dispose();
+            for (const primitive of primitives) {
+                primitive.dispose();
+            }
+        },
+    };
 }

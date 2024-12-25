@@ -5,10 +5,10 @@ import {
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { animation } from 'playground-utils/animation';
-import { makePrimitive } from './primitive';
+import { makePrimitiveFactory } from './primitive';
 import { makeFigureRenderer } from './figure';
 
 /**
@@ -18,7 +18,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const CAMERA_HEIGHT = 3;
     const CAMERA_DISTANCE = 13;
     const PI2 = Math.PI * 2;
@@ -28,16 +28,17 @@ export function main(): void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
+    const factory = makePrimitiveFactory(runtime);
     const figure1 = makeFigureRenderer(
-        makePrimitive(runtime),
+        factory.createPrimitive(),
         2, vec3(1, 8, 0), 3, +0.11 * PI2 / 1000,
     );
     const figure2 = makeFigureRenderer(
-        makePrimitive(runtime),
+        factory.createPrimitive(),
         0.9, vec3(1, 0, 0), 4, -0.15 * PI2 / 1000,
     );
     const figure3 = makeFigureRenderer(
-        makePrimitive(runtime),
+        factory.createPrimitive(),
         0.7, vec3(0, 0, 1), 5, +0.19 * PI2 / 1000,
     );
 
@@ -67,7 +68,7 @@ export function main(): void {
         figure3.render();
     });
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         const { x, y } = runtime.canvasSize();
         perspective4x4({
             aspect: x / y,
@@ -77,5 +78,9 @@ export function main(): void {
         }, proj);
     });
 
-    animation(runtime);
+    const animate = animation(runtime);
+
+    return () => {
+        disposeAll([factory, runtime, animate, cancelTracking]);
+    };
 }

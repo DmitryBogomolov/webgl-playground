@@ -32,7 +32,7 @@ const stubVertex: TargetVertexInfo = {
     location: 'none',
 };
 
-export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): () => void {
+export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): Tracker {
     let action: 'none' | 'move_vertex' | 'change_thickness' = 'none';
     let targetVertex = stubVertex;
 
@@ -179,7 +179,5 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     tracker.event('end').on(onEnd);
     tracker.event('dblclick').on(onDblClick);
 
-    return () => {
-        tracker.dispose();
-    };
+    return tracker;
 }

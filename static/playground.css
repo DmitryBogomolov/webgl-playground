@@ -1,6 +1,7 @@
 .playground-container {
     height: 600px;
 }
+
 .playground-root {
     position: relative;
     width: 100%;
@@ -8,13 +9,23 @@
     border: 2px solid black;
     background-color: darkgrey;
 }
+
 .screenshot-button {
     position: absolute;
     right: 0;
     opacity: 50%;
 }
+
 .animation-button {
     position: absolute;
     right: 120px;
     opacity: 50%;
+}
+
+.reset-button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    opacity: 50%;
+    width: 36px;
 }

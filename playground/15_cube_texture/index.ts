@@ -10,7 +10,7 @@ import {
     deg2rad, spherical2zxy,
     parseVertexSchema,
 } from 'lib';
-import { setup } from 'playground-utils/setup';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -25,7 +25,7 @@ import fragShader from './shaders/cube.frag';
  */
 export type DESCRIPTION = never;
 
-export function main(): void {
+export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -46,7 +46,7 @@ export function main(): void {
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
-    trackSize(runtime, () => {
+    const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
     });
 
@@ -59,10 +59,17 @@ export function main(): void {
         primitive.render();
     });
 
-    createControls(container, [
+    const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
         { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
     ]);
+
+    return () => {
+        disposeAll([
+            cameraLon, cameraLat, cameraPos,
+            primitive.program(), primitive, texture, runtime, cancelTracking, controlRoot,
+        ]);
+    };
 }
 
 function makePrimitive(runtime: Runtime): Primitive {
