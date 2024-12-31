@@ -1,7 +1,7 @@
 import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
-    Camera,
+    ViewProj,
     vec3, mul3,
     identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
@@ -25,7 +25,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: Camera;
+    readonly viewProj: ViewProj;
     readonly primitive: Primitive;
     readonly contourPrimitive: Primitive;
     readonly modelMat: Observable<Mat4>;
@@ -38,7 +38,7 @@ interface State {
 export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const camera = new Camera();
+    const viewProj = new ViewProj();
 
     const cameraLon = observable(0);
     const cameraLat = observable(20);
@@ -48,7 +48,7 @@ export function main(): () => void {
         return mul3(dir, cameraDist);
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const xRotation = observable(0);
@@ -70,7 +70,7 @@ export function main(): () => void {
 
     const state: State = {
         runtime,
-        camera,
+        viewProj,
         primitive,
         contourPrimitive,
         modelMat,
@@ -93,15 +93,15 @@ export function main(): () => void {
         renderScene(state);
     });
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
-    [camera.changed(), modelMat].forEach((emitter) => {
+    [viewProj.changed(), modelMat].forEach((emitter) => {
         emitter.on(() => {
             updateContourPrimitive(state);
             runtime.requestFrameRender();
         });
     });
-    [camera.changed(), modelMat, contourEnabled, contourThickness].forEach((emitter) => {
+    [viewProj.changed(), modelMat, contourEnabled, contourThickness].forEach((emitter) => {
         emitter.on(() => {
             runtime.requestFrameRender();
         });
@@ -135,13 +135,18 @@ const contourRenderState = createRenderState({
 
 function renderScene({
     runtime,
-    camera, primitive, contourPrimitive, modelMat, modelClr,
-    contourEnabled, contourThickness,
+    viewProj,
+    primitive,
+    contourPrimitive,
+    modelMat,
+    modelClr,
+    contourEnabled,
+    contourThickness,
 }: State): void {
     runtime.clearBuffer('color|depth');
 
     runtime.setRenderState(objectRenderState);
-    primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+    primitive.program().setUniform('u_view_proj', viewProj.getTransformMat());
     primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
@@ -154,7 +159,7 @@ function renderScene({
     }
 }
 
-function updateContourPrimitive({ contourPrimitive, camera, modelMat, modelPoints }: State): void {
-    const points = findContour(modelPoints, modelMat(), camera.getTransformMat());
+function updateContourPrimitive({ contourPrimitive, viewProj, modelMat, modelPoints }: State): void {
+    const points = findContour(modelPoints, modelMat(), viewProj.getTransformMat());
     updateContourData(contourPrimitive, points);
 }

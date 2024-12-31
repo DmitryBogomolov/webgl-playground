@@ -1,6 +1,6 @@
 import {
     createRenderState,
-    Camera,
+    ViewProj,
     GlTFRenderer,
     color,
     vec3, mul3,
@@ -39,12 +39,12 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const camera = new Camera();
-    camera.setEyePos(vec3(0, 3, 5));
+    const viewProj = new ViewProj();
+    viewProj.setEyePos(vec3(0, 3, 5));
 
     const renderer = new GlTFRenderer({ runtime });
 
-    camera.changed().on(() => {
+    viewProj.changed().on(() => {
         runtime.requestFrameRender();
     });
     renderer.changed().on(() => {
@@ -58,17 +58,17 @@ export function main(): () => void {
         return mul3(dir, 5);
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
-        renderer.setProjMat(camera.getProjMat());
-        renderer.setViewMat(camera.getViewMat());
+        renderer.setProjMat(viewProj.getProjMat());
+        renderer.setViewMat(viewProj.getViewMat());
         renderer.render();
     });
 

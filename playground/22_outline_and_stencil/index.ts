@@ -3,7 +3,7 @@ import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
     createRenderState,
-    Camera,
+    ViewProj,
     Framebuffer,
     vec3, mul3,
     mat4,
@@ -31,7 +31,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: Camera;
+    readonly viewProj: ViewProj;
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
@@ -45,7 +45,7 @@ interface State {
 
 export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
-    const camera = new Camera();
+    const viewProj = new ViewProj();
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
@@ -60,7 +60,7 @@ export function main(): () => void {
         return mul3(dir, cameraDist);
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const outlineThickness = observable(10);
@@ -93,7 +93,7 @@ export function main(): () => void {
     ]);
     const state: State = {
         runtime,
-        camera,
+        viewProj,
         models,
         backgroundColor: color(0.8, 0.8, 0.8),
         objectProgram,
@@ -126,9 +126,9 @@ export function main(): () => void {
         renderScene(state);
     });
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
-    [camera.changed(), outlineThickness].forEach((emitter) => {
+    [viewProj.changed(), outlineThickness].forEach((emitter) => {
         emitter.on(() => {
             runtime.requestFrameRender();
         });
@@ -179,7 +179,7 @@ const colorIdRenderState = createRenderState({
 });
 
 function renderObjects({
-    runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
+    runtime, viewProj, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
     runtime.setRenderState(objectRenderState);
     runtime.setClearColor(backgroundColor);
@@ -187,7 +187,7 @@ function renderObjects({
 
     for (const { primitive, mat, color, id } of models) {
         if (!selectedObjects.has(id)) {
-            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+            objectProgram.setUniform('u_view_proj', viewProj.getTransformMat());
             objectProgram.setUniform('u_model', mat);
             objectProgram.setUniform('u_color', color);
             primitive.setProgram(objectProgram);
@@ -198,7 +198,7 @@ function renderObjects({
     runtime.setRenderState(selectedObjectRenderState);
     for (const { primitive, mat, color, id } of models) {
         if (selectedObjects.has(id)) {
-            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
+            objectProgram.setUniform('u_view_proj', viewProj.getTransformMat());
             objectProgram.setUniform('u_model', mat);
             objectProgram.setUniform('u_color', color);
             primitive.setProgram(objectProgram);
@@ -208,12 +208,12 @@ function renderObjects({
 }
 
 function renderOutline({
-    runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
+    runtime, viewProj, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
 }: State): void {
     runtime.setRenderState(outlineRenderState);
     for (const { primitive, mat, id } of models) {
         if (selectedObjects.has(id)) {
-            outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
+            outlineProgram.setUniform('u_view_proj', viewProj.getTransformMat());
             outlineProgram.setUniform('u_model', mat);
             outlineProgram.setUniform('u_color', outlineColor);
             outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
@@ -225,14 +225,14 @@ function renderOutline({
 }
 
 const _transformMat = mat4();
-function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
+function findObjectId({ runtime, framebuffer, viewProj, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setRenderState(colorIdRenderState);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
 
     const transformMat = _transformMat as Mat4Mut;
-    makePixelViewProjMat(camera, coords, transformMat);
+    makePixelViewProjMat(viewProj, coords, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, mat, id } of models) {
         primitive.setProgram(idProgram);

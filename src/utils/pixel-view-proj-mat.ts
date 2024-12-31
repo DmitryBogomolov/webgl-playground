@@ -1,6 +1,6 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
-import type { Camera } from '../common/camera';
+import type { ViewProj } from '../common/view-proj';
 import { clone4x4, apply4x4, frustum4x4 } from '../geometry/mat4';
 
 /**
@@ -10,13 +10,13 @@ import { clone4x4, apply4x4, frustum4x4 } from '../geometry/mat4';
  * Default perspective projection matrix is replaced with frustum projection matrix that
  * "covers" only one required pixel
  */
-export function makePixelViewProjMat(camera: Camera, pixel: Vec2, mat: Mat4Mut): void {
+export function makePixelViewProjMat(viewProj: ViewProj, pixel: Vec2, mat: Mat4Mut): void {
     // Calculate frustum from perspective parameters.
     // |top| = |bottom| = zNear * tan(fov / 2)
     // |left| = |right| = aspect * |top|
-    const dy = camera.getZNear() * Math.tan(camera.getYFov() / 2);
-    const dx = camera.getAspect() * dy;
-    const { x: xViewport, y: yViewport } = camera.getViewportSize();
+    const dy = viewProj.getZNear() * Math.tan(viewProj.getYFov() / 2);
+    const dx = viewProj.getAspect() * dy;
+    const { x: xViewport, y: yViewport } = viewProj.getViewportSize();
     // Full [left, right] * [bottom, top] range corresponds to [0, viewport_width] * [0, viewport_height] screen.
     // [0, W] -> [-dx, +dx] => x -> dx * (x * 2 / W - 1)
     // [0, H] -> [-dy, +dy] => y -> dy * (y * 2 / H - 1)
@@ -27,9 +27,9 @@ export function makePixelViewProjMat(camera: Camera, pixel: Vec2, mat: Mat4Mut):
     const y1 = dy * (2 * pixel.y / yViewport - 1);
     const y2 = dy * (2 * (pixel.y + 1) / yViewport - 1);
 
-    clone4x4(camera.getViewMat(), mat);
+    clone4x4(viewProj.getViewMat(), mat);
     apply4x4(mat, frustum4x4, {
         left: x1, right: x2, bottom: y1, top: y2,
-        zNear: camera.getZNear(), zFar: camera.getZFar(),
+        zNear: viewProj.getZNear(), zFar: viewProj.getZFar(),
     });
 }

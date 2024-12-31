@@ -1,4 +1,4 @@
-import type { CAMERA_PROJECTION } from './camera.types';
+import type { CAMERA_PROJECTION } from './view-proj.types';
 import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -10,7 +10,7 @@ import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-export class Camera {
+export class ViewProj {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
