@@ -247,7 +247,7 @@ export class ViewProj {
 }
 
 interface ProjImpl {
-    type: CAMERA_PROJECTION;
+    readonly type: CAMERA_PROJECTION;
     buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4Mut): void;
     getXViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
     getYViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
@@ -266,7 +266,7 @@ const perspectiveImpl: ProjImpl = {
     },
 
     getXViewSize(yFov, viewportSize, viewDist) {
-        return (viewportSize.x / viewportSize.y) * perspectiveImpl.getYViewSize(yFov, viewportSize, viewDist);
+        return (viewportSize.x / viewportSize.y) * fovDist2Size(yFov, viewDist);
     },
 
     getYViewSize(yFov, _viewportSize, viewDist) {
