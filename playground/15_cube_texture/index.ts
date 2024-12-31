@@ -4,7 +4,7 @@ import {
     Primitive,
     Program,
     TextureCube,
-    Camera,
+    ViewProj,
     generateCube,
     UNIT3, mul3,
     deg2rad, spherical2zxy,
@@ -30,8 +30,8 @@ export function main(): () => void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
-    const camera = new Camera();
-    camera.changed().on(() => runtime.requestFrameRender());
+    const viewProj = new ViewProj();
+    viewProj.changed().on(() => runtime.requestFrameRender());
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
@@ -40,21 +40,21 @@ export function main(): () => void {
         return mul3(dir, 2);
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);
-        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+        primitive.program().setUniform('u_view_proj', viewProj.getTransformMat());
         primitive.program().setUniform('u_texture', 2);
         primitive.render();
     });

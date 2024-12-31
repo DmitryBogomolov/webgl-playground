@@ -1,10 +1,10 @@
-import { Camera } from './camera';
+import { ViewProj } from './view-proj';
 import { perspective4x4, orthographic4x4, lookAt4x4, transpose4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-describe('camera', () => {
-    describe('Camera', () => {
+describe('ViewProj', () => {
+    describe('ViewProj', () => {
         it('init perspective projection', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
 
             expect(camera.getProjType()).toEqual('perspective');
             expect(camera.getZNear()).toEqual(0.01);
@@ -22,7 +22,7 @@ describe('camera', () => {
         });
 
         it('init orthographic projection', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
             camera.setProjType('orthographic');
 
             expect(camera.getProjType()).toEqual('orthographic');
@@ -43,7 +43,7 @@ describe('camera', () => {
         });
 
         it('init view', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
 
             expect(camera.getCenterPos()).toBeVec3({ x: 0, y: 0, z: 0 });
             expect(camera.getUpDir()).toBeVec3({ x: 0, y: 1, z: 0 });
@@ -58,7 +58,7 @@ describe('camera', () => {
         });
 
         it('update projection', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
 
             camera.setYFov(Math.PI / 4);
             camera.setZFar(1000);
@@ -80,7 +80,7 @@ describe('camera', () => {
         });
 
         it('update view', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
 
             camera.setEyePos({ x: 1, y: 8, z: 0 });
             camera.setCenterPos({ x: 2, y: 1, z: 1 });
@@ -99,7 +99,7 @@ describe('camera', () => {
         });
 
         it('provide transform', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
             const transform = mul4x4(
                 perspective4x4({
                     yFov: Math.PI / 4,
@@ -126,7 +126,7 @@ describe('camera', () => {
         });
 
         it('provide view data', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
 
             expect(camera.getXFov()).toEqual(Math.PI / 3);
             expect(camera.getYFov()).toEqual(Math.PI / 3);
@@ -146,7 +146,7 @@ describe('camera', () => {
         });
 
         it('emit changed event', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
             let count = 0;
             camera.changed().on(() => {
                 ++count;
@@ -169,7 +169,7 @@ describe('camera', () => {
         });
 
         it('return actual state on changed event', () => {
-            const camera = new Camera();
+            const camera = new ViewProj();
             let handler: () => void;
             camera.changed().on(() => {
                 handler();

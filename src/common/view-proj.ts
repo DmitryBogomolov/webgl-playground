@@ -1,4 +1,4 @@
-import type { CAMERA_PROJECTION } from './camera.types';
+import type { CAMERA_PROJECTION } from './view-proj.types';
 import type { Vec2, Vec2Mut } from '../geometry/vec2.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Mat4, Mat4Mut } from '../geometry/mat4.types';
@@ -6,11 +6,12 @@ import type { EventProxy } from './event-emitter.types';
 import type { Mapping } from './mapping.types';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
+import { toArgStr } from '../utils/string-formatter';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-export class Camera {
+export class ViewProj {
     private readonly _changed = new EventEmitter();
     private readonly _projMat: Mat4 = mat4();
     private readonly _viewMat: Mat4 = mat4();
@@ -30,7 +31,7 @@ export class Camera {
     private _eyePos: Vec3 = clone3(ZUNIT3);
 
     /**
-     * Notifies about every camera change.
+     * Notifies about any change.
      */
     changed(): EventProxy {
         return this._changed.proxy();
@@ -63,7 +64,7 @@ export class Camera {
 
     setProjType(value: CAMERA_PROJECTION): void {
         const impl = PROJ_TYPE_TO_IMPL_MAP[value];
-        check(!!impl, 'ProjType', value);
+        check(!!impl, 'proj_type', value);
         if (this._projImpl !== impl) {
             this._projImpl = impl;
             this._markProjDirty();
@@ -75,7 +76,7 @@ export class Camera {
     }
 
     setZNear(value: number): void {
-        check(value > 0 && value < this._zFar, 'zNear', value);
+        check(value > 0 && value < this._zFar, 'z_near', value);
         if (this._zNear !== value) {
             this._zNear = value;
             this._markProjDirty();
@@ -87,7 +88,7 @@ export class Camera {
     }
 
     setZFar(value: number): void {
-        check(value > 0 && value > this._zNear, 'zFar', value);
+        check(value > 0 && value > this._zNear, 'z_far', value);
         if (this._zFar !== value) {
             this._zFar = value;
             this._markProjDirty();
@@ -103,8 +104,8 @@ export class Camera {
     }
 
     setViewportSize(value: Vec2): void {
-        check(isVec2(value), 'viewportSize', value);
-        check(value.x > 0 && value.y > 0, 'viewportSize', `(${value.x}, ${value.y}}`);
+        check(isVec2(value), 'viewport_size', value);
+        check(value.x > 0 && value.y > 0, 'viewport_size', toArgStr(value));
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
             this._markProjDirty();
@@ -120,7 +121,7 @@ export class Camera {
     }
 
     setYFov(value: number): void {
-        check(value > 0, 'yFOV', value);
+        check(value > 0, 'y_fov', value);
         if (this._yFov !== value) {
             this._yFov = value;
             this._markProjDirty();
@@ -132,8 +133,8 @@ export class Camera {
     }
 
     setUpDir(value: Vec3): void {
-        check(isVec3(value), 'upDir', value);
-        check(!eq3(value, ZERO3), 'upDir', '(0, 0, 0)');
+        check(isVec3(value), 'up_dir', value);
+        check(!eq3(value, ZERO3), 'up_dir', toArgStr(ZERO3));
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
             this._upDir = clone3(upDir);
@@ -146,7 +147,7 @@ export class Camera {
     }
 
     setCenterPos(value: Vec3): void {
-        check(isVec3(value), 'centerPos', value);
+        check(isVec3(value), 'center_pos', value);
         if (!eq3(this._centerPos, value)) {
             this._centerPos = clone3(value);
             this._markViewDirty();
@@ -158,7 +159,7 @@ export class Camera {
     }
 
     setEyePos(value: Vec3): void {
-        check(isVec3(value), 'eyePos', value);
+        check(isVec3(value), 'eye_pos', value);
         if (!eq3(this._eyePos, value)) {
             this._eyePos = clone3(value);
             this._markViewDirty();
@@ -246,7 +247,7 @@ export class Camera {
 }
 
 interface ProjImpl {
-    type: CAMERA_PROJECTION;
+    readonly type: CAMERA_PROJECTION;
     buildMat(zNear: number, zFar: number, yFov: number, viewportSize: Vec2, mat: Mat4Mut): void;
     getXViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
     getYViewSize(yFov: number, viewportSize: Vec2, viewDist: number): number;
@@ -265,7 +266,7 @@ const perspectiveImpl: ProjImpl = {
     },
 
     getXViewSize(yFov, viewportSize, viewDist) {
-        return (viewportSize.x / viewportSize.y) * perspectiveImpl.getYViewSize(yFov, viewportSize, viewDist);
+        return (viewportSize.x / viewportSize.y) * fovDist2Size(yFov, viewDist);
     },
 
     getYViewSize(yFov, _viewportSize, viewDist) {

@@ -3,7 +3,7 @@ import type { GlyphAtlas } from './glyph';
 import {
     createRenderState,
     Texture,
-    Camera,
+    ViewProj,
     divc2,
     vec3, add3, mul3,
     translation4x4,
@@ -43,7 +43,7 @@ interface LabelInfo {
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: Camera;
+    readonly viewProj: ViewProj;
     readonly atlasTexture: Texture;
     readonly primitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -60,7 +60,7 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const { objects, disposeObjects } = makeObjects(runtime, atlas);
 
-    const camera = new Camera();
+    const viewProj = new ViewProj();
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
@@ -69,12 +69,12 @@ export function main(): () => void {
         return mul3(dir, cameraDist);
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const state: State = {
         runtime,
-        camera,
+        viewProj,
         atlasTexture,
         primitive,
         objects,
@@ -85,9 +85,9 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
-    camera.changed().on(() => {
+    viewProj.changed().on(() => {
         runtime.requestFrameRender();
     });
 
@@ -117,12 +117,12 @@ const labelRenderState = createRenderState({
     blending: true,
 });
 
-function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {
+function renderScene({ runtime, viewProj, primitive, atlasTexture, objects }: State): void {
     runtime.clearBuffer('color|depth');
-    const viewProjMat = camera.getTransformMat();
+    const viewProjMat = viewProj.getTransformMat();
     const canvasSize = runtime.canvasSize();
-    const baseDist = camera.getViewDist();
-    const viewPos = camera.getEyePos();
+    const baseDist = viewProj.getViewDist();
+    const viewPos = viewProj.getEyePos();
 
     runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {

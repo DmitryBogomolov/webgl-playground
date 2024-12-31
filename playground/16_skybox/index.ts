@@ -2,7 +2,7 @@ import type { Runtime, Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
-    Camera,
+    ViewProj,
     mul3,
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
@@ -28,7 +28,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: Camera;
+    readonly viewProj: ViewProj;
     readonly modelMat: Observable<Mat4>;
     readonly normalMat: Observable<Mat4>;
     readonly isCubeShown: Observable<boolean>;
@@ -42,7 +42,7 @@ export function main(): () => void {
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);
-    const camera = new Camera();
+    const viewProj = new ViewProj();
 
     const cameraLon = observable(0);
     const cameraLat = observable(0);
@@ -52,7 +52,7 @@ export function main(): () => void {
         return mul3(dir, cameraDist);
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
-        camera.setEyePos(cameraPos);
+        viewProj.setEyePos(cameraPos);
     });
 
     const modelLon = observable(0);
@@ -73,14 +73,14 @@ export function main(): () => void {
 
     const isCubeShown = observable(true);
 
-    [modelMat, normalMat, isCubeShown, camera.changed()].forEach(
+    [modelMat, normalMat, isCubeShown, viewProj.changed()].forEach(
         (proxy) => proxy.on(() => runtime.requestFrameRender()),
     );
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRequested().on(() => {
-        renderFrame({ runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture });
+        renderFrame({ runtime, viewProj, modelMat, normalMat, isCubeShown, quad, cube, texture });
     });
 
     const controlRoot = createControls(container, [
@@ -113,7 +113,7 @@ const quadRenderState = createRenderState({
 });
 
 function renderFrame({
-    runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture,
+    runtime, viewProj, modelMat, normalMat, isCubeShown, quad, cube, texture,
 }: State): void {
     runtime.clearBuffer('color|depth');
 
@@ -123,15 +123,15 @@ function renderFrame({
         // Depth func is reset to default value (because it is changed for quad).
         runtime.setRenderState(defaultRenderState);
         cube.program().setUniform('u_texture', 4);
-        cube.program().setUniform('u_view_proj', camera.getTransformMat());
+        cube.program().setUniform('u_view_proj', viewProj.getTransformMat());
         cube.program().setUniform('u_model', modelMat());
         cube.program().setUniform('u_model_invtrs', normalMat());
-        cube.program().setUniform('u_camera_position', camera.getEyePos());
+        cube.program().setUniform('u_camera_position', viewProj.getEyePos());
         cube.render();
     }
 
     runtime.setRenderState(quadRenderState);
     quad.program().setUniform('u_texture', 4);
-    quad.program().setUniform('u_view_proj_inv', camera.getInvtransformMat());
+    quad.program().setUniform('u_view_proj_inv', viewProj.getInvtransformMat());
     quad.render();
 }
