@@ -1,7 +1,10 @@
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
+import type { Vec4Mut } from '../geometry/vec4.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from './event-emitter.types';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3, cross3 } from '../geometry/vec3';
+import { clone4 } from '../geometry/vec4';
+import { QUAT4_UNIT, quat4apply, quat4fromMat } from '../geometry/quat4';
 import { mat4, identity4x4, mul4v3 } from '../geometry/mat4';
 import { ViewProj } from './view-proj';
 import { toArgStr } from '../utils/string-formatter';
@@ -12,6 +15,7 @@ export class OrbitCamera {
     private readonly _changed = new EventEmitter();
     private readonly _viewProj = new ViewProj();
     private readonly _rotationMat = mat4();
+    private readonly _rotationQuat = clone4(QUAT4_UNIT);
     private _originDir: Vec3 = clone3(ZUNIT3);
     private _upDir: Vec3 = clone3(YUNIT3);
     private _centerPos: Vec3 = clone3(ZERO3);
@@ -41,10 +45,12 @@ export class OrbitCamera {
         this._originDir = clone3(zDir);
         this._upDir = clone3(yDir);
         makeMat(xDir, yDir, zDir, this._rotationMat as Mat4Mut);
+        quat4fromMat(this._rotationMat, this._rotationQuat as Vec4Mut);
     }
 
     test(t: Vec3): Vec3 {
-        return mul4v3(this._rotationMat, t);
+        // return mul4v3(this._rotationMat, t);
+        return quat4apply(this._rotationQuat, t);
     }
 
     getCenterPos(): Vec3 {
