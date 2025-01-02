@@ -6,7 +6,7 @@ import {
     TextureCube,
     ViewProj,
     generateCube,
-    UNIT3, mul3,
+    UNIT3,
     deg2rad, spherical2zxy,
     parseVertexSchema,
 } from 'lib';
@@ -37,8 +37,7 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, 2);
+        return spherical2zxy({ distance: 2, azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);

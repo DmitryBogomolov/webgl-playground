@@ -126,7 +126,9 @@ expect.extend({
     },
 
     toBeSpherical(actual: Spherical, expected: Spherical): jest.CustomMatcherResult {
-        const eq = equal(actual.azimuth, expected.azimuth) && equal(actual.elevation, expected.elevation);
+        const eq = equal(actual.distance, expected.distance)
+            && equal(actual.azimuth, expected.azimuth)
+            && equal(actual.elevation, expected.elevation);
         if (eq) {
             return {
                 pass: true,
@@ -136,8 +138,8 @@ expect.extend({
         return {
             pass: false,
             message: () => {
-                const actualStr = vecToStr(actual, ['azimuth', 'elevation']);
-                const expectedStr = vecToStr(expected, ['azimuth', 'elevation']);
+                const actualStr = vecToStr(actual, ['distance', 'azimuth', 'elevation']);
+                const expectedStr = vecToStr(expected, ['distance', 'azimuth', 'elevation']);
                 return `${actualStr} != ${expectedStr}`;
             },
         };

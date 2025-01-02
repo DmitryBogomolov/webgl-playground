@@ -4,7 +4,7 @@ import {
     ViewProj,
     color,
     vec2,
-    vec3, mul3,
+    vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
@@ -80,8 +80,11 @@ export function main(): () => void {
     );
 
     const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(projectionLon), elevation: deg2rad(projectionLat) });
-        return mul3(dir, projectionDist);
+        return spherical2zxy({
+            distance: projectionDist,
+            azimuth: deg2rad(projectionLon),
+            elevation: deg2rad(projectionLat),
+        });
     }, [projectionDist, projectionLon, projectionLat]);
     eyePosition.on((eyePosition) => {
         mappingViewProj.setEyePos(eyePosition);

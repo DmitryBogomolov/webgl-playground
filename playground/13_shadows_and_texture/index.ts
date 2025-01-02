@@ -3,7 +3,7 @@ import {
     createRenderState,
     Framebuffer,
     ViewProj,
-    vec3, mul3,
+    vec3,
     translation4x4, inversetranspose4x4,
     colors, color,
     deg2rad, spherical2zxy,
@@ -81,8 +81,11 @@ export function main(): () => void {
     });
 
     const lightPos = computed(([lightLon, lightLat, lightDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
-        return mul3(dir, lightDist);
+        return spherical2zxy({
+            distance: lightDist,
+            azimuth: deg2rad(lightLon),
+            elevation: deg2rad(lightLat),
+        });
     }, [lightLon, lightLat, lightDist]);
 
     lightPos.on((lightPos) => {

@@ -98,7 +98,7 @@ export function main(): () => void {
 
     const lightDirection = computed(
         ([lightLon, lightLat]) => {
-            const dir = spherical2zxy({ azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
+            const dir = spherical2zxy({ distance: 1, azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
             return neg3(dir);
         },
         [lightLon, lightLat],

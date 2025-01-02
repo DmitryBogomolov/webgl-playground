@@ -5,7 +5,7 @@ import {
     createRenderState,
     ViewProj,
     Framebuffer,
-    vec3, mul3,
+    vec3,
     mat4,
     color, colors,
     deg2rad, spherical2zxy,
@@ -56,8 +56,11 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(5);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);

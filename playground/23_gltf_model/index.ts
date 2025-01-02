@@ -3,7 +3,7 @@ import {
     ViewProj,
     GlTFRenderer,
     color,
-    vec3, mul3,
+    vec3,
     spherical2zxy, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
@@ -49,8 +49,11 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, 5);
+        return spherical2zxy({
+            distance: 5,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);

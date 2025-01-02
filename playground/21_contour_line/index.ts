@@ -2,7 +2,7 @@ import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
     ViewProj,
-    vec3, mul3,
+    vec3,
     identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
     deg2rad, spherical2zxy,
@@ -44,8 +44,11 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(2);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
