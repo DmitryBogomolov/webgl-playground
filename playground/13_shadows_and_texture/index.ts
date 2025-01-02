@@ -3,12 +3,12 @@ import {
     createRenderState,
     Framebuffer,
     ViewProj,
-    vec3, mul3,
+    vec3,
     translation4x4, inversetranspose4x4,
     colors, color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -81,8 +81,11 @@ export function main(): () => void {
     });
 
     const lightPos = computed(([lightLon, lightLat, lightDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
-        return mul3(dir, lightDist);
+        return spherical2zxy({
+            distance: lightDist,
+            azimuth: deg2rad(lightLon),
+            elevation: deg2rad(lightLat),
+        });
     }, [lightLon, lightLat, lightDist]);
 
     lightPos.on((lightPos) => {
@@ -147,9 +150,7 @@ export function main(): () => void {
         renderScene(state);
     });
 
-    [viewProj.changed(), depthViewProj.changed()].forEach((item) => {
-        item.on(() => runtime.requestFrameRender());
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj, depthViewProj]);
 
     const controlRoot = createControls(container, [
         { label: 'view lon', value: viewLon, min: -180, max: +180 },
@@ -165,7 +166,7 @@ export function main(): () => void {
             viewLon, lightLon, lightLat, lightDist, zNear, zFar, lightPos,
             ...objects.map((t) => t.primitive),
             program, depthProgram, wireframe,
-            framebuffer, runtime, cancelTracking, controlRoot,
+            framebuffer, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

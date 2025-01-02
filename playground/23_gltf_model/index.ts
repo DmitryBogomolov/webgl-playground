@@ -3,10 +3,10 @@ import {
     ViewProj,
     GlTFRenderer,
     color,
-    vec3, mul3,
+    vec3,
     spherical2zxy, deg2rad,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -44,18 +44,16 @@ export function main(): () => void {
 
     const renderer = new GlTFRenderer({ runtime });
 
-    viewProj.changed().on(() => {
-        runtime.requestFrameRender();
-    });
-    renderer.changed().on(() => {
-        runtime.requestFrameRender();
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj, renderer]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, 5);
+        return spherical2zxy({
+            distance: 5,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
@@ -87,7 +85,7 @@ export function main(): () => void {
     return () => {
         disposeAll([
             cameraLon, cameraLat, cameraPos,
-            renderer, runtime, cancelTracking, controlRoot,
+            renderer, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

@@ -4,11 +4,11 @@ import {
     ViewProj,
     color,
     vec2,
-    vec3, mul3,
+    vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -80,8 +80,11 @@ export function main(): () => void {
     );
 
     const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(projectionLon), elevation: deg2rad(projectionLat) });
-        return mul3(dir, projectionDist);
+        return spherical2zxy({
+            distance: projectionDist,
+            azimuth: deg2rad(projectionLon),
+            elevation: deg2rad(projectionLat),
+        });
     }, [projectionDist, projectionLon, projectionLat]);
     eyePosition.on((eyePosition) => {
         mappingViewProj.setEyePos(eyePosition);
@@ -106,9 +109,7 @@ export function main(): () => void {
         viewProj.setViewportSize(runtime.canvasSize());
     });
 
-    [model, viewProj.changed(), mappingViewProj.changed(), isWireframeShown].forEach(
-        (changed) => changed.on(() => runtime.requestFrameRender()),
-    );
+    const cancelRender = renderOnChange(runtime, [model, viewProj, mappingViewProj, isWireframeShown]);
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
@@ -158,7 +159,7 @@ export function main(): () => void {
             projectionFOV, isPerpsectiveProjection, isWireframeShown,
             model, eyePosition, projectionSize, projectionFOV,
             program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture,
-            runtime, cancelTracking, controlRoot,
+            runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

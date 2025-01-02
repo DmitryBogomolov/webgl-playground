@@ -1,4 +1,7 @@
-import type { Mat4, Mat4Mut } from './mat4.types';
+import type {
+    Mat4, Mat4Mut,
+    Orthogrpahic4x4Options, Perspective4x4Options, Frustum4x4Options, LookAt4x4Options, TargetTo4x4Options,
+} from './mat4.types';
 import type { Vec3, Vec3Mut } from './vec3.types';
 import type { Vec4, Vec4Mut } from './vec4.types';
 import type { AnyFunc, SkipLastArg } from './helpers.types';
@@ -298,15 +301,6 @@ export function zrotation4x4(rotation: number, out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
-export interface Orthogrpahic4x4Options {
-    readonly left: number;
-    readonly right: number;
-    readonly top: number;
-    readonly bottom: number;
-    readonly zNear: number;
-    readonly zFar: number;
-}
-
 const ORTHOGRAPHIC4X4_MAP = [
     rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2), rowcol2idx(3, 3),
     rowcol2idx(0, 3), rowcol2idx(1, 3), rowcol2idx(2, 3),
@@ -326,13 +320,6 @@ export function orthographic4x4(options: Orthogrpahic4x4Options, out: Mat4Mut = 
     out[yw] = (bottom + top) * bt;
     out[zw] = (zNear + zFar) * nf;
     return out;
-}
-
-export interface Perspective4x4Options {
-    readonly yFov: number;
-    readonly aspect: number;
-    readonly zNear: number;
-    readonly zFar: number;
 }
 
 const PERSPECTIVE4X4_MAP = [
@@ -359,15 +346,6 @@ export function perspective4x4(options: Perspective4x4Options, out: Mat4Mut = m4
     return out;
 }
 
-export interface Frustum4x4Options {
-    readonly left: number;
-    readonly right: number;
-    readonly top: number;
-    readonly bottom: number;
-    readonly zNear: number;
-    readonly zFar: number;
-}
-
 const FRUSTUM4X4_MAP = [
     rowcol2idx(0, 0), rowcol2idx(1, 1), rowcol2idx(2, 2),
     rowcol2idx(0, 2), rowcol2idx(1, 2), rowcol2idx(2, 3), rowcol2idx(3, 2),
@@ -387,12 +365,6 @@ export function frustum4x4(options: Frustum4x4Options, out: Mat4Mut = m4()): Mat
     out[zw] = 2 * zNear * zFar * nf;
     out[wz] = -1;
     return out;
-}
-
-export interface LookAt4x4Options {
-    readonly eye: Vec3;
-    readonly center: Vec3;
-    readonly up: Vec3;
 }
 
 const LOOKAT4X4_MAP = [
@@ -432,12 +404,6 @@ export function lookAt4x4(options: LookAt4x4Options, out: Mat4Mut = m4()): Mat4 
     out[zw] = -dot3(zAxis, eye);
     out[ww] = 1;
     return out;
-}
-
-export interface TargetTo4x4Options {
-    readonly eye: Vec3;
-    readonly target: Vec3;
-    readonly up: Vec3;
 }
 
 const TARGET4X4_MAP = [

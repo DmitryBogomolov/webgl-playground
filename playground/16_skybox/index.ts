@@ -3,11 +3,10 @@ import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
     ViewProj,
-    mul3,
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -48,8 +47,11 @@ export function main(): () => void {
     const cameraLat = observable(0);
     const cameraDist = observable(2);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
@@ -73,9 +75,7 @@ export function main(): () => void {
 
     const isCubeShown = observable(true);
 
-    [modelMat, normalMat, isCubeShown, viewProj.changed()].forEach(
-        (proxy) => proxy.on(() => runtime.requestFrameRender()),
-    );
+    const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, viewProj]);
     const cancelTracking = trackSize(runtime, () => {
         viewProj.setViewportSize(runtime.canvasSize());
     });
@@ -96,7 +96,7 @@ export function main(): () => void {
         disposeAll([
             cameraLon, cameraLat, cameraDist, cameraPos, modelLon, modelLat, modelMat, normalMat, isCubeShown,
             quad.program(), quad, cube.program(), cube, texture,
-            runtime, cancelTracking, controlRoot,
+            runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

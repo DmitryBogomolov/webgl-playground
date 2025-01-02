@@ -6,11 +6,11 @@ import {
     TextureCube,
     ViewProj,
     generateCube,
-    UNIT3, mul3,
+    UNIT3,
     deg2rad, spherical2zxy,
     parseVertexSchema,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -31,13 +31,13 @@ export function main(): () => void {
         depthTest: true,
     }));
     const viewProj = new ViewProj();
-    viewProj.changed().on(() => runtime.requestFrameRender());
+
+    const cancelRender = renderOnChange(runtime, [viewProj]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, 2);
+        return spherical2zxy({ distance: 2, azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
     }, [cameraLon, cameraLat]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
@@ -67,7 +67,7 @@ export function main(): () => void {
     return () => {
         disposeAll([
             cameraLon, cameraLat, cameraPos,
-            primitive.program(), primitive, texture, runtime, cancelTracking, controlRoot,
+            primitive.program(), primitive, texture, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

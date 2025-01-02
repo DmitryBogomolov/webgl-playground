@@ -53,13 +53,12 @@ function runWorker(runtime: Runtime, state: State): () => void {
             switch (message.type) {
             case 'worker:set-scale':
                 state.scale = message.scale;
-                runtime.requestFrameRender();
                 break;
             case 'worker:set-color':
                 state.clr = message.color;
-                runtime.requestFrameRender();
                 break;
             }
+            runtime.requestFrameRender();
         },
     });
 

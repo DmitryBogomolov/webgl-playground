@@ -9,7 +9,7 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -97,8 +97,7 @@ export function main(): () => void {
         });
     });
 
-    [xRotation, yRotation, magFilter, minFilter]
-        .forEach((item) => item.on(() => runtime.requestFrameRender()));
+    const cancelRender = renderOnChange(runtime, [xRotation, yRotation, magFilter, minFilter]);
 
     runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color|depth');
@@ -144,7 +143,7 @@ export function main(): () => void {
     return () => {
         disposeAll([
             xRotation, yRotation, magFilter, minFilter,
-            primitive.program(), primitive, texture, runtime, animate, cancelTracking, controlRoot,
+            primitive.program(), primitive, texture, runtime, animate, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

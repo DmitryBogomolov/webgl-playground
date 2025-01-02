@@ -2,12 +2,12 @@ import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
     ViewProj,
-    vec3, mul3,
+    vec3,
     identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
     deg2rad, spherical2zxy,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -44,8 +44,11 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(2);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
@@ -98,14 +101,9 @@ export function main(): () => void {
     [viewProj.changed(), modelMat].forEach((emitter) => {
         emitter.on(() => {
             updateContourPrimitive(state);
-            runtime.requestFrameRender();
         });
     });
-    [viewProj.changed(), modelMat, contourEnabled, contourThickness].forEach((emitter) => {
-        emitter.on(() => {
-            runtime.requestFrameRender();
-        });
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj, modelMat, contourEnabled, contourThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -121,7 +119,7 @@ export function main(): () => void {
         disposeAll([
             cameraLon, cameraLat, cameraDist, cameraPos, xRotation, yRotation, modelMat,
             contourEnabled, contourThickness,
-            primitive, contourPrimitive, runtime, cancelTracking, controlRoot,
+            primitive, contourPrimitive, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

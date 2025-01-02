@@ -5,13 +5,13 @@ import {
     createRenderState,
     ViewProj,
     Framebuffer,
-    vec3, mul3,
+    vec3,
     mat4,
     color, colors,
     deg2rad, spherical2zxy,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -56,8 +56,11 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(5);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
@@ -128,11 +131,7 @@ export function main(): () => void {
     const cancelTracking = trackSize(runtime, () => {
         viewProj.setViewportSize(runtime.canvasSize());
     });
-    [viewProj.changed(), outlineThickness].forEach((emitter) => {
-        emitter.on(() => {
-            runtime.requestFrameRender();
-        });
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj, outlineThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -145,7 +144,7 @@ export function main(): () => void {
         container.removeEventListener('click', handleClick);
         disposeAll([
             cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness,
-            disposeModels, framebuffer, runtime, controlRoot, cancelTracking,
+            disposeModels, framebuffer, runtime, controlRoot, cancelTracking, cancelRender,
         ]);
     };
 }

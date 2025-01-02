@@ -1,7 +1,7 @@
 import { ViewProj } from './view-proj';
 import { perspective4x4, orthographic4x4, lookAt4x4, transpose4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
 
-describe('ViewProj', () => {
+describe('view-proj', () => {
     describe('ViewProj', () => {
         it('init perspective projection', () => {
             const camera = new ViewProj();

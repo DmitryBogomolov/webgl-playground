@@ -1,6 +1,6 @@
 import type { Runtime } from 'lib';
 import { Primitive, Program, Texture, makeImage, parseVertexSchema } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -23,7 +23,8 @@ export function main(): () => void {
     const currentKernel = computed(([name]) => {
         return convolutionKernels.find((kernel) => kernel.name === name)!;
     }, [kernelName]);
-    currentKernel.on(() => runtime.requestFrameRender());
+
+    const cancelRender = renderOnChange(runtime, [currentKernel]);
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
@@ -42,7 +43,7 @@ export function main(): () => void {
     ]);
 
     return () => {
-        disposeAll([primitive.program(), primitive, runtime, currentKernel, kernelName, controlRoot]);
+        disposeAll([primitive.program(), primitive, runtime, currentKernel, kernelName, controlRoot, cancelRender]);
     };
 }
 

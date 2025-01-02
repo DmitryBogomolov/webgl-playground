@@ -4,12 +4,12 @@ import {
     Framebuffer,
     ViewProj,
     vec2, ZERO2,
-    vec3, mul3,
+    vec3,
     mat4,
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -52,15 +52,16 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(10);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        const dir = spherical2zxy({ azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
-        return mul3(dir, cameraDist);
+        return spherical2zxy({
+            distance: cameraDist,
+            azimuth: deg2rad(cameraLon),
+            elevation: deg2rad(cameraLat),
+        });
     }, [cameraLon, cameraLat, cameraDist]);
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
     });
-    viewProj.changed().on(() => {
-        runtime.requestFrameRender();
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj]);
 
     const state: State = {
         runtime,
@@ -100,7 +101,7 @@ export function main(): () => void {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
             cameraLon, cameraLat, cameraDist, cameraPos,
-            disposeObjects, framebuffer, runtime, cancelTracking, controlRoot,
+            disposeObjects, framebuffer, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }
