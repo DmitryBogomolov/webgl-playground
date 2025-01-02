@@ -3,24 +3,19 @@ import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Vec4Mut } from '../geometry/vec4.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
 import type { EventProxy } from './event-emitter.types';
-import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3, cross3, mul3 } from '../geometry/vec3';
+import { ZERO3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, cross3, mul3 } from '../geometry/vec3';
 import { clone4 } from '../geometry/vec4';
 import { QUAT4_UNIT, quat4apply, quat4fromMat } from '../geometry/quat4';
-import { mat4, identity4x4, mul4v3 } from '../geometry/mat4';
+import { mat4, identity4x4 } from '../geometry/mat4';
 import { floatEq } from '../geometry/float-eq';
 import { ViewProj } from './view-proj';
 import { toArgStr } from '../utils/string-formatter';
-import { EventEmitter } from './event-emitter';
 import { rowcol2idxRank } from '../geometry/helpers';
 
 export class OrbitCamera {
     private readonly _viewProj = new ViewProj();
-    private readonly _rotationMat = mat4();
     private readonly _rotationQuat = clone4(QUAT4_UNIT);
     private _originDir: Vec3 = clone3(ZUNIT3);
-    private _upDir: Vec3 = clone3(YUNIT3);
-    private _centerPos: Vec3 = clone3(ZERO3);
-    private _eyePos: Vec3 = clone3(ZUNIT3);
     private _lon = 0;
     private _lat = 0;
     private _dist = 1;
@@ -34,7 +29,7 @@ export class OrbitCamera {
     }
 
     getUpDir(): Vec3 {
-        return this._upDir;
+        return this._viewProj.getUpDir();
     }
 
     setOrientation(originDir: Vec3, upDir: Vec3): void {
@@ -44,32 +39,20 @@ export class OrbitCamera {
         const yDir = _y_scratch;
         const zDir = _z_scratch;
         makeAxes(originDir, upDir, xDir, yDir, zDir);
-        if (eq3(this._originDir, zDir) && eq3(this._upDir, yDir)) {
+        if (eq3(this._originDir, zDir) && eq3(this._viewProj.getUpDir(), yDir)) {
             return;
         }
-        // this._viewProj.setUpDir(yDir);
+        this._viewProj.setUpDir(yDir);
         this._originDir = clone3(zDir);
-        this._upDir = clone3(yDir);
-        makeMat(xDir, yDir, zDir, this._rotationMat as Mat4Mut);
-        quat4fromMat(this._rotationMat, this._rotationQuat as Vec4Mut);
-    }
-
-    test(t: Vec3): Vec3 {
-        // return mul4v3(this._rotationMat, t);
-        return quat4apply(this._rotationQuat, t);
+        makeRotation(xDir, yDir, zDir, this._rotationQuat as Vec4Mut);
     }
 
     getCenterPos(): Vec3 {
-        return this._centerPos;
+        return this._viewProj.getCenterPos();
     }
 
     setCenterPos(value: Vec3): void {
-        check(isVec3(value), 'center_pos', toArgStr(value));
-        if (eq3(this._centerPos, value)) {
-            return;
-        }
-        // this._viewProj.setCenterPos(value);
-        this._centerPos = clone3(value);
+        this._viewProj.setCenterPos(value);
     }
 
     setEyePos(value: OrbitCameraEyePosition): void {
@@ -82,11 +65,10 @@ export class OrbitCamera {
         const eyePos = _eyePos_scratch;
         makeEyePos(lon, lat, dist, eyePos);
         quat4apply(this._rotationQuat, eyePos, eyePos);
-        // this._viewProj.setEyePos(eyePos);
-        this._eyePos = clone3(eyePos);
         this._lon = lon;
         this._lat = lat;
         this._dist = dist;
+        this._viewProj.setEyePos(eyePos);
     }
 }
 
@@ -98,17 +80,22 @@ function makeAxes(originDir: Vec3, upDir: Vec3, xDir: Vec3Mut, yDir: Vec3Mut, zD
     norm3(yDir, yDir);
 }
 
-function makeMat(xDir: Vec3, yDir: Vec3, zDir: Vec3, mat: Mat4Mut): void {
+const X_AXIS = [rowcol2idxRank(4, 0, 0), rowcol2idxRank(4, 1, 0), rowcol2idxRank(4, 2, 0)] as const;
+const Y_AXIS = [rowcol2idxRank(4, 0, 1), rowcol2idxRank(4, 1, 1), rowcol2idxRank(4, 2, 1)] as const;
+const Z_AXIS = [rowcol2idxRank(4, 0, 2), rowcol2idxRank(4, 1, 2), rowcol2idxRank(4, 2, 2)] as const;
+function makeRotation(xDir: Vec3, yDir: Vec3, zDir: Vec3, rotation: Vec4Mut): void {
+    const mat = _mat_scratch;
     identity4x4(mat);
-    mat[rowcol2idxRank(4, 0, 0)] = xDir.x;
-    mat[rowcol2idxRank(4, 1, 0)] = xDir.y;
-    mat[rowcol2idxRank(4, 2, 0)] = xDir.z;
-    mat[rowcol2idxRank(4, 0, 1)] = yDir.x;
-    mat[rowcol2idxRank(4, 1, 1)] = yDir.y;
-    mat[rowcol2idxRank(4, 2, 1)] = yDir.z;
-    mat[rowcol2idxRank(4, 0, 2)] = zDir.x;
-    mat[rowcol2idxRank(4, 1, 2)] = zDir.y;
-    mat[rowcol2idxRank(4, 2, 2)] = zDir.z;
+    mat[X_AXIS[0]] = xDir.x;
+    mat[X_AXIS[1]] = xDir.y;
+    mat[X_AXIS[2]] = xDir.z;
+    mat[Y_AXIS[0]] = yDir.x;
+    mat[Y_AXIS[1]] = yDir.y;
+    mat[Y_AXIS[2]] = yDir.z;
+    mat[Z_AXIS[0]] = zDir.x;
+    mat[Z_AXIS[1]] = zDir.y;
+    mat[Z_AXIS[2]] = zDir.z;
+    quat4fromMat(mat, rotation);
 }
 
 function makeEyePos(lon: number, lat: number, dist: number, eye: Vec3Mut): void {
@@ -122,6 +109,7 @@ const _x_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _y_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _z_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _eyePos_scratch = vec3(0, 0, 0) as Vec3Mut;
+const _mat_scratch = mat4() as Mat4Mut;
 
 function check(condition: boolean, name: string, value: unknown): void {
     if (!condition) {
