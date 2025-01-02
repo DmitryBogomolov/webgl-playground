@@ -9,7 +9,7 @@ import {
     color, colors,
     uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -58,9 +58,7 @@ export function main(): () => void {
     cameraPos.on((cameraPos) => {
         viewProj.setEyePos(cameraPos);
     });
-    viewProj.changed().on(() => {
-        runtime.requestFrameRender();
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj]);
 
     const state: State = {
         runtime,
@@ -100,7 +98,7 @@ export function main(): () => void {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
             cameraLon, cameraLat, cameraDist, cameraPos,
-            disposeObjects, framebuffer, runtime, cancelTracking, controlRoot,
+            disposeObjects, framebuffer, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

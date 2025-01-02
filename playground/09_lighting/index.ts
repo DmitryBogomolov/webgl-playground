@@ -9,7 +9,7 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -122,8 +122,10 @@ export function main(): () => void {
         [lightLimitPoint, lightLimitRange],
     );
 
-    [offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit]
-        .forEach((item) => item.on(() => runtime.requestFrameRender()));
+    const cancelRender = renderOnChange(
+        runtime,
+        [offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit],
+    );
 
     const _proj = mat4();
     const cancelTracking = trackSize(runtime, () => {
@@ -174,7 +176,8 @@ export function main(): () => void {
             offsetCoeff, rotation, position, lightLon, lightLat, lightDistance, lightLimitPoint, lightLimitRange,
             proj, view, model, modelViewProj, modelInvTrs,
             lightDirection, lightPosition, lightLimit,
-            directionalProgram, pointProgram, spotProgram, primitive, runtime, cancelTracking, controlRoot,
+            directionalProgram, pointProgram, spotProgram,
+            primitive, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

@@ -1,6 +1,6 @@
 import type { ImageRendererRawImageData, Vec2 } from 'lib';
 import { createRenderState, ImageRenderer, color, colors, color2uint } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 
 /**
@@ -29,11 +29,7 @@ export function main(): () => void {
     imageLetter.setImageData({ url: '/static/f-letter.png' });
     imageLeaves.setImageData({ url: '/static/leaves.jpg' });
 
-    [imageCells, imageLeaves, imageLeaves].forEach((image) => {
-        image.changed().on(() => {
-            runtime.requestFrameRender();
-        });
-    });
+    const cancelRender = renderOnChange(runtime, [imageCells, imageLeaves, imageLeaves]);
 
     let step = 0;
     const SPEED = 0.1;
@@ -53,7 +49,7 @@ export function main(): () => void {
     const animate = animation(runtime);
 
     return () => {
-        disposeAll([imageCells, imageLetter, imageLeaves, runtime, animate]);
+        disposeAll([imageCells, imageLetter, imageLeaves, runtime, animate, cancelRender]);
     };
 }
 

@@ -10,7 +10,7 @@ import {
     deg2rad, spherical2zxy,
     parseVertexSchema,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -31,7 +31,8 @@ export function main(): () => void {
         depthTest: true,
     }));
     const viewProj = new ViewProj();
-    viewProj.changed().on(() => runtime.requestFrameRender());
+
+    const cancelRender = renderOnChange(runtime, [viewProj]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
@@ -67,7 +68,7 @@ export function main(): () => void {
     return () => {
         disposeAll([
             cameraLon, cameraLat, cameraPos,
-            primitive.program(), primitive, texture, runtime, cancelTracking, controlRoot,
+            primitive.program(), primitive, texture, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

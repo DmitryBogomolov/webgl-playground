@@ -6,7 +6,7 @@ import {
     vec3, mul3,
     spherical2zxy, deg2rad,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
+import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
@@ -44,12 +44,7 @@ export function main(): () => void {
 
     const renderer = new GlTFRenderer({ runtime });
 
-    viewProj.changed().on(() => {
-        runtime.requestFrameRender();
-    });
-    renderer.changed().on(() => {
-        runtime.requestFrameRender();
-    });
+    const cancelRender = renderOnChange(runtime, [viewProj, renderer]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
@@ -87,7 +82,7 @@ export function main(): () => void {
     return () => {
         disposeAll([
             cameraLon, cameraLat, cameraPos,
-            renderer, runtime, cancelTracking, controlRoot,
+            renderer, runtime, cancelTracking, cancelRender, controlRoot,
         ]);
     };
 }

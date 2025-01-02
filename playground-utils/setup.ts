@@ -1,4 +1,4 @@
-import type { Logger, RuntimeParams } from 'lib';
+import type { Logger, RuntimeParams, EventProxy } from 'lib';
 import { Runtime } from 'lib';
 import { hasUrlParam } from './url';
 
@@ -87,12 +87,35 @@ function createLogger(): Logger {
     }
 }
 
-export function disposeAll(disposables: Iterable<{ dispose: () => void } | (() => void)>): void {
+export function disposeAll(disposables: Iterable<{ dispose(): void } | (() => void)>): void {
     for (const disposable of disposables) {
         if ('dispose' in disposable) {
             disposable.dispose();
         } else {
             disposable();
         }
+    }
+}
+
+export function renderOnChange(
+    runtime: Runtime,
+    targets: Iterable<EventProxy | { changed(): EventProxy }>,
+): () => void {
+    for (const changeable of targets) {
+        proxy(changeable).on(update);
+    }
+
+    return () => {
+        for (const changeable of targets) {
+            proxy(changeable).off(update);
+        }
+    };
+
+    function proxy(target: EventProxy | { changed(): EventProxy }): EventProxy {
+        return 'changed' in target ? target.changed() : target;
+    }
+
+    function update(): void {
+        runtime.requestFrameRender();
     }
 }

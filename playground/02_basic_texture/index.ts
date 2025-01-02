@@ -98,8 +98,10 @@ export function main(): () => void {
         layoutElements(container, controls, texcoord, nearestRegion, linearRegion);
     }
 
-    texcoord.on(() => runtime.requestFrameRender());
-    texcoord.on(doLayout);
+    texcoord.on(() => {
+        runtime.requestFrameRender();
+        doLayout();
+    });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
