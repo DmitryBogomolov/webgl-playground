@@ -1,4 +1,4 @@
-import type { Program, SHADER_UNIFORM_VALUE, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Program, SHADER_UNIFORM_VALUE, Vec3, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -73,10 +73,10 @@ export function main(): () => void {
         [rotation, position],
     );
 
-    const _modelViewProj = mat4();
+    const _modelViewProj = mat4() as Mat4Mut;
     const modelViewProj = computed(
         ([model, view, proj]) => {
-            const mat = _modelViewProj as Mat4Mut;
+            const mat = _modelViewProj;
             identity4x4(mat);
             mul4x4(model, mat, mat);
             mul4x4(view, mat, mat);
@@ -86,28 +86,22 @@ export function main(): () => void {
         [model, view, proj],
     );
 
-    const _modelInvTrs = mat4();
+    const _modelInvTrs = mat4() as Mat4Mut;
     const modelInvTrs = computed(
-        ([model]) => {
-            const mat = _modelInvTrs as Mat4Mut;
-            inversetranspose4x4(model, mat);
-            return mat as Mat4;
-        },
+        ([model]) => inversetranspose4x4(model, _modelInvTrs),
         [model],
     );
 
     const lightDirection = computed(
         ([lightLon, lightLat]) => {
             const dir = spherical2zxy({ distance: 1, azimuth: deg2rad(lightLon), elevation: deg2rad(lightLat) });
-            return neg3(dir);
+            return neg3(dir, dir as Vec3Mut);
         },
         [lightLon, lightLat],
     );
 
     const lightPosition = computed(
-        ([lightDirection, lightDistance]) => {
-            return mul3(lightDirection as Vec3, -lightDistance);
-        },
+        ([lightDirection, lightDistance]) => mul3(lightDirection as Vec3, -lightDistance),
         [lightDirection, lightDistance],
     );
 
@@ -124,10 +118,10 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(
         runtime,
-        [offsetCoeff, proj, view, model, modelInvTrs, lightDirection, lightPosition, lightLimit],
+        [offsetCoeff, modelViewProj, modelInvTrs, lightDirection, lightPosition, lightLimit],
     );
 
-    const _proj = mat4();
+    const _proj = mat4() as Mat4Mut;
     const cancelTracking = trackSize(runtime, () => {
         const { x, y } = runtime.canvasSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
@@ -137,7 +131,7 @@ export function main(): () => void {
             yFov: YFOV,
             zNear: 0.01,
             zFar: 100,
-        }, _proj as Mat4Mut);
+        }, _proj);
         proj(_proj);
     });
 

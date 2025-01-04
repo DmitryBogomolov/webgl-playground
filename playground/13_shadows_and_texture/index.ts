@@ -2,11 +2,11 @@ import type { Runtime, Primitive, Program, Vec3, Mat4, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    ViewProj,
+    OrbitCamera,
     vec3,
     translation4x4, inversetranspose4x4,
     colors, color,
-    deg2rad, spherical2zxy,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -43,8 +43,8 @@ interface State {
     readonly program: Program;
     readonly depthProgram: Program;
     readonly framebuffer: Framebuffer;
-    readonly viewProj: ViewProj;
-    readonly depthViewProj: ViewProj;
+    readonly viewProj: OrbitCamera;
+    readonly depthViewProj: OrbitCamera;
     readonly backgroundColor: Color;
     readonly depthDataBackgroundColor: Color;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -66,31 +66,29 @@ export function main(): () => void {
     const zNear = observable(0.5);
     const zFar = observable(10);
 
-    const depthViewProj = new ViewProj();
-    const viewProj = new ViewProj();
-    viewProj.setEyePos(vec3(-2, 3, 5));
+    const viewProj = new OrbitCamera();
+    const depthViewProj = new OrbitCamera();
+    viewProj.setPosition({
+        dist: 6,
+        lat: Math.atan2(3, 5),
+        lon: 0,
+    });
 
     viewLon.on((viewLon) => {
-        const lon = deg2rad(viewLon);
-        const pos = vec3(
-            5 * Math.sin(lon),
-            3,
-            5 * Math.cos(lon),
-        );
-        viewProj.setEyePos(pos);
+        viewProj.setPosition({
+            lon: deg2rad(viewLon),
+        });
     });
 
     const lightPos = computed(([lightLon, lightLat, lightDist]) => {
-        return spherical2zxy({
-            distance: lightDist,
-            azimuth: deg2rad(lightLon),
-            elevation: deg2rad(lightLat),
+        depthViewProj.setPosition({
+            dist: lightDist,
+            lon: deg2rad(lightLon),
+            lat: deg2rad(lightLat),
         });
+        return { tag: '_LIGHT_' };
     }, [lightLon, lightLat, lightDist]);
 
-    lightPos.on((lightPos) => {
-        depthViewProj.setEyePos(lightPos);
-    });
     zNear.on((zNear) => {
         depthViewProj.setZNear(zNear);
     });
@@ -204,7 +202,7 @@ function renderDepthData({
     });
 }
 
-function renderWireframe(wireframe: Primitive, viewProj: ViewProj, depthViewProj: ViewProj): void {
+function renderWireframe(wireframe: Primitive, viewProj: OrbitCamera, depthViewProj: OrbitCamera): void {
     wireframe.program().setUniform('u_view_proj', viewProj.getTransformMat());
     wireframe.program().setUniform('u_model', depthViewProj.getInvtransformMat());
     wireframe.render();

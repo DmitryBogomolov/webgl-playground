@@ -60,9 +60,9 @@ export function main(): () => void {
     const viewProj = new ViewProj();
     viewProj.setEyePos(vec3(0, 0, 2));
 
-    const _targetModel = mat4();
+    const _targetModel = mat4() as Mat4Mut;
     const targetModel = computed(([xRotation, yRotation]) => {
-        const mat = _targetModel as Mat4Mut;
+        const mat = _targetModel;
         identity4x4(mat);
         apply4x4(mat, xrotation4x4, deg2rad(xRotation));
         apply4x4(mat, yrotation4x4, deg2rad(yRotation));

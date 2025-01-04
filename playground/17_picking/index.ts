@@ -2,11 +2,11 @@ import type { Runtime, Program, Vec2, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    ViewProj,
+    OrbitCamera,
     vec2, ZERO2,
     vec3,
     color, colors,
-    uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad,
+    uint2bytes, makeEventCoordsGetter, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -29,8 +29,8 @@ export type DESCRIPTION = never;
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
-    readonly viewProj: ViewProj;
-    readonly idViewProj: ViewProj,
+    readonly camera: OrbitCamera;
+    readonly idCamera: OrbitCamera,
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -49,31 +49,33 @@ export function main(): () => void {
         // Zero values make framebuffer incomplete.
         size: { x: 1, y: 1 },
     });
-    const viewProj = new ViewProj();
-    const idViewProj = new ViewProj();
+    const camera = new OrbitCamera();
+    const idCamera = new OrbitCamera();
     const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(10);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        idCamera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
+        });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-        idViewProj.setEyePos(cameraPos);
-    });
-    const cancelRender = renderOnChange(runtime, [viewProj]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     const state: State = {
         runtime,
         framebuffer,
-        viewProj,
-        idViewProj,
+        camera,
+        idCamera,
         program,
         idProgram,
         objects,
@@ -99,8 +101,8 @@ export function main(): () => void {
         const x = canvasSize.x >> 1;
         const y = x >> 1;
         framebuffer.resize(vec2(x, y));
-        viewProj.setViewportSize(canvasSize);
-        idViewProj.setViewportSize(framebuffer.size());
+        camera.setViewportSize(canvasSize);
+        idCamera.setViewportSize(framebuffer.size());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);
@@ -127,11 +129,11 @@ function renderFrame(state: State): void {
     renderScene(state, pixelIdx);
 }
 
-function renderColorIds({ runtime, framebuffer, idViewProj, idProgram, objects }: State): void {
+function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
-    idProgram.setUniform('u_view_proj', idViewProj.getTransformMat());
+    idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
         idProgram.setUniform('u_model', modelMat);
@@ -146,11 +148,11 @@ function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     return new Uint32Array(buffer.buffer)[0];
 }
 
-function renderScene({ runtime, backgroundColor, viewProj, program, objects }: State, pixelIdx: number): void {
+function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
-    program.setUniform('u_view_proj', viewProj.getTransformMat());
+    program.setUniform('u_view_proj', camera.getTransformMat());
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
         program.setUniform('u_model', modelMat);

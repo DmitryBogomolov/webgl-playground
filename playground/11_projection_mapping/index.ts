@@ -1,12 +1,11 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
     createRenderState,
-    ViewProj,
+    ViewProj, OrbitCamera,
     color,
-    vec2,
     vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
-    deg2rad, spherical2zxy,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -54,7 +53,7 @@ export function main(): () => void {
     const wireframeColor = color(0.1, 0.1, 0.1);
     const viewProj = new ViewProj();
     viewProj.setEyePos(vec3(0, 2, 5));
-    const mappingViewProj = new ViewProj();
+    const mappingViewProj = new OrbitCamera();
 
     const rotation = observable(0);
     const position = observable(0);
@@ -67,10 +66,10 @@ export function main(): () => void {
     const isPerpsectiveProjection = observable(false);
     const isWireframeShown = observable(true);
 
-    const _model = mat4();
+    const _model = mat4() as Mat4Mut;
     const model = computed(
         ([rotation, position]) => {
-            const mat = _model as Mat4Mut;
+            const mat = _model;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(rotation));
             apply4x4(mat, translation4x4, vec3(position, 0, 0));
@@ -79,24 +78,25 @@ export function main(): () => void {
         [rotation, position],
     );
 
-    const eyePosition = computed(([projectionDist, projectionLon, projectionLat]) => {
-        return spherical2zxy({
-            distance: projectionDist,
-            azimuth: deg2rad(projectionLon),
-            elevation: deg2rad(projectionLat),
-        });
-    }, [projectionDist, projectionLon, projectionLat]);
-    eyePosition.on((eyePosition) => {
-        mappingViewProj.setEyePos(eyePosition);
-    });
+    const eyePosition = computed(
+        ([projectionDist, projectionLon, projectionLat]) => {
+            mappingViewProj.setPosition({
+                dist: projectionDist,
+                lon: deg2rad(projectionLon),
+                lat: deg2rad(projectionLat),
+            });
+            return { tag: '_EYE_' };
+        },
+        [projectionDist, projectionLon, projectionLat],
+    );
 
     const projectionSize = computed(
-        ([projectionWidth, projectionHeight]) => vec2(projectionWidth, projectionHeight),
+        ([projectionWidth, projectionHeight]) => {
+            mappingViewProj.setViewportSize({ x: projectionWidth, y: projectionHeight });
+            return { tag: '_SIZE_' };
+        },
         [projectionWidth, projectionHeight],
     );
-    projectionSize.on((projectionSize) => {
-        mappingViewProj.setViewportSize(projectionSize);
-    });
 
     projectionFOV.on((projectionFOV) => {
         mappingViewProj.setYFov(deg2rad(projectionFOV));
@@ -157,7 +157,7 @@ export function main(): () => void {
         disposeAll([
             rotation, position, projectionDist, projectionLon, projectionLat, projectionWidth, projectionHeight,
             projectionFOV, isPerpsectiveProjection, isWireframeShown,
-            model, eyePosition, projectionSize, projectionFOV,
+            model, eyePosition, projectionSize,
             program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture,
             runtime, cancelTracking, cancelRender, controlRoot,
         ]);

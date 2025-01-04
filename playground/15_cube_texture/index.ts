@@ -4,10 +4,10 @@ import {
     Primitive,
     Program,
     TextureCube,
-    ViewProj,
+    OrbitCamera,
     generateCube,
     UNIT3,
-    deg2rad, spherical2zxy,
+    deg2rad,
     parseVertexSchema,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
@@ -30,31 +30,33 @@ export function main(): () => void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
 
-    const cancelRender = renderOnChange(runtime, [viewProj]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        return spherical2zxy({ distance: 2, azimuth: deg2rad(cameraLon), elevation: deg2rad(cameraLat) });
+        camera.setPosition({
+            dist: 2,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
+        });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);
-        primitive.program().setUniform('u_view_proj', viewProj.getTransformMat());
+        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
         primitive.program().setUniform('u_texture', 2);
         primitive.render();
     });
