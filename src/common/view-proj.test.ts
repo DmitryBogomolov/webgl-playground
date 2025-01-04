@@ -11,6 +11,7 @@ describe('view-proj', () => {
             expect(camera.getZFar()).toEqual(100);
             expect(camera.getYFov()).toEqual(Math.PI / 3);
             expect(camera.getViewportSize()).toBeVec2({ x: 2, y: 2 });
+            expect(camera.getAspect()).toEqual(1);
             expect(camera.getProjMat()).toBeMat4(
                 transpose4x4(perspective4x4({
                     aspect: 1,
@@ -30,6 +31,7 @@ describe('view-proj', () => {
             expect(camera.getZFar()).toEqual(100);
             expect(camera.getYFov()).toEqual(Math.PI / 3);
             expect(camera.getViewportSize()).toBeVec2({ x: 2, y: 2 });
+            expect(camera.getAspect()).toEqual(1);
             expect(camera.getProjMat()).toBeMat4(
                 transpose4x4(orthographic4x4({
                     zNear: 0.01,
@@ -69,6 +71,7 @@ describe('view-proj', () => {
             expect(camera.getZNear()).toEqual(1);
             expect(camera.getZFar()).toEqual(1000);
             expect(camera.getViewportSize()).toBeVec2({ x: 400, y: 300 });
+            expect(camera.getAspect()).toEqual(4 / 3);
             expect(camera.getProjMat()).toBeMat4(
                 transpose4x4(perspective4x4({
                     yFov: Math.PI / 4,
