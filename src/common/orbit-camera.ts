@@ -3,7 +3,7 @@ import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Vec4Mut } from '../geometry/vec4.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
 import type { SphericalMut } from '../geometry/spherical.types';
-import { ZERO3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, cross3, mul3 } from '../geometry/vec3';
+import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, cross3 } from '../geometry/vec3';
 import { clone4 } from '../geometry/vec4';
 import { QUAT4_UNIT, quat4apply, quat4fromMat } from '../geometry/quat4';
 import { mat4, identity4x4 } from '../geometry/mat4';
@@ -44,7 +44,7 @@ export class OrbitCamera extends ViewProj {
         throw new TypeError('setEyePos - not supported');
     }
 
-    setOrientation(originDir: Vec3, upDir: Vec3): void {
+    setOrientation(originDir: Vec3, upDir: Vec3 = clone3(YUNIT3)): void {
         check(isVec3(originDir) && !eq3(originDir, ZERO3), 'origin_dir', toArgStr(originDir));
         check(isVec3(upDir) && !eq3(upDir, ZERO3), 'up_dir', toArgStr(upDir));
         const xDir = _x_scratch;
@@ -54,15 +54,15 @@ export class OrbitCamera extends ViewProj {
         if (eq3(this._originDir, zDir) && eq3(this.getUpDir(), yDir)) {
             return;
         }
-        super.setUpDir(yDir);
         this._originDir = clone3(zDir);
         makeRotation(xDir, yDir, zDir, this._rotationQuat as Vec4Mut);
+        super.setUpDir(yDir);
     }
 
     setPosition(value: OrbitCameraPosition): void {
-        const lon = value.lon ?? this._lon;
-        const lat = value.lat ?? this._lat;
-        const dist = value.dist ?? this._dist;
+        const lon = clampLon(value.lon ?? this._lon);
+        const lat = clampLat(value.lat ?? this._lat);
+        const dist = clampDist(value.dist ?? this._dist);
         if (floatEq(lon, this._lon) && floatEq(lat, this._lat) && floatEq(dist, this._dist)) {
             return;
         }
@@ -118,6 +118,38 @@ const _z_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _eyePos_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _spherical_scratch = { distance: 0, azimuth: 0, elevation: 0 } as SphericalMut;
 const _mat_scratch = mat4() as Mat4Mut;
+
+const PI = Math.PI;
+const DBL_PI = PI * 2;
+const HLF_PI = PI / 2;
+const EPS = 0.05;
+
+function clampLon(value: number): number {
+    if (value > +PI) {
+        return value - Math.ceil(+value / DBL_PI) * DBL_PI;
+    }
+    if (value < -PI) {
+        return value + Math.ceil(-value / DBL_PI) * DBL_PI;
+    }
+    return value;
+}
+
+function clampLat(value: number): number {
+    if (value >= +HLF_PI) {
+        return +HLF_PI - EPS;
+    }
+    if (value <= -HLF_PI) {
+        return -HLF_PI + EPS;
+    }
+    return value;
+}
+
+function clampDist(value: number): number {
+    if (value <= 0) {
+        return EPS;
+    }
+    return value;
+}
 
 function check(condition: boolean, name: string, value: unknown): void {
     if (!condition) {
