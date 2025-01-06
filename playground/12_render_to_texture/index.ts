@@ -2,8 +2,8 @@ import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    ViewProj,
-    vec3, YUNIT3, norm3, rotate3,
+    OrbitCamera,
+    vec3, norm3,
     mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
     deg2rad,
@@ -34,8 +34,8 @@ interface State {
     readonly textureBackgroundColor: Color;
     readonly backgroundColor: Color;
     readonly lightDir: Vec3;
-    readonly viewProj: ViewProj;
-    readonly textureViewProj: ViewProj;
+    readonly camera: OrbitCamera;
+    readonly textureCamera: OrbitCamera;
     readonly framebuffer: Framebuffer;
     readonly texturePlane: Primitive;
     readonly object: Primitive;
@@ -52,13 +52,13 @@ export function main(): () => void {
     const xRotation = observable(0);
     const yRotation = observable(30);
 
-    let textureCameraPos = vec3(0, 2, 5);
+    let textureCameraLon = 0;
     const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
-    const textureViewProj = new ViewProj();
-    textureViewProj.setEyePos(textureCameraPos);
+    const textureCamera = new OrbitCamera();
+    textureCamera.setPosition({ dist: 5, lon: textureCameraLon, lat: Math.atan2(2, 5) });
 
-    const viewProj = new ViewProj();
-    viewProj.setEyePos(vec3(0, 0, 2));
+    const camera = new OrbitCamera();
+    camera.setPosition({ dist: 2 });
 
     const _targetModel = mat4() as Mat4Mut;
     const targetModel = computed(([xRotation, yRotation]) => {
@@ -74,15 +74,15 @@ export function main(): () => void {
         attachment: 'color|depth',
         size: { x: 256, y: 256 },
     });
-    textureViewProj.setViewportSize(framebuffer.size());
+    textureCamera.setViewportSize(framebuffer.size());
 
     const state: State = {
         runtime,
         backgroundColor: color(0.4, 0.4, 0.4),
         textureBackgroundColor: color(0.7, 0.7, 0.7),
         lightDir: norm3(vec3(1, 3, 2)),
-        viewProj,
-        textureViewProj,
+        camera,
+        textureCamera,
         framebuffer,
         texturePlane: makeTexturePlane(runtime),
         object: makeObject(runtime),
@@ -108,16 +108,16 @@ export function main(): () => void {
     };
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
 
     const cancelRender = renderOnChange(runtime, [targetModel]);
 
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
-            textureCameraPos = rotate3(textureCameraPos, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000);
+            textureCameraLon += CAMERA_ROTATION_SPEED * delta / 1000;
         }
-        textureViewProj.setEyePos(textureCameraPos);
+        textureCamera.setPosition({ lon: textureCameraLon });
 
         renderToTexture(state);
         renderScene(state);
@@ -141,7 +141,7 @@ export function main(): () => void {
 }
 
 function renderToTexture({
-    runtime, framebuffer, textureBackgroundColor, object, objects, textureViewProj: textureCamera, lightDir,
+    runtime, framebuffer, textureBackgroundColor, object, objects, textureCamera, lightDir,
 }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(textureBackgroundColor);
@@ -158,7 +158,7 @@ function renderToTexture({
 }
 
 function renderScene({
-    runtime, backgroundColor, framebuffer, texturePlane, viewProj: camera, targetModel,
+    runtime, backgroundColor, framebuffer, texturePlane, camera, targetModel,
 }: State): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
