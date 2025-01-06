@@ -1,7 +1,7 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
     createRenderState,
-    ViewProj, OrbitCamera,
+    OrbitCamera,
     color,
     vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
@@ -51,9 +51,13 @@ export function main(): () => void {
     });
 
     const wireframeColor = color(0.1, 0.1, 0.1);
-    const viewProj = new ViewProj();
-    viewProj.setEyePos(vec3(0, 2, 5));
-    const mappingViewProj = new OrbitCamera();
+    const camera = new OrbitCamera();
+    camera.setPosition({
+        dist: 5,
+        lon: 0,
+        lat: Math.atan2(2, 5),
+    });
+    const mappingCamera = new OrbitCamera();
 
     const rotation = observable(0);
     const position = observable(0);
@@ -80,7 +84,7 @@ export function main(): () => void {
 
     const eyePosition = computed(
         ([projectionDist, projectionLon, projectionLat]) => {
-            mappingViewProj.setPosition({
+            mappingCamera.setPosition({
                 dist: projectionDist,
                 lon: deg2rad(projectionLon),
                 lat: deg2rad(projectionLat),
@@ -92,48 +96,48 @@ export function main(): () => void {
 
     const projectionSize = computed(
         ([projectionWidth, projectionHeight]) => {
-            mappingViewProj.setViewportSize({ x: projectionWidth, y: projectionHeight });
+            mappingCamera.setViewportSize({ x: projectionWidth, y: projectionHeight });
             return { tag: '_SIZE_' };
         },
         [projectionWidth, projectionHeight],
     );
 
     projectionFOV.on((projectionFOV) => {
-        mappingViewProj.setYFov(deg2rad(projectionFOV));
+        mappingCamera.setYFov(deg2rad(projectionFOV));
     });
     isPerpsectiveProjection.on((isPerpsectiveProjection) => {
-        mappingViewProj.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+        mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
 
-    const cancelRender = renderOnChange(runtime, [model, viewProj, mappingViewProj, isWireframeShown]);
+    const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
         // Map ndc to unit range and get offset in ndc space.
-        const coeff = 3 * (2 / viewProj.getXViewSize());
+        const coeff = 3 * (2 / camera.getXViewSize());
         for (const { primitive, offset } of primitives) {
             const program = primitive.program();
             runtime.setTextureUnit(4, colorTexture);
             runtime.setTextureUnit(5, mappingTexture);
             program.setUniform('u_offset', coeff * offset);
-            program.setUniform('u_proj', viewProj.getProjMat());
-            program.setUniform('u_view', viewProj.getViewMat());
+            program.setUniform('u_proj', camera.getProjMat());
+            program.setUniform('u_view', camera.getViewMat());
             program.setUniform('u_model', model());
             program.setUniform('u_texture', 4);
             program.setUniform('u_mapping_texture', 5);
-            program.setUniform('u_mapping_mat', mappingViewProj.getTransformMat());
+            program.setUniform('u_mapping_mat', mappingCamera.getTransformMat());
             primitive.render();
 
             if (isWireframeShown()) {
                 const program = wireframe.program();
                 program.setUniform('u_offset', coeff * offset);
-                program.setUniform('u_proj', viewProj.getProjMat());
-                program.setUniform('u_view', viewProj.getViewMat());
-                program.setUniform('u_model', mappingViewProj.getInvtransformMat());
+                program.setUniform('u_proj', camera.getProjMat());
+                program.setUniform('u_view', camera.getViewMat());
+                program.setUniform('u_model', mappingCamera.getInvtransformMat());
                 program.setUniform('u_color', wireframeColor);
                 wireframe.render();
             }
