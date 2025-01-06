@@ -45,8 +45,8 @@ export class OrbitCamera extends ViewProj {
     }
 
     setOrientation(originDir: Vec3, upDir: Vec3 = clone3(YUNIT3)): void {
-        check(isVec3(originDir) && !eq3(originDir, ZERO3), 'origin_dir', toArgStr(originDir));
-        check(isVec3(upDir) && !eq3(upDir, ZERO3), 'up_dir', toArgStr(upDir));
+        check(isVec3(originDir) && !isZero(originDir), 'origin_dir', toArgStr(originDir));
+        check(isVec3(upDir) && !isZero(upDir), 'up_dir', toArgStr(upDir));
         const xDir = _x_scratch;
         const yDir = _y_scratch;
         const zDir = _z_scratch;
@@ -57,6 +57,14 @@ export class OrbitCamera extends ViewProj {
         this._originDir = clone3(zDir);
         makeRotation(xDir, yDir, zDir, this._rotationQuat as Vec4Mut);
         super.setUpDir(yDir);
+        this._updateEyePos();
+    }
+
+    private _updateEyePos(): void {
+        const eyePos = _eyePos_scratch;
+        makeEyePos(this._lon, this._lat, this._dist, eyePos);
+        quat4apply(this._rotationQuat, eyePos, eyePos);
+        super.setEyePos(eyePos);
     }
 
     setPosition(value: OrbitCameraPosition): void {
@@ -66,13 +74,10 @@ export class OrbitCamera extends ViewProj {
         if (floatEq(lon, this._lon) && floatEq(lat, this._lat) && floatEq(dist, this._dist)) {
             return;
         }
-        const eyePos = _eyePos_scratch;
-        makeEyePos(lon, lat, dist, eyePos);
-        quat4apply(this._rotationQuat, eyePos, eyePos);
         this._lon = lon;
         this._lat = lat;
         this._dist = dist;
-        super.setEyePos(eyePos);
+        this._updateEyePos();
     }
 }
 
@@ -80,6 +85,11 @@ function makeAxes(originDir: Vec3, upDir: Vec3, xDir: Vec3Mut, yDir: Vec3Mut, zD
     norm3(originDir, zDir);
     cross3(upDir, zDir, xDir);
     cross3(zDir, xDir, yDir);
+    check(
+        !isZero(xDir) && !isZero(yDir) && !isZero(zDir),
+        'orientation',
+        `${toArgStr(originDir)} | ${toArgStr(upDir)}`,
+    );
     norm3(xDir, xDir);
     norm3(yDir, yDir);
 }
@@ -118,6 +128,10 @@ const _z_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _eyePos_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _spherical_scratch = { distance: 0, azimuth: 0, elevation: 0 } as SphericalMut;
 const _mat_scratch = mat4() as Mat4Mut;
+
+function isZero(v: Vec3): boolean {
+    return eq3(v, ZERO3);
+}
 
 const PI = Math.PI;
 const DBL_PI = PI * 2;
