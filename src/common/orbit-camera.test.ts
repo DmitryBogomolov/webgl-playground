@@ -1,3 +1,4 @@
+import type { Vec4 } from '../geometry/vec4.types';
 import { OrbitCamera } from './orbit-camera';
 import { quat4apply } from '../geometry/quat4';
 
@@ -8,7 +9,8 @@ describe('orbit-camera', () => {
 
             camera.setOrientation({ x: -2, y: 0, z: 1 }, { x: -1, y: 5, z: -2 });
 
-            const quat = (camera as any)._rotationQuat;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+            const quat = (camera as any)._rotationQuat as Vec4;
 
             expect(quat4apply(quat, { x: 1, y: 0, z: 0 })).toBeVec3({ x: 0.40824829, y: 0.40824829, z: 0.81649658 });
             expect(quat4apply(quat, { x: 0, y: 1, z: 0 })).toBeVec3({ x: -0.18257419, y: 0.91287093, z: -0.36514837 });
@@ -41,14 +43,14 @@ describe('orbit-camera', () => {
 
             camera.setOrientation({ x: 1, y: 1, z: 1 });
 
-            expect(stub.mock.calls.length).toEqual(2); // TODO_THIS: 1
+            expect(stub.mock.calls.length).toEqual(2);
             expect(camera.getOriginDir()).toBeVec3({ x: 0.5774, y: 0.5774, z: 0.5774 });
             expect(camera.getUpDir()).toBeVec3({ x: -0.4082, y: 0.8165, z: -0.4082 });
             expect(camera.getEyePos()).toBeVec3({ x: 0.5774, y: 0.5774, z: 0.5774 });
 
             camera.setOrientation({ x: 5, y: 0, z: 1 }, { x: 0, y: -2, z: 0 });
 
-            expect(stub.mock.calls.length).toEqual(4); // TODO_THIS: 2
+            expect(stub.mock.calls.length).toEqual(4);
             expect(camera.getOriginDir()).toBeVec3({ x: 0.9806, y: 0, z: 0.1961 });
             expect(camera.getUpDir()).toBeVec3({ x: 0, y: -1, z: 0 });
             expect(camera.getEyePos()).toBeVec3({ x: 0.9806, y: 0, z: 0.1961 });
@@ -57,12 +59,12 @@ describe('orbit-camera', () => {
         it('set orientation / bad values', () => {
             const camera = new OrbitCamera();
 
-            expect(
-                () => camera.setOrientation({ x: 0, y: 1, z: 0 }),
-            ).toThrowError('orientation: bad value');
-            expect(
-                () => camera.setOrientation({ x: 0, y: 1, z: 1 }, { x: 0, y: 2, z: 2}),
-            ).toThrowError('orientation: bad value');
+            expect(() => {
+                camera.setOrientation({ x: 0, y: 1, z: 0 });
+            }).toThrowError('orientation: bad value');
+            expect(() => {
+                camera.setOrientation({ x: 0, y: 1, z: 1 }, { x: 0, y: 2, z: 2 });
+            }).toThrowError('orientation: bad value');
         });
 
         it('set position', () => {
@@ -72,23 +74,32 @@ describe('orbit-camera', () => {
 
             camera.setPosition({ dist: 2 });
 
+            expect(stub.mock.calls.length).toEqual(1);
             expect(camera.getEyePos()).toBeVec3({ x: 0, y: 0, z: 2 });
 
             camera.setPosition({ lon: Math.PI / 6 });
 
+            expect(stub.mock.calls.length).toEqual(2);
             expect(camera.getEyePos()).toBeVec3({ x: 1, y: 0, z: 1.7321 });
 
             camera.setPosition({ lat: Math.PI / 4 });
 
+            expect(stub.mock.calls.length).toEqual(3);
             expect(camera.getEyePos()).toBeVec3({ x: 0.7071, y: 1.4142, z: 1.2247 });
 
             camera.setOrientation({ x: 1, y: 0, z: 0 });
+
+            expect(stub.mock.calls.length).toEqual(4);
             expect(camera.getEyePos()).toBeVec3({ x: 1.2247, y: 1.4142, z: -0.7071 });
 
             camera.setOrientation({ x: 0, y: 0, z: 1 }, { x: 1, y: 0, z: 0 });
+
+            expect(stub.mock.calls.length).toEqual(6);
             expect(camera.getEyePos()).toBeVec3({ x: 1.4142, y: -0.7071, z: 1.2247 });
 
             camera.setPosition({ lon: 0, lat: 0 });
+
+            expect(stub.mock.calls.length).toEqual(7);
             expect(camera.getEyePos()).toBeVec3({ x: 0, y: 0, z: 2 });
         });
     });
