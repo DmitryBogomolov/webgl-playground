@@ -1,12 +1,12 @@
 import type { Runtime, Primitive, Texture, Vec3, Mat4, Color } from 'lib';
 import {
     createRenderState,
-    ViewProj,
+    OrbitCamera,
     divc2,
     vec3, add3,
     translation4x4,
     color, colors,
-    deg2rad, spherical2zxy,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -39,7 +39,7 @@ interface LabelInfo {
 
 interface State {
     readonly runtime: Runtime;
-    readonly viewProj: ViewProj;
+    readonly camera: OrbitCamera;
     readonly primitive: Primitive;
     readonly labelPrimitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -48,21 +48,19 @@ interface State {
 export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
 
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const primitive = makePrimitive(runtime);
     const labelPrimitive = makeLabelPrimitive(runtime);
@@ -70,7 +68,7 @@ export function main(): () => void {
 
     const state: State = {
         runtime,
-        viewProj,
+        camera,
         primitive,
         labelPrimitive,
         objects,
@@ -81,9 +79,9 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
-    const cancelRender = renderOnChange(runtime, [viewProj]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -111,12 +109,12 @@ const labelRenderState = createRenderState({
     blending: true,
 });
 
-function renderScene({ runtime, viewProj, primitive, labelPrimitive, objects }: State): void {
+function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
-    const viewProjMat = viewProj.getTransformMat();
+    const viewProjMat = camera.getTransformMat();
     const canvasSize = runtime.canvasSize();
-    const baseDist = viewProj.getViewDist();
-    const viewPos = viewProj.getEyePos();
+    const baseDist = camera.getViewDist();
+    const viewPos = camera.getEyePos();
 
     runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {

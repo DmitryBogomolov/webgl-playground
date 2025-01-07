@@ -4,14 +4,15 @@ import { perspective4x4, orthographic4x4, lookAt4x4, transpose4x4, mul4x4, inver
 describe('view-proj', () => {
     describe('ViewProj', () => {
         it('init perspective projection', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
 
-            expect(camera.getProjType()).toEqual('perspective');
-            expect(camera.getZNear()).toEqual(0.01);
-            expect(camera.getZFar()).toEqual(100);
-            expect(camera.getYFov()).toEqual(Math.PI / 3);
-            expect(camera.getViewportSize()).toBeVec2({ x: 2, y: 2 });
-            expect(camera.getProjMat()).toBeMat4(
+            expect(viewProj.getProjType()).toEqual('perspective');
+            expect(viewProj.getZNear()).toEqual(0.01);
+            expect(viewProj.getZFar()).toEqual(100);
+            expect(viewProj.getYFov()).toEqual(Math.PI / 3);
+            expect(viewProj.getViewportSize()).toBeVec2({ x: 2, y: 2 });
+            expect(viewProj.getAspect()).toEqual(1);
+            expect(viewProj.getProjMat()).toBeMat4(
                 transpose4x4(perspective4x4({
                     aspect: 1,
                     yFov: Math.PI / 3,
@@ -22,15 +23,16 @@ describe('view-proj', () => {
         });
 
         it('init orthographic projection', () => {
-            const camera = new ViewProj();
-            camera.setProjType('orthographic');
+            const viewProj = new ViewProj();
+            viewProj.setProjType('orthographic');
 
-            expect(camera.getProjType()).toEqual('orthographic');
-            expect(camera.getZNear()).toEqual(0.01);
-            expect(camera.getZFar()).toEqual(100);
-            expect(camera.getYFov()).toEqual(Math.PI / 3);
-            expect(camera.getViewportSize()).toBeVec2({ x: 2, y: 2 });
-            expect(camera.getProjMat()).toBeMat4(
+            expect(viewProj.getProjType()).toEqual('orthographic');
+            expect(viewProj.getZNear()).toEqual(0.01);
+            expect(viewProj.getZFar()).toEqual(100);
+            expect(viewProj.getYFov()).toEqual(Math.PI / 3);
+            expect(viewProj.getViewportSize()).toBeVec2({ x: 2, y: 2 });
+            expect(viewProj.getAspect()).toEqual(1);
+            expect(viewProj.getProjMat()).toBeMat4(
                 transpose4x4(orthographic4x4({
                     zNear: 0.01,
                     zFar: 100,
@@ -43,12 +45,12 @@ describe('view-proj', () => {
         });
 
         it('init view', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
 
-            expect(camera.getCenterPos()).toBeVec3({ x: 0, y: 0, z: 0 });
-            expect(camera.getUpDir()).toBeVec3({ x: 0, y: 1, z: 0 });
-            expect(camera.getEyePos()).toBeVec3({ x: 0, y: 0, z: 1 });
-            expect(camera.getViewMat()).toBeMat4(
+            expect(viewProj.getCenterPos()).toBeVec3({ x: 0, y: 0, z: 0 });
+            expect(viewProj.getUpDir()).toBeVec3({ x: 0, y: 1, z: 0 });
+            expect(viewProj.getEyePos()).toBeVec3({ x: 0, y: 0, z: 1 });
+            expect(viewProj.getViewMat()).toBeMat4(
                 transpose4x4(lookAt4x4({
                     center: { x: 0, y: 0, z: 0 },
                     up: { x: 0, y: 1, z: 0 },
@@ -58,18 +60,19 @@ describe('view-proj', () => {
         });
 
         it('update projection', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
 
-            camera.setYFov(Math.PI / 4);
-            camera.setZFar(1000);
-            camera.setZNear(1);
-            camera.setViewportSize({ x: 400, y: 300 });
+            viewProj.setYFov(Math.PI / 4);
+            viewProj.setZFar(1000);
+            viewProj.setZNear(1);
+            viewProj.setViewportSize({ x: 400, y: 300 });
 
-            expect(camera.getYFov()).toEqual(Math.PI / 4);
-            expect(camera.getZNear()).toEqual(1);
-            expect(camera.getZFar()).toEqual(1000);
-            expect(camera.getViewportSize()).toBeVec2({ x: 400, y: 300 });
-            expect(camera.getProjMat()).toBeMat4(
+            expect(viewProj.getYFov()).toEqual(Math.PI / 4);
+            expect(viewProj.getZNear()).toEqual(1);
+            expect(viewProj.getZFar()).toEqual(1000);
+            expect(viewProj.getViewportSize()).toBeVec2({ x: 400, y: 300 });
+            expect(viewProj.getAspect()).toEqual(4 / 3);
+            expect(viewProj.getProjMat()).toBeMat4(
                 transpose4x4(perspective4x4({
                     yFov: Math.PI / 4,
                     zNear: 1,
@@ -80,16 +83,16 @@ describe('view-proj', () => {
         });
 
         it('update view', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
 
-            camera.setEyePos({ x: 1, y: 8, z: 0 });
-            camera.setCenterPos({ x: 2, y: 1, z: 1 });
-            camera.setUpDir({ x: 1, y: 0, z: 2 });
+            viewProj.setEyePos({ x: 1, y: 8, z: 0 });
+            viewProj.setCenterPos({ x: 2, y: 1, z: 1 });
+            viewProj.setUpDir({ x: 1, y: 0, z: 2 });
 
-            expect(camera.getEyePos()).toBeVec3({ x: 1, y: 8, z: 0 });
-            expect(camera.getCenterPos()).toBeVec3({ x: 2, y: 1, z: 1 });
-            expect(camera.getUpDir()).toBeVec3({ x: 0.4472, y: 0, z: 0.8944 });
-            expect(camera.getViewMat()).toBeMat4(
+            expect(viewProj.getEyePos()).toBeVec3({ x: 1, y: 8, z: 0 });
+            expect(viewProj.getCenterPos()).toBeVec3({ x: 2, y: 1, z: 1 });
+            expect(viewProj.getUpDir()).toBeVec3({ x: 0.4472, y: 0, z: 0.8944 });
+            expect(viewProj.getViewMat()).toBeMat4(
                 transpose4x4(lookAt4x4({
                     center: { x: 2, y: 1, z: 1 },
                     up: { x: 1, y: 0, z: 2 },
@@ -99,7 +102,7 @@ describe('view-proj', () => {
         });
 
         it('provide transform', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
             const transform = mul4x4(
                 perspective4x4({
                     yFov: Math.PI / 4,
@@ -114,87 +117,87 @@ describe('view-proj', () => {
                 }),
             );
 
-            camera.setYFov(Math.PI / 4);
-            camera.setEyePos({ x: 1, y: 5, z: 2 });
+            viewProj.setYFov(Math.PI / 4);
+            viewProj.setEyePos({ x: 1, y: 5, z: 2 });
 
-            expect(camera.getTransformMat()).toBeMat4(
+            expect(viewProj.getTransformMat()).toBeMat4(
                 transpose4x4(transform),
             );
-            expect(camera.getInvtransformMat()).toBeMat4(
+            expect(viewProj.getInvtransformMat()).toBeMat4(
                 transpose4x4(inverse4x4(transform)),
             );
         });
 
         it('provide view data', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
 
-            expect(camera.getXFov()).toEqual(Math.PI / 3);
-            expect(camera.getYFov()).toEqual(Math.PI / 3);
-            expect(camera.getViewDist()).toEqual(1);
-            expect(camera.getXViewSize()).toBeCloseTo(1.1547);
-            expect(camera.getYViewSize()).toBeCloseTo(1.1547);
+            expect(viewProj.getXFov()).toEqual(Math.PI / 3);
+            expect(viewProj.getYFov()).toEqual(Math.PI / 3);
+            expect(viewProj.getViewDist()).toEqual(1);
+            expect(viewProj.getXViewSize()).toBeCloseTo(1.1547);
+            expect(viewProj.getYViewSize()).toBeCloseTo(1.1547);
 
-            camera.setYFov(Math.PI / 4);
-            camera.setViewportSize({ x: 800, y: 600 });
-            camera.setEyePos({ x: 0, y: 3, z: 4 });
+            viewProj.setYFov(Math.PI / 4);
+            viewProj.setViewportSize({ x: 800, y: 600 });
+            viewProj.setEyePos({ x: 0, y: 3, z: 4 });
 
-            expect(camera.getXFov()).toBeCloseTo(Math.PI * 0.3212);
-            expect(camera.getYFov()).toEqual(Math.PI * 0.25);
-            expect(camera.getViewDist()).toBeCloseTo(5);
-            expect(camera.getXViewSize()).toBeCloseTo(5.5229);
-            expect(camera.getYViewSize()).toBeCloseTo(4.1421);
+            expect(viewProj.getXFov()).toBeCloseTo(Math.PI * 0.3212);
+            expect(viewProj.getYFov()).toEqual(Math.PI * 0.25);
+            expect(viewProj.getViewDist()).toBeCloseTo(5);
+            expect(viewProj.getXViewSize()).toBeCloseTo(5.5229);
+            expect(viewProj.getYViewSize()).toBeCloseTo(4.1421);
         });
 
         it('emit changed event', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
             let count = 0;
-            camera.changed().on(() => {
+            viewProj.changed().on(() => {
                 ++count;
             });
 
-            camera.setCenterPos({ x: 1, y: 0, z: 0 });
+            viewProj.setCenterPos({ x: 1, y: 0, z: 0 });
             expect(count).toEqual(1);
 
-            camera.setCenterPos({ x: 1, y: 0, z: 0 });
+            viewProj.setCenterPos({ x: 1, y: 0, z: 0 });
             expect(count).toEqual(1);
 
-            camera.setCenterPos({ x: 1, y: 0, z: 1 });
+            viewProj.setCenterPos({ x: 1, y: 0, z: 1 });
             expect(count).toEqual(2);
 
-            camera.setCenterPos({ x: 1, y: 0, z: 1 });
+            viewProj.setCenterPos({ x: 1, y: 0, z: 1 });
             expect(count).toEqual(2);
 
-            camera.setViewportSize({ x: 200, y: 100 });
+            viewProj.setViewportSize({ x: 200, y: 100 });
             expect(count).toEqual(3);
         });
 
         it('return actual state on changed event', () => {
-            const camera = new ViewProj();
+            const viewProj = new ViewProj();
             let handler: () => void;
-            camera.changed().on(() => {
+            viewProj.changed().on(() => {
                 handler();
             });
-            camera.getTransformMat();
+            viewProj.getTransformMat();
 
             handler = () => {
-                expect(camera.getTransformMat()).toBeMat4([
+                expect(viewProj.getTransformMat()).toBeMat4([
                     0, 0, -1.7321, 0,
                     -1.5492, 0.7746, 0, 0,
                     -0.4473, -0.8946, 0, 2.2165,
                     -0.4472, -0.8944, 0, 2.2361,
                 ]);
             };
-            camera.setEyePos({ x: 1, y: 2, z: 0 });
+            viewProj.setEyePos({ x: 1, y: 2, z: 0 });
 
             handler = () => {
-                expect(camera.getTransformMat()).toBeMat4([
+                expect(viewProj.getTransformMat()).toBeMat4([
                     0, 0, -1.7321, 0,
                     -1.5492, 0.7746, 0, 0,
                     -0.4481, -0.8962, 0, 2.2205,
                     -0.4472, -0.8944, 0, 2.2361,
                 ]);
             };
-            camera.setZFar(10);
+            viewProj.setZFar(10);
         });
     });
 });

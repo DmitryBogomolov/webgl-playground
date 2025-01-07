@@ -1,10 +1,9 @@
 import {
     createRenderState,
-    ViewProj,
+    OrbitCamera,
     GlTFRenderer,
     color,
-    vec3,
-    spherical2zxy, deg2rad,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -39,34 +38,31 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const viewProj = new ViewProj();
-    viewProj.setEyePos(vec3(0, 3, 5));
+    const camera = new OrbitCamera();
 
     const renderer = new GlTFRenderer({ runtime });
 
-    const cancelRender = renderOnChange(runtime, [viewProj, renderer]);
+    const cancelRender = renderOnChange(runtime, [camera, renderer]);
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
     const cameraPos = computed(([cameraLon, cameraLat]) => {
-        return spherical2zxy({
-            distance: 5,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: 5,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
-        renderer.setProjMat(viewProj.getProjMat());
-        renderer.setViewMat(viewProj.getViewMat());
+        renderer.setProjMat(camera.getProjMat());
+        renderer.setViewMat(camera.getViewMat());
         renderer.render();
     });
 

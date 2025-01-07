@@ -3,12 +3,12 @@ import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
     createRenderState,
-    ViewProj,
+    OrbitCamera,
     Framebuffer,
     vec3,
     mat4,
     color, colors,
-    deg2rad, spherical2zxy,
+    deg2rad,
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
@@ -31,7 +31,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly viewProj: ViewProj;
+    readonly camera: OrbitCamera;
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
@@ -45,7 +45,7 @@ interface State {
 
 export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
@@ -56,15 +56,13 @@ export function main(): () => void {
     const cameraLat = observable(20);
     const cameraDist = observable(5);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const outlineThickness = observable(10);
 
@@ -96,7 +94,7 @@ export function main(): () => void {
     ]);
     const state: State = {
         runtime,
-        viewProj,
+        camera,
         models,
         backgroundColor: color(0.8, 0.8, 0.8),
         objectProgram,
@@ -129,9 +127,9 @@ export function main(): () => void {
         renderScene(state);
     });
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
-    const cancelRender = renderOnChange(runtime, [viewProj, outlineThickness]);
+    const cancelRender = renderOnChange(runtime, [camera, outlineThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -178,7 +176,7 @@ const colorIdRenderState = createRenderState({
 });
 
 function renderObjects({
-    runtime, viewProj, backgroundColor, models, objectProgram, selectedObjects,
+    runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
     runtime.setRenderState(objectRenderState);
     runtime.setClearColor(backgroundColor);
@@ -186,7 +184,7 @@ function renderObjects({
 
     for (const { primitive, mat, color, id } of models) {
         if (!selectedObjects.has(id)) {
-            objectProgram.setUniform('u_view_proj', viewProj.getTransformMat());
+            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
             objectProgram.setUniform('u_model', mat);
             objectProgram.setUniform('u_color', color);
             primitive.setProgram(objectProgram);
@@ -197,7 +195,7 @@ function renderObjects({
     runtime.setRenderState(selectedObjectRenderState);
     for (const { primitive, mat, color, id } of models) {
         if (selectedObjects.has(id)) {
-            objectProgram.setUniform('u_view_proj', viewProj.getTransformMat());
+            objectProgram.setUniform('u_view_proj', camera.getTransformMat());
             objectProgram.setUniform('u_model', mat);
             objectProgram.setUniform('u_color', color);
             primitive.setProgram(objectProgram);
@@ -207,12 +205,12 @@ function renderObjects({
 }
 
 function renderOutline({
-    runtime, viewProj, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
+    runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
 }: State): void {
     runtime.setRenderState(outlineRenderState);
     for (const { primitive, mat, id } of models) {
         if (selectedObjects.has(id)) {
-            outlineProgram.setUniform('u_view_proj', viewProj.getTransformMat());
+            outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
             outlineProgram.setUniform('u_model', mat);
             outlineProgram.setUniform('u_color', outlineColor);
             outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
@@ -224,14 +222,14 @@ function renderOutline({
 }
 
 const _transformMat = mat4();
-function findObjectId({ runtime, framebuffer, viewProj, idProgram, models }: State, coords: Vec2): number {
+function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setRenderState(colorIdRenderState);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
 
     const transformMat = _transformMat as Mat4Mut;
-    makePixelViewProjMat(viewProj, coords, transformMat);
+    makePixelViewProjMat(camera, coords, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, mat, id } of models) {
         primitive.setProgram(idProgram);

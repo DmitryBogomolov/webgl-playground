@@ -2,12 +2,12 @@ import type { Runtime, Program, Vec2, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    ViewProj,
+    OrbitCamera,
     vec2, ZERO2,
     vec3,
     mat4,
     color, colors,
-    uint2bytes, makeEventCoordsGetter, spherical2zxy, deg2rad, makePixelViewProjMat,
+    uint2bytes, makeEventCoordsGetter, deg2rad, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -27,7 +27,7 @@ export type DESCRIPTION = never;
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
-    readonly viewProj: ViewProj;
+    readonly camera: OrbitCamera;
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -45,28 +45,26 @@ export function main(): () => void {
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
     const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(10);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
-    const cancelRender = renderOnChange(runtime, [viewProj]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     const state: State = {
         runtime,
         framebuffer,
-        viewProj,
+        camera,
         program,
         idProgram,
         objects,
@@ -85,7 +83,7 @@ export function main(): () => void {
     }
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);
@@ -112,12 +110,12 @@ function renderFrame(state: State): void {
 }
 
 const _transformMat = mat4();
-function findCurrentPixel({ runtime, framebuffer, viewProj, objects, idProgram, pixelCoord }: State): number {
+function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pixelCoord }: State): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
     const transformMat = _transformMat as Mat4Mut;
-    makePixelViewProjMat(viewProj, pixelCoord, transformMat);
+    makePixelViewProjMat(camera, pixelCoord, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
@@ -131,11 +129,11 @@ function findCurrentPixel({ runtime, framebuffer, viewProj, objects, idProgram, 
     return new Uint32Array(buffer.buffer)[0];
 }
 
-function renderScene({ runtime, backgroundColor, viewProj, program, objects }: State, pixelIdx: number): void {
+function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
-    program.setUniform('u_view_proj', viewProj.getTransformMat());
+    program.setUniform('u_view_proj', camera.getTransformMat());
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
         program.setUniform('u_model', modelMat);

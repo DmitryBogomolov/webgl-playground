@@ -1,11 +1,11 @@
 import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
-    ViewProj,
+    OrbitCamera,
     vec3,
     identity4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
-    deg2rad, spherical2zxy,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -25,7 +25,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly viewProj: ViewProj;
+    readonly camera: OrbitCamera;
     readonly primitive: Primitive;
     readonly contourPrimitive: Primitive;
     readonly modelMat: Observable<Mat4>;
@@ -38,27 +38,25 @@ interface State {
 export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
 
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(2);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const xRotation = observable(0);
     const yRotation = observable(0);
-    const _modelMat = identity4x4();
+    const _modelMat = identity4x4() as Mat4Mut;
     const modelMat = computed(([xRotation, yRotation]) => {
-        const mat = _modelMat as Mat4Mut;
+        const mat = _modelMat;
         identity4x4(mat);
         apply4x4(mat, xrotation4x4, deg2rad(xRotation));
         apply4x4(mat, yrotation4x4, deg2rad(yRotation));
@@ -73,7 +71,7 @@ export function main(): () => void {
 
     const state: State = {
         runtime,
-        viewProj,
+        camera,
         primitive,
         contourPrimitive,
         modelMat,
@@ -96,14 +94,14 @@ export function main(): () => void {
         renderScene(state);
     });
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
-    [viewProj.changed(), modelMat].forEach((emitter) => {
+    [camera.changed(), modelMat].forEach((emitter) => {
         emitter.on(() => {
             updateContourPrimitive(state);
         });
     });
-    const cancelRender = renderOnChange(runtime, [viewProj, modelMat, contourEnabled, contourThickness]);
+    const cancelRender = renderOnChange(runtime, [camera, modelMat, contourEnabled, contourThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -133,7 +131,7 @@ const contourRenderState = createRenderState({
 
 function renderScene({
     runtime,
-    viewProj,
+    camera,
     primitive,
     contourPrimitive,
     modelMat,
@@ -144,7 +142,7 @@ function renderScene({
     runtime.clearBuffer('color|depth');
 
     runtime.setRenderState(objectRenderState);
-    primitive.program().setUniform('u_view_proj', viewProj.getTransformMat());
+    primitive.program().setUniform('u_view_proj', camera.getTransformMat());
     primitive.program().setUniform('u_model', modelMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
@@ -157,7 +155,7 @@ function renderScene({
     }
 }
 
-function updateContourPrimitive({ contourPrimitive, viewProj, modelMat, modelPoints }: State): void {
-    const points = findContour(modelPoints, modelMat(), viewProj.getTransformMat());
+function updateContourPrimitive({ contourPrimitive, camera, modelMat, modelPoints }: State): void {
+    const points = findContour(modelPoints, modelMat(), camera.getTransformMat());
     updateContourData(contourPrimitive, points);
 }

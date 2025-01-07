@@ -3,12 +3,12 @@ import type { GlyphAtlas } from './glyph';
 import {
     createRenderState,
     Texture,
-    ViewProj,
+    OrbitCamera,
     divc2,
     vec3, add3,
     translation4x4,
     color, colors,
-    deg2rad, spherical2zxy,
+    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
@@ -43,7 +43,7 @@ interface LabelInfo {
 
 interface State {
     readonly runtime: Runtime;
-    readonly viewProj: ViewProj;
+    readonly camera: OrbitCamera;
     readonly atlasTexture: Texture;
     readonly primitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -60,24 +60,22 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const { objects, disposeObjects } = makeObjects(runtime, atlas);
 
-    const viewProj = new ViewProj();
+    const camera = new OrbitCamera();
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
     const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        return spherical2zxy({
-            distance: cameraDist,
-            azimuth: deg2rad(cameraLon),
-            elevation: deg2rad(cameraLat),
+        camera.setPosition({
+            dist: cameraDist,
+            lon: deg2rad(cameraLon),
+            lat: deg2rad(cameraLat),
         });
+        return { tag: '_CAMERA_' };
     }, [cameraLon, cameraLat, cameraDist]);
-    cameraPos.on((cameraPos) => {
-        viewProj.setEyePos(cameraPos);
-    });
 
     const state: State = {
         runtime,
-        viewProj,
+        camera,
         atlasTexture,
         primitive,
         objects,
@@ -88,9 +86,9 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.canvasSize());
     });
-    const cancelRender = renderOnChange(runtime, [viewProj]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     const controlRoot = createControls(container, [
         { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
@@ -118,12 +116,12 @@ const labelRenderState = createRenderState({
     blending: true,
 });
 
-function renderScene({ runtime, viewProj, primitive, atlasTexture, objects }: State): void {
+function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {
     runtime.clearBuffer('color|depth');
-    const viewProjMat = viewProj.getTransformMat();
+    const viewProjMat = camera.getTransformMat();
     const canvasSize = runtime.canvasSize();
-    const baseDist = viewProj.getViewDist();
-    const viewPos = viewProj.getEyePos();
+    const baseDist = camera.getViewDist();
+    const viewPos = camera.getEyePos();
 
     runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {

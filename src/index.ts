@@ -37,6 +37,8 @@ export * from './common/tracker.types';
 export * from './common/tracker';
 export * from './common/loader.types';
 export * from './common/loader';
+export * from './common/orbit-camera.types';
+export * from './common/orbit-camera';
 export * from './alg/binary-heap';
 export * from './alg/kd-tree.types';
 export * from './alg/kd-tree';
