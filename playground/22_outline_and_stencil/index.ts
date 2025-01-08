@@ -55,14 +55,17 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(5);
-    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat, cameraDist]) => ({
             dist: cameraDist,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat, cameraDist]);
+        }),
+        [cameraLon, cameraLat, cameraDist],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+    });
 
     const outlineThickness = observable(10);
 
@@ -141,8 +144,8 @@ export function main(): () => void {
     return () => {
         container.removeEventListener('click', handleClick);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness,
-            disposeModels, framebuffer, runtime, controlRoot, cancelTracking, cancelRender,
+            cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness, controlRoot, cancelTracking, cancelRender,
+            disposeModels, framebuffer, runtime,
         ]);
     };
 }

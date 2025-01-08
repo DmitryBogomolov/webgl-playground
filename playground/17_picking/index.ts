@@ -56,19 +56,18 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(10);
-    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat, cameraDist]) => ({
             dist: cameraDist,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        idCamera.setPosition({
-            dist: cameraDist,
-            lon: deg2rad(cameraLon),
-            lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat, cameraDist]);
+        }),
+        [cameraLon, cameraLat, cameraDist],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+        idCamera.setPosition(pos);
+    });
     const cancelRender = renderOnChange(runtime, [camera]);
 
     const state: State = {
@@ -117,8 +116,8 @@ export function main(): () => void {
     return () => {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos,
-            disposeObjects, framebuffer, runtime, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cameraPos, cancelTracking, cancelRender, controlRoot,
+            disposeObjects, framebuffer, runtime,
         ]);
     };
 }

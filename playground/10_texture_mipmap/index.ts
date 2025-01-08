@@ -11,7 +11,7 @@ import {
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
-import { observable } from 'playground-utils/observable';
+import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
@@ -74,6 +74,7 @@ export function main(): () => void {
     const ANIMATION_SPEED = PI2 / 10;
     const ANIMATION_RADIUS = 10;
 
+    const { observable, dispose: disposeObservables } = observablesFactory();
     const xRotation = observable(0);
     const yRotation = observable(0);
     const mat = mat4() as Mat4Mut;
@@ -142,8 +143,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            xRotation, yRotation, magFilter, minFilter,
-            primitive.program(), primitive, texture, runtime, animate, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, animate, cancelTracking, cancelRender, controlRoot,
+            primitive.program(), primitive, texture, runtime,
         ]);
     };
 }
