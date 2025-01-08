@@ -131,3 +131,37 @@ function scheduleNotify(notify: () => void, delay: number): number {
 function cancelNotify(id: number): void {
     clearTimeout(id);
 }
+
+export interface ObservablesFactory {
+    readonly observable: typeof observable,
+    readonly computed: typeof computed,
+    readonly dispose: () => void;
+}
+
+export function observablesFactory(): ObservablesFactory {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const list: Observable<any>[] = [];
+
+    const origObservable = observable;
+    const origComputed = computed;
+
+    return {
+        observable(initial, options) {
+            const result = origObservable(initial, options);
+            list.push(result);
+            return result;
+        },
+
+        computed(handler, observables, options) {
+            const result = origComputed(handler, observables, options);
+            list.push(result);
+            return result;
+        },
+
+        dispose() {
+            for (const item of list) {
+                item.dispose();
+            }
+        },
+    };
+}
