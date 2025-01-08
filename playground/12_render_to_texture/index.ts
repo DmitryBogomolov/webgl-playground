@@ -61,13 +61,16 @@ export function main(): () => void {
     camera.setPosition({ dist: 2 });
 
     const _targetModel = mat4() as Mat4Mut;
-    const targetModel = computed(([xRotation, yRotation]) => {
-        const mat = _targetModel;
-        identity4x4(mat);
-        apply4x4(mat, xrotation4x4, deg2rad(xRotation));
-        apply4x4(mat, yrotation4x4, deg2rad(yRotation));
-        return mat as Mat4;
-    }, [xRotation, yRotation]);
+    const targetModel = computed(
+        ([xRotation, yRotation]) => {
+            const mat = _targetModel;
+            identity4x4(mat);
+            apply4x4(mat, xrotation4x4, deg2rad(xRotation));
+            apply4x4(mat, yrotation4x4, deg2rad(yRotation));
+            return mat as Mat4;
+        },
+        [xRotation, yRotation],
+    );
 
     const framebuffer = new Framebuffer({
         runtime,
@@ -75,6 +78,9 @@ export function main(): () => void {
         size: { x: 256, y: 256 },
     });
     textureCamera.setViewportSize(framebuffer.size());
+
+    const texturePlane = makeTexturePlane(runtime);
+    const object = makeObject(runtime);
 
     const state: State = {
         runtime,
@@ -84,8 +90,8 @@ export function main(): () => void {
         camera,
         textureCamera,
         framebuffer,
-        texturePlane: makeTexturePlane(runtime),
-        object: makeObject(runtime),
+        texturePlane,
+        object,
         objects: [
             {
                 clr: color(0.8, 0.2, 0.1),
@@ -132,10 +138,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            xRotation, yRotation, targetModel,
-            state.texturePlane.program(), state.texturePlane,
-            state.object.program(), state.object,
-            framebuffer, runtime, controlRoot, animate, cancelTracking, cancelRender,
+            xRotation, yRotation, targetModel, cancelTracking, cancelRender, animate, controlRoot,
+            texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
         ]);
     };
 }

@@ -46,14 +46,17 @@ export function main(): () => void {
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
-    const cameraPos = computed(([cameraLon, cameraLat]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat]) => ({
             dist: 5,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat]);
+        }),
+        [cameraLon, cameraLat],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+    });
 
     const cancelTracking = trackSize(runtime, () => {
         camera.setViewportSize(runtime.canvasSize());
@@ -80,8 +83,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraPos,
-            renderer, runtime, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraPos, cancelTracking, cancelRender, controlRoot,
+            renderer, runtime,
         ]);
     };
 }

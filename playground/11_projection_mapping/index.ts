@@ -9,7 +9,7 @@ import {
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
-import { observable, computed } from 'playground-utils/observable';
+import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeColorTexture, makeMappingTexture } from './texture';
@@ -59,6 +59,7 @@ export function main(): () => void {
     });
     const mappingCamera = new OrbitCamera();
 
+    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const rotation = observable(0);
     const position = observable(0);
     const projectionDist = observable(2);
@@ -82,25 +83,25 @@ export function main(): () => void {
         [rotation, position],
     );
 
-    const eyePosition = computed(
-        ([projectionDist, projectionLon, projectionLat]) => {
-            mappingCamera.setPosition({
-                dist: projectionDist,
-                lon: deg2rad(projectionLon),
-                lat: deg2rad(projectionLat),
-            });
-            return { tag: '_EYE_' };
-        },
+    const projectionPos = computed(
+        ([projectionDist, projectionLon, projectionLat]) => ({
+            dist: projectionDist,
+            lon: deg2rad(projectionLon),
+            lat: deg2rad(projectionLat),
+        }),
         [projectionDist, projectionLon, projectionLat],
     );
+    projectionPos.on((pos) => {
+        mappingCamera.setPosition(pos);
+    });
 
     const projectionSize = computed(
-        ([projectionWidth, projectionHeight]) => {
-            mappingCamera.setViewportSize({ x: projectionWidth, y: projectionHeight });
-            return { tag: '_SIZE_' };
-        },
+        ([projectionWidth, projectionHeight]) => ({ x: projectionWidth, y: projectionHeight }),
         [projectionWidth, projectionHeight],
     );
+    projectionSize.on((size) => {
+        mappingCamera.setViewportSize(size);
+    });
 
     projectionFOV.on((projectionFOV) => {
         mappingCamera.setYFov(deg2rad(projectionFOV));
@@ -159,11 +160,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            rotation, position, projectionDist, projectionLon, projectionLat, projectionWidth, projectionHeight,
-            projectionFOV, isPerpsectiveProjection, isWireframeShown,
-            model, eyePosition, projectionSize,
-            program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture,
-            runtime, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
         ]);
     };
 }

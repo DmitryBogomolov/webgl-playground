@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
     OrbitCamera,
@@ -9,7 +10,7 @@ import {
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
-import { observable, computed, Observable } from 'playground-utils/observable';
+import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
@@ -40,17 +41,21 @@ export function main(): () => void {
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new OrbitCamera();
 
+    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(2);
-    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat, cameraDist]) => ({
             dist: cameraDist,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat, cameraDist]);
+        }),
+        [cameraLon, cameraLat, cameraDist],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+    });
 
     const xRotation = observable(0);
     const yRotation = observable(0);
@@ -115,9 +120,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, xRotation, yRotation, modelMat,
-            contourEnabled, contourThickness,
-            primitive, contourPrimitive, runtime, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            primitive, contourPrimitive, runtime,
         ]);
     };
 }

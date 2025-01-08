@@ -53,14 +53,17 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
-    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat, cameraDist]) => ({
             dist: cameraDist,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat, cameraDist]);
+        }),
+        [cameraLon, cameraLat, cameraDist],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+    });
 
     const primitive = makePrimitive(runtime);
     const labelPrimitive = makeLabelPrimitive(runtime);
@@ -91,9 +94,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos,
-            disposeObjects, primitive.program(), primitive, labelPrimitive.program(), labelPrimitive,
-            runtime, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cameraPos, cancelTracking, cancelRender, controlRoot,
+            disposeObjects, primitive.program(), primitive, labelPrimitive.program(), labelPrimitive, runtime,
         ]);
     };
 }

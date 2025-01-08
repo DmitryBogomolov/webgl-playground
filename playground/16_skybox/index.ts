@@ -8,7 +8,7 @@ import {
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
-import { observable, computed } from 'playground-utils/observable';
+import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';
@@ -43,33 +43,41 @@ export function main(): () => void {
     const texture = makeTexture(runtime);
     const camera = new OrbitCamera();
 
+    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const cameraLon = observable(0);
     const cameraLat = observable(0);
     const cameraDist = observable(2);
-    const cameraPos = computed(([cameraLon, cameraLat, cameraDist]) => {
-        camera.setPosition({
+    const cameraPos = computed(
+        ([cameraLon, cameraLat, cameraDist]) => ({
             dist: cameraDist,
             lon: deg2rad(cameraLon),
             lat: deg2rad(cameraLat),
-        });
-        return { tag: '_CAMERA_' };
-    }, [cameraLon, cameraLat, cameraDist]);
+        }),
+        [cameraLon, cameraLat, cameraDist],
+    );
+    cameraPos.on((pos) => {
+        camera.setPosition(pos);
+    });
 
     const modelLon = observable(0);
     const modelLat = observable(0);
     const _modelMat = mat4() as Mat4Mut;
-    const modelMat = computed(([modelLon, modelLat]) => {
-        const mat = _modelMat;
-        identity4x4(mat);
-        apply4x4(mat, yrotation4x4, deg2rad(modelLon));
-        apply4x4(mat, xrotation4x4, deg2rad(modelLat));
-        return mat as Mat4;
-    }, [modelLon, modelLat]);
+    const modelMat = computed(
+        ([modelLon, modelLat]) => {
+            const mat = _modelMat;
+            identity4x4(mat);
+            apply4x4(mat, yrotation4x4, deg2rad(modelLon));
+            apply4x4(mat, xrotation4x4, deg2rad(modelLat));
+            return mat as Mat4;
+        },
+        [modelLon, modelLat],
+    );
 
-    const _normalMat = mat4();
-    const normalMat = computed(([modelMat]) => {
-        return inversetranspose4x4(modelMat, _normalMat as Mat4Mut);
-    }, [modelMat]);
+    const _normalMat = mat4() as Mat4Mut;
+    const normalMat = computed(
+        ([modelMat]) => inversetranspose4x4(modelMat, _normalMat),
+        [modelMat],
+    );
 
     const isCubeShown = observable(true);
 
@@ -92,9 +100,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, modelLon, modelLat, modelMat, normalMat, isCubeShown,
-            quad.program(), quad, cube.program(), cube, texture,
-            runtime, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            quad.program(), quad, cube.program(), cube, texture, runtime,
         ]);
     };
 }

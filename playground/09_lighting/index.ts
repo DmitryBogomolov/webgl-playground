@@ -11,7 +11,7 @@ import {
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackSize } from 'playground-utils/resizer';
-import { observable, computed } from 'playground-utils/observable';
+import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 
@@ -39,6 +39,7 @@ export function main(): () => void {
     const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
     const clr = color(0.2, 0.6, 0.1);
 
+    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const offsetCoeff = observable(0);
     const rotation = observable(0);
     const position = observable(0);
@@ -61,10 +62,10 @@ export function main(): () => void {
         { noEqualityCheck: true },
     );
 
-    const _model = mat4();
+    const _model = mat4() as Mat4Mut;
     const model = computed(
         ([rotation, position]) => {
-            const mat = _model as Mat4Mut;
+            const mat = _model;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(rotation));
             apply4x4(mat, translation4x4, vec3(position, 0, 0));
@@ -167,11 +168,8 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            offsetCoeff, rotation, position, lightLon, lightLat, lightDistance, lightLimitPoint, lightLimitRange,
-            proj, view, model, modelViewProj, modelInvTrs,
-            lightDirection, lightPosition, lightLimit,
-            directionalProgram, pointProgram, spotProgram,
-            primitive, runtime, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            directionalProgram, pointProgram, spotProgram, primitive, runtime,
         ]);
     };
 }
