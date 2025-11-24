@@ -56,12 +56,11 @@ Downloaded from https://webglfundamentals.org/webgl/resources/leaves.jpg.
 play-solid.svg, pause-solid.svg
 Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
-///
-TODO
 
-camera - mouse+keyboard
-camera - some visual controls? rgb-arrows
+### TODO
 
-use html webpack plugin properly
-
-keep query parameters in links (can it be properly done?)
+- camera - mouse+keyboard
+- camera - some visual controls? rgb-arrows?
+- use html webpack plugin properly (first - check how it is used now)
+- switch to WebGL2
+- service worker for fetched content (in static bundle)
