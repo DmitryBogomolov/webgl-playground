@@ -183,7 +183,7 @@ export class Runtime extends BaseObject {
     }
 
     private _disposeBindings(): void {
-        this.bindVertexArrayObject(null);
+        this.bindVertexArray(null);
         this.bindArrayBuffer(null);
         this.useProgram(null);
         this.bindFramebuffer(null);
@@ -411,12 +411,12 @@ export class Runtime extends BaseObject {
         this._bindingsState.currentProgram = handle;
     }
 
-    bindVertexArrayObject(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
+    bindVertexArray(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
         const handle = unwrapGLHandle(vertexArrayObject);
         if (this._bindingsState.vertexArrayObject === handle) {
             return;
         }
-        this._logMethod('bind_vertex_array_object', vertexArrayObject);
+        this._logMethod('bind_vertex_array', vertexArrayObject);
         this._gl.bindVertexArray(handle);
         this._bindingsState.vertexArrayObject = handle;
     }

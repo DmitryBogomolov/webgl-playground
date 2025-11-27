@@ -87,7 +87,7 @@ export class Primitive extends BaseObject {
         const { attributes } = config.vertexSchema;
         const gl = this._runtime.gl();
         try {
-            this._runtime.bindVertexArrayObject(this._vao);
+            this._runtime.bindVertexArray(this._vao);
             this._runtime.bindArrayBuffer(this._vertexBuffer);
             for (const attr of attributes) {
                 gl.vertexAttribPointer(
@@ -105,7 +105,7 @@ export class Primitive extends BaseObject {
             gl.bufferData(GL_ARRAY_BUFFER, vertexData as number, GL_STATIC_DRAW);
             gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, indexData as number, GL_STATIC_DRAW);
         } finally {
-            this._runtime.bindVertexArrayObject(null);
+            this._runtime.bindVertexArray(null);
         }
         this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode || DEFAULT_PRIMITIVE_MODE];
         this._indexType = INDEX_TYPE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
@@ -125,10 +125,10 @@ export class Primitive extends BaseObject {
         this._logMethod('set_index_data', isBufferSource(indexData) ? indexData.byteLength : indexData);
         try {
             // Vertex array object must be bound because element array binding is part of its state.
-            this._runtime.bindVertexArrayObject(this._vao);
+            this._runtime.bindVertexArray(this._vao);
             this._runtime.gl().bufferData(GL_ELEMENT_ARRAY_BUFFER, indexData as number, GL_STATIC_DRAW);
         } finally {
-            this._runtime.bindVertexArrayObject(null);
+            this._runtime.bindVertexArray(null);
         }
         const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
         this._setIndexRange(indexDataLength);
@@ -152,9 +152,9 @@ export class Primitive extends BaseObject {
         this._logMethod('update_index_data', toArgStr({ indexData: indexData.byteLength, offset }));
         const gl = this._runtime.gl();
         // Vertex array object must be bound because element array binding is part of its state.
-        this._runtime.bindVertexArrayObject(this._vao);
+        this._runtime.bindVertexArray(this._vao);
         gl.bufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indexData);
-        this._runtime.bindVertexArrayObject(null);
+        this._runtime.bindVertexArray(null);
     }
 
     /** Change index range */
@@ -195,9 +195,9 @@ export class Primitive extends BaseObject {
         }
         this._logMethod('render', '');
         this._runtime.useProgram(this._program);
-        this._runtime.bindVertexArrayObject(this._vao);
+        this._runtime.bindVertexArray(this._vao);
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);
-        this._runtime.bindVertexArrayObject(null);
+        this._runtime.bindVertexArray(null);
     }
 }
 
