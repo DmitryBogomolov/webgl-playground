@@ -213,7 +213,7 @@ class VertexArrayObject implements GLHandleWrapper<WebGLVertexArrayObjectOES> {
     constructor(runtime: PrimitiveRuntime, id: string) {
         this._runtime = runtime;
         this._id = id;
-        const vao = this._runtime.vaoExt().createVertexArrayOES();
+        const vao = this._runtime.gl().createVertexArray();
         if (!vao) {
             throw new Error('failed to create vertex array object');
         }
@@ -221,7 +221,7 @@ class VertexArrayObject implements GLHandleWrapper<WebGLVertexArrayObjectOES> {
     }
 
     dispose(): void {
-        this._runtime.vaoExt().deleteVertexArrayOES(this._vao);
+        this._runtime.gl().deleteVertexArray(this._vao);
     }
 
     toString(): string {

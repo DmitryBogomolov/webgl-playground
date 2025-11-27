@@ -121,7 +121,6 @@ export class Runtime extends BaseObject {
     private readonly _pixelStoreState: PixelStoreState;
     private readonly _renderState: RenderState;
     private readonly _gl: WebGL2RenderingContext;
-    private readonly _vaoExt: OES_vertex_array_object;
     private readonly _cancelResizeTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
     private _size: Vec2 = clone2(ZERO2);
@@ -149,7 +148,6 @@ export class Runtime extends BaseObject {
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
-        this._vaoExt = this._getVaoExt();
         this._enableExtensions(params.extensions || []);
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
@@ -202,10 +200,6 @@ export class Runtime extends BaseObject {
         return this._gl;
     }
 
-    vaoExt(): OES_vertex_array_object {
-        return this._vaoExt;
-    }
-
     private _getContext(attrs: WebGLContextAttributes | undefined): WebGL2RenderingContext {
         const options: WebGLContextAttributes = {
             ...DEFAULT_CONTEXT_ATTRIBUTES,
@@ -224,14 +218,6 @@ export class Runtime extends BaseObject {
             throw this._logError('failed to get WEBGL_lose_context extension');
         }
         ext.loseContext();
-    }
-
-    private _getVaoExt(): OES_vertex_array_object {
-        const ext = this._gl.getExtension('OES_vertex_array_object');
-        if (!ext) {
-            throw this._logError('failed to get OES_vertex_array_object extension');
-        }
-        return ext;
     }
 
     private _enableExtensions(extensions: Iterable<EXTENSION>): void {
@@ -431,7 +417,7 @@ export class Runtime extends BaseObject {
             return;
         }
         this._logMethod('bind_vertex_array_object', vertexArrayObject);
-        this._vaoExt.bindVertexArrayOES(handle);
+        this._gl.bindVertexArray(handle);
         this._bindingsState.vertexArrayObject = handle;
     }
 
