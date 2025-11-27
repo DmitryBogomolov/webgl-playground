@@ -61,6 +61,9 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
 - camera - mouse+keyboard
 - camera - some visual controls? rgb-arrows?
+- use message ports
 - use html webpack plugin properly (first - check how it is used now)
-- switch to WebGL2
 - service worker for fetched content (in static bundle)
+- rework type system with fields picking
+- extract some state object from Runtime - primitive and others would use it rather then entrire Runtime
+- uniform buffers
