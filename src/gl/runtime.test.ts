@@ -5,7 +5,6 @@ describe('runtime', () => {
         let container: HTMLElement;
         let canvas: HTMLCanvasElement;
         let ctx: WebGL2RenderingContext;
-        let vaoExt: OES_vertex_array_object;
         let getExtension: jest.Mock;
         let viewport: jest.Mock;
         let enable: jest.Mock;
@@ -33,9 +32,7 @@ describe('runtime', () => {
             canvas = document.createElement('canvas');
             Object.defineProperty(canvas, 'clientWidth', { value: 640, configurable: true });
             Object.defineProperty(canvas, 'clientHeight', { value: 480, configurable: true });
-            vaoExt = { tag: 'VAO' } as unknown as OES_vertex_array_object;
             getExtension = jest.fn()
-                .mockReturnValueOnce(vaoExt)
                 .mockReturnValueOnce({ tag: 'U32INDEX' });
             viewport = jest.fn();
             enable = jest.fn();
