@@ -27,7 +27,7 @@ import { makeRenderState, applyRenderState, isRenderState } from './render-state
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from '../common/color';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const {
     ARRAY_BUFFER: GL_ARRAY_BUFFER,
@@ -120,7 +120,7 @@ export class Runtime extends BaseObject {
     private readonly _clearState: ClearState;
     private readonly _pixelStoreState: PixelStoreState;
     private readonly _renderState: RenderState;
-    private readonly _gl: WebGLRenderingContext;
+    private readonly _gl: WebGL2RenderingContext;
     private readonly _vaoExt: OES_vertex_array_object;
     private readonly _cancelResizeTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
@@ -198,7 +198,7 @@ export class Runtime extends BaseObject {
         }
     }
 
-    gl(): WebGLRenderingContext {
+    gl(): WebGL2RenderingContext {
         return this._gl;
     }
 
@@ -206,12 +206,12 @@ export class Runtime extends BaseObject {
         return this._vaoExt;
     }
 
-    private _getContext(attrs: WebGLContextAttributes | undefined): WebGLRenderingContext {
+    private _getContext(attrs: WebGLContextAttributes | undefined): WebGL2RenderingContext {
         const options: WebGLContextAttributes = {
             ...DEFAULT_CONTEXT_ATTRIBUTES,
             ...attrs,
         };
-        const context = this._canvas.getContext('webgl', options);
+        const context = this._canvas.getContext('webgl2', options);
         if (!context) {
             throw this._logError('failed to get webgl context');
         }

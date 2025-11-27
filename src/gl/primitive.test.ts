@@ -6,7 +6,7 @@ describe('primitive', () => {
         let vao: WebGLVertexArrayObjectOES;
         let vertexBuffer: WebGLBuffer;
         let indexBuffer: WebGLBuffer;
-        let ctx: WebGLRenderingContext;
+        let ctx: WebGL2RenderingContext;
         let vaoExt: OES_vertex_array_object;
         let runtime: Runtime;
         let createVertexArrayOES: jest.Mock;
@@ -20,7 +20,7 @@ describe('primitive', () => {
             createBuffer = jest.fn().mockReturnValueOnce(vertexBuffer).mockReturnValueOnce(indexBuffer);
             ctx = {
                 createBuffer,
-            } as unknown as WebGLRenderingContext;
+            } as unknown as WebGL2RenderingContext;
             vaoExt = {
                 createVertexArrayOES,
             } as unknown as OES_vertex_array_object;

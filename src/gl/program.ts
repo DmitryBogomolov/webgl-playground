@@ -14,7 +14,7 @@ import { isMat4 } from '../geometry/mat4';
 import { isColor } from '../common/color';
 import { toStr } from '../utils/string-formatter';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const GL_VERTEX_SHADER = WebGL.VERTEX_SHADER;
 const GL_FRAGMENT_SHADER = WebGL.FRAGMENT_SHADER;
@@ -50,7 +50,7 @@ function isNumArray(arg: unknown, length: number): arg is number[] {
     return Array.isArray(arg) && arg.length >= length;
 }
 
-type UniformSetter = (gl: WebGLRenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE) => void;
+type UniformSetter = (gl: WebGL2RenderingContext, attr: ShaderUniform, value: SHADER_UNIFORM_VALUE) => void;
 type UniformSettersMap = Partial<Mapping<SHADER_UNIFORM_TYPE, UniformSetter>>;
 
 function raiseError(name: string, value: unknown): Error {
@@ -240,7 +240,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
 }
 
 function setupProgram(
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     vertSource: string,
     fragSource: string,
     locations: Mapping<string, number> | undefined,
@@ -289,7 +289,7 @@ function setupProgram(
     }
 }
 
-function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+function createShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
     const shader = gl.createShader(type)!;
     if (!shader) {
         throw new Error('failed to create shader');
@@ -319,13 +319,13 @@ function combineSource(source: string, prefix: string): string {
     return `${prefix}\n#line 1 0\n${source}`;
 }
 
-function bindAttributes(gl: WebGLRenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
+function bindAttributes(gl: WebGL2RenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
     for (const [name, location] of Object.entries(locations)) {
         gl.bindAttribLocation(program, location, name);
     }
 }
 
-function collectUniforms(gl: WebGLRenderingContext, program: WebGLProgram): ShaderUniform[] {
+function collectUniforms(gl: WebGL2RenderingContext, program: WebGLProgram): ShaderUniform[] {
     const count = gl.getProgramParameter(program, GL_ACTIVE_UNIFORMS) as number;
     const uniforms: ShaderUniform[] = [];
     for (let i = 0; i < count; ++i) {
@@ -348,7 +348,7 @@ function collectUniforms(gl: WebGLRenderingContext, program: WebGLProgram): Shad
     return uniforms;
 }
 
-function collectAttributes(gl: WebGLRenderingContext, program: WebGLProgram): ShaderAttribute[] {
+function collectAttributes(gl: WebGL2RenderingContext, program: WebGLProgram): ShaderAttribute[] {
     const count = gl.getProgramParameter(program, GL_ACTIVE_ATTRIBUTES) as number;
     const attributes: ShaderAttribute[] = [];
     for (let i = 0; i < count; ++i) {

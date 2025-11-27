@@ -4,7 +4,7 @@ describe('runtime', () => {
     describe('Runtime', () => {
         let container: HTMLElement;
         let canvas: HTMLCanvasElement;
-        let ctx: WebGLRenderingContext;
+        let ctx: WebGL2RenderingContext;
         let vaoExt: OES_vertex_array_object;
         let getExtension: jest.Mock;
         let viewport: jest.Mock;
@@ -22,7 +22,7 @@ describe('runtime', () => {
             BLEND,
             UNPACK_FLIP_Y_WEBGL,
             COLOR_BUFFER_BIT, DEPTH_BUFFER_BIT, STENCIL_BUFFER_BIT,
-        } = WebGLRenderingContext.prototype;
+        } = WebGL2RenderingContext.prototype;
 
         class TestResizeObserver {
             observe(): void { /* empty */ }
@@ -51,7 +51,7 @@ describe('runtime', () => {
                 clear,
                 clearColor,
                 pixelStorei,
-            } as Partial<WebGLRenderingContext> as WebGLRenderingContext;
+            } as Partial<WebGL2RenderingContext> as WebGL2RenderingContext;
             canvas.getContext = jest.fn().mockReturnValueOnce(ctx);
             document.createElement = jest.fn().mockReturnValueOnce(canvas);
             Object.assign(global, { ResizeObserver: TestResizeObserver });

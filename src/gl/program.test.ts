@@ -6,7 +6,7 @@ describe('program', () => {
         let program: WebGLProgram;
         let vShader: WebGLShader;
         let fShader: WebGLShader;
-        let ctx: WebGLRenderingContext;
+        let ctx: WebGL2RenderingContext;
         let runtime: Runtime;
         let createProgram: jest.Mock;
         let createShader: jest.Mock;
@@ -47,7 +47,7 @@ describe('program', () => {
                 bindAttribLocation,
                 linkProgram,
                 getProgramParameter,
-            } as unknown as WebGLRenderingContext;
+            } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
                 logger: () => null,
@@ -64,8 +64,8 @@ describe('program', () => {
                 [],
             ]);
             expect(createShader.mock.calls).toEqual([
-                [WebGLRenderingContext.prototype.VERTEX_SHADER],
-                [WebGLRenderingContext.prototype.FRAGMENT_SHADER],
+                [WebGL2RenderingContext.prototype.VERTEX_SHADER],
+                [WebGL2RenderingContext.prototype.FRAGMENT_SHADER],
             ]);
             expect(shaderSource.mock.calls).toEqual([
                 [vShader, 'vert-shader-source'],

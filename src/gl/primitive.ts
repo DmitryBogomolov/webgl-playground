@@ -7,7 +7,7 @@ import type { GLValuesMap } from './gl-values-map.types';
 import { BaseObject } from './base-object';
 import { toStr, toArgStr } from '../utils/string-formatter';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const GL_ARRAY_BUFFER = WebGL.ARRAY_BUFFER;
 const GL_ELEMENT_ARRAY_BUFFER = WebGL.ELEMENT_ARRAY_BUFFER;

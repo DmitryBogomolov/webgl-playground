@@ -15,7 +15,7 @@ describe('framebuffer', () => {
             setImageData: jest.Mock,
             glHandle: jest.Mock,
         };
-        let ctx: WebGLRenderingContext;
+        let ctx: WebGL2RenderingContext;
         let runtime: Runtime;
         let createFramebuffer: jest.Mock;
         let deleteFramebuffer: jest.Mock;
@@ -29,7 +29,7 @@ describe('framebuffer', () => {
             FRAMEBUFFER,
             COLOR_ATTACHMENT0,
             TEXTURE_2D,
-        } = WebGLRenderingContext.prototype;
+        } = WebGL2RenderingContext.prototype;
 
         beforeEach(() => {
             framebuffer = { tag: 'framebuffer' };
@@ -53,7 +53,7 @@ describe('framebuffer', () => {
                 deleteFramebuffer,
                 framebufferTexture2D,
                 checkFramebufferStatus,
-            } as unknown as WebGLRenderingContext;
+            } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
                 logger: () => null,

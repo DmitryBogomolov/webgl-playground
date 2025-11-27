@@ -60,7 +60,7 @@ module.exports = {
 
     // A set of global variables that need to be available in all test environments
     globals: {
-        WebGLRenderingContext: {
+        WebGL2RenderingContext: {
             prototype: {
                 BYTE: 101,
                 UNSIGNED_BYTE: 102,

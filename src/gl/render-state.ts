@@ -15,7 +15,7 @@ type RenderStateComparer<T extends keyof RenderState> = (
     lhs: RenderState[T], rhs: RenderState[T],
 ) => boolean;
 type RenderStateUpdater<T extends keyof RenderState> = (
-    value: RenderState[T], gl: WebGLRenderingContext, logMethod: (name: string, arg: unknown) => void,
+    value: RenderState[T], gl: WebGL2RenderingContext, logMethod: (name: string, arg: unknown) => void,
 ) => void;
 
 type RenderStateValidators = {
@@ -28,7 +28,7 @@ type RenderStateUpdaters = {
     readonly [K in keyof RenderState]: RenderStateUpdater<K>;
 };
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 const GL_DEPTH_TEST = WebGL.DEPTH_TEST;
 const GL_STENCIL_TEST = WebGL.STENCIL_TEST;
 const GL_CULL_FACE = WebGL.CULL_FACE;
@@ -295,7 +295,7 @@ export function isRenderState(state: RenderState): boolean {
 export function applyRenderState(
     currentState: RenderState,
     appliedState: RenderState,
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     logMethod: (name: string, arg: unknown) => void,
 ): boolean {
     if (currentState === appliedState) {
