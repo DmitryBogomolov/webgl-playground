@@ -3,7 +3,7 @@ import type {
 } from './vertex-schema.types';
 import type { Mapping } from '../common/mapping.types';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 interface TypeInfo {
     readonly type: number;

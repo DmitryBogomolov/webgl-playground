@@ -7,7 +7,7 @@ import { isVec4 } from '../geometry/vec4';
 import { isColor } from '../common/color';
 import { toStr } from '../utils/string-formatter';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
 type ArrayMaker = (buffer: ArrayBuffer, offset: number, length: number) => TypedArray;

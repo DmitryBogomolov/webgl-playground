@@ -12,7 +12,7 @@ import { BaseObject } from './base-object';
 import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
 import { toStr } from '../utils/string-formatter';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const WRAP_MAP: GLValuesMap<TEXTURE_WRAP> = {
     'repeat': WebGL.REPEAT,

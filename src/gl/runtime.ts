@@ -27,7 +27,7 @@ import { makeRenderState, applyRenderState, isRenderState } from './render-state
 import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from '../common/color';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const {
     ARRAY_BUFFER: GL_ARRAY_BUFFER,
@@ -120,8 +120,7 @@ export class Runtime extends BaseObject {
     private readonly _clearState: ClearState;
     private readonly _pixelStoreState: PixelStoreState;
     private readonly _renderState: RenderState;
-    private readonly _gl: WebGLRenderingContext;
-    private readonly _vaoExt: OES_vertex_array_object;
+    private readonly _gl: WebGL2RenderingContext;
     private readonly _cancelResizeTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
     private _size: Vec2 = clone2(ZERO2);
@@ -149,7 +148,6 @@ export class Runtime extends BaseObject {
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
-        this._vaoExt = this._getVaoExt();
         this._enableExtensions(params.extensions || []);
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
@@ -185,7 +183,7 @@ export class Runtime extends BaseObject {
     }
 
     private _disposeBindings(): void {
-        this.bindVertexArrayObject(null);
+        this.bindVertexArray(null);
         this.bindArrayBuffer(null);
         this.useProgram(null);
         this.bindFramebuffer(null);
@@ -198,20 +196,16 @@ export class Runtime extends BaseObject {
         }
     }
 
-    gl(): WebGLRenderingContext {
+    gl(): WebGL2RenderingContext {
         return this._gl;
     }
 
-    vaoExt(): OES_vertex_array_object {
-        return this._vaoExt;
-    }
-
-    private _getContext(attrs: WebGLContextAttributes | undefined): WebGLRenderingContext {
+    private _getContext(attrs: WebGLContextAttributes | undefined): WebGL2RenderingContext {
         const options: WebGLContextAttributes = {
             ...DEFAULT_CONTEXT_ATTRIBUTES,
             ...attrs,
         };
-        const context = this._canvas.getContext('webgl', options);
+        const context = this._canvas.getContext('webgl2', options);
         if (!context) {
             throw this._logError('failed to get webgl context');
         }
@@ -224,14 +218,6 @@ export class Runtime extends BaseObject {
             throw this._logError('failed to get WEBGL_lose_context extension');
         }
         ext.loseContext();
-    }
-
-    private _getVaoExt(): OES_vertex_array_object {
-        const ext = this._gl.getExtension('OES_vertex_array_object');
-        if (!ext) {
-            throw this._logError('failed to get OES_vertex_array_object extension');
-        }
-        return ext;
     }
 
     private _enableExtensions(extensions: Iterable<EXTENSION>): void {
@@ -425,13 +411,13 @@ export class Runtime extends BaseObject {
         this._bindingsState.currentProgram = handle;
     }
 
-    bindVertexArrayObject(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
+    bindVertexArray(vertexArrayObject: GLHandleWrapper<WebGLVertexArrayObjectOES> | null): void {
         const handle = unwrapGLHandle(vertexArrayObject);
         if (this._bindingsState.vertexArrayObject === handle) {
             return;
         }
-        this._logMethod('bind_vertex_array_object', vertexArrayObject);
-        this._vaoExt.bindVertexArrayOES(handle);
+        this._logMethod('bind_vertex_array', vertexArrayObject);
+        this._gl.bindVertexArray(handle);
         this._bindingsState.vertexArrayObject = handle;
     }
 

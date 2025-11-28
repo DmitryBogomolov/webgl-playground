@@ -1,7 +1,7 @@
 import type { TextureImageData, TextureImageDataOptions, TextureRuntime } from './texture-2d.types';
 import { TextureBase, textureImageDataToStr } from './texture-base';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 export class Texture extends TextureBase {
     protected _bind(): void {

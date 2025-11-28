@@ -9,7 +9,7 @@ import { vec2, eq2, clone2 } from '../geometry/vec2';
 import { Texture } from './texture-2d';
 import { toArgStr } from '../utils/string-formatter';
 
-const WebGL = WebGLRenderingContext.prototype;
+const WebGL = WebGL2RenderingContext.prototype;
 
 const {
     FRAMEBUFFER: GL_FRAMEBUFFER,

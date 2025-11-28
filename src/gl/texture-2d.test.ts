@@ -4,7 +4,7 @@ import { Texture } from './texture-2d';
 describe('texture', () => {
     describe('Texture', () => {
         let texture: WebGLTexture;
-        let ctx: WebGLRenderingContext;
+        let ctx: WebGL2RenderingContext;
         let runtime: Runtime;
         let createTexture: jest.Mock;
         let bindTexture: jest.Mock;
@@ -18,7 +18,7 @@ describe('texture', () => {
             TEXTURE_MIN_FILTER,
             LINEAR,
             CLAMP_TO_EDGE,
-        } = WebGLRenderingContext.prototype;
+        } = WebGL2RenderingContext.prototype;
 
         beforeEach(() => {
             texture = { tag: 'test-texture' };
@@ -30,7 +30,7 @@ describe('texture', () => {
                 createTexture,
                 activeTexture,
                 texParameteri,
-            } as unknown as WebGLRenderingContext;
+            } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
                 logger: () => null,

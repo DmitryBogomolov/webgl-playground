@@ -34,7 +34,7 @@ describe('vertex-schema', () => {
                 attributes: [
                     {
                         location: 0,
-                        type: WebGLRenderingContext.prototype.FLOAT,
+                        type: WebGL2RenderingContext.prototype.FLOAT,
                         rank: 4,
                         size: 4,
                         stride: 24,
@@ -43,7 +43,7 @@ describe('vertex-schema', () => {
                     },
                     {
                         location: 1,
-                        type: WebGLRenderingContext.prototype.BYTE,
+                        type: WebGL2RenderingContext.prototype.BYTE,
                         rank: 3,
                         size: 1,
                         stride: 24,
@@ -52,7 +52,7 @@ describe('vertex-schema', () => {
                     },
                     {
                         location: 2,
-                        type: WebGLRenderingContext.prototype.UNSIGNED_SHORT,
+                        type: WebGL2RenderingContext.prototype.UNSIGNED_SHORT,
                         rank: 2,
                         size: 2,
                         stride: 24,
@@ -76,7 +76,7 @@ describe('vertex-schema', () => {
                 attributes: [
                     {
                         location: 0,
-                        type: WebGLRenderingContext.prototype.FLOAT,
+                        type: WebGL2RenderingContext.prototype.FLOAT,
                         rank: 2,
                         size: 4,
                         stride: 24,
@@ -85,7 +85,7 @@ describe('vertex-schema', () => {
                     },
                     {
                         location: 1,
-                        type: WebGLRenderingContext.prototype.SHORT,
+                        type: WebGL2RenderingContext.prototype.SHORT,
                         rank: 3,
                         size: 2,
                         stride: 12,
