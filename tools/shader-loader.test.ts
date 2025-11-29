@@ -1,4 +1,5 @@
 import type { SourceInfo } from './shader-loader';
+import { describe, expect, jest, test } from '@jest/globals';
 import { traverseSource, buildCombinedSource } from './shader-loader';
 import fs from 'fs/promises';
 
@@ -16,7 +17,7 @@ describe('shader-loader', () => {
         });
     }
 
-    it('traverseSource', async () => {
+    test('traverseSource', async () => {
         {
             const result = new Map<string, SourceInfo>();
             await traverseSource('Hello', '/some/dir/file-1.txt', result);
@@ -41,7 +42,7 @@ describe('shader-loader', () => {
         }
     });
 
-    it('traverseSource / complex', async () => {
+    test('traverseSource / complex', async () => {
         const path1 = '/some/dir/file-1.txt';
         const path2 = '/some/dir/file-2.txt';
         const path3 = '/some/dir/sub/file-3.txt';
@@ -135,7 +136,7 @@ describe('shader-loader', () => {
         }
     });
 
-    it('buildCombinedSource', () => {
+    test('buildCombinedSource', () => {
         const path1 = '/some/dir/file-1.txt';
         const path2 = '/some/dir/file-2.txt';
         const path3 = '/some/dir/sub/file-3.txt';
