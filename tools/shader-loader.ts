@@ -2,14 +2,14 @@ import type { LoaderDefinitionFunction } from 'webpack';
 import path from 'path';
 import fs from 'fs/promises';
 
-export interface IncludeInfo {
+interface IncludeInfo {
     readonly line: number;
     readonly path: string;
     readonly start: number;
     readonly end: number;
 }
 
-export interface SourceInfo {
+interface SourceInfo {
     readonly id: number;
     readonly path: string;
     readonly source: string;
@@ -56,7 +56,7 @@ function normalizeLastNewline(source: string): string {
     return source[source.length - 1] === '\n' ? source : source + '\n';
 }
 
-export async function traverseSource(
+async function traverseSource(
     source: string,
     filePath: string,
     sources: Map<string, SourceInfo>,
@@ -110,7 +110,7 @@ function buildSourceItem(
     return parts.join('');
 }
 
-export function buildCombinedSource(filePath: string, sources: ReadonlyMap<string, SourceInfo>): string {
+function buildCombinedSource(filePath: string, sources: ReadonlyMap<string, SourceInfo>): string {
     const mapping: SourceInfo[] = [];
     const source = buildSourceItem(filePath, sources, mapping);
     if (mapping.length < 2) {

@@ -1,6 +1,5 @@
-import type { SourceInfo } from './shader-loader';
 import { describe, expect, jest, test } from '@jest/globals';
-import { traverseSource, buildCombinedSource } from './shader-loader';
+import processShader from './shader-loader';
 import fs from 'fs/promises';
 
 jest.mock('fs/promises');
@@ -11,191 +10,187 @@ describe('shader-loader', () => {
     });
 
     function setDebugSources(sources: Record<string, string>): void {
-        (fs.readFile as jest.Mock).mockImplementation((name: string) => {
-            const source = sources[name];
+        (fs.readFile as jest.Mock).mockImplementation((name: unknown) => {
+            const source = sources[name as string];
             return source ? Promise.resolve(source) : Promise.reject(new Error(`not found: ${name}`));
         });
     }
 
-    test('traverseSource', async () => {
-        {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource('Hello', '/some/dir/file-1.txt', result);
+    interface LoaderResult {
+        readonly lines: ReadonlyArray<string>;
+        readonly dependencies: ReadonlyArray<string>;
+    }
 
-            expect(result).toEqual(new Map<string, SourceInfo>([
-                [
-                    '/some/dir/file-1.txt',
-                    { id: 0, path: '/some/dir/file-1.txt', source: 'Hello\n', includes: [] },
-                ],
-            ]));
+    async function invokeLoader(resourcePath: string, source: string): Promise<LoaderResult> {
+        const dependencies: string[] = [];
+        function addDependency(file: string): void {
+            dependencies.push(file);
+        }
+        // @ts-ignore Test.
+        const content: string = await processShader.call({ resourcePath, addDependency }, source);
+        const code = content.substring('export default '.length);
+        const lines = (JSON.parse(code) as string).split('\n');
+        return { lines, dependencies };
+    }
+
+    test('simple sources', async () => {
+        {
+            const { lines, dependencies } = await invokeLoader('/some/file-1.txt', 'Hello World\n');
+
+            expect(dependencies).toEqual(['/some/file-1.txt']);
+            expect(lines).toEqual(['#line 1 0', 'Hello World', '']);
         }
         {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource('Hello World\n', '/some/dir/file-1.txt', result);
+            const { lines, dependencies } = await invokeLoader('/some/file-2.txt', 'Hello World\n\nLine 1\nLine 2\n');
 
-            expect(result).toEqual(new Map<string, SourceInfo>([
-                [
-                    '/some/dir/file-1.txt',
-                    { id: 0, path: '/some/dir/file-1.txt', source: 'Hello World\n', includes: [] },
-                ],
-            ]));
+            expect(dependencies).toEqual(['/some/file-2.txt']);
+            expect(lines).toEqual(['#line 1 0', 'Hello World', '', 'Line 1', 'Line 2', '']);
+        }
+        {
+            const { lines, dependencies } = await invokeLoader(
+                '/some/file-3.txt',
+                'Hello World\n\nLine 1\nLine 2\n\np.s.\n\n',
+            );
+
+            expect(dependencies).toEqual(['/some/file-3.txt']);
+            expect(lines).toEqual(['#line 1 0', 'Hello World', '', 'Line 1', 'Line 2', '', 'p.s.', '', '']);
         }
     });
 
-    test('traverseSource / complex', async () => {
-        const path1 = '/some/dir/file-1.txt';
-        const path2 = '/some/dir/file-2.txt';
-        const path3 = '/some/dir/sub/file-3.txt';
-        const path4 = '/some/dir/sub/file-4.txt';
-        const source1 = 'File 1\n\n#include ./file-2.txt\n\nHello World 1\n';
-        const source2 = 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello World 2\n';
-        const source3 = 'File 3\nHello World 3\n';
-        const source4 = 'File 4\nHello World 4\n';
+    test('simple includes', async () => {
         setDebugSources({
-            [path2]: source2,
-            [path3]: source3,
-            [path4]: source4,
+            ['/some/file-2.txt']: 'File 2\nHello - File 2',
+            ['/some/file-3.txt']: 'File 3\nHello - File 3',
         });
 
         {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource(source3, path3, result);
-            expect(result).toEqual(new Map<string, SourceInfo>([
+            const { lines, dependencies } = await invokeLoader(
+                '/some/file-1.txt',
                 [
-                    path3,
-                    { id: 0, path: path3, source: source3, includes: [] },
-                ],
-            ]));
+                    'File 1',
+                    '#include ./file-2.txt',
+                    'Hello - File 1',
+                    '',
+                ].join('\n'),
+            );
+
+            expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt']);
+            expect(lines).toEqual([
+                '#line 1 0',
+                'File 1',
+                '#line 1 1',
+                'File 2',
+                'Hello - File 2',
+                '#line 3 0',
+                'Hello - File 1',
+                '',
+                '// SOURCES_MAPPING',
+                '// 0 /some/file-1.txt',
+                '// 1 /some/file-2.txt',
+                '',
+            ]);
         }
         {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource(source4, path4, result);
-            expect(result).toEqual(new Map<string, SourceInfo>([
+            const { lines, dependencies } = await invokeLoader(
+                '/some/file-1.txt',
                 [
-                    path4,
-                    { id: 0, path: path4, source: source4, includes: [] },
-                ],
-            ]));
-        }
-        {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource(source2, path2, result);
-            expect(result).toEqual(new Map<string, SourceInfo>([
-                [
-                    path2,
-                    {
-                        id: 0, path: path2, source: source2,
-                        includes: [
-                            { line: 1, path: path3, start: 7, end: 32 },
-                            { line: 2, path: path4, start: 33, end: 58 },
-                        ],
-                    },
-                ],
-                [
-                    path3,
-                    { id: 1, path: path3, source: source3, includes: [] },
-                ],
-                [
-                    path4,
-                    { id: 2, path: path4, source: source4, includes: [] },
-                ],
-            ]));
-        }
-        {
-            const result = new Map<string, SourceInfo>();
-            await traverseSource(source1, path1, result);
-            expect(result).toEqual(new Map<string, SourceInfo>([
-                [
-                    path1,
-                    {
-                        id: 0, path: path1, source: source1,
-                        includes: [
-                            { line: 2, path: path2, start: 8, end: 29 },
-                        ],
-                    },
-                ],
-                [
-                    path2,
-                    {
-                        id: 1, path: path2, source: source2,
-                        includes: [
-                            { line: 1, path: path3, start: 7, end: 32 },
-                            { line: 2, path: path4, start: 33, end: 58 },
-                        ],
-                    },
-                ],
-                [
-                    path3,
-                    { id: 2, path: path3, source: source3, includes: [] },
-                ],
-                [
-                    path4,
-                    { id: 3, path: path4, source: source4, includes: [] },
-                ],
-            ]));
+                    'File 1',
+                    '#include ./file-2.txt',
+                    'Hello - File 1 (1)',
+                    '#include ./file-3.txt',
+                    'Hello - File 1 (2)',
+                    '',
+                ].join('\n'),
+            );
+
+            expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt', '/some/file-3.txt']);
+            expect(lines).toEqual([
+                '#line 1 0',
+                'File 1',
+                '#line 1 1',
+                'File 2',
+                'Hello - File 2',
+                '#line 3 0',
+                'Hello - File 1 (1)',
+                '#line 1 2',
+                'File 3',
+                'Hello - File 3',
+                '#line 5 0',
+                'Hello - File 1 (2)',
+                '',
+                '// SOURCES_MAPPING',
+                '// 0 /some/file-1.txt',
+                '// 1 /some/file-2.txt',
+                '// 2 /some/file-3.txt',
+                '',
+            ]);
         }
     });
 
-    test('buildCombinedSource', () => {
-        const path1 = '/some/dir/file-1.txt';
-        const path2 = '/some/dir/file-2.txt';
-        const path3 = '/some/dir/sub/file-3.txt';
-        const path4 = '/some/dir/sub/file-4.txt';
-        const source1 = 'File 1\n\n#include ./file-2.txt\n\nHello World 1\n';
-        const source2 = 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello World 2\n';
-        const source3 = 'File 3\nHello World 3\n';
-        const source4 = 'File 4\nHello World 4\n';
+    test('duplicate includes', async () => {
+        setDebugSources({
+            ['/some/file-2.txt']: 'File 2\nHello - File 2',
+        });
 
-        const sources = new Map<string, SourceInfo>([
+        const { lines, dependencies } = await invokeLoader(
+            '/some/file-1.txt',
             [
-                path1,
-                {
-                    id: 0, path: path1, source: source1,
-                    includes: [{ line: 2, path: path2, start: 8, end: 29 }],
-                },
-            ],
-            [
-                path2,
-                {
-                    id: 1, path: path2, source: source2,
-                    includes: [
-                        { line: 1, path: path3, start: 7, end: 32 },
-                        { line: 2, path: path4, start: 33, end: 58 },
-                    ],
-                },
-            ],
-            [
-                path3,
-                { id: 2, path: path3, source: source3, includes: [] },
-            ],
-            [
-                path4,
-                { id: 3, path: path4, source: source4, includes: [] },
-            ],
-        ]);
+                'File 1',
+                '#include ./file-2.txt',
+                'Hello - File 1 (1)',
+                '#include ./file-2.txt',
+                'Hello - File 1 (2)',
+                '',
+            ].join('\n'),
+        );
 
-        expect(buildCombinedSource(path3, sources)).toEqual('#line 1 2\n' + source3);
-        expect(buildCombinedSource(path4, sources)).toEqual('#line 1 3\n' + source4);
-        expect(buildCombinedSource(path2, sources)).toEqual([
+        expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt']);
+        expect(lines).toEqual([
+            '#line 1 0',
+            'File 1',
             '#line 1 1',
             'File 2',
-            '#line 1 2',
-            'File 3',
-            'Hello World 3',
-            '#line 3 1',
-            '#line 1 3',
-            'File 4',
-            'Hello World 4',
-            '#line 4 1',
-            'Hello World 2',
+            'Hello - File 2',
+            '#line 3 0',
+            'Hello - File 1 (1)',
+            '#line 1 1',
+            'File 2',
+            'Hello - File 2',
+            '#line 5 0',
+            'Hello - File 1 (2)',
             '',
             '// SOURCES_MAPPING',
-            '// 1 /some/dir/file-2.txt',
-            '// 2 /some/dir/sub/file-3.txt',
-            '// 3 /some/dir/sub/file-4.txt',
+            '// 0 /some/file-1.txt',
+            '// 1 /some/file-2.txt',
             '',
-        ].join('\n'));
-        expect(buildCombinedSource(path1, sources)).toEqual([
+        ]);
+    });
+
+    test('nested includes', async () => {
+        setDebugSources({
+            ['/some/dir/file-2.txt']: 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello - File 2\n',
+            ['/some/dir/sub/file-3.txt']: 'File 3\nHello - File 3\n',
+            ['/some/dir/sub/file-4.txt']: 'File 4\nHello - File 4\n',
+        });
+
+        const { lines, dependencies } = await invokeLoader(
+            '/some/dir/file-1.txt',
+            [
+                'File 1',
+                '',
+                '#include ./file-2.txt',
+                'Hello - File 1',
+                '',
+            ].join('\n'),
+        );
+
+        expect(dependencies).toEqual([
+            '/some/dir/file-1.txt',
+            '/some/dir/file-2.txt',
+            '/some/dir/sub/file-3.txt',
+            '/some/dir/sub/file-4.txt',
+        ]);
+        expect(lines).toEqual([
             '#line 1 0',
             'File 1',
             '',
@@ -203,16 +198,15 @@ describe('shader-loader', () => {
             'File 2',
             '#line 1 2',
             'File 3',
-            'Hello World 3',
+            'Hello - File 3',
             '#line 3 1',
             '#line 1 3',
             'File 4',
-            'Hello World 4',
+            'Hello - File 4',
             '#line 4 1',
-            'Hello World 2',
+            'Hello - File 2',
             '#line 4 0',
-            '',
-            'Hello World 1',
+            'Hello - File 1',
             '',
             '// SOURCES_MAPPING',
             '// 0 /some/dir/file-1.txt',
@@ -220,6 +214,6 @@ describe('shader-loader', () => {
             '// 2 /some/dir/sub/file-3.txt',
             '// 3 /some/dir/sub/file-4.txt',
             '',
-        ].join('\n'));
+        ]);
     });
 });
