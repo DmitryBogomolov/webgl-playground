@@ -17,6 +17,11 @@ interface SourceInfo {
 }
 
 export default <LoaderDefinitionFunction> async function (source: string): Promise<string> {
+    if (!source.includes(INCLUDE_PREFIX)) {
+        this.addDependency(this.resourcePath);
+        return `export default ${JSON.stringify(source)}`;
+    }
+
     const rootPath = this.resourcePath;
     const sources = new Map<string, SourceInfo>();
     await traverseSource(source, rootPath, sources);

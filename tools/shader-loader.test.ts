@@ -38,13 +38,13 @@ describe('shader-loader', () => {
             const { lines, dependencies } = await invokeLoader('/some/file-1.txt', 'Hello World\n');
 
             expect(dependencies).toEqual(['/some/file-1.txt']);
-            expect(lines).toEqual(['#line 1 0', 'Hello World', '']);
+            expect(lines).toEqual(['Hello World', '']);
         }
         {
             const { lines, dependencies } = await invokeLoader('/some/file-2.txt', 'Hello World\n\nLine 1\nLine 2\n');
 
             expect(dependencies).toEqual(['/some/file-2.txt']);
-            expect(lines).toEqual(['#line 1 0', 'Hello World', '', 'Line 1', 'Line 2', '']);
+            expect(lines).toEqual(['Hello World', '', 'Line 1', 'Line 2', '']);
         }
         {
             const { lines, dependencies } = await invokeLoader(
@@ -53,7 +53,7 @@ describe('shader-loader', () => {
             );
 
             expect(dependencies).toEqual(['/some/file-3.txt']);
-            expect(lines).toEqual(['#line 1 0', 'Hello World', '', 'Line 1', 'Line 2', '', 'p.s.', '', '']);
+            expect(lines).toEqual(['Hello World', '', 'Line 1', 'Line 2', '', 'p.s.', '', '']);
         }
     });
 
