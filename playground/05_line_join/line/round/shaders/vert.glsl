@@ -1,3 +1,4 @@
+#version 100
 // xy - segment point,
 // z - left (-1) or right (+1) edge of line,
 // w - front (+1) or back (-1) edge of line

@@ -1,3 +1,5 @@
+#version 100
+
 attribute vec3 a_position;
 #if HAS_MATERIAL
 attribute vec3 a_normal;
