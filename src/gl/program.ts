@@ -178,9 +178,9 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         super({ logger: params.runtime.logger(), ...params });
         this._logMethod('init', '');
         this._runtime = params.runtime;
-        const prefix = buildSourcePrefix(params.defines);
-        const vertSource = combineSource(params.vertShader, prefix);
-        const fragSource = combineSource(params.fragShader, prefix);
+        const defines = buildDefines(params.defines);
+        const vertSource = prepareSource(params.vertShader, defines);
+        const fragSource = prepareSource(params.fragShader, defines);
         let info!: ReturnType<typeof setupProgram>;
         try {
             info = setupProgram(
@@ -299,24 +299,37 @@ function createShader(gl: WebGL2RenderingContext, type: number, source: string):
     return shader;
 }
 
-function buildSourcePrefix(defines: Mapping<string, string> | undefined): string {
+function buildDefines(defines: Mapping<string, string> | undefined): string {
     const lines: string[] = [];
     if (defines) {
         for (const [key, val] of Object.entries(defines)) {
             lines.push(`#define ${key} ${val}`);
         }
+        lines.push('');
     }
     return lines.join('\n');
 }
 
-function combineSource(source: string, prefix: string): string {
+function prepareSource(source: string, defines: string): string {
     if (!source) {
-        throw new Error('bad shader source');
+        throw new Error('bad shader source: null');
     }
-    if (!prefix) {
+    if (!defines) {
         return source;
     }
-    return `${prefix}\n#line 1 0\n${source}`;
+    const versionIdx = source.indexOf('#version ');
+    if (versionIdx < 0) {
+        return `${defines}#line 1\n${source}`;
+    }
+    const insertIdx = source.indexOf('\n', versionIdx) + 1;
+    const header = source.substring(0, insertIdx);
+    const lineNum = Array.from(header).reduce((count, ch) => ch === '\n' ? count + 1 : count, 0) + 1;
+    return [
+        header,
+        defines,
+        `#line ${lineNum}\n`,
+        source.substring(insertIdx),
+    ].join('');
 }
 
 function bindAttributes(gl: WebGL2RenderingContext, program: WebGLProgram, locations: Mapping<string, number>): void {
