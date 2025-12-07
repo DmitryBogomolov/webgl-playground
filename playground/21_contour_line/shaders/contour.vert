@@ -1,3 +1,4 @@
+#version 100
 // xy - point, z - left (-1) or right (+1)
 attribute vec3 a_position;
 attribute vec4 a_other;

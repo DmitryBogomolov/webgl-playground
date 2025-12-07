@@ -52,7 +52,7 @@ interface State {
 }
 
 export function main(): () => void {
-    const { runtime, container } = setup({ extensions: ['depth_texture'] });
+    const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));

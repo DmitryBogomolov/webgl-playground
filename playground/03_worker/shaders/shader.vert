@@ -1,3 +1,5 @@
+#version 100
+
 attribute vec2 a_position;
 
 uniform float u_scale;

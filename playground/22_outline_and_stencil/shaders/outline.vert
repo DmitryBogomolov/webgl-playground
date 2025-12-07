@@ -1,3 +1,5 @@
+#version 100
+
 attribute vec3 a_position;
 // For cube (and other similar edgy objects) normals have gaps.
 // Because of it offsetted figure becomes discontinuous. So adjusted normals are used instead of original.

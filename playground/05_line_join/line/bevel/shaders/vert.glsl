@@ -1,3 +1,4 @@
+#version 100
 // xy - segment point,
 // z - left (-1) or right (+1) edge of line
 attribute vec3 a_position;
