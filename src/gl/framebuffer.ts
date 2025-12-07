@@ -208,7 +208,7 @@ function setupColorDepthAttachment(
 ): AttachmentInfo {
     const info = setupColorAttachment(runtime, size);
     const depthTexture = useDepthTexture
-        ? setupTexture(runtime, size, 'depth_component32', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
+        ? setupTexture(runtime, size, 'depth_component32f', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
     const renderbuffer = useDepthTexture
         ? null : setupRenderbuffer(runtime, id, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
     return {

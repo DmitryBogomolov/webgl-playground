@@ -1,5 +1,5 @@
 import type {
-    RuntimeParams, EXTENSION,
+    RuntimeParams,
     READ_PIXELS_FORMAT, ReadPixelsOptions,
     UNPACK_COLORSPACE_CONVERSION,
 } from './runtime.types';
@@ -14,7 +14,6 @@ import type {
 import type { Vec2 } from '../geometry/vec2.types';
 import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
-import type { Mapping } from '../common/mapping.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
@@ -97,11 +96,6 @@ const READ_PIXELS_TYPE_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
 
 const DEFAULT_READ_PIXELS_FORMAT: READ_PIXELS_FORMAT = 'rgba';
 
-const EXTENSION_MAP: Mapping<EXTENSION, string> = {
-    'element_index_uint': 'OES_element_index_uint',
-    'depth_texture': 'WEBGL_depth_texture',
-};
-
 const DEFAULT_TRACK_RESIZE = true;
 const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: true,
@@ -148,7 +142,6 @@ export class Runtime extends BaseObject {
         this._logMethod('init', '');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
-        this._enableExtensions(params.extensions || []);
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
         this._defaultRenderTarget = new DefaultRenderTarget(this, params.tag);
@@ -218,19 +211,6 @@ export class Runtime extends BaseObject {
             throw this._logError('failed to get WEBGL_lose_context extension');
         }
         ext.loseContext();
-    }
-
-    private _enableExtensions(extensions: Iterable<EXTENSION>): void {
-        for (const ext of extensions) {
-            const name = EXTENSION_MAP[ext];
-            if (!name) {
-                throw this._logError(`extension ${ext}: bad value`);
-            }
-            const ret = this._gl.getExtension(name) as unknown;
-            if (!ret) {
-                throw this._logError(`failed to get ${name} extension`);
-            }
-        }
     }
 
     private _updateViewport(size: Vec2): void {

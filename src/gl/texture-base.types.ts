@@ -12,7 +12,7 @@ export type TEXTURE_MIN_FILTER = (
 
 export type TEXTURE_FORMAT = (
     | 'rgba' | 'rgb' | 'luminance' | 'alpha' | 'luminance_alpha'
-    | 'depth_component16' | 'depth_component32' | 'depth_stencil'
+    | 'depth_component16' | 'depth_component24' | 'depth_component32f' | 'depth_stencil'
 );
 
 export interface TextureParameters {

@@ -9,10 +9,6 @@ export type {
     RenderState,
 } from './render-state.types';
 
-export type EXTENSION = (
-    'element_index_uint' | 'depth_texture'
-);
-
 export type READ_PIXELS_FORMAT = (
     'alpha' | 'rgb' | 'rgba'
 );
@@ -30,6 +26,5 @@ export interface ReadPixelsOptions {
 export interface RuntimeParams extends BaseObjectParams {
     readonly element: HTMLElement;
     readonly trackElementResize?: boolean;
-    readonly extensions?: ReadonlyArray<EXTENSION>;
     readonly contextAttributes?: WebGLContextAttributes;
 }

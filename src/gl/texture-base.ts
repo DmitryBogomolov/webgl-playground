@@ -41,10 +41,24 @@ const FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'alpha': WebGL.ALPHA,
     'luminance_alpha': WebGL.LUMINANCE_ALPHA,
     'depth_component16': WebGL.DEPTH_COMPONENT,
-    'depth_component32': WebGL.DEPTH_COMPONENT,
+    'depth_component24': WebGL.DEPTH_COMPONENT,
+    'depth_component32f': WebGL.DEPTH_COMPONENT,
     'depth_stencil': WebGL.DEPTH_STENCIL,
 };
 const DEFAULT_TEXTURE_FORMAT = FORMAT_MAP['rgba'];
+
+const INTERNAL_FORMAT_MAP: GLValuesMap<TEXTURE_FORMAT> = {
+    'rgba': WebGL.RGBA,
+    'rgb': WebGL.RGB,
+    'luminance': WebGL.LUMINANCE,
+    'alpha': WebGL.ALPHA,
+    'luminance_alpha': WebGL.LUMINANCE_ALPHA,
+    'depth_component16': WebGL.DEPTH_COMPONENT16,
+    'depth_component24': WebGL.DEPTH_COMPONENT24,
+    'depth_component32f': WebGL.DEPTH_COMPONENT32F,
+    'depth_stencil': WebGL.DEPTH24_STENCIL8,
+};
+const DEFAULT_TEXTURE_INTERNAL_FORMAT = INTERNAL_FORMAT_MAP['rgba'];
 
 const TYPE_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'rgba': WebGL.UNSIGNED_BYTE,
@@ -53,8 +67,9 @@ const TYPE_MAP: GLValuesMap<TEXTURE_FORMAT> = {
     'alpha': WebGL.UNSIGNED_BYTE,
     'luminance_alpha': WebGL.UNSIGNED_BYTE,
     'depth_component16': WebGL.UNSIGNED_SHORT,
-    'depth_component32': WebGL.UNSIGNED_INT,
-    'depth_stencil': WebGL.UNSIGNED_INT,
+    'depth_component24': WebGL.UNSIGNED_INT,
+    'depth_component32f': WebGL.FLOAT,
+    'depth_stencil': WebGL.UNSIGNED_INT_24_8,
 };
 const DEFAULT_TEXTURE_TYPE = TYPE_MAP['rgba'];
 
@@ -80,7 +95,8 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
     protected _size: Vec2 = clone2(ZERO2);
-    private _format: number = DEFAULT_TEXTURE_FORMAT;
+    private _internalFormat: number = DEFAULT_TEXTURE_FORMAT;
+    private _format: number = DEFAULT_TEXTURE_INTERNAL_FORMAT;
     private _type: number = DEFAULT_TEXTURE_TYPE;
     private _needMipmap: boolean = false;
     // Original default texture state is slightly different. This one seems to be more common.
@@ -153,10 +169,27 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     protected _updateData(imageData: TextureImageData, target: number): void {
         if (isTextureRawImageData(imageData)) {
             const { size, data } = imageData;
-            this._runtime.gl().texImage2D(target, 0, this._format, size.x, size.y, 0, this._format, this._type, data);
+            this._runtime.gl().texImage2D(
+                target,
+                0,
+                this._internalFormat,
+                size.x,
+                size.y,
+                0,
+                this._format,
+                this._type,
+                data,
+            );
             this._size = clone2(size);
         } else {
-            this._runtime.gl().texImage2D(target, 0, this._format, this._format, this._type, imageData);
+            this._runtime.gl().texImage2D(
+                target,
+                0,
+                this._internalFormat,
+                this._format,
+                this._type,
+                imageData,
+            );
             this._size = vec2((imageData as ImageData).width, (imageData as ImageData).height);
         }
         if (this._needMipmap) {
@@ -200,6 +233,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     setFormat(format: TEXTURE_FORMAT): void {
+        this._internalFormat = INTERNAL_FORMAT_MAP[format] || DEFAULT_TEXTURE_INTERNAL_FORMAT;
         this._format = FORMAT_MAP[format] || DEFAULT_TEXTURE_FORMAT;
         this._type = TYPE_MAP[format] || DEFAULT_TEXTURE_TYPE;
     }
