@@ -1,8 +1,7 @@
-import { describe, expect, jest, test } from '@jest/globals';
 import processShader from './shader-loader';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 
-jest.mock('fs/promises');
+jest.mock('node:fs/promises');
 
 describe('shader-loader', () => {
     afterEach(() => {
@@ -126,9 +125,9 @@ describe('shader-loader', () => {
                 [
                     'File 1',
                     '#include "./file-2.txt"',
-                    'Hello - File 1 (1)',
-                    '#include "./file-3.txt"',
                     'Hello - File 1 (2)',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1 (3)',
                     '',
                 ].join('\n'),
             );
@@ -140,62 +139,133 @@ describe('shader-loader', () => {
                 'File 2',
                 'Hello - File 2',
                 '#line 3 0 // /some/file-1.txt',
-                'Hello - File 1 (1)',
+                'Hello - File 1 (2)',
                 '#line 1 2 // /some/file-3.txt',
                 'File 3',
                 'Hello - File 3',
                 '',
                 '#line 5 0 // /some/file-1.txt',
-                'Hello - File 1 (2)',
+                'Hello - File 1 (3)',
                 '',
             ]);
         }
     });
 
+    test('bad formed includes', async () => {
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '  #include "./file-2.txt"',
+                    'Hello - File 1 (2)',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1 (3)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "./file-2.txt": not at the start of the line');
+        }
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "./file-2.txt"',
+                    'Hello - File 1 (2)',
+                    ' #include "./file-3.txt"',
+                    'Hello - File 1 (3)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "./file-3.txt": not at the start of the line');
+        }
+    });
+
+    test('absolute includes', async () => {
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "/file-2.txt"',
+                    'Hello - File 1 (1)',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1 (2)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "/file-2.txt": absolute path');
+        }
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "./file-2.txt"',
+                    'Hello - File 1 (1)',
+                    '#include "/file-3.txt"',
+                    'Hello - File 1 (2)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "/file-3.txt": absolute path');
+        }
+    });
+
     test('duplicate includes', async () => {
-        setDebugSources({
-            ['/some/file-2.txt']: 'File 2\nHello - File 2',
-        });
-
-        const { lines, dependencies } = await invokeLoader(
-            '/some/file-1.txt',
-            [
-                'File 1',
-                '#include ./file-2.txt',
-                'Hello - File 1 (1)',
-                '#include ./file-2.txt',
-                'Hello - File 1 (2)',
-                '',
-            ].join('\n'),
-        );
-
-        expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt']);
-        expect(lines).toEqual([
-            '#line 1 0',
-            'File 1',
-            '#line 1 1',
-            'File 2',
-            'Hello - File 2',
-            '#line 3 0',
-            'Hello - File 1 (1)',
-            '#line 1 1',
-            'File 2',
-            'Hello - File 2',
-            '#line 5 0',
-            'Hello - File 1 (2)',
-            '',
-            '// SOURCES_MAPPING',
-            '// 0 /some/file-1.txt',
-            '// 1 /some/file-2.txt',
-            '',
-        ]);
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "./file-2.txt"',
+                    'Hello - File 1 (1)',
+                    '#include "./file-2.txt"',
+                    'Hello - File 1 (2)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "./file-2.txt": duplicated');
+        }
+        try {
+            await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1 (1)',
+                    '#include "./file-2.txt"',
+                    'Hello - File 1 (2)',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1 (3)',
+                    '',
+                ].join('\n'),
+            );
+            throw new Error('MUST FAIL');
+        } catch (err) {
+            expect((err as Error).message).toEqual('include "./file-3.txt": duplicated');
+        }
     });
 
     test('nested includes', async () => {
         setDebugSources({
-            ['/some/dir/file-2.txt']: 'File 2\n#include ./sub/file-3.txt\n#include ./sub/file-4.txt\nHello - File 2\n',
-            ['/some/dir/sub/file-3.txt']: 'File 3\nHello - File 3\n',
-            ['/some/dir/sub/file-4.txt']: 'File 4\nHello - File 4\n',
+            ['/some/dir/file-2.txt']:
+                'File 2\n#include "./sub/file-3.txt"\n#include "./sub/file-4.txt"\nHello - File 2\n',
+            ['/some/dir/sub/file-3.txt']:
+                'File 3\nHello - File 3\n',
+            ['/some/dir/sub/file-4.txt']:
+                'File 4\nHello - File 4\n',
         });
 
         const { lines, dependencies } = await invokeLoader(
@@ -203,7 +273,7 @@ describe('shader-loader', () => {
             [
                 'File 1',
                 '',
-                '#include ./file-2.txt',
+                '#include "./file-2.txt"',
                 'Hello - File 1',
                 '',
             ].join('\n'),
@@ -216,35 +286,81 @@ describe('shader-loader', () => {
             '/some/dir/sub/file-4.txt',
         ]);
         expect(lines).toEqual([
-            '#line 1 0',
             'File 1',
             '',
-            '#line 1 1',
+            '#line 1 1 // /some/dir/file-2.txt',
             'File 2',
-            '#line 1 2',
+            '#line 1 2 // /some/dir/sub/file-3.txt',
             'File 3',
             'Hello - File 3',
-            '#line 3 1',
-            '#line 1 3',
+            '',
+            '#line 3 1 // /some/dir/file-2.txt',
+            '#line 1 3 // /some/dir/sub/file-4.txt',
             'File 4',
             'Hello - File 4',
-            '#line 4 1',
+            '',
+            '#line 4 1 // /some/dir/file-2.txt',
             'Hello - File 2',
-            '#line 4 0',
+            '',
+            '#line 4 0 // /some/dir/file-1.txt',
             'Hello - File 1',
             '',
-            '// SOURCES_MAPPING',
-            '// 0 /some/dir/file-1.txt',
-            '// 1 /some/dir/file-2.txt',
-            '// 2 /some/dir/sub/file-3.txt',
-            '// 3 /some/dir/sub/file-4.txt',
+        ]);
+    });
+
+    test('duplicates in nested includes', async () => {
+        setDebugSources({
+            ['/some/dir/file-2.txt']:
+                'File 2\n#include "./sub/file-4.txt"\nHello - File 2\n',
+            ['/some/dir/file-3.txt']:
+                'File 3\n#include "./sub/file-4.txt"\nHello - File 3\n',
+            ['/some/dir/sub/file-4.txt']:
+                'File 4\nHello - File 4\n',
+        });
+
+        const { lines, dependencies } = await invokeLoader(
+            '/some/dir/file-1.txt',
+            [
+                'File 1',
+                '',
+                '#include "./file-2.txt"',
+                'Hello - File 1 (2)',
+                '#include "./file-3.txt"',
+                'Hello - File 1 (3)',
+                '',
+            ].join('\n'),
+        );
+
+        expect(dependencies).toEqual([
+            '/some/dir/file-1.txt',
+            '/some/dir/file-2.txt',
+            '/some/dir/sub/file-4.txt',
+            '/some/dir/file-3.txt',
+        ]);
+        expect(lines).toEqual([
+            'File 1',
+            '',
+            '#line 1 1 // /some/dir/file-2.txt',
+            'File 2',
+            '#line 1 2 // /some/dir/sub/file-4.txt',
+            'File 4',
+            'Hello - File 4',
+            '',
+            '#line 3 1 // /some/dir/file-2.txt',
+            'Hello - File 2',
+            '',
+            '#line 4 0 // /some/dir/file-1.txt',
+            'Hello - File 1 (2)',
+            '#line 1 3 // /some/dir/file-3.txt',
+            'File 3',
+            '#line 1 2 // /some/dir/sub/file-4.txt',
+            '// #include "./sub/file-4.txt" // duplicate',
+            '#line 3 3 // /some/dir/file-3.txt',
+            'Hello - File 3',
+            '',
+            '#line 6 0 // /some/dir/file-1.txt',
+            'Hello - File 1 (3)',
             '',
         ]);
     });
 });
-
-// TOOO:
-// not at start line
-// not absolute
-// duplicates
-// duplicates - ok

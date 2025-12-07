@@ -1,6 +1,6 @@
 import type { LoaderDefinitionFunction } from 'webpack';
-import path from 'path';
-import fs from 'fs/promises';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 
 // interface IncludeInfo {
 //     readonly line: number;
@@ -91,14 +91,15 @@ function collectIncludes(source: string, sourcePath: string): IncludeData[] {
     for (const item of items) {
         const lineIdx = lines.indexOf(item.position);
         if (lineIdx < 0) {
-            throw new Error(`include "${item.name}": must be at the start of the line`);
+            throw new Error(`include "${item.name}": not at the start of the line`);
         }
         if (path.isAbsolute(item.name)) {
-            throw new Error(`include "${item.name}": path must not be absolute`);
+            throw new Error(`include "${item.name}": absolute path`);
         }
         if (names.has(item.name)) {
             throw new Error(`include "${item.name}": duplicated`);
         }
+        names.add(item.name);
         result.push({
             name: item.name,
             path: path.resolve(dirPath, item.name),
