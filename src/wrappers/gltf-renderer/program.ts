@@ -26,12 +26,13 @@ function createProgram(
     runtime: Runtime,
     collection: Map<string, ProgramInfo>,
     key: string,
-    description: Mapping<string, string>,
+    defines: Mapping<string, string>,
 ): ProgramInfo {
     const program = new Program({
         runtime,
-        vertShader: makeShaderSource(vertShader, description),
-        fragShader: makeShaderSource(fragShader, description),
+        vertShader,
+        fragShader,
+        defines,
         locations: {
             'a_position': LOCATIONS.POSITION,
             'a_normal': LOCATIONS.NORMAL,
@@ -80,15 +81,6 @@ function getKey(description: Mapping<string, string>): string {
 
 function releaseProgram(program: Program): void {
     releasers.get(program)!();
-}
-
-function makeShaderSource(source: string, definitions: Mapping<string, string>): string {
-    const lines: string[] = [];
-    for (const [key, val] of Object.entries(definitions)) {
-        lines.push(`#define ${key} ${val}`);
-    }
-    lines.push('', '#line 1 0', source);
-    return lines.join('\n');
 }
 
 export function createPrograms(wrappers: Iterable<PrimitiveWrapper>, runtime: Runtime): Program[] {
