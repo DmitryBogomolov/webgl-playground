@@ -26,7 +26,7 @@ uniform sampler2D u_metallic_roughness_texture;
 #endif
 
 #if HAS_MATERIAL
-#include ./brdf.glsl
+#include "./brdf.glsl"
 #endif
 
 void main() {
