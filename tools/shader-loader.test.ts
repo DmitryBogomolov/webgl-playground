@@ -26,7 +26,7 @@ describe('shader-loader', () => {
         function addDependency(file: string): void {
             dependencies.push(file);
         }
-        // @ts-ignore Test.
+        // @ts-ignore Test setup.
         const content: string = await processShader.call({ resourcePath, addDependency }, source);
         const code = content.substring('export default '.length);
         const lines = (JSON.parse(code) as string).split('\n');
@@ -34,6 +34,18 @@ describe('shader-loader', () => {
     }
 
     test('simple sources', async () => {
+        {
+            const { lines, dependencies } = await invokeLoader('/some/file-1.txt', '');
+
+            expect(dependencies).toEqual(['/some/file-1.txt']);
+            expect(lines).toEqual(['']);
+        }
+        {
+            const { lines, dependencies } = await invokeLoader('/some/file-1.txt', 'Hello World');
+
+            expect(dependencies).toEqual(['/some/file-1.txt']);
+            expect(lines).toEqual(['Hello World']);
+        }
         {
             const { lines, dependencies } = await invokeLoader('/some/file-1.txt', 'Hello World\n');
 
@@ -49,18 +61,18 @@ describe('shader-loader', () => {
         {
             const { lines, dependencies } = await invokeLoader(
                 '/some/file-3.txt',
-                'Hello World\n\nLine 1\nLine 2\n\np.s.\n\n',
+                'Hello World\n\nLine 1\nLine 2\n\nLine 3\n\n',
             );
 
             expect(dependencies).toEqual(['/some/file-3.txt']);
-            expect(lines).toEqual(['Hello World', '', 'Line 1', 'Line 2', '', 'p.s.', '', '']);
+            expect(lines).toEqual(['Hello World', '', 'Line 1', 'Line 2', '', 'Line 3', '', '']);
         }
     });
 
     test('simple includes', async () => {
         setDebugSources({
             ['/some/file-2.txt']: 'File 2\nHello - File 2',
-            ['/some/file-3.txt']: 'File 3\nHello - File 3',
+            ['/some/file-3.txt']: 'File 3\nHello - File 3\n',
         });
 
         {
@@ -68,7 +80,7 @@ describe('shader-loader', () => {
                 '/some/file-1.txt',
                 [
                     'File 1',
-                    '#include ./file-2.txt',
+                    '#include "./file-2.txt"',
                     'Hello - File 1',
                     '',
                 ].join('\n'),
@@ -76,17 +88,12 @@ describe('shader-loader', () => {
 
             expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt']);
             expect(lines).toEqual([
-                '#line 1 0',
                 'File 1',
-                '#line 1 1',
+                '#line 1 1 // /some/file-2.txt',
                 'File 2',
                 'Hello - File 2',
-                '#line 3 0',
+                '#line 3 0 // /some/file-1.txt',
                 'Hello - File 1',
-                '',
-                '// SOURCES_MAPPING',
-                '// 0 /some/file-1.txt',
-                '// 1 /some/file-2.txt',
                 '',
             ]);
         }
@@ -95,9 +102,32 @@ describe('shader-loader', () => {
                 '/some/file-1.txt',
                 [
                     'File 1',
-                    '#include ./file-2.txt',
+                    '#include "./file-3.txt"',
+                    'Hello - File 1',
+                    '',
+                ].join('\n'),
+            );
+
+            expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-3.txt']);
+            expect(lines).toEqual([
+                'File 1',
+                '#line 1 1 // /some/file-3.txt',
+                'File 3',
+                'Hello - File 3',
+                '',
+                '#line 3 0 // /some/file-1.txt',
+                'Hello - File 1',
+                '',
+            ]);
+        }
+        {
+            const { lines, dependencies } = await invokeLoader(
+                '/some/file-1.txt',
+                [
+                    'File 1',
+                    '#include "./file-2.txt"',
                     'Hello - File 1 (1)',
-                    '#include ./file-3.txt',
+                    '#include "./file-3.txt"',
                     'Hello - File 1 (2)',
                     '',
                 ].join('\n'),
@@ -105,23 +135,18 @@ describe('shader-loader', () => {
 
             expect(dependencies).toEqual(['/some/file-1.txt', '/some/file-2.txt', '/some/file-3.txt']);
             expect(lines).toEqual([
-                '#line 1 0',
                 'File 1',
-                '#line 1 1',
+                '#line 1 1 // /some/file-2.txt',
                 'File 2',
                 'Hello - File 2',
-                '#line 3 0',
+                '#line 3 0 // /some/file-1.txt',
                 'Hello - File 1 (1)',
-                '#line 1 2',
+                '#line 1 2 // /some/file-3.txt',
                 'File 3',
                 'Hello - File 3',
-                '#line 5 0',
-                'Hello - File 1 (2)',
                 '',
-                '// SOURCES_MAPPING',
-                '// 0 /some/file-1.txt',
-                '// 1 /some/file-2.txt',
-                '// 2 /some/file-3.txt',
+                '#line 5 0 // /some/file-1.txt',
+                'Hello - File 1 (2)',
                 '',
             ]);
         }
@@ -217,3 +242,9 @@ describe('shader-loader', () => {
         ]);
     });
 });
+
+// TOOO:
+// not at start line
+// not absolute
+// duplicates
+// duplicates - ok
