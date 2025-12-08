@@ -1,10 +1,12 @@
-#version 100
+#version 300 es
 precision mediump float;
 
-varying vec3 v_round;
-varying vec4 v_color;
-
 uniform highp float u_thickness;
+
+in vec3 v_round;
+in vec4 v_color;
+
+out vec4 frag_color;
 
 bool is_outside_of_circle() {
     // Vector from the (nearest) segment end to current fragment.
@@ -17,5 +19,5 @@ void main() {
     if (is_outside_of_circle()) {
         discard;
     }
-    gl_FragColor = v_color;
+    frag_color = v_color;
 }

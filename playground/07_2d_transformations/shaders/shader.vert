@@ -1,10 +1,11 @@
-#version 100
-
-attribute vec2 a_position;
-attribute vec3 a_color;
+#version 300 es
 
 uniform mat3 u_transform;
-varying vec4 v_color;
+
+in vec2 a_position;
+in vec3 a_color;
+
+out vec4 v_color;
 
 void main() {
     vec2 position = (u_transform * vec3(a_position, 1.0)).xy;

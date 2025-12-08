@@ -1,16 +1,17 @@
-#version 100
-// xy - segment point,
-// z - left (-1) or right (+1) edge of line
-attribute vec3 a_position;
-// xy - other point of the segment,
-// zw - other point of the next segment
-attribute vec4 a_other;
-attribute vec4 a_color;
-
-varying vec4 v_color;
+#version 300 es
 
 uniform vec2 u_canvas_size;
 uniform float u_thickness;
+
+// xy - segment point,
+// z - left (-1) or right (+1) edge of line
+in vec3 a_position;
+// xy - other point of the segment,
+// zw - other point of the next segment
+in vec4 a_other;
+in vec4 a_color;
+
+out vec4 v_color;
 
 const float EPS = 1.E-7;
 
