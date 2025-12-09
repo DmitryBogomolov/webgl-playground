@@ -1,11 +1,11 @@
-#version 100
-
-attribute vec2 a_position;
+#version 300 es
 
 uniform mat4 u_mat;
 uniform mat4 u_texmat;
 
-varying vec2 v_texcoord;
+in vec2 a_position;
+
+out vec2 v_texcoord;
 
 void main() {
     gl_Position = u_mat * vec4(a_position, 0.0, 1.0);

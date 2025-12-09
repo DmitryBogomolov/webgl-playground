@@ -1,15 +1,4 @@
-#version 100
-
-attribute vec3 a_position;
-#if HAS_MATERIAL
-attribute vec3 a_normal;
-#endif
-#if HAS_COLOR_ATTR
-attribute vec4 a_color;
-#endif
-#if HAS_TEXCOORD_ATTR
-attribute vec2 a_texcoord;
-#endif
+#version 300 es
 
 uniform mat4 u_proj_mat;
 uniform mat4 u_view_mat;
@@ -18,15 +7,26 @@ uniform mat4 u_world_mat;
 uniform mat4 u_normal_mat;
 #endif
 
+in vec3 a_position;
 #if HAS_MATERIAL
-varying vec3 v_normal;
-varying vec3 v_position;
+in vec3 a_normal;
 #endif
 #if HAS_COLOR_ATTR
-varying vec4 v_color;
+in vec4 a_color;
 #endif
 #if HAS_TEXCOORD_ATTR
-varying vec2 v_texcoord;
+in vec2 a_texcoord;
+#endif
+
+#if HAS_MATERIAL
+out vec3 v_normal;
+out vec3 v_position;
+#endif
+#if HAS_COLOR_ATTR
+out vec4 v_color;
+#endif
+#if HAS_TEXCOORD_ATTR
+out vec2 v_texcoord;
 #endif
 
 void main() {

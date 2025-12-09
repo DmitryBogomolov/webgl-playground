@@ -1,12 +1,14 @@
-#version 100
+#version 300 es
 precision mediump float;
-
-varying vec3 v_normal;
-varying vec3 v_light_dir;
-varying vec4 v_depth_coord;
 
 uniform vec3 u_color;
 uniform sampler2D u_depth_texture;
+
+in vec3 v_normal;
+in vec3 v_light_dir;
+in vec4 v_depth_coord;
+
+out vec4 frag_color;
 
 // Just an arbitrary factor to indicate shadowing effect.
 const float SHADOW_COEFF = 0.45;
@@ -33,7 +35,7 @@ void main() {
     vec2 depth_coord = v_depth_coord.xy / v_depth_coord.w;
     // Convert [-1,+1] space to [0, 1].
     // All three components (r|g|b) have same value.
-    float depth_threshold = texture2D(u_depth_texture, (depth_coord + vec2(1.0)) / 2.0).r;
+    float depth_threshold = texture(u_depth_texture, (depth_coord + vec2(1.0)) / 2.0).r;
     float current_depth = v_depth_coord.z / v_depth_coord.w;
     float is_shadowed = 1.0;
     // Check if both coords are in [-1,+1] range.
@@ -46,5 +48,5 @@ void main() {
 
     // If pixel is shadowed than its color is adjusted.
     color.rgb *= mix(1.0, SHADOW_COEFF, is_shadowed);
-    gl_FragColor = color;
+    frag_color = color;
 }

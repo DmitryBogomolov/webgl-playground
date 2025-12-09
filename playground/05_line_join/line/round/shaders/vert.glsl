@@ -1,20 +1,21 @@
-#version 100
+#version 300 es
+
+uniform vec2 u_canvas_size;
+uniform float u_thickness;
+
 // xy - segment point,
 // z - left (-1) or right (+1) edge of line,
 // w - front (+1) or back (-1) edge of line
-attribute vec4 a_position;
+in vec4 a_position;
 // xy - other point of the segment
-attribute vec2 a_other;
-attribute vec4 a_color;
+in vec2 a_other;
+in vec4 a_color;
 
 // x - offset across the line - left (-1) to right (+1),
 // y - offset along the line - back (-1) to front (+1),
 // z - line length
-varying vec3 v_round;
-varying vec4 v_color;
-
-uniform vec2 u_canvas_size;
-uniform float u_thickness;
+out vec3 v_round;
+out vec4 v_color;
 
 vec2 rotate_right(vec2 v) {
     return vec2(v.y, -v.x);

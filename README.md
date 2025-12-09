@@ -59,7 +59,6 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
 ### TODO
 
-- shaders to es300
 - rework size tracking
 - camera - mouse+keyboard
 - camera - some visual controls? rgb-arrows?

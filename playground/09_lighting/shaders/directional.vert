@@ -1,13 +1,13 @@
-#version 100
-
-attribute vec3 a_position;
-attribute vec3 a_normal;
+#version 300 es
 
 uniform float u_offset;
 uniform mat4 u_model_view_proj;
 uniform mat4 u_model_inv_trs;
 
-varying vec3 v_normal;
+in vec3 a_position;
+in vec3 a_normal;
+
+out vec3 v_normal;
 
 void main() {
     gl_Position = u_model_view_proj * vec4(a_position, 1.0);

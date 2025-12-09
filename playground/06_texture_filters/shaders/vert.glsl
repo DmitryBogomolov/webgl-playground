@@ -1,10 +1,11 @@
-#version 100
-
-attribute vec2 a_position;
+#version 300 es
 
 uniform vec2 u_canvas_size;
 uniform vec2 u_texture_size;
-varying vec2 v_texcoord;
+
+in vec2 a_position;
+
+out vec2 v_texcoord;
 
 void main() {
     v_texcoord = (a_position + vec2(1.0)) / 2.0;

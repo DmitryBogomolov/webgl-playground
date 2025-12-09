@@ -1,9 +1,11 @@
-#version 100
+#version 300 es
 precision mediump float;
 
-varying vec3 v_normal;
-
 uniform vec3 u_color;
+
+in vec3 v_normal;
+
+out vec4 frag_color;
 
 const vec3 c_light_dir1 = normalize(vec3(0.0, 2.0, 1.0));
 const vec3 c_light_dir2 = normalize(vec3(+1.0, 2.0, -1.0));
@@ -22,5 +24,5 @@ float get_full_light_coeff(vec3 normal) {
 
 void main() {
     vec3 normal = normalize(v_normal);
-    gl_FragColor = vec4(u_color * get_full_light_coeff(normal), 1.0);
+    frag_color = vec4(u_color * get_full_light_coeff(normal), 1.0);
 }
