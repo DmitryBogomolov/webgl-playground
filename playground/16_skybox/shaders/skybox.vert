@@ -1,8 +1,8 @@
-#version 100
+#version 300 es
 
-attribute vec2 a_position;
+in vec2 a_position;
 
-varying vec4 v_position;
+out vec4 v_position;
 
 void main() {
     // No transformation is required. Vertex positions are already in NDC space.

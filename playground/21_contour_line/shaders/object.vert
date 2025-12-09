@@ -1,12 +1,12 @@
-#version 100
-
-attribute vec3 a_position;
-attribute vec3 a_normal;
+#version 300 es
 
 uniform mat4 u_view_proj;
 uniform mat4 u_model;
 
-varying vec3 v_normal;
+in vec3 a_position;
+in vec3 a_normal;
+
+out vec3 v_normal;
 
 void main() {
     vec4 position = u_model * vec4(a_position, 1.0);

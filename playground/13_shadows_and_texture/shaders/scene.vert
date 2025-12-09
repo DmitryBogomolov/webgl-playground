@@ -1,7 +1,4 @@
-#version 100
-
-attribute vec3 a_position;
-attribute vec3 a_normal;
+#version 300 es
 
 uniform mat4 u_view_proj;
 uniform mat4 u_model;
@@ -11,9 +8,12 @@ uniform mat4 u_depth_view_proj;
 // Normal and direction to light are used to shadow only pixels that face light.
 uniform vec3 u_light_pos;
 
-varying vec3 v_normal;
-varying vec3 v_light_dir;
-varying vec4 v_depth_coord;
+in vec3 a_position;
+in vec3 a_normal;
+
+out vec3 v_normal;
+out vec3 v_light_dir;
+out vec4 v_depth_coord;
 
 void main() {
     vec4 position = u_model * vec4(a_position, 1.0);

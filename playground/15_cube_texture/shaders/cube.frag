@@ -1,10 +1,12 @@
-#version 100
+#version 300 es
 precision mediump float;
-
-varying vec3 v_normal;
 
 uniform samplerCube u_texture;
 
+in vec3 v_normal;
+
+out vec4 frag_color;
+
 void main() {
-    gl_FragColor = textureCube(u_texture, normalize(v_normal));
+    frag_color = texture(u_texture, normalize(v_normal));
 }

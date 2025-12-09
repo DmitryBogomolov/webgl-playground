@@ -1,10 +1,11 @@
-#version 100
-// xy - point, z - left (-1) or right (+1)
-attribute vec3 a_position;
-attribute vec4 a_other;
+#version 300 es
 
 uniform float u_thickness;
 uniform vec2 u_canvas_size;
+
+// xy - point, z - left (-1) or right (+1)
+in vec3 a_position;
+in vec4 a_other;
 
 vec2 rotate_right(vec2 v) {
     return vec2(v.y, -v.x);

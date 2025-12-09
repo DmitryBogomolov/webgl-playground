@@ -1,14 +1,14 @@
-#version 100
-
-attribute vec3 a_position;
-// For cube (and other similar edgy objects) normals have gaps.
-// Because of it offsetted figure becomes discontinuous. So adjusted normals are used instead of original.
-attribute vec3 a_offset;
+#version 300 es
 
 uniform mat4 u_view_proj;
 uniform mat4 u_model;
 uniform vec2 u_canvas_size;
 uniform float u_thickness;
+
+in vec3 a_position;
+// For cube (and other similar edgy objects) normals have gaps.
+// Because of it offsetted figure becomes discontinuous. So adjusted normals are used instead of original.
+in vec3 a_offset;
 
 void main() {
     gl_Position = u_view_proj * u_model * vec4(a_position, 1.0);

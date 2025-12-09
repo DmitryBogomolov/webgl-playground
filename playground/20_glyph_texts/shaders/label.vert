@@ -1,7 +1,4 @@
-#version 100
-
-attribute vec2 a_position;
-attribute vec2 a_texcoord;
+#version 300 es
 
 uniform mat4 u_view_proj;
 uniform vec3 u_position;
@@ -9,7 +6,10 @@ uniform vec2 u_size_coeff;
 uniform float u_base_distance;
 uniform vec3 u_view_position;
 
-varying vec2 v_texcoord;
+in vec2 a_position;
+in vec2 a_texcoord;
+
+out vec2 v_texcoord;
 
 void main() {
     vec4 position = u_view_proj * vec4(u_position, 1.0);
