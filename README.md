@@ -68,3 +68,4 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 - rework type system with fields picking
 - extract some state object from Runtime - primitive and others would use it rather then entrire Runtime
 - uniform buffers
+- lazy and only necessary to_str in log methods
