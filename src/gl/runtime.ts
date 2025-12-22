@@ -19,12 +19,12 @@ import type { RenderTarget } from './render-target.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
 import { toArgStr } from '../utils/string-formatter';
-import { throttle } from '../utils/throttler';
 import { EventEmitter } from '../common/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
-import { ZERO2, vec2, isVec2, eq2, clone2 } from '../geometry/vec2';
+import { ZERO2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from '../common/color';
+import { trackElementResizing } from 'src/utils/size-tracker';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -96,7 +96,6 @@ const READ_PIXELS_TYPE_MAP: GLValuesMap<READ_PIXELS_FORMAT> = {
 
 const DEFAULT_READ_PIXELS_FORMAT: READ_PIXELS_FORMAT = 'rgba';
 
-const DEFAULT_TRACK_RESIZE = true;
 const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
     alpha: true,
     depth: true,
@@ -115,9 +114,9 @@ export class Runtime extends BaseObject {
     private readonly _pixelStoreState: PixelStoreState;
     private readonly _renderState: RenderState;
     private readonly _gl: WebGL2RenderingContext;
-    private readonly _cancelResizeTracking: () => void;
+    private readonly _cancelCanvasTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
-    private _size: Vec2 = clone2(ZERO2);
+    // private _size: Vec2 = clone2(ZERO2);
     private _canvasSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
@@ -149,11 +148,10 @@ export class Runtime extends BaseObject {
         this._clearState = getDefaultClearState();
         this._pixelStoreState = getDefaultPixelStoreState();
         this._renderState = makeRenderState({});
-        this.adjustViewport();
-        this._cancelResizeTracking = createResizeTracker(
-            params.trackElementResize ?? DEFAULT_TRACK_RESIZE,
-            this._canvas.parentElement!,
-            () => this.adjustViewport(),
+        // this.adjustViewport();
+        this._cancelCanvasTracking = trackElementResizing(
+            this._canvas,
+            (size) => this._updateCanvasSize(size),
         );
     }
 
@@ -166,7 +164,7 @@ export class Runtime extends BaseObject {
         this._contextRestored.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
-        this._cancelResizeTracking();
+        this._cancelCanvasTracking();
         if (isOwnCanvas(this._canvas)) {
             this._canvas.remove();
         }
@@ -186,6 +184,18 @@ export class Runtime extends BaseObject {
         }
         for (const [unit] of Object.entries(this._bindingsState.boundCubeTextures)) {
             this.setCubeTextureUnit(Number(unit), null);
+        }
+    }
+
+    private _updateCanvasSize(size: Vec2): void {
+        if (eq2(this._canvasSize, size)) {
+            return;
+        }
+        this._canvasSize = clone2(size);
+        this._sizeChanged.emit();
+        this._renderLoop.update();
+        if (this._renderTarget === null) {
+            this._updateViewport(this._canvasSize);
         }
     }
 
@@ -226,39 +236,39 @@ export class Runtime extends BaseObject {
         return this._canvas;
     }
 
-    size(): Vec2 {
-        return this._size;
-    }
+    // size(): Vec2 {
+    //     return this._size;
+    // }
 
-    setSize(size: Vec2): boolean {
-        if (!isVec2(size)) {
-            throw this._logMethodError('set_size', toArgStr(size), 'bad value');
-        }
-        if (eq2(this._size, size)) {
-            return false;
-        }
-        this._logMethod('set_size', toArgStr(size));
-        this._size = clone2(size);
-        const dpr = getDpr();
-        this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
-        this._canvas.width = this._canvasSize.x;
-        this._canvas.height = this._canvasSize.y;
-        this._sizeChanged.emit();
-        if (this._renderTarget === null) {
-            this._updateViewport(this._canvasSize);
-        }
-        return true;
-    }
+    // setSize(size: Vec2): boolean {
+    //     if (!isVec2(size)) {
+    //         throw this._logMethodError('set_size', toArgStr(size), 'bad value');
+    //     }
+    //     if (eq2(this._size, size)) {
+    //         return false;
+    //     }
+    //     this._logMethod('set_size', toArgStr(size));
+    //     this._size = clone2(size);
+    //     const dpr = getDpr();
+    //     this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
+    //     this._canvas.width = this._canvasSize.x;
+    //     this._canvas.height = this._canvasSize.y;
+    //     this._sizeChanged.emit();
+    //     if (this._renderTarget === null) {
+    //         this._updateViewport(this._canvasSize);
+    //     }
+    //     return true;
+    // }
 
     canvasSize(): Vec2 {
         return this._canvasSize;
     }
 
-    adjustViewport(): void {
-        if (this.setSize(vec2(this._canvas.clientWidth, this._canvas.clientHeight))) {
-            this._renderLoop.update();
-        }
-    }
+    // adjustViewport(): void {
+    //     if (this.setSize(vec2(this._canvas.clientWidth, this._canvas.clientHeight))) {
+    //         this._renderLoop.update();
+    //     }
+    // }
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         const value = BUFFER_MASK_MAP[mask];
@@ -377,6 +387,7 @@ export class Runtime extends BaseObject {
         this._renderLoop.update();
     }
 
+    // TODO_THIS: Rename
     sizeChanged(): EventProxy {
         return this._sizeChanged;
     }
@@ -616,10 +627,6 @@ function getDefaultPixelStoreState(): PixelStoreState {
     };
 }
 
-function getDpr(): number {
-    return devicePixelRatio;
-}
-
 function createCanvas(container: HTMLElement): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -640,17 +647,6 @@ function isOwnCanvas(canvas: HTMLCanvasElement): boolean {
 
 function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
-}
-
-function createResizeTracker(enabled: boolean, element: HTMLElement, callback: () => void): () => void {
-    if (!enabled) {
-        return () => {/* empty */};
-    }
-    const ro = new ResizeObserver(throttle(callback, 250));
-    ro.observe(element);
-    return () => {
-        ro.disconnect();
-    };
 }
 
 class DefaultRenderTarget extends BaseObject implements RenderTarget {
