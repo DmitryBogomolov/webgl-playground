@@ -24,7 +24,7 @@ import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from '../common/color';
-import { trackElementResizing } from 'src/utils/size-tracker';
+import { trackElementResizing } from '../utils/size-tracker';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -117,12 +117,12 @@ export class Runtime extends BaseObject {
     private readonly _cancelCanvasTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
     // private _size: Vec2 = clone2(ZERO2);
-    private _canvasSize: Vec2 = clone2(ZERO2);
+    private _renderSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
     private readonly _contextLost = new EventEmitter<[{ readonly event: Event }]>();
     private readonly _contextRestored = new EventEmitter<[{ readonly event: Event }]>();
-    private readonly _sizeChanged = new EventEmitter();
+    private readonly _renderSizeChanged = new EventEmitter();
 
     private readonly _handleContextLost: EventListener = (e) => {
         this._logWarn('context is lost');
@@ -159,7 +159,7 @@ export class Runtime extends BaseObject {
         this._logMethod('dispose', '');
         this._renderLoop.cancel();
         this._renderLoop.clearCallbacks();
-        this._sizeChanged.clear();
+        this._renderSizeChanged.clear();
         this._contextLost.clear();
         this._contextRestored.clear();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
@@ -188,15 +188,14 @@ export class Runtime extends BaseObject {
     }
 
     private _updateCanvasSize(size: Vec2): void {
-        if (eq2(this._canvasSize, size)) {
+        if (eq2(this._renderSize, size)) {
             return;
         }
-        this._canvasSize = clone2(size);
-        this._sizeChanged.emit();
+        this._renderSize = clone2(size);
+        this._canvas.width = this._renderSize.x;
+        this._canvas.height = this._renderSize.y;
+        this._renderSizeChanged.emit();
         this._renderLoop.update();
-        if (this._renderTarget === null) {
-            this._updateViewport(this._canvasSize);
-        }
     }
 
     gl(): WebGL2RenderingContext {
@@ -210,7 +209,7 @@ export class Runtime extends BaseObject {
         };
         const context = this._canvas.getContext('webgl2', options);
         if (!context) {
-            throw this._logError('failed to get webgl context');
+            throw this._logError('failed to get webgl2 context');
         }
         return context;
     }
@@ -223,7 +222,8 @@ export class Runtime extends BaseObject {
         ext.loseContext();
     }
 
-    private _updateViewport(size: Vec2): void {
+    private _updateViewport(): void {
+        const size = this._renderTarget ? this._renderTarget.size() : this._renderSize;
         if (eq2(this._viewportSize, size)) {
             return;
         }
@@ -260,8 +260,9 @@ export class Runtime extends BaseObject {
     //     return true;
     // }
 
+    // TODO_THIS: Rename to "renderSize".
     canvasSize(): Vec2 {
-        return this._canvasSize;
+        return this._renderSize;
     }
 
     // adjustViewport(): void {
@@ -271,6 +272,8 @@ export class Runtime extends BaseObject {
     // }
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
+        // `clearBuffer` is expected to happen at the beginning of the rendering.
+        this._updateViewport();
         const value = BUFFER_MASK_MAP[mask];
         this._logMethod('clear_buffer', mask);
         this._gl.clear(value);
@@ -387,9 +390,9 @@ export class Runtime extends BaseObject {
         this._renderLoop.update();
     }
 
-    // TODO_THIS: Rename
+    // TODO_THIS: Rename to "renderSizeChanged".
     sizeChanged(): EventProxy {
-        return this._sizeChanged;
+        return this._renderSizeChanged;
     }
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
@@ -561,7 +564,6 @@ export class Runtime extends BaseObject {
         }
         this._logMethod('set_render_target', renderTarget);
         this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
-        this._updateViewport((renderTarget || this._defaultRenderTarget).size());
         this._renderTarget = renderTarget;
     }
 
