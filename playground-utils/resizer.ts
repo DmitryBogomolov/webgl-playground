@@ -1,8 +1,8 @@
 import type { Runtime } from 'lib';
 
 export function trackSize(runtime: Runtime, callback: () => void): () => void {
-    runtime.sizeChanged().on(callback);
+    runtime.renderSizeChanged().on(callback);
     return () => {
-        runtime.sizeChanged().off(callback);
+        runtime.renderSizeChanged().off(callback);
     };
 }

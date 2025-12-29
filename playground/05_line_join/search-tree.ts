@@ -10,14 +10,14 @@ export class SearchTree {
     constructor(runtime: Runtime, state: State) {
         this._runtime = runtime;
         this._state = state;
-        this._runtime.sizeChanged().on(this._update);
+        this._runtime.renderSizeChanged().on(this._update);
         this._state.changedVertices.on(this._update);
         this._state.changedVertex.on(this._update);
         this._update();
     }
 
     dispose(): void {
-        this._runtime.sizeChanged().off(this._update);
+        this._runtime.renderSizeChanged().off(this._update);
         this._state.changedVertices.off(this._update);
         this._state.changedVertex.off(this._update);
     }

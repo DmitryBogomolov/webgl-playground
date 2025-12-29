@@ -191,6 +191,7 @@ export class Runtime extends BaseObject {
         if (eq2(this._renderSize, size)) {
             return;
         }
+        debugger
         this._renderSize = clone2(size);
         this._canvas.width = this._renderSize.x;
         this._canvas.height = this._renderSize.y;
@@ -390,9 +391,8 @@ export class Runtime extends BaseObject {
         this._renderLoop.update();
     }
 
-    // TODO_THIS: Rename to "renderSizeChanged".
-    sizeChanged(): EventProxy {
-        return this._renderSizeChanged;
+    renderSizeChanged(): EventProxy {
+        return this._renderSizeChanged.proxy();
     }
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
