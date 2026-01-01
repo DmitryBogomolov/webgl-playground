@@ -223,14 +223,14 @@ export class Runtime extends BaseObject {
         ext.loseContext();
     }
 
-    private _updateViewport(): void {
+    private _syncViewport(): void {
         const size = this._renderTarget ? this._renderTarget.size() : this._renderSize;
         if (eq2(this._viewportSize, size)) {
             return;
         }
-        this._logMethod('update_viewport', toArgStr(size));
-        this._gl.viewport(0, 0, size.x, size.y);
+        this._logMethod('set_viewport', toArgStr(size));
         this._viewportSize = clone2(size);
+        this._gl.viewport(0, 0, this._viewportSize.x, this._viewportSize.y);
     }
 
     canvas(): HTMLCanvasElement {
@@ -274,7 +274,7 @@ export class Runtime extends BaseObject {
 
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         // `clearBuffer` is expected to happen at the beginning of the rendering.
-        this._updateViewport();
+        this._syncViewport();
         const value = BUFFER_MASK_MAP[mask];
         this._logMethod('clear_buffer', mask);
         this._gl.clear(value);
