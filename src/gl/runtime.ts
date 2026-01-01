@@ -108,7 +108,6 @@ const DEFAULT_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
 export class Runtime extends BaseObject {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderLoop = new RenderLoop();
-    private readonly _defaultRenderTarget: RenderTarget;
     private readonly _bindingsState: BindingsState;
     private readonly _clearState: ClearState;
     private readonly _pixelStoreState: PixelStoreState;
@@ -116,7 +115,6 @@ export class Runtime extends BaseObject {
     private readonly _gl: WebGL2RenderingContext;
     private readonly _cancelCanvasTracking: () => void;
     private _viewportSize: Vec2 = clone2(ZERO2);
-    // private _size: Vec2 = clone2(ZERO2);
     private _renderSize: Vec2 = clone2(ZERO2);
     private _renderTarget: RenderTarget | null = null;
 
@@ -143,12 +141,10 @@ export class Runtime extends BaseObject {
         this._gl = this._getContext(params.contextAttributes);
         this._canvas.addEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.addEventListener('webglcontextrestored', this._handleContextRestored);
-        this._defaultRenderTarget = new DefaultRenderTarget(this, params.tag);
         this._bindingsState = getDefaultBindingsState();
         this._clearState = getDefaultClearState();
         this._pixelStoreState = getDefaultPixelStoreState();
         this._renderState = makeRenderState({});
-        // this.adjustViewport();
         this._cancelCanvasTracking = trackElementResizing(
             this._canvas,
             (size) => this._updateCanvasSize(size),
@@ -191,7 +187,6 @@ export class Runtime extends BaseObject {
         if (eq2(this._renderSize, size)) {
             return;
         }
-        debugger
         this._renderSize = clone2(size);
         this._canvas.width = this._renderSize.x;
         this._canvas.height = this._renderSize.y;
@@ -263,6 +258,10 @@ export class Runtime extends BaseObject {
 
     renderSize(): Vec2 {
         return this._renderSize;
+    }
+
+    renderTargetSize(): Vec2 {
+        return this._renderTarget?.size() ?? this._renderSize;
     }
 
     // adjustViewport(): void {
@@ -546,18 +545,11 @@ export class Runtime extends BaseObject {
         this._gl.bindFramebuffer(GL_FRAMEBUFFER, handle);
     }
 
-    getDefaultRenderTarget(): RenderTarget {
-        return this._defaultRenderTarget;
-    }
-
-    getRenderTarget(): RenderTarget {
-        return this._renderTarget || this._defaultRenderTarget;
+    getRenderTarget(): RenderTarget | null {
+        return this._renderTarget;
     }
 
     setRenderTarget(renderTarget: RenderTarget | null): void {
-        if (renderTarget === this._defaultRenderTarget) {
-            renderTarget = null;
-        }
         if (this._renderTarget === renderTarget) {
             return;
         }
@@ -577,20 +569,21 @@ export class Runtime extends BaseObject {
     }
 
     readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
-        if (renderTarget === this._defaultRenderTarget) {
-            renderTarget = null;
-        }
-        const {
-            x, y, width, height,
-        } = getReadPixelsRange(renderTarget || this._defaultRenderTarget, options.p1, options.p2);
+        const range = getReadPixelsRange(this.renderTargetSize(), options.p1, options.p2);
         const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
         const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
         // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
         // So it is just set to a fixed value to avoid any inconsistencies.
         this.setPixelStoreUnpackFlipYWebgl(false);
-        this.bindFramebuffer(renderTarget ? renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer> : null);
-        this._gl.readPixels(x, y, width, height, glFormat, glType, pixels);
+
+        const current = this._bindingsState.framebuffer;
+        try {
+            this.bindFramebufferRaw(unwrapGLHandle(renderTarget as unknown as GLHandleWrapper<WebGLFramebuffer>));
+            this._gl.readPixels(range.x, range.y, range.width, range.height, glFormat, glType, pixels);
+        } finally {
+            this.bindFramebufferRaw(current);
+        }
     }
 }
 
@@ -650,26 +643,18 @@ function unwrapGLHandle<T>(wrapper: GLHandleWrapper<T> | null): T | null {
     return wrapper ? wrapper.glHandle() : null;
 }
 
-class DefaultRenderTarget extends BaseObject implements RenderTarget {
-    private readonly _runtime: Runtime;
-
-    constructor(runtime: Runtime, tag: string | undefined) {
-        super({ logger: runtime.logger(), tag });
-        this._runtime = runtime;
-    }
-
-    size(): Vec2 {
-        return this._runtime.renderSize();
-    }
+interface PixelsRange {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
 }
 
-function getReadPixelsRange(
-    renderTarget: RenderTarget, p1: Vec2 | undefined, p2: Vec2 | undefined,
-): { x: number, y: number, width: number, height: number } {
-    const x1 = p1 ? p1.x : 0;
-    const x2 = p2 ? p2.x : renderTarget.size().x - 1;
-    const y1 = p1 ? p1.y : 0;
-    const y2 = p2 ? p2.y : renderTarget.size().y - 1;
+function getReadPixelsRange(size: Vec2, p1: Vec2 | undefined, p2: Vec2 | undefined): PixelsRange {
+    const x1 = p1?.x ?? 0;
+    const x2 = p2?.x ?? size.x - 1;
+    const y1 = p1?.y ?? 0;
+    const y2 = p2?.y ?? size.y - 1;
     return {
         x: Math.min(x1, x2),
         y: Math.min(y1, y2),

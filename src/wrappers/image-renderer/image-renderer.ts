@@ -53,7 +53,7 @@ export class ImageRenderer extends BaseObject {
         this._runtime = params.runtime;
         this._primitive = this._createPrimitive();
         this._texture = this._createTexture(params.tag);
-        this._renderTargetSize = this._runtime.getRenderTarget().size();
+        this._renderTargetSize = this._runtime.renderTargetSize();
     }
 
     dispose(): void {
@@ -169,8 +169,8 @@ export class ImageRenderer extends BaseObject {
     }
 
     render(): void {
-        if (!eq2(this._runtime.getRenderTarget().size(), this._renderTargetSize)) {
-            this._renderTargetSize = this._runtime.getRenderTarget().size();
+        if (!eq2(this._runtime.renderTargetSize(), this._renderTargetSize)) {
+            this._renderTargetSize = this._runtime.renderTargetSize();
             this._matDirty = true;
         }
         this._updateMatrix();

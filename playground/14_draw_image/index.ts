@@ -40,7 +40,7 @@ export function main(): () => void {
             step = (step + SPEED * delta / 1000) % 1;
         }
 
-        const size = runtime.getRenderTarget().size();
+        const size = runtime.renderTargetSize();
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
