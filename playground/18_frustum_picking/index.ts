@@ -81,12 +81,12 @@ export function main(): () => void {
     function handlePointerMove(e: PointerEvent): void {
         const coords = getCoords(e);
         // Flip Y coordinate.
-        state.pixelCoord = vec2(coords.x, runtime.canvasSize().y - coords.y);
+        state.pixelCoord = vec2(coords.x, runtime.renderSize().y - coords.y);
         runtime.requestFrameRender();
     }
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);

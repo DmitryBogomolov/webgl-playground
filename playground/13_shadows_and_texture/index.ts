@@ -111,7 +111,7 @@ export function main(): () => void {
     depthViewProj.setViewportSize(framebuffer.size());
 
     const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.canvasSize());
+        viewProj.setViewportSize(runtime.renderSize());
     });
 
     const objects: ObjectInfo[] = [

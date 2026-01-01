@@ -67,7 +67,7 @@ describe('runtime', () => {
             const runtime = new Runtime({ element: container });
 
             expect(runtime.canvas()).toEqual(canvas);
-            expect(runtime.canvasSize()).toEqual({ x: 640, y: 480 });
+            expect(runtime.renderSize()).toEqual({ x: 640, y: 480 });
             expect(canvas.width).toEqual(640);
             expect(canvas.height).toEqual(480);
             expect(viewport.mock.calls).toEqual([
@@ -82,7 +82,7 @@ describe('runtime', () => {
                 devicePixelRatio = 2;
                 const runtime = new Runtime({ element: container });
 
-                expect(runtime.canvasSize()).toEqual({ x: 1280, y: 960 });
+                expect(runtime.renderSize()).toEqual({ x: 1280, y: 960 });
                 expect(canvas.width).toEqual(1280);
                 expect(canvas.height).toEqual(960);
                 expect(viewport.mock.calls).toEqual([

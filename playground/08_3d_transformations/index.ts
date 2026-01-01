@@ -69,7 +69,7 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        const { x, y } = runtime.canvasSize();
+        const { x, y } = runtime.renderSize();
         perspective4x4({
             aspect: x / y,
             yFov: Math.PI / 3,

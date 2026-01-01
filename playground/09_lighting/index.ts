@@ -124,7 +124,7 @@ export function main(): () => void {
 
     const _proj = mat4() as Mat4Mut;
     const cancelTracking = trackSize(runtime, () => {
-        const { x, y } = runtime.canvasSize();
+        const { x, y } = runtime.renderSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);
         perspective4x4({

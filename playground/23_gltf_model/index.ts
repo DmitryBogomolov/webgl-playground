@@ -59,7 +59,7 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {

@@ -77,7 +77,7 @@ export function main(): () => void {
     };
 
     function processPointerPosition(position: Vec2): void {
-        const point = sub2(position, mul2(runtime.canvasSize(), 0.5));
+        const point = sub2(position, mul2(runtime.renderSize(), 0.5));
         if (inRect(point, nearestRegion)) {
             texcoord(point2texcoord(point, nearestRegion));
         }
@@ -106,7 +106,7 @@ export function main(): () => void {
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
 
-        const ratio = mul2(inv2(runtime.canvasSize()), 2);
+        const ratio = mul2(inv2(runtime.renderSize()), 2);
 
         const size = mul2(ratio, TEXTURE_SIZE / 2);
         const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);

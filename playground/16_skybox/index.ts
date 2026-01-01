@@ -83,7 +83,7 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, camera]);
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame({ runtime, camera: camera, modelMat, normalMat, isCubeShown, quad, cube, texture });

@@ -48,7 +48,7 @@ export function main(): () => void {
     const cancelTracking = trackSize(runtime, () => {
         identity4x4(proj);
         apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
-        const { x, y } = runtime.canvasSize();
+        const { x, y } = runtime.renderSize();
         apply4x4(proj, perspective4x4, {
             yFov: YFOV,
             aspect: x / y,
@@ -104,7 +104,7 @@ export function main(): () => void {
         runtime.clearBuffer('color|depth');
         const program = primitive.program();
 
-        const { x: xCanvas, y: yCanvas } = runtime.canvasSize();
+        const { x: xCanvas, y: yCanvas } = runtime.renderSize();
 
         if (delta < 250) {
             animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;

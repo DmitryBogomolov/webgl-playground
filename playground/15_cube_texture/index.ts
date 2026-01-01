@@ -52,7 +52,7 @@ export function main(): () => void {
     const texture = makeTexture(runtime);
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {

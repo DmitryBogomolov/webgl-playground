@@ -111,7 +111,7 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
 
     const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);

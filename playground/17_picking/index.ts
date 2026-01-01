@@ -88,14 +88,14 @@ export function main(): () => void {
     function handlePointerMove(e: PointerEvent): void {
         let coords = getCoords(e);
         // Flip Y coordinate.
-        const canvasSize = runtime.canvasSize();
+        const canvasSize = runtime.renderSize();
         coords = vec2(coords.x, canvasSize.y - coords.y);
         state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
         runtime.requestFrameRender();
     }
 
     const cancelTracking = trackSize(runtime, () => {
-        const canvasSize = runtime.canvasSize();
+        const canvasSize = runtime.renderSize();
         // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
         const x = canvasSize.x >> 1;
         const y = x >> 1;

@@ -34,7 +34,7 @@ export function main(): () => void {
 
     const projection = mat3() as Mat3Mut;
     const cancelTracking = trackSize(runtime, () => {
-        const { x: dx, y: dy } = mul2(runtime.canvasSize(), 0.5);
+        const { x: dx, y: dy } = mul2(runtime.renderSize(), 0.5);
         projection3x3({ left: -dx, right: +dx, bottom: -dy, top: +dy }, projection);
     });
 

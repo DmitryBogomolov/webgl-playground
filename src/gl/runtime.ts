@@ -261,8 +261,7 @@ export class Runtime extends BaseObject {
     //     return true;
     // }
 
-    // TODO_THIS: Rename to "renderSize".
-    canvasSize(): Vec2 {
+    renderSize(): Vec2 {
         return this._renderSize;
     }
 
@@ -660,7 +659,7 @@ class DefaultRenderTarget extends BaseObject implements RenderTarget {
     }
 
     size(): Vec2 {
-        return this._runtime.canvasSize();
+        return this._runtime.renderSize();
     }
 }
 

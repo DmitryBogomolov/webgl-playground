@@ -89,7 +89,7 @@ export function main(): () => void {
     });
 
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
     const cancelRender = renderOnChange(runtime, [camera]);
 
@@ -121,7 +121,7 @@ const labelRenderState = createRenderState({
 function renderScene({ runtime, camera, primitive, atlasTexture, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
-    const canvasSize = runtime.canvasSize();
+    const canvasSize = runtime.renderSize();
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
 

@@ -99,7 +99,7 @@ export function main(): () => void {
         renderScene(state);
     });
     const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+        camera.setViewportSize(runtime.renderSize());
     });
     [camera.changed(), modelMat].forEach((emitter) => {
         emitter.on(() => {
@@ -153,7 +153,7 @@ function renderScene({
 
     if (contourEnabled()) {
         runtime.setRenderState(contourRenderState);
-        contourPrimitive.program().setUniform('u_canvas_size', runtime.canvasSize());
+        contourPrimitive.program().setUniform('u_canvas_size', runtime.renderSize());
         contourPrimitive.program().setUniform('u_thickness', contourThickness());
         contourPrimitive.render();
     }
