@@ -212,10 +212,7 @@ export class Runtime extends BaseObject {
 
     private _loseContext(): void {
         const ext = this._gl.getExtension('WEBGL_lose_context');
-        if (!ext) {
-            throw this._logError('failed to get WEBGL_lose_context extension');
-        }
-        ext.loseContext();
+        ext?.loseContext();
     }
 
     private _syncViewport(): void {
@@ -260,20 +257,10 @@ export class Runtime extends BaseObject {
         return this._renderSize;
     }
 
-    renderTargetSize(): Vec2 {
-        return this._renderTarget?.size() ?? this._renderSize;
-    }
-
-    // adjustViewport(): void {
-    //     if (this.setSize(vec2(this._canvas.clientWidth, this._canvas.clientHeight))) {
-    //         this._renderLoop.update();
-    //     }
-    // }
-
     clearBuffer(mask: BUFFER_MASK = 'color'): void {
         // `clearBuffer` is expected to happen at the beginning of the rendering.
         this._syncViewport();
-        const value = BUFFER_MASK_MAP[mask];
+        const value = BUFFER_MASK_MAP[mask] ?? BUFFER_MASK_MAP['color'];
         this._logMethod('clear_buffer', mask);
         this._gl.clear(value);
     }
@@ -569,7 +556,7 @@ export class Runtime extends BaseObject {
     }
 
     readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
-        const range = getReadPixelsRange(this.renderTargetSize(), options.p1, options.p2);
+        const range = getReadPixelsRange(this._renderTarget?.size() ?? this._renderSize, options.p1, options.p2);
         const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
         const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
         const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
