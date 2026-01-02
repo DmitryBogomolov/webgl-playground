@@ -7,7 +7,7 @@ import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
 import type { EventProxy } from '../../common/event-emitter.types';
-import { eq2, isVec2 } from '../../geometry/vec2';
+import { clone2, eq2, isVec2, ZERO2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
@@ -40,7 +40,7 @@ export class ImageRenderer extends BaseObject {
     private readonly _texture: Texture;
     private readonly _changed = new EventEmitter();
     private _textureUnit: number = 0;
-    private _renderTargetSize: Vec2;
+    private _renderSize: Vec2 = clone2(ZERO2);
     private _region: ImageRendererRegion = {};
     private _location: ImageRendererLocation = { x1: 0, y1: 0 };
     private readonly _mat: Mat4 = mat4();
@@ -51,9 +51,8 @@ export class ImageRenderer extends BaseObject {
     constructor(params: ImageRendererParams) {
         super({ logger: params.runtime.logger(), ...params });
         this._runtime = params.runtime;
-        this._primitive = this._createPrimitive();
+        this._primitive = acquirePrimitive(this._runtime);
         this._texture = this._createTexture(params.tag);
-        this._renderTargetSize = this._runtime.renderTargetSize();
     }
 
     dispose(): void {
@@ -65,10 +64,6 @@ export class ImageRenderer extends BaseObject {
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
     private readonly _updateRegionMatrix = memoize(updateRegionMatrix, compareUpdateRegionMatrixArgs);
-
-    private _createPrimitive(): Primitive {
-        return lockPrimitive(this._runtime);
-    }
 
     private _createTexture(tag: string | undefined): Texture {
         const texture = new Texture({ runtime: this._runtime, tag });
@@ -88,6 +83,22 @@ export class ImageRenderer extends BaseObject {
         return this._changed.proxy();
     }
 
+    renderSize(): Vec2 {
+        return this._renderSize;
+    }
+
+    setRenderSize(renderSize: Vec2): void {
+        if (!renderSize || !isVec2(renderSize)) {
+            throw this._logMethodError('set_render_size', toArgStr(renderSize), 'bad value');
+        }
+        if (eq2(this._renderSize, renderSize)) {
+            return;
+        }
+        this._logMethod('set_render_size', toArgStr(renderSize));
+        this._renderSize = clone2(renderSize);
+        this._matDirty = true;
+    }
+
     imageSize(): Vec2 {
         return this._texture.size();
     }
@@ -103,7 +114,7 @@ export class ImageRenderer extends BaseObject {
         });
     }
 
-    getTextureUnit(): number {
+    textureUnit(): number {
         return this._textureUnit;
     }
 
@@ -118,7 +129,7 @@ export class ImageRenderer extends BaseObject {
         this._textureUnit = unit;
     }
 
-    getRegion(): ImageRendererRegion {
+    region(): ImageRendererRegion {
         return this._region;
     }
 
@@ -134,7 +145,7 @@ export class ImageRenderer extends BaseObject {
         this._matDirty = this._texmatDirty = true;
     }
 
-    getLocation(): ImageRendererLocation {
+    location(): ImageRendererLocation {
         return this._location;
     }
 
@@ -159,7 +170,7 @@ export class ImageRenderer extends BaseObject {
     private _updateMatrix(): void {
         if (this._matDirty) {
             this._updateLocationMatrix(
-                this._mat as Mat4Mut, this._renderTargetSize, this._texture.size(), this._location, this._region);
+                this._mat as Mat4Mut, this._renderSize, this._texture.size(), this._location, this._region);
             this._matDirty = false;
         }
         if (this._texmatDirty) {
@@ -169,10 +180,6 @@ export class ImageRenderer extends BaseObject {
     }
 
     render(): void {
-        if (!eq2(this._runtime.renderTargetSize(), this._renderTargetSize)) {
-            this._renderTargetSize = this._runtime.renderTargetSize();
-            this._matDirty = true;
-        }
         this._updateMatrix();
         this._runtime.setTextureUnit(this._textureUnit, this._texture);
         const program = this._primitive.program();
@@ -326,7 +333,7 @@ interface SharedPrimitive {
 
 const primitivesCache = new Map<Runtime, SharedPrimitive>();
 
-function lockPrimitive(runtime: Runtime): Primitive {
+function acquirePrimitive(runtime: Runtime): Primitive {
     let shared = primitivesCache.get(runtime);
     if (!shared) {
         shared = {
