@@ -10,7 +10,6 @@ import {
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
@@ -123,7 +122,7 @@ export function main(): () => void {
     );
 
     const _proj = mat4() as Mat4Mut;
-    const cancelTracking = trackSize(runtime, () => {
+    runtime.renderSizeChanged().on(() => {
         const { x, y } = runtime.renderSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);
@@ -168,7 +167,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelRender, controlRoot,
             directionalProgram, pointProgram, spotProgram, primitive, runtime,
         ]);
     };

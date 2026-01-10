@@ -9,7 +9,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } from './primitive';
@@ -110,10 +109,6 @@ export function main(): () => void {
 
     depthViewProj.setViewportSize(framebuffer.size());
 
-    const cancelTracking = trackSize(runtime, () => {
-        viewProj.setViewportSize(runtime.renderSize());
-    });
-
     const objects: ObjectInfo[] = [
         makeObject(
             makeCube(runtime, 1.8),
@@ -145,6 +140,10 @@ export function main(): () => void {
         wireframe,
     };
 
+    runtime.renderSizeChanged().on(() => {
+        viewProj.setViewportSize(runtime.renderSize());
+    });
+
     runtime.frameRequested().on(() => {
         renderDepthData(state);
         renderScene(state);
@@ -163,7 +162,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelRender, controlRoot,
             ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
         ]);
     };

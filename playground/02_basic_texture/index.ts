@@ -114,7 +114,6 @@ export function main(): () => void {
         drawRect(runtime, primitive, texture, size, vec2(+offset.x, -offset.y), 'linear', texcoord());
     });
 
-
     return () => {
         disposeAll([primitive.program(), primitive, runtime, tracker, texcoord]);
     };

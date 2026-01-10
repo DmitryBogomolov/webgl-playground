@@ -8,7 +8,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
@@ -110,11 +109,11 @@ export function main(): () => void {
         mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
     });
 
-    const cancelTracking = trackSize(runtime, () => {
+    const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);
+
+    runtime.renderSizeChanged().on(() => {
         camera.setViewportSize(runtime.renderSize());
     });
-
-    const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
@@ -160,7 +159,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelRender, controlRoot,
             program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
         ]);
     };

@@ -10,7 +10,6 @@ import {
     uint2bytes, makeEventCoordsGetter, deg2rad, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -85,7 +84,7 @@ export function main(): () => void {
         runtime.requestFrameRender();
     }
 
-    const cancelTracking = trackSize(runtime, () => {
+    runtime.renderSizeChanged().on(() => {
         camera.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
@@ -101,7 +100,7 @@ export function main(): () => void {
     return () => {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cameraPos, cancelRender, controlRoot,
             disposeObjects, framebuffer, runtime,
         ]);
     };

@@ -1,4 +1,4 @@
-import type { Mat4Mut } from 'lib';
+import type { Vec2, Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -10,7 +10,6 @@ import {
     fovSize2Dist, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
@@ -45,19 +44,7 @@ export function main(): () => void {
     // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
     const DISTANCE = fovSize2Dist(YFOV, 1);
 
-    const cancelTracking = trackSize(runtime, () => {
-        identity4x4(proj);
-        apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
-        const { x, y } = runtime.renderSize();
-        apply4x4(proj, perspective4x4, {
-            yFov: YFOV,
-            aspect: x / y,
-            zNear: 0.001,
-            zFar: 100,
-        });
-    });
-
-    const RENDER_SCHEMA = [
+    const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
         { offset: vec2(0, 0), size: 1 },
         { offset: vec2(-1.5, +0.4), size: 0.2 },
         { offset: vec2(-1.5, -0.3), size: 0.4 },
@@ -66,7 +53,7 @@ export function main(): () => void {
         { offset: vec2(-1, -0.8), size: 0.3 },
         { offset: vec2(+1, -0.8), size: 0.1 },
         { offset: vec2(+1, +0.8), size: 0.15 },
-    ] as const;
+    ];
 
     let animationAngle = 0;
 
@@ -99,6 +86,18 @@ export function main(): () => void {
     });
 
     const cancelRender = renderOnChange(runtime, [xRotation, yRotation, magFilter, minFilter]);
+
+    runtime.renderSizeChanged().on(() => {
+        identity4x4(proj);
+        apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
+        const { x, y } = runtime.renderSize();
+        apply4x4(proj, perspective4x4, {
+            yFov: YFOV,
+            aspect: x / y,
+            zNear: 0.001,
+            zFar: 100,
+        });
+    });
 
     runtime.frameRequested().on((delta) => {
         runtime.clearBuffer('color|depth');
@@ -143,7 +142,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, animate, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, animate, cancelRender, controlRoot,
             primitive.program(), primitive, texture, runtime,
         ]);
     };

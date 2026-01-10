@@ -6,7 +6,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 
@@ -58,10 +57,9 @@ export function main(): () => void {
         camera.setPosition(pos);
     });
 
-    const cancelTracking = trackSize(runtime, () => {
+    runtime.renderSizeChanged().on(() => {
         camera.setViewportSize(runtime.renderSize());
     });
-
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
         renderer.setProjMat(camera.getProjMat());
@@ -83,7 +81,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraPos, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraPos, cancelRender, controlRoot,
             renderer, runtime,
         ]);
     };
