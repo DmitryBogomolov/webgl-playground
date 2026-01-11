@@ -59,7 +59,6 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
 ### TODO
 
-- rework size tracking
 - camera - mouse+keyboard
 - camera - some visual controls? rgb-arrows?
 - use message ports
