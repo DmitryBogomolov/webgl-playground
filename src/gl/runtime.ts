@@ -229,30 +229,6 @@ export class Runtime extends BaseObject {
         return this._canvas;
     }
 
-    // size(): Vec2 {
-    //     return this._size;
-    // }
-
-    // setSize(size: Vec2): boolean {
-    //     if (!isVec2(size)) {
-    //         throw this._logMethodError('set_size', toArgStr(size), 'bad value');
-    //     }
-    //     if (eq2(this._size, size)) {
-    //         return false;
-    //     }
-    //     this._logMethod('set_size', toArgStr(size));
-    //     this._size = clone2(size);
-    //     const dpr = getDpr();
-    //     this._canvasSize = vec2((dpr * size.x) | 0, (dpr * size.y) | 0);
-    //     this._canvas.width = this._canvasSize.x;
-    //     this._canvas.height = this._canvasSize.y;
-    //     this._sizeChanged.emit();
-    //     if (this._renderTarget === null) {
-    //         this._updateViewport(this._canvasSize);
-    //     }
-    //     return true;
-    // }
-
     renderSize(): Vec2 {
         return this._renderSize;
     }

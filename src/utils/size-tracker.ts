@@ -1,7 +1,6 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import { vec2 } from '../geometry/vec2';
 
-// TODO_THIS: Tests
 export function trackElementResizing(element: Element, callback: (v: Vec2) => void): () => void {
     const observer = new ResizeObserver((entries) => {
         const size = getObservedSize(entries[0]);

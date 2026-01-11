@@ -1,6 +1,4 @@
 import type { Runtime } from '../../gl/runtime';
-import type { RenderTarget } from '../../gl/render-target.types';
-import type { Vec2 } from '../../geometry/vec2.types';
 import type { Logger } from '../../gl/base-object.types';
 import { ImageRenderer } from './image-renderer';
 
@@ -34,24 +32,19 @@ describe('image-renderer', () => {
         const stubLogger = new StubLogger();
 
         let runtime: Runtime;
-        let renderTargetSize: Vec2;
         let renderer: ImageRenderer;
         let primitive: Primitive;
         let program: Program;
         let texture: Texture;
 
         beforeEach(() => {
-            renderTargetSize = { x: 640, y: 480 };
-            const renderTarget: RenderTarget = {
-                size: () => renderTargetSize,
-            };
             runtime = {
                 toString: () => 'stub/runtime',
                 logger: () => stubLogger,
-                getRenderTarget: () => renderTarget,
                 setTextureUnit: jest.fn(),
-            } as Pick<Runtime, 'logger' | 'getRenderTarget' | 'setTextureUnit'> as Runtime;
+            } as Pick<Runtime, 'logger' | 'setTextureUnit'> as Runtime;
             renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
+            renderer.setRenderSize({ x: 640, y: 480 });
             primitive = MockPrimitive.mock.instances[0];
             program = MockProgram.mock.instances[0];
             texture = MockTexture.mock.instances[0];
@@ -102,6 +95,7 @@ describe('image-renderer', () => {
         });
 
         it('initial state', () => {
+            expect(renderer.renderSize()).toEqual({ x: 640, y: 480 });
             expect(renderer.imageSize()).toEqual({ x: 40, y: 30 });
             expect(renderer.textureUnit()).toEqual(0);
             expect(renderer.region()).toEqual({});
