@@ -9,7 +9,7 @@
     "build": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=tsconfig.json webpack build",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "jest",
+    "test": "jest --workerThreads --detectOpenHandles",
     "bench:objects-create-access": "node ./benchmark/objects-create-access",
     "bench:vec3-operations": "node ./benchmark/vec3-operations"
   },
