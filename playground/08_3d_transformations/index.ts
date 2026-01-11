@@ -6,7 +6,6 @@ import {
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
 import { setup, disposeAll } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
 import { makeFigureRenderer } from './figure';
@@ -52,6 +51,14 @@ export function main(): () => void {
     const unit = identity4x4();
 
     runtime.frameRequested().on((delta) => {
+        const { x, y } = runtime.renderSize();
+        perspective4x4({
+            aspect: x / y,
+            yFov: Math.PI / 3,
+            zNear: 0.001,
+            zFar: 100,
+        }, proj);
+
         identity4x4(viewProj);
         mul4x4(view, viewProj, viewProj);
         mul4x4(proj, viewProj, viewProj);
@@ -68,19 +75,9 @@ export function main(): () => void {
         figure3.render();
     });
 
-    const cancelTracking = trackSize(runtime, () => {
-        const { x, y } = runtime.canvasSize();
-        perspective4x4({
-            aspect: x / y,
-            yFov: Math.PI / 3,
-            zNear: 0.001,
-            zFar: 100,
-        }, proj);
-    });
-
     const animate = animation(runtime);
 
     return () => {
-        disposeAll([factory, runtime, animate, cancelTracking]);
+        disposeAll([factory, runtime, animate]);
     };
 }

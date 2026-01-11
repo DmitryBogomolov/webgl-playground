@@ -9,7 +9,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed, Observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
@@ -113,11 +112,11 @@ export function main(): () => void {
         targetModel,
     };
 
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
-    });
-
     const cancelRender = renderOnChange(runtime, [targetModel]);
+
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
+    });
 
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
@@ -138,7 +137,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            xRotation, yRotation, targetModel, cancelTracking, cancelRender, animate, controlRoot,
+            xRotation, yRotation, targetModel, cancelRender, animate, controlRoot,
             texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
         ]);
     };

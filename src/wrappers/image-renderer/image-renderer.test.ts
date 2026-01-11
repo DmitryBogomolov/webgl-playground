@@ -1,6 +1,4 @@
 import type { Runtime } from '../../gl/runtime';
-import type { RenderTarget } from '../../gl/render-target.types';
-import type { Vec2 } from '../../geometry/vec2.types';
 import type { Logger } from '../../gl/base-object.types';
 import { ImageRenderer } from './image-renderer';
 
@@ -34,24 +32,19 @@ describe('image-renderer', () => {
         const stubLogger = new StubLogger();
 
         let runtime: Runtime;
-        let renderTargetSize: Vec2;
         let renderer: ImageRenderer;
         let primitive: Primitive;
         let program: Program;
         let texture: Texture;
 
         beforeEach(() => {
-            renderTargetSize = { x: 640, y: 480 };
-            const renderTarget: RenderTarget = {
-                size: () => renderTargetSize,
-            };
             runtime = {
                 toString: () => 'stub/runtime',
                 logger: () => stubLogger,
-                getRenderTarget: () => renderTarget,
                 setTextureUnit: jest.fn(),
-            } as Pick<Runtime, 'logger' | 'getRenderTarget' | 'setTextureUnit'> as Runtime;
+            } as Pick<Runtime, 'logger' | 'setTextureUnit'> as Runtime;
             renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
+            renderer.setRenderSize({ x: 640, y: 480 });
             primitive = MockPrimitive.mock.instances[0];
             program = MockProgram.mock.instances[0];
             texture = MockTexture.mock.instances[0];
@@ -102,10 +95,11 @@ describe('image-renderer', () => {
         });
 
         it('initial state', () => {
+            expect(renderer.renderSize()).toEqual({ x: 640, y: 480 });
             expect(renderer.imageSize()).toEqual({ x: 40, y: 30 });
-            expect(renderer.getTextureUnit()).toEqual(0);
-            expect(renderer.getRegion()).toEqual({});
-            expect(renderer.getLocation()).toEqual({ x1: 0, y1: 0 });
+            expect(renderer.textureUnit()).toEqual(0);
+            expect(renderer.region()).toEqual({});
+            expect(renderer.location()).toEqual({ x1: 0, y1: 0 });
         });
 
         it('render', () => {
@@ -128,7 +122,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.getTextureUnit()).toEqual(4);
+            expect(renderer.textureUnit()).toEqual(4);
             expect(program.setUniform).toHaveBeenNthCalledWith(3, 'u_texture', 4);
             expect(runtime.setTextureUnit).toHaveBeenCalledWith(4, texture);
         });
@@ -138,7 +132,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.getRegion()).toEqual({ x1: 2, x2: 3, y1: 1, y2: 4 });
+            expect(renderer.region()).toEqual({ x1: 2, x2: 3, y1: 1, y2: 4 });
             expect(program.setUniform).toHaveBeenNthCalledWith(
                 1, 'u_mat', expect.numArray([0.0547, 0, 0, 0, 0, 0.0521, 0, 0, 0, 0, -2, 0, -0.9453, -0.9479, -1, 1]),
             );
@@ -152,7 +146,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.getLocation()).toEqual({ x2: 110, y2: 40, width: 20, height: 10 });
+            expect(renderer.location()).toEqual({ x2: 110, y2: 40, width: 20, height: 10 });
             expect(program.setUniform).toHaveBeenNthCalledWith(
                 1, 'u_mat', expect.numArray([0.0313, 0, 0, 0, 0, 0.0208, 0, 0, 0, 0, -2, 0, 0.625, 0.8125, -1, 1]),
             );

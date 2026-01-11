@@ -9,7 +9,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
@@ -77,13 +76,13 @@ export function main(): () => void {
         objects,
     };
 
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
+    });
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
 
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
-    });
     const cancelRender = renderOnChange(runtime, [camera]);
 
     const controlRoot = createControls(container, [
@@ -94,7 +93,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cameraPos, cancelRender, controlRoot,
             disposeObjects, primitive.program(), primitive, labelPrimitive.program(), labelPrimitive, runtime,
         ]);
     };
@@ -114,7 +113,7 @@ const labelRenderState = createRenderState({
 function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = camera.getTransformMat();
-    const canvasSize = runtime.canvasSize();
+    const canvasSize = runtime.renderSize();
     const baseDist = camera.getViewDist();
     const viewPos = camera.getEyePos();
 

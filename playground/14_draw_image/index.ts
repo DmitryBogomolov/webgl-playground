@@ -40,7 +40,7 @@ export function main(): () => void {
             step = (step + SPEED * delta / 1000) % 1;
         }
 
-        const size = runtime.getRenderTarget().size();
+        const size = runtime.renderSize();
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
@@ -53,8 +53,10 @@ export function main(): () => void {
     };
 }
 
-function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void {
+function render1(renderSize: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
+
+    image.setRenderSize(renderSize);
 
     image.setLocation({
         x1: 10,
@@ -72,7 +74,7 @@ function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void 
 
     const w = size.x * 0.5;
     const h = size.y * 0.5;
-    const range = height - (10 + size.y) - (10 + size.y * 0.9) - h;
+    const range = renderSize.y - (10 + size.y) - (10 + size.y * 0.9) - h;
     image.setLocation({
         x1: 10,
         y2: 10 + size.y + range * (step > 0.5 ? 1 - step : step) * 2,
@@ -82,8 +84,10 @@ function render1({ y: height }: Vec2, image: ImageRenderer, step: number): void 
     image.render();
 }
 
-function render2({ x: width }: Vec2, image: ImageRenderer, step: number): void {
+function render2(renderSize: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
+
+    image.setRenderSize(renderSize);
 
     image.setLocation({
         x2: 10,
@@ -103,7 +107,7 @@ function render2({ x: width }: Vec2, image: ImageRenderer, step: number): void {
 
     const w = size.x * 0.75;
     const h = size.y * 0.75;
-    const range = width - (10 + size.x) - (300 + size.x * 0.9) - w;
+    const range = renderSize.x - (10 + size.x) - (300 + size.x * 0.9) - w;
     image.setLocation({
         y2: 10,
         x1: 300 + size.x * 0.9 + range * (step > 0.5 ? 1 - step : step) * 2,
@@ -113,10 +117,12 @@ function render2({ x: width }: Vec2, image: ImageRenderer, step: number): void {
     image.render();
 }
 
-function render3(_: Vec2, image: ImageRenderer, step: number): void {
+function render3(renderSize: Vec2, image: ImageRenderer, step: number): void {
     const size = image.imageSize();
 
+    image.setRenderSize(renderSize);
     image.setRegion({});
+
     image.setLocation({
         x2: 10,
         y1: 10,

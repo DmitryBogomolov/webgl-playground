@@ -11,7 +11,6 @@ import {
     parseVertexSchema,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/cube.vert';
@@ -51,8 +50,8 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {
@@ -71,7 +70,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraPos, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraPos, cancelRender, controlRoot,
             primitive.program(), primitive, texture, runtime,
         ]);
     };

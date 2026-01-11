@@ -12,7 +12,6 @@ import {
     makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
@@ -115,7 +114,7 @@ export function main(): () => void {
     function handleClick(e: MouseEvent): void {
         const coords = getCoords(e);
         // Flip Y coordinate.
-        const objectId = findObjectId(state, { x: coords.x, y: runtime.canvasSize().y - coords.y });
+        const objectId = findObjectId(state, { x: coords.x, y: runtime.renderSize().y - coords.y });
         if (objectId > 0) {
             if (state.selectedObjects.has(objectId)) {
                 state.selectedObjects.delete(objectId);
@@ -126,11 +125,11 @@ export function main(): () => void {
         }
     }
 
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
+    });
     runtime.frameRequested().on(() => {
         renderScene(state);
-    });
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
     });
     const cancelRender = renderOnChange(runtime, [camera, outlineThickness]);
 
@@ -144,7 +143,7 @@ export function main(): () => void {
     return () => {
         container.removeEventListener('click', handleClick);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness, controlRoot, cancelTracking, cancelRender,
+            cameraLon, cameraLat, cameraDist, cameraPos, outlineThickness, controlRoot, cancelRender,
             disposeModels, framebuffer, runtime,
         ]);
     };
@@ -216,7 +215,7 @@ function renderOutline({
             outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
             outlineProgram.setUniform('u_model', mat);
             outlineProgram.setUniform('u_color', outlineColor);
-            outlineProgram.setUniform('u_canvas_size', runtime.canvasSize());
+            outlineProgram.setUniform('u_canvas_size', runtime.renderSize());
             outlineProgram.setUniform('u_thickness', outlineThickness());
             primitive.setProgram(outlineProgram);
             primitive.render();

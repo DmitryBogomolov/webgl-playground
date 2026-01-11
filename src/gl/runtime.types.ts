@@ -25,6 +25,5 @@ export interface ReadPixelsOptions {
 
 export interface RuntimeParams extends BaseObjectParams {
     readonly element: HTMLElement;
-    readonly trackElementResize?: boolean;
     readonly contextAttributes?: WebGLContextAttributes;
 }

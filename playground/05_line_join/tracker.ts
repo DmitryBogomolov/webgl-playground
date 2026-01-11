@@ -36,15 +36,19 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     let action: 'none' | 'move_vertex' | 'change_thickness' = 'none';
     let targetVertex = stubVertex;
 
+    const canvas = runtime.canvas();
+
+    function getCanvasSize(): Vec2 {
+        return { x: canvas.clientWidth, y: canvas.clientHeight };
+    }
+
     function getPxCoords(ndc: Vec2): Vec2 {
-        return ndc2px(ndc, runtime.size());
+        return ndc2px(ndc, getCanvasSize());
     }
 
     function getNdcCoords(px: Vec2): Vec2 {
-        return px2ndc(px, runtime.size());
+        return px2ndc(px, getCanvasSize());
     }
-
-    const canvas = runtime.canvas();
 
     function getVertexNormal(vertexIdx: number): Vec2 {
         const vertices = state.vertices();

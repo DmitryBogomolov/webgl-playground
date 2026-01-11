@@ -9,7 +9,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
@@ -95,11 +94,11 @@ export function main(): () => void {
         contourThickness,
     };
 
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
+    });
     runtime.frameRequested().on(() => {
         renderScene(state);
-    });
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
     });
     [camera.changed(), modelMat].forEach((emitter) => {
         emitter.on(() => {
@@ -120,7 +119,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelRender, controlRoot,
             primitive, contourPrimitive, runtime,
         ]);
     };
@@ -153,7 +152,7 @@ function renderScene({
 
     if (contourEnabled()) {
         runtime.setRenderState(contourRenderState);
-        contourPrimitive.program().setUniform('u_canvas_size', runtime.canvasSize());
+        contourPrimitive.program().setUniform('u_canvas_size', runtime.renderSize());
         contourPrimitive.program().setUniform('u_thickness', contourThickness());
         contourPrimitive.render();
     }

@@ -77,7 +77,8 @@ export function main(): () => void {
     };
 
     function processPointerPosition(position: Vec2): void {
-        const point = sub2(position, mul2(runtime.canvasSize(), 0.5));
+        const rect = container.getBoundingClientRect();
+        const point = sub2(position, mul2({ x: rect.width, y: rect.height }, 0.5));
         if (inRect(point, nearestRegion)) {
             texcoord(point2texcoord(point, nearestRegion));
         }
@@ -87,37 +88,31 @@ export function main(): () => void {
     }
 
     const tracker = new Tracker(container);
+
     tracker.event('start').on((e) => {
         processPointerPosition(e.coords);
     });
     tracker.event('move').on((e) => {
         processPointerPosition(e.coords);
     });
-
-    function doLayout(): void {
-        layoutElements(container, controls, texcoord, nearestRegion, linearRegion);
-    }
-
     texcoord.on(() => {
         runtime.requestFrameRender();
-        doLayout();
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
 
-        const ratio = mul2(inv2(runtime.canvasSize()), 2);
-
+        const ratio = mul2(inv2(runtime.renderSize()), 2);
         const size = mul2(ratio, TEXTURE_SIZE / 2);
         const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);
+
+        layoutElements(container, controls, texcoord, nearestRegion, linearRegion);
 
         drawRect(runtime, primitive, texture, size, vec2(-offset.x, +offset.y), 'nearest', null);
         drawRect(runtime, primitive, texture, size, vec2(-offset.x, -offset.y), 'linear', null);
         drawRect(runtime, primitive, texture, size, vec2(+offset.x, +offset.y), 'nearest', texcoord());
         drawRect(runtime, primitive, texture, size, vec2(+offset.x, -offset.y), 'linear', texcoord());
     });
-
-    doLayout();
 
     return () => {
         disposeAll([primitive.program(), primitive, runtime, tracker, texcoord]);
@@ -168,8 +163,11 @@ function moveElement(label: HTMLElement, x: number, y: number): void {
 }
 
 function layoutElements(
-    container: HTMLElement, controls: Controls,
-    texcoord: Observable<Vec2>, nearestRegion: Rect, linearRegion: Rect,
+    container: HTMLElement,
+    controls: Controls,
+    texcoord: Observable<Vec2>,
+    nearestRegion: Rect,
+    linearRegion: Rect,
 ): void {
     const boundingRect = container.getBoundingClientRect();
     const cx = (boundingRect.left + boundingRect.right) / 2;

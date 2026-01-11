@@ -12,8 +12,11 @@ describe('runtime', () => {
         let clear: jest.Mock;
         let clearColor: jest.Mock;
         let pixelStorei: jest.Mock;
+        let testResizeObserver: TestResizeObserver;
+        let testRequestAnimationFrame: jest.Mock;
         // eslint-disable-next-line @typescript-eslint/unbound-method
         const { createElement } = document;
+        const { ResizeObserver, devicePixelRatio, requestAnimationFrame } = globalThis;
 
         const {
             DEPTH_TEST,
@@ -24,7 +27,19 @@ describe('runtime', () => {
         } = WebGL2RenderingContext.prototype;
 
         class TestResizeObserver {
-            observe(): void { /* empty */ }
+            readonly callback: ResizeObserverCallback;
+            element: unknown = null;
+            constructor(func: ResizeObserverCallback) {
+                this.callback = func;
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                testResizeObserver = this;
+            }
+            observe(element: unknown): void {
+                this.element = element;
+            }
+            disconnect(): void {
+                this.element = 'disconnected';
+            }
         }
 
         beforeEach(() => {
@@ -32,8 +47,7 @@ describe('runtime', () => {
             canvas = document.createElement('canvas');
             Object.defineProperty(canvas, 'clientWidth', { value: 640, configurable: true });
             Object.defineProperty(canvas, 'clientHeight', { value: 480, configurable: true });
-            getExtension = jest.fn()
-                .mockReturnValueOnce({ tag: 'U32INDEX' });
+            getExtension = jest.fn();
             viewport = jest.fn();
             enable = jest.fn();
             disable = jest.fn();
@@ -51,112 +65,102 @@ describe('runtime', () => {
             } as Partial<WebGL2RenderingContext> as WebGL2RenderingContext;
             canvas.getContext = jest.fn().mockReturnValueOnce(ctx);
             document.createElement = jest.fn().mockReturnValueOnce(canvas);
-            Object.assign(global, { ResizeObserver: TestResizeObserver });
+            // @ts-ignore Test environment.
+            testResizeObserver = null;
+            testRequestAnimationFrame = jest.fn();
+            Object.assign(globalThis, {
+                ResizeObserver: TestResizeObserver,
+                devicePixelRatio: 4,
+                requestAnimationFrame: testRequestAnimationFrame,
+            });
         });
 
         afterEach(() => {
             document.createElement = createElement;
-            Object.assign(global, { ResizeObserver: undefined });
+            Object.assign(globalThis, { ResizeObserver, devicePixelRatio, requestAnimationFrame });
+            // @ts-ignore Test environment.
+            testResizeObserver = null;
         });
 
         it('create runtime', () => {
-            new Runtime({ element: container });
-        });
-
-        it('return sizes', () => {
             const runtime = new Runtime({ element: container });
 
             expect(runtime.canvas()).toEqual(canvas);
-            expect(runtime.size()).toEqual({ x: 640, y: 480 });
-            expect(runtime.canvasSize()).toEqual({ x: 640, y: 480 });
-            expect(canvas.width).toEqual(640);
-            expect(canvas.height).toEqual(480);
-            expect(viewport.mock.calls).toEqual([
-                [0, 0, 640, 480],
-            ]);
+            expect(runtime.renderSize()).toEqual({ x: 0, y: 0 });
+            expect(canvas.getContext as jest.Mock).toBeCalledWith(
+                'webgl2',
+                {
+                    alpha: true,
+                    antialias: false,
+                    depth: true,
+                    failIfMajorPerformanceCaveat: true,
+                    premultipliedAlpha: false,
+                    stencil: false,
+                },
+            );
+            expect(testResizeObserver.element).toEqual(canvas);
         });
 
-        it('return sizes with dpr', () => {
-            const saved = devicePixelRatio;
-            try {
-                // eslint-disable-next-line no-global-assign
-                devicePixelRatio = 2;
-                const runtime = new Runtime({ element: container });
-
-                expect(runtime.size()).toEqual({ x: 640, y: 480 });
-                expect(runtime.canvasSize()).toEqual({ x: 1280, y: 960 });
-                expect(canvas.width).toEqual(1280);
-                expect(canvas.height).toEqual(960);
-                expect(viewport.mock.calls).toEqual([
-                    [0, 0, 1280, 960],
-                ]);
-
-            } finally {
-                // eslint-disable-next-line no-global-assign
-                devicePixelRatio = saved;
-            }
-        });
-
-        it('update size', () => {
+        it('resize / devicePixelContentBoxSize', () => {
+            const renderSizeChanged = jest.fn();
             const runtime = new Runtime({ element: container });
-            const handleSizeChanged = jest.fn();
-            runtime.sizeChanged().on(handleSizeChanged);
-            viewport.mockClear();
-            handleSizeChanged.mockClear();
+            runtime.renderSizeChanged().on(renderSizeChanged);
 
-            expect(runtime.setSize({ x: 800, y: 600 })).toEqual(true);
+            const entry: Pick<ResizeObserverEntry, 'devicePixelContentBoxSize'> = {
+                devicePixelContentBoxSize: [{ inlineSize: 402, blockSize: 304 }],
+            };
+            testResizeObserver.callback(
+                [entry as unknown as ResizeObserverEntry],
+                null as unknown as ResizeObserver,
+            );
 
-            expect(runtime.size()).toEqual({ x: 800, y: 600 });
-            expect(runtime.canvasSize()).toEqual({ x: 800, y: 600 });
-            expect(canvas.width).toEqual(800);
-            expect(canvas.height).toEqual(600);
-            expect(viewport.mock.calls).toEqual([
-                [0, 0, 800, 600],
-            ]);
-            expect(handleSizeChanged.mock.calls).toEqual([
-                [],
-            ]);
-
-            expect(runtime.setSize({ x: 800, y: 600 })).toEqual(false);
-            expect(viewport.mock.calls).toEqual([
-                [0, 0, 800, 600],
-            ]);
-            expect(handleSizeChanged.mock.calls).toEqual([
-                [],
-            ]);
+            expect(runtime.renderSize()).toEqual({ x: 402, y: 304 });
+            expect(canvas.width).toEqual(402);
+            expect(canvas.height).toEqual(304);
+            expect(renderSizeChanged).toBeCalledTimes(1);
+            expect(testRequestAnimationFrame).toBeCalledTimes(1);
         });
 
-        it('adjust viewport', () => {
+        it('resize / contentBoxSize', () => {
+            const renderSizeChanged = jest.fn();
             const runtime = new Runtime({ element: container });
-            const handleSizeChanged = jest.fn();
-            const handleFrameRendered = jest.fn();
-            runtime.sizeChanged().on(handleSizeChanged);
-            runtime.frameRequested().on(handleFrameRendered);
-            viewport.mockClear();
-            handleSizeChanged.mockClear();
-            Object.defineProperty(canvas, 'clientWidth', { value: 200 });
-            Object.defineProperty(canvas, 'clientHeight', { value: 100 });
+            runtime.renderSizeChanged().on(renderSizeChanged);
 
-            runtime.adjustViewport();
+            const entry: Pick<ResizeObserverEntry, 'contentBoxSize'> = {
+                contentBoxSize: [{ inlineSize: 203, blockSize: 102 }],
+            };
 
-            expect(runtime.size()).toEqual({ x: 200, y: 100 });
-            expect(runtime.canvasSize()).toEqual({ x: 200, y: 100 });
-            expect(canvas.width).toEqual(200);
-            expect(canvas.height).toEqual(100);
-            expect(viewport.mock.calls).toEqual([
-                [0, 0, 200, 100],
-            ]);
-            expect(handleSizeChanged.mock.calls).toEqual([
-                [],
-            ]);
+            testResizeObserver.callback(
+                [entry as unknown as ResizeObserverEntry],
+                null as unknown as ResizeObserver,
+            );
 
-            runtime.adjustViewport();
-            expect(viewport.mock.calls).toEqual([
-                [0, 0, 200, 100],
-            ]);
-            expect(handleSizeChanged.mock.calls).toEqual([
-                [],
-            ]);
+            expect(runtime.renderSize()).toEqual({ x: 812, y: 408 });
+            expect(canvas.width).toEqual(812);
+            expect(canvas.height).toEqual(408);
+            expect(renderSizeChanged).toBeCalledTimes(1);
+            expect(testRequestAnimationFrame).toBeCalledTimes(1);
+        });
+
+        it('resize / contentRect', () => {
+            const renderSizeChanged = jest.fn();
+            const runtime = new Runtime({ element: container });
+            runtime.renderSizeChanged().on(renderSizeChanged);
+
+            const entry: Pick<ResizeObserverEntry, 'contentRect'> = {
+                contentRect: { width: 203, height: 102 } as unknown as DOMRectReadOnly,
+            };
+
+            testResizeObserver.callback(
+                [entry as unknown as ResizeObserverEntry],
+                null as unknown as ResizeObserver,
+            );
+
+            expect(runtime.renderSize()).toEqual({ x: 812, y: 408 });
+            expect(canvas.width).toEqual(812);
+            expect(canvas.height).toEqual(408);
+            expect(renderSizeChanged).toBeCalledTimes(1);
+            expect(testRequestAnimationFrame).toBeCalledTimes(1);
         });
 
         it('return default state', () => {

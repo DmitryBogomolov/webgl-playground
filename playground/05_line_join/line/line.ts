@@ -57,7 +57,7 @@ export abstract class LineBase {
     }
 
     render(): void {
-        this._primitive.program().setUniform('u_canvas_size', this._runtime.canvasSize());
+        this._primitive.program().setUniform('u_canvas_size', this._runtime.renderSize());
         this._primitive.program().setUniform('u_thickness', this._thickness * devicePixelRatio);
         this._primitive.render();
     }

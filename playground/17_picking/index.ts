@@ -9,7 +9,6 @@ import {
     uint2bytes, makeEventCoordsGetter, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
@@ -88,14 +87,14 @@ export function main(): () => void {
     function handlePointerMove(e: PointerEvent): void {
         let coords = getCoords(e);
         // Flip Y coordinate.
-        const canvasSize = runtime.canvasSize();
+        const canvasSize = runtime.renderSize();
         coords = vec2(coords.x, canvasSize.y - coords.y);
         state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
         runtime.requestFrameRender();
     }
 
-    const cancelTracking = trackSize(runtime, () => {
-        const canvasSize = runtime.canvasSize();
+    runtime.renderSizeChanged().on(() => {
+        const canvasSize = runtime.renderSize();
         // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
         const x = canvasSize.x >> 1;
         const y = x >> 1;
@@ -116,7 +115,7 @@ export function main(): () => void {
     return () => {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, cancelTracking, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cameraPos, cancelRender, controlRoot,
             disposeObjects, framebuffer, runtime,
         ]);
     };

@@ -7,7 +7,6 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { trackSize } from 'playground-utils/resizer';
 import { observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
@@ -82,8 +81,8 @@ export function main(): () => void {
     const isCubeShown = observable(true);
 
     const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, camera]);
-    const cancelTracking = trackSize(runtime, () => {
-        camera.setViewportSize(runtime.canvasSize());
+    runtime.renderSizeChanged().on(() => {
+        camera.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame({ runtime, camera: camera, modelMat, normalMat, isCubeShown, quad, cube, texture });
@@ -100,7 +99,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelTracking, cancelRender, controlRoot,
+            disposeObservables, cancelRender, controlRoot,
             quad.program(), quad, cube.program(), cube, texture, runtime,
         ]);
     };

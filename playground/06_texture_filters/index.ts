@@ -30,7 +30,7 @@ export function main(): () => void {
         runtime.clearBuffer();
         runtime.setTextureUnit(3, texture);
         const program = primitive.program();
-        program.setUniform('u_canvas_size', runtime.canvasSize());
+        program.setUniform('u_canvas_size', runtime.renderSize());
         program.setUniform('u_texture_size', texture.size());
         program.setUniform('u_texture', 3);
         program.setUniform('u_kernel', currentKernel().kernel);
