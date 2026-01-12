@@ -63,14 +63,10 @@ export function clone2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
 }
 
 export function transpose2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
-    const [
-        m11, m21,
-        m12, m22,
-    ] = mat;
-    out[0] = m11;
-    out[1] = m12;
-    out[2] = m21;
-    out[3] = m22;
+    out[0] = mat[0];
+    out[1] = mat[2];
+    out[2] = mat[1];
+    out[3] = mat[3];
     return out;
 }
 
@@ -89,30 +85,17 @@ export function sub2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
 }
 
 export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
-    const [
-        a11, a21,
-        a12, a22,
-    ] = lhs;
-    const [
-        b11, b21,
-        b12, b22,
-    ] = rhs;
-    out[0] = a11 * b11 + a12 * b21;
-    out[1] = a21 * b11 + a22 * b21;
-    out[2] = a11 * b12 + a12 * b22;
-    out[3] = a21 * b12 + a22 * b22;
+    out[0] = lhs[0] * rhs[0] + lhs[2] * rhs[1];
+    out[1] = lhs[1] * rhs[0] + lhs[3] * rhs[1];
+    out[2] = lhs[0] * rhs[2] + lhs[2] * rhs[3];
+    out[3] = lhs[1] * rhs[2] + lhs[3] * rhs[3];
     return out;
 }
 
 export function mul2v2(lhs: Mat2, rhs: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
-    const [
-        a11, a21,
-        a12, a22,
-    ] = lhs;
-    const { x, y } = rhs;
     return upd2(out,
-        a11 * x + a12 * y,
-        a21 * x + a22 * y,
+        lhs[0] * rhs.x + lhs[2] * rhs.y,
+        lhs[1] * rhs.x + lhs[3] * rhs.y,
     );
 }
 
@@ -121,14 +104,10 @@ export function det2x2(mat: Mat2): number {
 }
 
 export function adjugate2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
-    const [
-        m11, m21,
-        m12, m22,
-    ] = mat;
-    out[0] = m22;
-    out[1] = -m21;
-    out[2] = -m12;
-    out[3] = m11;
+    out[0] = mat[3];
+    out[1] = -mat[1];
+    out[2] = -mat[2];
+    out[3] = mat[0];
     return out;
 }
 
