@@ -94,15 +94,15 @@ function makeAxes(originDir: Vec3, upDir: Vec3, xDir: Vec3Mut, yDir: Vec3Mut, zD
     norm3(yDir, yDir);
 }
 
-const ROTATION_MAP = [
-    rowcol2idxRank(4, 0, 0), rowcol2idxRank(4, 1, 0), rowcol2idxRank(4, 2, 0),
-    rowcol2idxRank(4, 0, 1), rowcol2idxRank(4, 1, 1), rowcol2idxRank(4, 2, 1),
-    rowcol2idxRank(4, 0, 2), rowcol2idxRank(4, 1, 2), rowcol2idxRank(4, 2, 2),
-] as const;
+const ROTATION_MAP = {
+    xx: rowcol2idxRank(4, 0, 0), xy: rowcol2idxRank(4, 1, 0), xz: rowcol2idxRank(4, 2, 0),
+    yx: rowcol2idxRank(4, 0, 1), yy: rowcol2idxRank(4, 1, 1), yz: rowcol2idxRank(4, 2, 1),
+    zx: rowcol2idxRank(4, 0, 2), zy: rowcol2idxRank(4, 1, 2), zz: rowcol2idxRank(4, 2, 2),
+} as const;
 function makeRotation(xDir: Vec3, yDir: Vec3, zDir: Vec3, rotation: Vec4Mut): void {
     const mat = _mat_scratch;
     identity4x4(mat);
-    const [xx, xy, xz, yx, yy, yz, zx, zy, zz] = ROTATION_MAP;
+    const { xx, xy, xz, yx, yy, yz, zx, zy, zz } = ROTATION_MAP;
     mat[xx] = xDir.x;
     mat[xy] = xDir.y;
     mat[xz] = xDir.z;
