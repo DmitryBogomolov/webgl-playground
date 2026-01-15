@@ -3,7 +3,7 @@ export function range<T>(size: number, func: (idx: number) => T | null): Readonl
 }
 
 export function rowcol2idxRank(matRank: number, row: number, col: number): number {
-    return col * matRank + row;
+    return (col * matRank + row) | 0;
 }
 
 export function idx2rowcolRank(matRank: number, idx: number): Readonly<{ row: number; col: number }> {
