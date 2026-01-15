@@ -50,7 +50,7 @@ export function quat4conj(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     out.x = -q.x;
     out.y = -q.y;
     out.z = -q.z;
-    out.w = q.w;
+    out.w = +q.w;
     return out;
 }
 
@@ -114,11 +114,15 @@ export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
 
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 export function quat4fromMat(mat: Mat4, out: Vec4Mut = v4()): Vec4 {
-    const [
-        m11, m21, m31, ,
-        m12, m22, m32, ,
-        m13, m23, m33, ,
-    ] = mat;
+    const m11 = mat[0];
+    const m21 = mat[1];
+    const m31 = mat[2];
+    const m12 = mat[4];
+    const m22 = mat[5];
+    const m32 = mat[6];
+    const m13 = mat[8];
+    const m23 = mat[9];
+    const m33 = mat[10];
     const trace = m11 + m22 + m33;
     if (trace > 0) {
         const s = 0.5 / Math.sqrt(trace + 1);
@@ -190,11 +194,11 @@ export function quat4toEuler(q: Vec4, out: Vec3Mut = v3()): Vec3 {
     return out;
 }
 
-const _quat4fromVecs_aux_a = vec3(0, 0, 0);
-const _quat4fromVecs_aux_b = vec3(0, 0, 0);
+const _quat4fromVecs_aux_a = vec3(0, 0, 0) as Vec3Mut;
+const _quat4fromVecs_aux_b = vec3(0, 0, 0) as Vec3Mut;
 export function quat4fromVecs(a: Vec3, b: Vec3, out: Vec4Mut = v4()): Vec4 {
-    const na = norm3(a, _quat4fromVecs_aux_a as Vec3Mut);
-    const nb = norm3(b, _quat4fromVecs_aux_b as Vec3Mut);
+    const na = norm3(a, _quat4fromVecs_aux_a);
+    const nb = norm3(b, _quat4fromVecs_aux_b);
     const k = dot3(na, nb);
     if (eq(k, -1, DOT_EPS)) {
         if (Math.abs(a.x) > Math.abs(a.z)) {
