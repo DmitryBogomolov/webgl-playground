@@ -8,7 +8,7 @@ import type { AnyFunc, SkipLastArg } from './helpers.types';
 import { upd3 } from './vec3.helper';
 import { vec3, norm3, sub3, cross3, dot3 } from './vec3';
 import { upd4 } from './vec4.helper';
-import { vec4 } from './vec4';
+import { vec4, dot4 } from './vec4';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 import { range, rowcol2idxRank, idx2rowcolRank, excludeRowColRank } from './helpers';
 
@@ -106,21 +106,39 @@ export function sub4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
+function takeVec3(mat: Mat4, indices: ReadonlyArray<number>, v: Vec4Mut): void {
+    upd4(v, mat[indices[0]], mat[indices[1]], mat[indices[2]], mat[indices[3]]);
+}
+
+const ROWS_MAP = range(MAT_RANK, (row) => range(MAT_RANK, (k) => rowcol2idx(row, k)));
+function takeRows(mat: Mat4, rows: Vec4Mut[]): void {
+    for (let i = 0; i < ROWS_MAP.length; ++i) {
+        takeVec3(mat, ROWS_MAP[i], rows[i]);
+    }
+}
+
+const COLS_MAP = range(MAT_RANK, (col) => range(MAT_RANK, (k) => rowcol2idx(k, col)));
+function takeCols(mat: Mat4, cols: Vec4Mut[]): void {
+    for (let i = 0; i < COLS_MAP.length; ++i) {
+        takeVec3(mat, COLS_MAP[i], cols[i]);
+    }
+}
+
+const _rows = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
+const _cols = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
+
 const MUL4x4_MAP = range(MAT_SIZE, (idx) => {
     const [row, col] = idx2rowcol(idx);
-    return range(MAT_RANK, (k) => ({ lidx: rowcol2idx(row, k), ridx: rowcol2idx(k, col) }) as const);
+    return { row, col } as const;
 });
-const _mul4x4_aux = m4();
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
-    const aux = _mul4x4_aux;
+    takeRows(lhs, _rows);
+    takeCols(rhs, _cols);
     for (let i = 0; i < MAT_SIZE; ++i) {
-        let val = 0;
-        for (const { lidx, ridx } of MUL4x4_MAP[i]) {
-            val += lhs[lidx] * rhs[ridx];
-        }
-        aux[i] = val;
+        const { row, col } = MUL4x4_MAP[i];
+        out[i] = dot4(_rows[row], _cols[col]);
     }
-    return clone4x4(aux, out);
+    return out;
 }
 
 const _mul4v3_aux = vec4(0, 0, 0, 0) as Vec4Mut;
@@ -130,19 +148,12 @@ export function mul4v3(lhs: Mat4, rhs: Vec3, out: Vec3Mut = vec3(0, 0, 0) as Vec
 }
 
 export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4Mut = vec4(0, 0, 0, 0) as Vec4Mut): Vec4 {
-    // TODO
-    const [
-        a11, a21, a31, a41,
-        a12, a22, a32, a42,
-        a13, a23, a33, a43,
-        a14, a24, a34, a44,
-    ] = lhs;
-    const { x, y, z, w } = rhs;
+    takeRows(lhs, _rows);
     return upd4(out,
-        a11 * x + a12 * y + a13 * z + a14 * w,
-        a21 * x + a22 * y + a23 * z + a24 * w,
-        a31 * x + a32 * y + a33 * z + a34 * w,
-        a41 * x + a42 * y + a43 * z + a44 * w,
+        dot4(_rows[0], rhs),
+        dot4(_rows[1], rhs),
+        dot4(_rows[2], rhs),
+        dot4(_rows[3], rhs),
     );
 }
 
