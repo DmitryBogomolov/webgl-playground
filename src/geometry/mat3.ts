@@ -21,7 +21,7 @@ export function isMat3(mat: unknown): mat is Mat3 {
 }
 
 export function mat3(): Mat3 {
-    return Array<number>(MAT_SIZE).fill(0);
+    return Array.from({ length: MAT_SIZE }, () => 0);
 }
 
 export function eq3x3(lhs: Mat3, rhs: Mat3, eps: number = FLOAT_EQ_EPS): boolean {
@@ -75,7 +75,7 @@ export function clone3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
 }
 
 const TRANSPOSE3X3_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
+    const { row, col } = idx2rowcol(idx);
     return row < col ? { idx1: idx, idx2: rowcol2idx(col, row) } as const : null;
 });
 export function transpose3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
@@ -123,10 +123,7 @@ function takeCols(mat: Mat3, cols: Vec3Mut[]): void {
 const _rows = Array.from({ length: MAT_RANK }, () => vec3(0, 0, 0) as Vec3Mut);
 const _cols = Array.from({ length: MAT_RANK }, () => vec3(0, 0, 0) as Vec3Mut);
 
-const MUL3x3_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
-    return { row, col } as const;
-});
+const MUL3x3_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
 export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3Mut = m3()): Mat3 {
     takeRows(lhs, _rows);
     takeCols(rhs, _cols);
@@ -169,7 +166,7 @@ export function det3x3(mat: Mat3): number {
 }
 
 const ADJUGATE3X3_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
+    const { row, col } = idx2rowcol(idx);
     return { sign: 1 - 2 * ((row + col) & 1), indices: excludeRowCol(col, row) } as const;
 });
 const _adjugate3x3_aux = m3();

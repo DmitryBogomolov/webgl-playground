@@ -12,8 +12,7 @@ export function isMat2(mat: unknown): mat is Mat2 {
 }
 
 export function mat2(): Mat2 {
-    // TODO: Array.from
-    return Array<number>(MAT_SIZE).fill(0);
+    return [0, 0, 0, 0];
 }
 
 export function eq2x2(lhs: Mat2, rhs: Mat2, eps: number = FLOAT_EQ_EPS): boolean {

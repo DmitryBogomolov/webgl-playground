@@ -24,7 +24,7 @@ export function isMat4(mat: unknown): mat is Mat4 {
 }
 
 export function mat4(): Mat4 {
-    return Array<number>(MAT_SIZE).fill(0);
+    return Array.from({ length: MAT_SIZE }, () => 0);
 }
 
 export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = FLOAT_EQ_EPS): boolean {
@@ -79,7 +79,7 @@ export function clone4x4(mat: Mat4, out: Mat4Mut = m4()): Mat4 {
 }
 
 const TRANSPOSE4X4_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
+    const { row, col } = idx2rowcol(idx);
     return row < col ? { idx1: idx, idx2: rowcol2idx(col, row) } as const : null;
 });
 export function transpose4x4(mat: Mat4, out: Mat4Mut = m4()): Mat4 {
@@ -127,10 +127,7 @@ function takeCols(mat: Mat4, cols: Vec4Mut[]): void {
 const _rows = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
 const _cols = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
 
-const MUL4x4_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
-    return { row, col } as const;
-});
+const MUL4x4_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
     takeRows(lhs, _rows);
     takeCols(rhs, _cols);
@@ -179,7 +176,7 @@ export function det4x4(mat: Mat4): number {
 }
 
 const ADJUGATE4X4_MAP = range(MAT_SIZE, (idx) => {
-    const [row, col] = idx2rowcol(idx);
+    const { row, col } = idx2rowcol(idx);
     return { sign: 1 - 2 * ((row + col) & 1), indices: excludeRowCol(col, row) } as const;
 });
 const _adjugate4x4_aux = m4();
