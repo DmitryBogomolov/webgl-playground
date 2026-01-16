@@ -1,4 +1,4 @@
-import type { Mat2 } from './mat2.types';
+import type { Mat2, Mat2Mut } from './mat2.types';
 import {
     mat2,
     eq2x2, zero2x2, identity2x2, clone2x2, update2x2, mat2row, mat2col,
@@ -12,7 +12,7 @@ describe('mat2', () => {
         for (let i = 0; i < 4; ++i) {
             const row = (i / 2) | 0;
             const col = i % 2;
-            (ret as number[])[col * 2 + row] = raw[i];
+            (ret as Mat2Mut)[col * 2 + row] = raw[i];
         }
         return ret;
     }
@@ -66,7 +66,7 @@ describe('mat2', () => {
         const raw = [
             1, -2,
             3, 0,
-        ];
+        ] as const;
         expect(
             clone2x2(make(raw)),
         ).toBeMat2(raw);

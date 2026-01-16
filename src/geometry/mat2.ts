@@ -32,7 +32,7 @@ function m2(): Mat2Mut {
 }
 
 export function zero2x2(out: Mat2Mut = m2()): Mat2 {
-    (out as unknown as number[]).fill(0);
+    out.fill(0);
     return out;
 }
 
@@ -56,7 +56,7 @@ export function clone2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
     if (mat === out) {
         return out;
     }
-    return update2x2(mat as number[], out);
+    return update2x2(mat, out);
 }
 
 function v2(): Vec2Mut {

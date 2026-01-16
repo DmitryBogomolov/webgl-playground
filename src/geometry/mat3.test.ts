@@ -1,4 +1,4 @@
-import type { Mat3 } from './mat3.types';
+import type { Mat3, Mat3Mut } from './mat3.types';
 import {
     mat3,
     eq3x3, zero3x3, identity3x3, clone3x3, update3x3, mat3row, mat3col,
@@ -17,7 +17,7 @@ describe('mat3', () => {
         for (let i = 0; i < 9; ++i) {
             const row = (i / 3) | 0;
             const col = (i % 3) | 0;
-            (ret as number[])[col * 3 + row] = raw[i];
+            (ret as Mat3Mut)[col * 3 + row] = raw[i];
         }
         return ret;
     }
@@ -109,7 +109,7 @@ describe('mat3', () => {
             1, -2, 1,
             0, 0, 1,
             1, 2, 3,
-        ];
+        ] as const;
         expect(
             clone3x3(make(raw)),
         ).toBeMat3(raw);

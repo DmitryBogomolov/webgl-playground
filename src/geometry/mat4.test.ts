@@ -1,4 +1,4 @@
-import type { Mat4 } from './mat4.types';
+import type { Mat4, Mat4Mut } from './mat4.types';
 import {
     mat4,
     eq4x4, zero4x4, identity4x4, clone4x4, update4x4, mat4row, mat4col,
@@ -14,7 +14,7 @@ describe('mat4', () => {
         for (let i = 0; i < 16; ++i) {
             const row = (i / 4) | 0;
             const col = i % 4;
-            (ret as number[])[col * 4 + row] = raw[i];
+            (ret as Mat4Mut)[col * 4 + row] = raw[i];
         }
         return ret;
     }
@@ -82,7 +82,7 @@ describe('mat4', () => {
             0, 0, 1, 1,
             1, 2, 3, 4,
             1, 2, 1, 3,
-        ];
+        ] as const;
         expect(
             clone4x4(make(raw)),
         ).toBeMat4(raw);
@@ -422,7 +422,7 @@ describe('mat4', () => {
         expect(
             xrotation4x4(Math.PI / 6),
         ).toBeMat4(
-            transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)) as number[],
+            transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)),
         );
     });
 
@@ -430,7 +430,7 @@ describe('mat4', () => {
         expect(
             xrotation4x4(Math.PI / 6),
         ).toBeMat4(
-            transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)) as number[],
+            transpose4x4(rotation4x4({ x: 1, y: 0, z: 0 }, Math.PI / 6)),
         );
     });
 
@@ -438,7 +438,7 @@ describe('mat4', () => {
         expect(
             yrotation4x4(Math.PI / 6),
         ).toBeMat4(
-            transpose4x4(rotation4x4({ x: 0, y: 1, z: 0 }, Math.PI / 6)) as number[],
+            transpose4x4(rotation4x4({ x: 0, y: 1, z: 0 }, Math.PI / 6)),
         );
     });
 
@@ -446,7 +446,7 @@ describe('mat4', () => {
         expect(
             zrotation4x4(Math.PI / 6),
         ).toBeMat4(
-            transpose4x4(rotation4x4({ x: 0, y: 0, z: 1 }, Math.PI / 6)) as number[],
+            transpose4x4(rotation4x4({ x: 0, y: 0, z: 1 }, Math.PI / 6)),
         );
     });
 

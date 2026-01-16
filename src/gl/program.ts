@@ -122,7 +122,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     },
     'float2x2': (gl, { location }, value) => {
         if (isMat2(value)) {
-            gl.uniformMatrix2fv(location, false, value as number[]);
+            gl.uniformMatrix2fv(location, false, value);
         } else if (isNumArray(value, 4)) {
             gl.uniformMatrix2fv(location, false, value);
         } else {
@@ -131,7 +131,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     },
     'float3x3': (gl, { location }, value) => {
         if (isMat3(value)) {
-            gl.uniformMatrix3fv(location, false, value as number[]);
+            gl.uniformMatrix3fv(location, false, value);
         } else if (isNumArray(value, 9)) {
             gl.uniformMatrix3fv(location, false, value);
         } else {
@@ -140,7 +140,7 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
     },
     'float4x4': (gl, { location }, value) => {
         if (isMat4(value)) {
-            gl.uniformMatrix4fv(location, false, value as number[]);
+            gl.uniformMatrix4fv(location, false, value);
         } else if (isNumArray(value, 16)) {
             gl.uniformMatrix4fv(location, false, value);
         } else {

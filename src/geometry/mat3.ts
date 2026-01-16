@@ -21,7 +21,7 @@ export function isMat3(mat: unknown): mat is Mat3 {
 }
 
 export function mat3(): Mat3 {
-    return Array.from({ length: MAT_SIZE }, () => 0);
+    return Array.from({ length: MAT_SIZE }, () => 0) as unknown as Mat3;
 }
 
 export function eq3x3(lhs: Mat3, rhs: Mat3, eps: number = FLOAT_EQ_EPS): boolean {
@@ -41,7 +41,7 @@ function m3(): Mat3Mut {
 }
 
 export function zero3x3(out: Mat3Mut = m3()): Mat3 {
-    (out as unknown as number[]).fill(0);
+    out.fill(0);
     return out;
 }
 
@@ -64,7 +64,7 @@ export function clone3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
     if (mat === out) {
         return out;
     }
-    return update3x3(mat as number[], out);
+    return update3x3(mat, out);
 }
 
 function v3(): Vec3Mut {

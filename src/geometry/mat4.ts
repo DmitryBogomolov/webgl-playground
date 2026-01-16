@@ -24,7 +24,7 @@ export function isMat4(mat: unknown): mat is Mat4 {
 }
 
 export function mat4(): Mat4 {
-    return Array.from({ length: MAT_SIZE }, () => 0);
+    return Array.from({ length: MAT_SIZE }, () => 0) as unknown as Mat4;
 }
 
 export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = FLOAT_EQ_EPS): boolean {
@@ -68,7 +68,7 @@ export function clone4x4(mat: Mat4, out: Mat4Mut = m4()): Mat4 {
     if (mat === out) {
         return out;
     }
-    return update4x4(mat as number[], out);
+    return update4x4(mat, out);
 }
 
 function v3(): Vec3Mut {
