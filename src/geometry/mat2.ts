@@ -44,7 +44,7 @@ export function identity2x2(out: Mat2Mut = m2()): Mat2 {
     return out;
 }
 
-export function update2x2(values: ReadonlyArray<number>, out: Mat2Mut = m2()): Mat2 {
+export function update2x2(values: ArrayLike<number>, out: Mat2Mut = m2()): Mat2 {
     out[0] = values[0];
     out[1] = values[1];
     out[2] = values[2];
@@ -56,11 +56,7 @@ export function clone2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
     if (mat === out) {
         return out;
     }
-    out[0] = mat[0];
-    out[1] = mat[1];
-    out[2] = mat[2];
-    out[3] = mat[3];
-    return out;
+    return update2x2(mat as number[], out);
 }
 
 export function transpose2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
@@ -85,6 +81,10 @@ export function sub2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
     return out;
 }
 
+function v2(): Vec2Mut {
+    return vec2(0, 0) as Vec2Mut;
+}
+
 function takeRows(mat: Mat2, rows: Vec2Mut[]): void {
     upd2(rows[0], mat[0], mat[2]);
     upd2(rows[1], mat[1], mat[3]);
@@ -95,24 +95,25 @@ function takeCols(mat: Mat2, cols: Vec2Mut[]): void {
     upd2(cols[1], mat[2], mat[3]);
 }
 
-const _rows = [vec2(0, 0) as Vec2Mut, vec2(0, 0) as Vec2Mut];
-const _cols = [vec2(0, 0) as Vec2Mut, vec2(0, 0) as Vec2Mut];
+const _aux_rows = [v2(), v2()];
+const _aux_cols = [v2(), v2()];
 
 export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
-    takeRows(lhs, _rows);
-    takeCols(rhs, _cols);
-    out[0] = dot2(_rows[0], _cols[0]);
-    out[1] = dot2(_rows[1], _cols[0]);
-    out[2] = dot2(_rows[0], _cols[1]);
-    out[3] = dot2(_rows[1], _cols[1]);
+    takeRows(lhs, _aux_rows);
+    takeCols(rhs, _aux_cols);
+    out[0] = dot2(_aux_rows[0], _aux_cols[0]);
+    out[1] = dot2(_aux_rows[1], _aux_cols[0]);
+    out[2] = dot2(_aux_rows[0], _aux_cols[1]);
+    out[3] = dot2(_aux_rows[1], _aux_cols[1]);
     return out;
 }
 
-export function mul2v2(lhs: Mat2, rhs: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
-    takeRows(lhs, _rows);
-    return upd2(out,
-        dot2(_rows[0], rhs),
-        dot2(_rows[1], rhs),
+export function mul2v2(lhs: Mat2, rhs: Vec2, out: Vec2Mut = v2()): Vec2 {
+    takeRows(lhs, _aux_rows);
+    return upd2(
+        out,
+        dot2(_aux_rows[0], rhs),
+        dot2(_aux_rows[1], rhs),
     );
 }
 

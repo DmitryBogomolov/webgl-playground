@@ -57,11 +57,7 @@ export function identity4x4(out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
-// const UPDATE4X4_MAP = range(MAT_SIZE, (idx) => {
-//     const [row, col] = idx2rowcol(idx);
-//     return rowcol2idx(col, row);
-// });
-export function update4x4(values: ReadonlyArray<number>, out: Mat4Mut = m4()): Mat4 {
+export function update4x4(values: ArrayLike<number>, out: Mat4Mut = m4()): Mat4 {
     for (let i = 0; i < MAT_SIZE; ++i) {
         out[i] = values[i];
     }
@@ -72,10 +68,7 @@ export function clone4x4(mat: Mat4, out: Mat4Mut = m4()): Mat4 {
     if (mat === out) {
         return out;
     }
-    for (let i = 0; i < MAT_SIZE; ++i) {
-        out[i] = mat[i];
-    }
-    return out;
+    return update4x4(mat as number[], out);
 }
 
 const TRANSPOSE4X4_MAP = range(MAT_SIZE, (idx) => {
@@ -106,6 +99,14 @@ export function sub4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
+}
+
+function v4(): Vec4Mut {
+    return vec4(0, 0, 0, 0) as Vec4Mut;
+}
+
 function takeVec3(mat: Mat4, indices: ReadonlyArray<number>, v: Vec4Mut): void {
     upd4(v, mat[indices[0]], mat[indices[1]], mat[indices[2]], mat[indices[3]]);
 }
@@ -124,33 +125,34 @@ function takeCols(mat: Mat4, cols: Vec4Mut[]): void {
     }
 }
 
-const _rows = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
-const _cols = Array.from({ length: MAT_RANK }, () => vec4(0, 0, 0, 0) as Vec4Mut);
+const _aux_rows = Array.from({ length: MAT_RANK }, () => v4());
+const _aux_cols = Array.from({ length: MAT_RANK }, () => v4());
 
 const MUL4x4_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
-    takeRows(lhs, _rows);
-    takeCols(rhs, _cols);
+    takeRows(lhs, _aux_rows);
+    takeCols(rhs, _aux_cols);
     for (let i = 0; i < MAT_SIZE; ++i) {
         const { row, col } = MUL4x4_MAP[i];
-        out[i] = dot4(_rows[row], _cols[col]);
+        out[i] = dot4(_aux_rows[row], _aux_cols[col]);
     }
     return out;
 }
 
-const _mul4v3_aux = vec4(0, 0, 0, 0) as Vec4Mut;
-export function mul4v3(lhs: Mat4, rhs: Vec3, out: Vec3Mut = vec3(0, 0, 0) as Vec3Mut): Vec3 {
+const _mul4v3_aux = v4();
+export function mul4v3(lhs: Mat4, rhs: Vec3, out: Vec3Mut = v3()): Vec3 {
     const v = mul4v4(lhs, vec4(rhs.x, rhs.y, rhs.z, 1), _mul4v3_aux);
     return upd3(out, v.x / v.w, v.y / v.w, v.z / v.w);
 }
 
-export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4Mut = vec4(0, 0, 0, 0) as Vec4Mut): Vec4 {
-    takeRows(lhs, _rows);
-    return upd4(out,
-        dot4(_rows[0], rhs),
-        dot4(_rows[1], rhs),
-        dot4(_rows[2], rhs),
-        dot4(_rows[3], rhs),
+export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4Mut = v4()): Vec4 {
+    takeRows(lhs, _aux_rows);
+    return upd4(
+        out,
+        dot4(_aux_rows[0], rhs),
+        dot4(_aux_rows[1], rhs),
+        dot4(_aux_rows[2], rhs),
+        dot4(_aux_rows[3], rhs),
     );
 }
 
@@ -241,7 +243,7 @@ const ROTATION4X4_MAP = {
     zx: rowcol2idx(2, 0), zy: rowcol2idx(2, 1), zz: rowcol2idx(2, 2),
     ww: rowcol2idx(3, 3),
 } as const;
-const _rotation4x4_aux = vec3(0, 0, 0) as Vec3Mut;
+const _rotation4x4_aux = v3();
 export function rotation4x4(axis: Vec3, rotation: number, out: Mat4Mut = m4()): Mat4 {
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
@@ -383,9 +385,9 @@ const LOOKAT4X4_MAP = {
     xw: rowcol2idx(0, 3), yw: rowcol2idx(1, 3), zw: rowcol2idx(2, 3),
     ww: rowcol2idx(3, 3),
 } as const;
-const _lookAt4x4_aux_x = vec3(0, 0, 0) as Vec3Mut;
-const _lookAt4x4_aux_y = vec3(0, 0, 0) as Vec3Mut;
-const _lookAt4x4_aux_z = vec3(0, 0, 0) as Vec3Mut;
+const _lookAt4x4_aux_x = v3();
+const _lookAt4x4_aux_y = v3();
+const _lookAt4x4_aux_z = v3();
 export function lookAt4x4(options: LookAt4x4Options, out: Mat4Mut = m4()): Mat4 {
     const { eye, center, up } = options;
     const zAxis = norm3(sub3(eye, center, _lookAt4x4_aux_z), _lookAt4x4_aux_z);
@@ -422,9 +424,9 @@ const TARGET4X4_MAP = {
     xw: rowcol2idx(0, 3), yw: rowcol2idx(1, 3), zw: rowcol2idx(2, 3),
     ww: rowcol2idx(3, 3),
 } as const;
-const _targetTo4x4_aux_x = vec3(0, 0, 0) as Vec3Mut;
-const _targetTo4x4_aux_y = vec3(0, 0, 0) as Vec3Mut;
-const _targetTo4x4_aux_z = vec3(0, 0, 0) as Vec3Mut;
+const _targetTo4x4_aux_x = v3();
+const _targetTo4x4_aux_y = v3();
+const _targetTo4x4_aux_z = v3();
 export function targetTo4x4(options: TargetTo4x4Options, out: Mat4Mut = m4()): Mat4 {
     const { eye, target, up } = options;
     const zAxis = norm3(sub3(eye, target, _targetTo4x4_aux_z), _targetTo4x4_aux_z);

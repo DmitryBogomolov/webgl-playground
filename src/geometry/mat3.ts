@@ -53,11 +53,7 @@ export function identity3x3(out: Mat3Mut = m3()): Mat3 {
     return out;
 }
 
-// const UPDATE3X3_MAP = range(MAT_SIZE, (idx) => {
-//     const [row, col] = idx2rowcol(idx);
-//     return rowcol2idx(col, row);
-// });
-export function update3x3(values: ReadonlyArray<number>, out: Mat3Mut = m3()): Mat3 {
+export function update3x3(values: ArrayLike<number>, out: Mat3Mut = m3()): Mat3 {
     for (let i = 0; i < MAT_SIZE; ++i) {
         out[i] = values[i];
     }
@@ -68,10 +64,7 @@ export function clone3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
     if (mat === out) {
         return out;
     }
-    for (let i = 0; i < MAT_SIZE; ++i) {
-        out[i] = mat[i];
-    }
-    return out;
+    return update3x3(mat as number[], out);
 }
 
 const TRANSPOSE3X3_MAP = range(MAT_SIZE, (idx) => {
@@ -102,6 +95,10 @@ export function sub3x3(lhs: Mat3, rhs: Mat3, out: Mat3Mut = m3()): Mat3 {
     return out;
 }
 
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
+}
+
 function takeVec3(mat: Mat3, indices: ReadonlyArray<number>, v: Vec3Mut): void {
     upd3(v, mat[indices[0]], mat[indices[1]], mat[indices[2]]);
 }
@@ -120,32 +117,33 @@ function takeCols(mat: Mat3, cols: Vec3Mut[]): void {
     }
 }
 
-const _rows = Array.from({ length: MAT_RANK }, () => vec3(0, 0, 0) as Vec3Mut);
-const _cols = Array.from({ length: MAT_RANK }, () => vec3(0, 0, 0) as Vec3Mut);
+const _aux_rows = Array.from({ length: MAT_RANK }, () => v3());
+const _aux_cols = Array.from({ length: MAT_RANK }, () => v3());
 
 const MUL3x3_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
 export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3Mut = m3()): Mat3 {
-    takeRows(lhs, _rows);
-    takeCols(rhs, _cols);
+    takeRows(lhs, _aux_rows);
+    takeCols(rhs, _aux_cols);
     for (let i = 0; i < MAT_SIZE; ++i) {
         const { row, col } = MUL3x3_MAP[i];
-        out[i] = dot3(_rows[row], _cols[col]);
+        out[i] = dot3(_aux_rows[row], _aux_cols[col]);
     }
     return out;
 }
 
-const _mul3v2_aux = vec3(0, 0, 0) as Vec3Mut;
+const _mul3v2_aux = v3();
 export function mul3v2(lhs: Mat3, rhs: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mut): Vec2 {
     const v = mul3v3(lhs, vec3(rhs.x, rhs.y, 1), _mul3v2_aux);
     return upd2(out, v.x / v.z, v.y / v.z);
 }
 
-export function mul3v3(lhs: Mat3, rhs: Vec3, out: Vec3Mut = vec3(0, 0, 0) as Vec3Mut): Vec3 {
-    takeRows(lhs, _rows);
-    return upd3(out,
-        dot3(_rows[0], rhs),
-        dot3(_rows[1], rhs),
-        dot3(_rows[2], rhs),
+export function mul3v3(lhs: Mat3, rhs: Vec3, out: Vec3Mut = v3()): Vec3 {
+    takeRows(lhs, _aux_rows);
+    return upd3(
+        out,
+        dot3(_aux_rows[0], rhs),
+        dot3(_aux_rows[1], rhs),
+        dot3(_aux_rows[2], rhs),
     );
 }
 
