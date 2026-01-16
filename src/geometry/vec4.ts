@@ -16,7 +16,7 @@ export class Vec4Impl implements Vec4 {
     }
 
     toString(): string {
-        return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
+        return vec4str(this);
     }
 }
 

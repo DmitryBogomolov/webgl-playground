@@ -12,7 +12,7 @@ export class Vec2Impl implements Vec2 {
     }
 
     toString(): string {
-        return `(${this.x}, ${this.y})`;
+        return vec2str(this);
     }
 }
 
@@ -104,7 +104,8 @@ export function norm2(v: Vec2, out: Vec2Mut = v2()): Vec2 {
 export function rotate2(v: Vec2, rotation: number, out: Vec2Mut = v2()): Vec2 {
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
-    return upd2(out,
+    return upd2(
+        out,
         c * v.x - s * v.y,
         s * v.x + c * v.y,
     );

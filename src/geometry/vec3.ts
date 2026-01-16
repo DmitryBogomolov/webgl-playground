@@ -14,7 +14,7 @@ export class Vec3Impl implements Vec3 {
     }
 
     toString(): string {
-        return `(${this.x}, ${this.y}, ${this.z})`;
+        return vec3str(this);
     }
 }
 
@@ -121,10 +121,11 @@ export function sub3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
 }
 
 export function cross3(a: Vec3, b: Vec3, out: Vec3Mut = v3()): Vec3 {
-    return upd3(out,
-        a.y * b.z - a.z * b.y,
+    return upd3(
+        out,
+        +a.y * b.z - a.z * b.y,
         -a.x * b.z + a.z * b.x,
-        a.x * b.y - a.y * b.x,
+        +a.x * b.y - a.y * b.x,
     );
 }
 
@@ -133,7 +134,8 @@ export function rotate3(v: Vec3, axis: Vec3, rotation: number, out: Vec3Mut = v3
     const s = Math.sin(rotation);
     const t = 1 - c;
     const { x, y, z } = norm3(axis, out);
-    return upd3(out,
+    return upd3(
+        out,
         v.x * (x * x * t + c) + v.y * (x * y * t - z * s) + v.z * (x * z * t + y * s),
         v.x * (y * x * t - z * s) + v.y * (y * y * t + c) + v.z * (y * z * t - x * s),
         v.x * (z * x * t - y * s) + v.y * (z * y * t + x * s) + v.z * (z * z * t + c),

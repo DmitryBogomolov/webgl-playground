@@ -194,8 +194,8 @@ export function quat4toEuler(q: Vec4, out: Vec3Mut = v3()): Vec3 {
     return out;
 }
 
-const _quat4fromVecs_aux_a = vec3(0, 0, 0) as Vec3Mut;
-const _quat4fromVecs_aux_b = vec3(0, 0, 0) as Vec3Mut;
+const _quat4fromVecs_aux_a = v3();
+const _quat4fromVecs_aux_b = v3();
 export function quat4fromVecs(a: Vec3, b: Vec3, out: Vec4Mut = v4()): Vec4 {
     const na = norm3(a, _quat4fromVecs_aux_a);
     const nb = norm3(b, _quat4fromVecs_aux_b);
