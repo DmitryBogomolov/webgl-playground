@@ -3,7 +3,7 @@ import type { Vec3, Vec3Mut } from './vec3.types';
 import type { Mat4, Mat4Mut } from './mat4.types';
 import { vec4, clone4, norm4, dot4 } from './vec4';
 import { vec3, clone3, mul3, dot3, cross3, norm3 } from './vec3';
-import { mat4, update4x4 } from './mat4';
+import { mat4, update4x4, mat4row } from './mat4';
 import { floatEq as eq } from './float-eq';
 
 // https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
@@ -112,17 +112,14 @@ export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     return out;
 }
 
+const _quat4fromMat_aux_m1 = v4();
+const _quat4fromMat_aux_m2 = v4();
+const _quat4fromMat_aux_m3 = v4();
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 export function quat4fromMat(mat: Mat4, out: Vec4Mut = v4()): Vec4 {
-    const m11 = mat[0];
-    const m21 = mat[1];
-    const m31 = mat[2];
-    const m12 = mat[4];
-    const m22 = mat[5];
-    const m32 = mat[6];
-    const m13 = mat[8];
-    const m23 = mat[9];
-    const m33 = mat[10];
+    const { x: m11, y: m12, z: m13 } = mat4row(mat, 0, _quat4fromMat_aux_m1);
+    const { x: m21, y: m22, z: m23 } = mat4row(mat, 1, _quat4fromMat_aux_m2);
+    const { x: m31, y: m32, z: m33 } = mat4row(mat, 2, _quat4fromMat_aux_m3);
     const trace = m11 + m22 + m33;
     if (trace > 0) {
         const s = 0.5 / Math.sqrt(trace + 1);
