@@ -59,6 +59,22 @@ export function clone2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
     return update2x2(mat as number[], out);
 }
 
+function v2(): Vec2Mut {
+    return vec2(0, 0) as Vec2Mut;
+}
+
+export function mat2row(mat: Mat2, row: number, out: Vec2Mut = v2()): Vec2 {
+    const k = row | 0;
+    upd2(out, mat[k], mat[k + 2]);
+    return out;
+}
+
+export function mat2col(mat: Mat2, col: number, out: Vec2Mut = v2()): Vec2 {
+    const k = col << 1;
+    upd2(out, mat[k], mat[k + 1]);
+    return out;
+}
+
 export function transpose2x2(mat: Mat2, out: Mat2Mut = m2()): Mat2 {
     clone2x2(mat, out);
     const tmp = out[1];
@@ -81,40 +97,26 @@ export function sub2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
     return out;
 }
 
-function v2(): Vec2Mut {
-    return vec2(0, 0) as Vec2Mut;
-}
-
-function takeRows(mat: Mat2, rows: Vec2Mut[]): void {
-    upd2(rows[0], mat[0], mat[2]);
-    upd2(rows[1], mat[1], mat[3]);
-}
-
-function takeCols(mat: Mat2, cols: Vec2Mut[]): void {
-    upd2(cols[0], mat[0], mat[1]);
-    upd2(cols[1], mat[2], mat[3]);
-}
-
-const _aux_rows = [v2(), v2()];
-const _aux_cols = [v2(), v2()];
-
+const _mul2x2_aux_rows = [v2(), v2()];
+const _mul2x2_aux_cols = [v2(), v2()];
 export function mul2x2(lhs: Mat2, rhs: Mat2, out: Mat2Mut = m2()): Mat2 {
-    takeRows(lhs, _aux_rows);
-    takeCols(rhs, _aux_cols);
-    out[0] = dot2(_aux_rows[0], _aux_cols[0]);
-    out[1] = dot2(_aux_rows[1], _aux_cols[0]);
-    out[2] = dot2(_aux_rows[0], _aux_cols[1]);
-    out[3] = dot2(_aux_rows[1], _aux_cols[1]);
+    const rows = _mul2x2_aux_rows;
+    const cols = _mul2x2_aux_cols;
+    for (let i = 0; i < MAT_RANK; ++i) {
+        mat2row(lhs, i, rows[i]);
+        mat2col(rhs, i, cols[i]);
+    }
+    out[0] = dot2(rows[0], cols[0]);
+    out[1] = dot2(rows[1], cols[0]);
+    out[2] = dot2(rows[0], cols[1]);
+    out[3] = dot2(rows[1], cols[1]);
     return out;
 }
 
 export function mul2v2(lhs: Mat2, rhs: Vec2, out: Vec2Mut = v2()): Vec2 {
-    takeRows(lhs, _aux_rows);
-    return upd2(
-        out,
-        dot2(_aux_rows[0], rhs),
-        dot2(_aux_rows[1], rhs),
-    );
+    const x = dot2(mat2row(lhs, 0, out), rhs);
+    const y = dot2(mat2row(lhs, 1, out), rhs);
+    return upd2(out, x, y);
 }
 
 export function det2x2(mat: Mat2): number {

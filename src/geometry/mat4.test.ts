@@ -1,8 +1,8 @@
 import type { Mat4 } from './mat4.types';
 import {
     mat4,
-    eq4x4, zero4x4, identity4x4, clone4x4, update4x4, transpose4x4,
-    add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
+    eq4x4, zero4x4, identity4x4, clone4x4, update4x4, mat4row, mat4col,
+    transpose4x4, add4x4, sub4x4, mul4x4, mul4v3, mul4v4,
     det4x4, inverse4x4, inversetranspose4x4,
     translation4x4, scaling4x4, rotation4x4, xrotation4x4, yrotation4x4, zrotation4x4,
     orthographic4x4, perspective4x4, frustum4x4, lookAt4x4, targetTo4x4,
@@ -102,6 +102,48 @@ describe('mat4', () => {
             1, 1, 3, 1,
             -1, 1, 4, 3,
         ]);
+    });
+
+    it('row', () => {
+        const mat = make([
+            1, 2, 4, 1,
+            3, 4, 5, 2,
+            2, 1, 2, 3,
+            1, 2, 3, 4,
+        ]);
+        expect(
+            mat4row(mat, 0),
+        ).toBeVec4({ x: 1, y: 2, z: 4, w: 1 });
+        expect(
+            mat4row(mat, 1),
+        ).toBeVec4({ x: 3, y: 4, z: 5, w: 2 });
+        expect(
+            mat4row(mat, 2),
+        ).toBeVec4({ x: 2, y: 1, z: 2, w: 3 });
+        expect(
+            mat4row(mat, 3),
+        ).toBeVec4({ x: 1, y: 2, z: 3, w: 4 });
+    });
+
+    it('col', () => {
+        const mat = make([
+            1, 2, 4, 1,
+            3, 4, 5, 2,
+            2, 1, 2, 3,
+            1, 2, 3, 4,
+        ]);
+        expect(
+            mat4col(mat, 0),
+        ).toBeVec4({ x: 1, y: 3, z: 2, w: 1 });
+        expect(
+            mat4col(mat, 1),
+        ).toBeVec4({ x: 2, y: 4, z: 1, w: 2 });
+        expect(
+            mat4col(mat, 2),
+        ).toBeVec4({ x: 4, y: 5, z: 2, w: 3 });
+        expect(
+            mat4col(mat, 3),
+        ).toBeVec4({ x: 1, y: 2, z: 3, w: 4 });
     });
 
     it('transpose4x4', () => {

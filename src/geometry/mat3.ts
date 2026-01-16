@@ -67,6 +67,26 @@ export function clone3x3(mat: Mat3, out: Mat3Mut = m3()): Mat3 {
     return update3x3(mat as number[], out);
 }
 
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
+}
+
+function takeVec3(mat: Mat3, indices: ArrayLike<number>, v: Vec3Mut): void {
+    upd3(v, mat[indices[0]], mat[indices[1]], mat[indices[2]]);
+}
+
+const ROWS_MAP = range(MAT_RANK, (row) => range(MAT_RANK, (k) => rowcol2idx(row, k)));
+export function mat3row(mat: Mat3, row: number, out: Vec3Mut = v3()): Vec3 {
+    takeVec3(mat, ROWS_MAP[row], out);
+    return out;
+}
+
+const COLS_MAP = range(MAT_RANK, (col) => range(MAT_RANK, (k) => rowcol2idx(k, col)));
+export function mat3col(mat: Mat3, col: number, out: Vec3Mut = v3()): Vec3 {
+    takeVec3(mat, COLS_MAP[col], out);
+    return out;
+}
+
 const TRANSPOSE3X3_MAP = range(MAT_SIZE, (idx) => {
     const { row, col } = idx2rowcol(idx);
     return row < col ? { idx1: idx, idx2: rowcol2idx(col, row) } as const : null;
@@ -95,38 +115,19 @@ export function sub3x3(lhs: Mat3, rhs: Mat3, out: Mat3Mut = m3()): Mat3 {
     return out;
 }
 
-function v3(): Vec3Mut {
-    return vec3(0, 0, 0) as Vec3Mut;
-}
-
-function takeVec3(mat: Mat3, indices: ReadonlyArray<number>, v: Vec3Mut): void {
-    upd3(v, mat[indices[0]], mat[indices[1]], mat[indices[2]]);
-}
-
-const ROWS_MAP = range(MAT_RANK, (row) => range(MAT_RANK, (k) => rowcol2idx(row, k)));
-function takeRows(mat: Mat3, rows: Vec3Mut[]): void {
-    for (let i = 0; i < ROWS_MAP.length; ++i) {
-        takeVec3(mat, ROWS_MAP[i], rows[i]);
-    }
-}
-
-const COLS_MAP = range(MAT_RANK, (col) => range(MAT_RANK, (k) => rowcol2idx(k, col)));
-function takeCols(mat: Mat3, cols: Vec3Mut[]): void {
-    for (let i = 0; i < COLS_MAP.length; ++i) {
-        takeVec3(mat, COLS_MAP[i], cols[i]);
-    }
-}
-
-const _aux_rows = Array.from({ length: MAT_RANK }, () => v3());
-const _aux_cols = Array.from({ length: MAT_RANK }, () => v3());
-
 const MUL3x3_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
+const _mul3x3_aux_rows = Array.from({ length: MAT_RANK }, () => v3());
+const _mul3x3_aux_cols = Array.from({ length: MAT_RANK }, () => v3());
 export function mul3x3(lhs: Mat3, rhs: Mat3, out: Mat3Mut = m3()): Mat3 {
-    takeRows(lhs, _aux_rows);
-    takeCols(rhs, _aux_cols);
+    const rows = _mul3x3_aux_rows;
+    const cols = _mul3x3_aux_cols;
+    for (let i = 0; i < MAT_RANK; ++i) {
+        mat3row(lhs, i, rows[i]);
+        mat3col(rhs, i, cols[i]);
+    }
     for (let i = 0; i < MAT_SIZE; ++i) {
         const { row, col } = MUL3x3_MAP[i];
-        out[i] = dot3(_aux_rows[row], _aux_cols[col]);
+        out[i] = dot3(rows[row], cols[col]);
     }
     return out;
 }
@@ -138,16 +139,13 @@ export function mul3v2(lhs: Mat3, rhs: Vec2, out: Vec2Mut = vec2(0, 0) as Vec2Mu
 }
 
 export function mul3v3(lhs: Mat3, rhs: Vec3, out: Vec3Mut = v3()): Vec3 {
-    takeRows(lhs, _aux_rows);
-    return upd3(
-        out,
-        dot3(_aux_rows[0], rhs),
-        dot3(_aux_rows[1], rhs),
-        dot3(_aux_rows[2], rhs),
-    );
+    const x = dot3(mat3row(lhs, 0, out), rhs);
+    const y = dot3(mat3row(lhs, 1, out), rhs);
+    const z = dot3(mat3row(lhs, 2, out), rhs);
+    return upd3(out, x, y, z);
 }
 
-function det2x2(mat: Mat3, indices: ReadonlyArray<number>): number {
+function det2x2(mat: Mat3, indices: ArrayLike<number>): number {
     return mat[indices[0]] * mat[indices[3]] - mat[indices[2]] * mat[indices[1]];
 }
 

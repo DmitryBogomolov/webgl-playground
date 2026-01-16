@@ -71,6 +71,30 @@ export function clone4x4(mat: Mat4, out: Mat4Mut = m4()): Mat4 {
     return update4x4(mat as number[], out);
 }
 
+function v3(): Vec3Mut {
+    return vec3(0, 0, 0) as Vec3Mut;
+}
+
+function v4(): Vec4Mut {
+    return vec4(0, 0, 0, 0) as Vec4Mut;
+}
+
+function takeVec4(mat: Mat4, indices: ArrayLike<number>, v: Vec4Mut): void {
+    upd4(v, mat[indices[0]], mat[indices[1]], mat[indices[2]], mat[indices[3]]);
+}
+
+const ROWS_MAP = range(MAT_RANK, (row) => range(MAT_RANK, (k) => rowcol2idx(row, k)));
+export function mat4row(mat: Mat4, row: number, out: Vec4Mut = v4()): Vec4 {
+    takeVec4(mat, ROWS_MAP[row], out);
+    return out;
+}
+
+const COLS_MAP = range(MAT_RANK, (col) => range(MAT_RANK, (k) => rowcol2idx(k, col)));
+export function mat4col(mat: Mat4, col: number, out: Vec4Mut = v4()): Vec4 {
+    takeVec4(mat, COLS_MAP[col], out);
+    return out;
+}
+
 const TRANSPOSE4X4_MAP = range(MAT_SIZE, (idx) => {
     const { row, col } = idx2rowcol(idx);
     return row < col ? { idx1: idx, idx2: rowcol2idx(col, row) } as const : null;
@@ -99,42 +123,19 @@ export function sub4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
     return out;
 }
 
-function v3(): Vec3Mut {
-    return vec3(0, 0, 0) as Vec3Mut;
-}
-
-function v4(): Vec4Mut {
-    return vec4(0, 0, 0, 0) as Vec4Mut;
-}
-
-function takeVec3(mat: Mat4, indices: ReadonlyArray<number>, v: Vec4Mut): void {
-    upd4(v, mat[indices[0]], mat[indices[1]], mat[indices[2]], mat[indices[3]]);
-}
-
-const ROWS_MAP = range(MAT_RANK, (row) => range(MAT_RANK, (k) => rowcol2idx(row, k)));
-function takeRows(mat: Mat4, rows: Vec4Mut[]): void {
-    for (let i = 0; i < ROWS_MAP.length; ++i) {
-        takeVec3(mat, ROWS_MAP[i], rows[i]);
-    }
-}
-
-const COLS_MAP = range(MAT_RANK, (col) => range(MAT_RANK, (k) => rowcol2idx(k, col)));
-function takeCols(mat: Mat4, cols: Vec4Mut[]): void {
-    for (let i = 0; i < COLS_MAP.length; ++i) {
-        takeVec3(mat, COLS_MAP[i], cols[i]);
-    }
-}
-
-const _aux_rows = Array.from({ length: MAT_RANK }, () => v4());
-const _aux_cols = Array.from({ length: MAT_RANK }, () => v4());
-
 const MUL4x4_MAP = range(MAT_SIZE, (idx) => idx2rowcol(idx));
+const _mul4x4_aux_rows = Array.from({ length: MAT_RANK }, () => v4());
+const _mul4x4_aux_cols = Array.from({ length: MAT_RANK }, () => v4());
 export function mul4x4(lhs: Mat4, rhs: Mat4, out: Mat4Mut = m4()): Mat4 {
-    takeRows(lhs, _aux_rows);
-    takeCols(rhs, _aux_cols);
+    const rows = _mul4x4_aux_rows;
+    const cols = _mul4x4_aux_cols;
+    for (let i = 0; i < MAT_RANK; ++i) {
+        mat4row(lhs, i, rows[i]);
+        mat4col(rhs, i, cols[i]);
+    }
     for (let i = 0; i < MAT_SIZE; ++i) {
         const { row, col } = MUL4x4_MAP[i];
-        out[i] = dot4(_aux_rows[row], _aux_cols[col]);
+        out[i] = dot4(rows[row], cols[col]);
     }
     return out;
 }
@@ -146,17 +147,14 @@ export function mul4v3(lhs: Mat4, rhs: Vec3, out: Vec3Mut = v3()): Vec3 {
 }
 
 export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4Mut = v4()): Vec4 {
-    takeRows(lhs, _aux_rows);
-    return upd4(
-        out,
-        dot4(_aux_rows[0], rhs),
-        dot4(_aux_rows[1], rhs),
-        dot4(_aux_rows[2], rhs),
-        dot4(_aux_rows[3], rhs),
-    );
+    const x = dot4(mat4row(lhs, 0, out), rhs);
+    const y = dot4(mat4row(lhs, 1, out), rhs);
+    const z = dot4(mat4row(lhs, 2, out), rhs);
+    const w = dot4(mat4row(lhs, 3, out), rhs);
+    return upd4(out, x, y, z, w);
 }
 
-function det3x3(mat: Mat4, indices: ReadonlyArray<number>): number {
+function det3x3(mat: Mat4, indices: ArrayLike<number>): number {
     return mat[indices[0]] * mat[indices[4]] * mat[indices[8]]
         - mat[indices[0]] * mat[indices[7]] * mat[indices[5]]
         - mat[indices[1]] * mat[indices[3]] * mat[indices[8]]

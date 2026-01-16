@@ -1,8 +1,8 @@
 import type { Mat2 } from './mat2.types';
 import {
     mat2,
-    eq2x2, zero2x2, identity2x2, clone2x2, update2x2, transpose2x2,
-    add2x2, sub2x2, mul2x2, mul2v2,
+    eq2x2, zero2x2, identity2x2, clone2x2, update2x2, mat2row, mat2col,
+    transpose2x2, add2x2, sub2x2, mul2x2, mul2v2,
     det2x2, inverse2x2,
 } from './mat2';
 
@@ -82,6 +82,32 @@ describe('mat2', () => {
             1, 0,
             -2, 0,
         ]);
+    });
+
+    it('row', () => {
+        const mat = make([
+            1, 2,
+            3, 4,
+        ]);
+        expect(
+            mat2row(mat, 0),
+        ).toBeVec2({ x: 1, y: 2 });
+        expect(
+            mat2row(mat, 1),
+        ).toBeVec2({ x: 3, y: 4 });
+    });
+
+    it('col', () => {
+        const mat = make([
+            1, 2,
+            3, 4,
+        ]);
+        expect(
+            mat2col(mat, 0),
+        ).toBeVec2({ x: 1, y: 3 });
+        expect(
+            mat2col(mat, 1),
+        ).toBeVec2({ x: 2, y: 4 });
     });
 
     it('transpose2x2', () => {
