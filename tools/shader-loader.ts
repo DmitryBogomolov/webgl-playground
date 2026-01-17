@@ -110,8 +110,8 @@ function collectIncludeSources(
 function insertIncludes(
     source: string,
     sourcePath: string,
-    includes: ReadonlyArray<IncludeData>,
-    subSources: ReadonlyArray<string>,
+    includes: ArrayLike<IncludeData>,
+    subSources: ArrayLike<string>,
     pathIndex: ReadonlyMap<string, number>,
 ): string {
     const parts: string[] = [];

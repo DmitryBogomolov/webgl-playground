@@ -1,8 +1,8 @@
-import type { Mat3 } from './mat3.types';
+import type { Mat3, Mat3Mut } from './mat3.types';
 import {
     mat3,
-    eq3x3, zero3x3, identity3x3, clone3x3, update3x3, transpose3x3,
-    add3x3, sub3x3, mul3x3, mul3v2, mul3v3,
+    eq3x3, zero3x3, identity3x3, clone3x3, update3x3, mat3row, mat3col,
+    transpose3x3, add3x3, sub3x3, mul3x3, mul3v2, mul3v3,
     det3x3, inverse3x3,
     translation3x3, scaling3x3, rotation3x3,
     projection3x3,
@@ -12,18 +12,18 @@ describe('mat3', () => {
     const RANK = 3;
     const EPS = 1E-4;
 
-    function make(raw: ReadonlyArray<number>): Mat3 {
+    function make(raw: ArrayLike<number>): Mat3 {
         const ret = mat3();
         for (let i = 0; i < 9; ++i) {
             const row = (i / 3) | 0;
-            const col = i % 3;
-            (ret as number[])[col * 3 + row] = raw[i];
+            const col = (i % 3) | 0;
+            (ret as Mat3Mut)[col * 3 + row] = raw[i];
         }
         return ret;
     }
 
     expect.extend({
-        toBeMat3(actual: ReadonlyArray<number>, expected: ReadonlyArray<number>) {
+        toBeMat3(actual: ArrayLike<number>, expected: ArrayLike<number>) {
             const list: [number, number][] = [];
             for (let i = 0; i < RANK; ++i) {
                 for (let j = 0; j < RANK; ++j) {
@@ -109,7 +109,7 @@ describe('mat3', () => {
             1, -2, 1,
             0, 0, 1,
             1, 2, 3,
-        ];
+        ] as const;
         expect(
             clone3x3(make(raw)),
         ).toBeMat3(raw);
@@ -129,13 +129,49 @@ describe('mat3', () => {
         ]);
     });
 
+    it('row', () => {
+        const mat = make([
+            1, 2, 4,
+            3, 4, 5,
+            2, 1, 2,
+        ]);
+        expect(
+            mat3row(mat, 0),
+        ).toBeVec3({ x: 1, y: 2, z: 4 });
+        expect(
+            mat3row(mat, 1),
+        ).toBeVec3({ x: 3, y: 4, z: 5 });
+        expect(
+            mat3row(mat, 2),
+        ).toBeVec3({ x: 2, y: 1, z: 2 });
+    });
+
+    it('col', () => {
+        const mat = make([
+            1, 2, 4,
+            3, 4, 5,
+            2, 1, 2,
+        ]);
+        expect(
+            mat3col(mat, 0),
+        ).toBeVec3({ x: 1, y: 3, z: 2 });
+        expect(
+            mat3col(mat, 1),
+        ).toBeVec3({ x: 2, y: 4, z: 1 });
+        expect(
+            mat3col(mat, 2),
+        ).toBeVec3({ x: 4, y: 5, z: 2 });
+    });
+
     it('transpose3x3', () => {
         expect(
-            transpose3x3(make([
-                1, 0, 2,
-                -2, 2, 0,
-                3, 1, 2,
-            ])),
+            transpose3x3(
+                make([
+                    1, 0, 2,
+                    -2, 2, 0,
+                    3, 1, 2,
+                ]),
+            ),
         ).toBeMat3([
             1, -2, 3,
             0, 2, 1,

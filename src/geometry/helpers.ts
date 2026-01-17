@@ -1,17 +1,13 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function range<T extends (idx: number) => any>(
-    size: number, func: T,
-): ReadonlyArray<NonNullable<ReturnType<T>>> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return Array<number>(size).fill(0).map((_, i) => func(i)).filter((t) => t !== null);
+export function range<T>(size: number, func: (idx: number) => T | null): ReadonlyArray<T> {
+    return Array.from({ length: size }, (_, i) => func(i)).filter((t) => t !== null) as T[];
 }
 
 export function rowcol2idxRank(matRank: number, row: number, col: number): number {
-    return col * matRank + row;
+    return (col * matRank + row) | 0;
 }
 
-export function idx2rowcolRank(matRank: number, idx: number): [number, number] {
-    return [idx % matRank, (idx / matRank) | 0];
+export function idx2rowcolRank(matRank: number, idx: number): Readonly<{ row: number; col: number }> {
+    return { row: (idx % matRank) | 0, col: (idx / matRank) | 0 };
 }
 
 export function excludeRowColRank(matRank: number, row: number, col: number): number[] {

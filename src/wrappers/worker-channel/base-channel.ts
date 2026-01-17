@@ -77,7 +77,7 @@ export abstract class BaseChannel<SendT, RecvT> extends BaseObject {
         this.flush();
     };
 
-    private _notify(messages: ReadonlyArray<RecvT>): void {
+    private _notify(messages: Iterable<RecvT>): void {
         for (const message of messages) {
             this._logInfo(`recv: ${toStr(message)}`);
             this._handler(message);

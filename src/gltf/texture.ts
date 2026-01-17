@@ -60,7 +60,7 @@ export function getTextureInfo(asset: GlTFAsset, idx: number): GlTFTexture {
 const PNG_PATTERN: ReadonlyArray<number> = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 const JPEG_PATTERN: ReadonlyArray<number> = [0xFF, 0xD8, 0xFF];
 
-function matchPattern(data: Uint8Array, pattern: ReadonlyArray<number>): boolean {
+function matchPattern(data: Uint8Array, pattern: ArrayLike<number>): boolean {
     for (let i = 0; i < pattern.length; ++i) {
         if (pattern[i] !== data[i]) {
             return false;

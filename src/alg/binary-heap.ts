@@ -14,7 +14,7 @@ function swap<T>(elements: T[], i: number, j: number): void {
     elements[j] = tmp;
 }
 
-function compare<T>(elements: ReadonlyArray<T>, i: number, j: number, cmp: BinaryHeapCmpFunc<T>): boolean {
+function compare<T>(elements: ArrayLike<T>, i: number, j: number, cmp: BinaryHeapCmpFunc<T>): boolean {
     return cmp(elements[i], elements[j]);
 }
 

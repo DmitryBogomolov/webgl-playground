@@ -5,7 +5,8 @@ import { vec3 } from './vec3';
 
 export function spherical2zxy(coords: Spherical, out: Vec3Mut = vec3(0, 0, 0) as Vec3Mut): Vec3 {
     const { distance, azimuth, elevation } = coords;
-    return upd3(out,
+    return upd3(
+        out,
         distance * Math.cos(elevation) * Math.sin(azimuth),
         distance * Math.sin(elevation),
         distance * Math.cos(elevation) * Math.cos(azimuth),

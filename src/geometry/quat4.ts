@@ -3,7 +3,7 @@ import type { Vec3, Vec3Mut } from './vec3.types';
 import type { Mat4, Mat4Mut } from './mat4.types';
 import { vec4, clone4, norm4, dot4 } from './vec4';
 import { vec3, clone3, mul3, dot3, cross3, norm3 } from './vec3';
-import { mat4, update4x4 } from './mat4';
+import { mat4, update4x4, mat4row } from './mat4';
 import { floatEq as eq } from './float-eq';
 
 // https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
@@ -50,7 +50,7 @@ export function quat4conj(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     out.x = -q.x;
     out.y = -q.y;
     out.z = -q.z;
-    out.w = q.w;
+    out.w = +q.w;
     return out;
 }
 
@@ -112,13 +112,14 @@ export function quat4toAxisAngle(q: Vec4, out: Vec4Mut = v4()): Vec4 {
     return out;
 }
 
+const _quat4fromMat_aux_m1 = v4();
+const _quat4fromMat_aux_m2 = v4();
+const _quat4fromMat_aux_m3 = v4();
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 export function quat4fromMat(mat: Mat4, out: Vec4Mut = v4()): Vec4 {
-    const [
-        m11, m21, m31, ,
-        m12, m22, m32, ,
-        m13, m23, m33, ,
-    ] = mat;
+    const { x: m11, y: m12, z: m13 } = mat4row(mat, 0, _quat4fromMat_aux_m1);
+    const { x: m21, y: m22, z: m23 } = mat4row(mat, 1, _quat4fromMat_aux_m2);
+    const { x: m31, y: m32, z: m33 } = mat4row(mat, 2, _quat4fromMat_aux_m3);
     const trace = m11 + m22 + m33;
     if (trace > 0) {
         const s = 0.5 / Math.sqrt(trace + 1);
@@ -190,11 +191,11 @@ export function quat4toEuler(q: Vec4, out: Vec3Mut = v3()): Vec3 {
     return out;
 }
 
-const _quat4fromVecs_aux_a = vec3(0, 0, 0);
-const _quat4fromVecs_aux_b = vec3(0, 0, 0);
+const _quat4fromVecs_aux_a = v3();
+const _quat4fromVecs_aux_b = v3();
 export function quat4fromVecs(a: Vec3, b: Vec3, out: Vec4Mut = v4()): Vec4 {
-    const na = norm3(a, _quat4fromVecs_aux_a as Vec3Mut);
-    const nb = norm3(b, _quat4fromVecs_aux_b as Vec3Mut);
+    const na = norm3(a, _quat4fromVecs_aux_a);
+    const nb = norm3(b, _quat4fromVecs_aux_b);
     const k = dot3(na, nb);
     if (eq(k, -1, DOT_EPS)) {
         if (Math.abs(a.x) > Math.abs(a.z)) {

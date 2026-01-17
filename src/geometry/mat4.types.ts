@@ -1,13 +1,20 @@
 import { Vec3 } from './vec3.types';
 
-export interface Mat4 extends Iterable<number> {
-    readonly [i: number]: number;
-}
+export type Mat4 = Readonly<[
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+]>;
 
-export interface Mat4Mut extends Iterable<number> {
-    [i: number]: number;
+export type Mat4Mut = [
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+] & {
     readonly _NO_IMPLICIT_MAT4_CAST: null;
-}
+};
 
 export interface Orthogrpahic4x4Options {
     readonly left: number;

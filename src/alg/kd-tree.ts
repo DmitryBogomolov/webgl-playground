@@ -49,7 +49,7 @@ export class KDTree<T> {
     private readonly _root: KDNode<T> | null;
 
     constructor(
-        elements: ReadonlyArray<T>,
+        elements: ArrayLike<T>,
         axisFuncList: KDTreeAxisFuncList<T>,
         distanceFunc: KDTreeDistanceFunc = defaultDist,
     ) {
@@ -114,7 +114,7 @@ function defaultDist(axes: KDTreeDistance): number {
     return dist;
 }
 
-function makeProxyList<T>(elements: ReadonlyArray<T>): Proxy<T>[] {
+function makeProxyList<T>(elements: ArrayLike<T>): Proxy<T>[] {
     const list: Proxy<T>[] = [];
     list.length = elements.length;
     for (let i = 0; i < elements.length; ++i) {
