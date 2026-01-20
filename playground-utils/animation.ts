@@ -1,15 +1,10 @@
 import type { Runtime } from 'lib';
-import type { Observable } from './observable';
 import { observable } from './observable';
 
 const ICON_SIZE = 16;
 
-export function animation(runtime: Runtime): Observable<boolean> {
+export function animation(runtime: Runtime): () => void {
     const value = observable(true);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { dispose: originalDispose } = value;
-    value.dispose = dispose;
-
     const button = document.createElement('button');
     button.className = 'btn animation-button';
     const img = document.createElement('img');
@@ -23,23 +18,25 @@ export function animation(runtime: Runtime): Observable<boolean> {
 
     value.on(handleChange);
     value.on(setIconClass);
-    return value;
+    handleChange();
+    setIconClass();
+
+    return dispose;
 
     function setIconClass(): void {
         const val = value();
         img.src = `/static/${val ? 'play' : 'pause'}-solid.svg`;
     }
 
-    function dispose(this: typeof value): void {
-        this.off(handleChange);
-        this.off(setIconClass);
+    function dispose(): void {
+        value.off(handleChange);
+        value.off(setIconClass);
         runtime.frameRequested().off(handleFrame);
-        originalDispose.call(this);
         button.remove();
     }
 
-    function handleChange(val: boolean): void {
-        if (val) {
+    function handleChange(): void {
+        if (value()) {
             runtime.frameRequested().on(handleFrame);
             runtime.requestFrameRender();
         } else {
