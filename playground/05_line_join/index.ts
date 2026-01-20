@@ -42,16 +42,16 @@ export function main(): () => void {
 }
 
 function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {
-    state.thickness.on((thickness) => {
-        line.setThickness(thickness * thicknessFactor);
+    state.thickness.on(() => {
+        line.setThickness(state.thickness() * thicknessFactor);
         runtime.requestFrameRender();
     });
     state.changedVertices.on(() => {
         line.setVertices(state.vertices());
         runtime.requestFrameRender();
     });
-    state.changedVertex.on(({ index }) => {
-        line.updateVertex(state.vertices(), index);
+    state.changedVertex.on(() => {
+        line.updateVertex(state.vertices(), state.changedVertex().index);
         runtime.requestFrameRender();
     });
     line.setVertices(state.vertices());

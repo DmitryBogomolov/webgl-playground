@@ -1,7 +1,7 @@
 import type { Runtime } from 'lib';
-import { Primitive, Program, Texture, makeImage, parseVertexSchema } from 'lib';
+import { Primitive, Program, Texture, makeImage, memoize, parseVertexSchema } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed } from 'playground-utils/observable';
+import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
 import fragShader from './shaders/frag.glsl';
@@ -20,11 +20,10 @@ export function main(): () => void {
     const texture = makeTexture(runtime);
 
     const kernelName = observable(convolutionKernels[0].name);
-    const currentKernel = computed(([name]) => {
-        return convolutionKernels.find((kernel) => kernel.name === name)!;
-    }, [kernelName]);
 
-    const cancelRender = renderOnChange(runtime, [currentKernel]);
+    const getKernel = memoize((name: string) => convolutionKernels.find((kernel) => kernel.name === name)!);
+
+    const cancelRender = renderOnChange(runtime, [kernelName]);
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer();
@@ -33,8 +32,9 @@ export function main(): () => void {
         program.setUniform('u_canvas_size', runtime.renderSize());
         program.setUniform('u_texture_size', texture.size());
         program.setUniform('u_texture', 3);
-        program.setUniform('u_kernel', currentKernel().kernel);
-        program.setUniform('u_kernel_weight', currentKernel().weight);
+        const { kernel, weight } = getKernel(kernelName());
+        program.setUniform('u_kernel', kernel);
+        program.setUniform('u_kernel_weight', weight);
         primitive.render();
     });
 
@@ -43,7 +43,7 @@ export function main(): () => void {
     ]);
 
     return () => {
-        disposeAll([primitive.program(), primitive, runtime, currentKernel, kernelName, controlRoot, cancelRender]);
+        disposeAll([primitive.program(), primitive, runtime, kernelName, controlRoot, cancelRender]);
     };
 }
 
