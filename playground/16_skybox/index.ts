@@ -7,7 +7,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { bind, observablesFactory } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';
@@ -42,7 +42,6 @@ export function main(): () => void {
     const texture = makeTexture(runtime);
     const camera = new OrbitCamera();
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const cameraLon = observable(0);
     const cameraLat = observable(0);
     const cameraDist = observable(2);
@@ -100,10 +99,7 @@ export function main(): () => void {
     ]);
 
     return () => {
-        disposeAll([
-            disposeObservables, cancelRender, controlRoot,
-            quad.program(), quad, cube.program(), cube, texture, runtime,
-        ]);
+        disposeAll([cancelRender, controlRoot, quad.program(), quad, cube.program(), cube, texture, runtime]);
     };
 }
 

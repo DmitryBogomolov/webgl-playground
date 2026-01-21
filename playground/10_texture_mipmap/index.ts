@@ -10,7 +10,7 @@ import {
     fovSize2Dist, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory, bind } from 'playground-utils/observable';
+import { observable, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
@@ -61,7 +61,6 @@ export function main(): () => void {
     const ANIMATION_SPEED = PI2 / 10;
     const ANIMATION_RADIUS = 10;
 
-    const { observable, dispose: disposeObservables } = observablesFactory();
     const xRotation = observable(0);
     const yRotation = observable(0);
     const mat = mat4() as Mat4Mut;
@@ -141,9 +140,6 @@ export function main(): () => void {
     const animate = animation(runtime);
 
     return () => {
-        disposeAll([
-            disposeObservables, animate, cancelRender, controlRoot,
-            primitive.program(), primitive, texture, runtime,
-        ]);
+        disposeAll([animate, cancelRender, controlRoot, primitive.program(), primitive, texture, runtime]);
     };
 }

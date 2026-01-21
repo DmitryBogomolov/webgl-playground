@@ -8,7 +8,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { bind, observablesFactory } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeColorTexture, makeMappingTexture } from './texture';
@@ -58,7 +58,6 @@ export function main(): () => void {
     });
     const mappingCamera = new OrbitCamera();
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const rotation = observable(0);
     const position = observable(0);
     const projectionDist = observable(2);
@@ -170,7 +169,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelRender, controlRoot,
+            cancelRender, controlRoot,
             program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
         ]);
     };

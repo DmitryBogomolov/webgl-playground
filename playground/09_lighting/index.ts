@@ -10,7 +10,7 @@ import {
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 
@@ -38,7 +38,6 @@ export function main(): () => void {
     const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
     const clr = color(0.2, 0.6, 0.1);
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const offsetCoeff = observable(0);
     const rotation = observable(0);
     const position = observable(0);
@@ -167,8 +166,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelRender, controlRoot,
-            directionalProgram, pointProgram, spotProgram, primitive, runtime,
+            cancelRender, controlRoot, directionalProgram, pointProgram, spotProgram, primitive, runtime,
         ]);
     };
 }
