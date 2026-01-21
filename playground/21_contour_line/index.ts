@@ -9,7 +9,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { bind, observablesFactory } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
@@ -44,17 +44,19 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(20);
     const cameraDist = observable(2);
-    const cameraPos = computed(
-        ([cameraLon, cameraLat, cameraDist]) => ({
-            dist: cameraDist,
-            lon: deg2rad(cameraLon),
-            lat: deg2rad(cameraLat),
-        }),
-        [cameraLon, cameraLat, cameraDist],
+    bind(
+        computed(
+            ([cameraLon, cameraLat, cameraDist]) => ({
+                dist: cameraDist,
+                lon: deg2rad(cameraLon),
+                lat: deg2rad(cameraLat),
+            }),
+            [cameraLon, cameraLat, cameraDist],
+        ),
+        (cameraPos) => {
+            camera.setPosition(cameraPos);
+        },
     );
-    cameraPos.on((pos) => {
-        camera.setPosition(pos);
-    });
 
     const xRotation = observable(0);
     const yRotation = observable(0);

@@ -11,7 +11,7 @@ import {
     parseVertexSchema,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
@@ -35,17 +35,19 @@ export function main(): () => void {
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
-    const cameraPos = computed(
-        ([cameraLon, cameraLat]) => ({
-            dist: 2,
-            lon: deg2rad(cameraLon),
-            lat: deg2rad(cameraLat),
-        }),
-        [cameraLon, cameraLat],
+    bind(
+        computed(
+            ([cameraLon, cameraLat]) => ({
+                dist: 2,
+                lon: deg2rad(cameraLon),
+                lat: deg2rad(cameraLat),
+            }),
+            [cameraLon, cameraLat],
+        ),
+        (cameraPos) => {
+            camera.setPosition(cameraPos);
+        },
     );
-    cameraPos.on((pos) => {
-        camera.setPosition(pos);
-    });
 
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
@@ -70,7 +72,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraPos, cancelRender, controlRoot,
+            cameraLon, cameraLat, cancelRender, controlRoot,
             primitive.program(), primitive, texture, runtime,
         ]);
     };

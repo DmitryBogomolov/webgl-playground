@@ -43,7 +43,7 @@ type ObservableType<T> = T extends Observable<infer P> ? P : never;
 type ObservableListTypes<T extends readonly unknown[]> = { -readonly [P in keyof T]: ObservableType<T[P]> };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function computed<K extends ReadonlyArray<Observable<any>>, T>(
+export function computed<K extends readonly Observable<any>[], T>(
     handler: (args: ObservableListTypes<K>) => T,
     observables: K,
 ): Observable<T> {
@@ -96,6 +96,20 @@ function setupOnOff<T>(target: Observable<T>, emitter: EventProxy): void {
     };
 }
 
+export function bind<T>(observable: Observable<T>, func: (value: T) => void): () => void {
+    observable.on(handleChange);
+    handleChange();
+
+    return () => {
+        observable.off(handleChange);
+    };
+
+    function handleChange(): void {
+        func(observable());
+    }
+}
+
+// TODO: Remove.
 export interface ObservablesFactory {
     readonly observable: typeof observable,
     readonly computed: typeof computed,

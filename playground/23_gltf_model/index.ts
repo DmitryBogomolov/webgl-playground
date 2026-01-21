@@ -6,7 +6,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 
 /**
@@ -45,17 +45,19 @@ export function main(): () => void {
 
     const cameraLon = observable(0);
     const cameraLat = observable(30);
-    const cameraPos = computed(
-        ([cameraLon, cameraLat]) => ({
-            dist: 5,
-            lon: deg2rad(cameraLon),
-            lat: deg2rad(cameraLat),
-        }),
-        [cameraLon, cameraLat],
+    bind(
+        computed(
+            ([cameraLon, cameraLat]) => ({
+                dist: 5,
+                lon: deg2rad(cameraLon),
+                lat: deg2rad(cameraLat),
+            }),
+            [cameraLon, cameraLat],
+        ),
+        (cameraPos) => {
+            camera.setPosition(cameraPos);
+        },
     );
-    cameraPos.on((pos) => {
-        camera.setPosition(pos);
-    });
 
     runtime.renderSizeChanged().on(() => {
         camera.setViewportSize(runtime.renderSize());
@@ -68,8 +70,8 @@ export function main(): () => void {
     });
 
     const selectedModelName = observable(MODELS[0].name);
-    selectedModelName.on((selected) => {
-        const model = MODELS.find(({ name }) => name === selected)!;
+    bind(selectedModelName, (targetName) => {
+        const model = MODELS.find(({ name }) => name === targetName)!;
         renderer.setData({ url: `/static/gltf-models/${model.path}` }).catch(console.error);
     });
 
@@ -81,7 +83,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraPos, cancelRender, controlRoot,
+            cameraLon, cameraLat, cancelRender, controlRoot,
             renderer, runtime,
         ]);
     };
