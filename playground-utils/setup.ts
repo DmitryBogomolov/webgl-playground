@@ -87,7 +87,6 @@ function createLogger(): Logger {
     }
 }
 
-// TODO: Try to just return list from "main",
 export function disposeAll(disposables: Iterable<{ dispose(): void } | (() => void)>): void {
     for (const disposable of disposables) {
         if ('dispose' in disposable) {

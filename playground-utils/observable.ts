@@ -6,23 +6,9 @@ export interface Observable<T> extends EventProxy {
     (value: T): this;
 }
 
-export interface ObservableOptions {
-    // TODO: cmp function + with T parameter
-    readonly noEqualityCheck?: boolean;
-}
-
-function compareDefault<T>(curr: T, next: T): boolean {
-    return curr === next;
-}
-
-function compareNone(): boolean {
-    return false;
-}
-
-export function observable<T>(initial: T, options?: ObservableOptions): Observable<T> {
+export function observable<T>(initial: T): Observable<T> {
     let currentValue = initial;
     const emitter = new EventEmitter();
-    const cmp = options?.noEqualityCheck ? compareNone : compareDefault;
     setupOnOff(target as Observable<T>, emitter.proxy());
 
     return target as Observable<T>;
@@ -31,7 +17,7 @@ export function observable<T>(initial: T, options?: ObservableOptions): Observab
         if (value === undefined) {
             return currentValue;
         }
-        if (!cmp(currentValue, value)) {
+        if (currentValue !== value) {
             currentValue = value;
             emitter.emit();
         }
