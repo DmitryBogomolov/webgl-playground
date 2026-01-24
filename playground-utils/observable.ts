@@ -100,8 +100,8 @@ function setupOnOff<T>(target: Observable<T>, emitter: EventProxy): void {
 
 export function bind<T>(observable: Observable<T>, func: (value: T) => void): () => void {
     observable.on(handleChange);
-    handleChange();
     const ref = new WeakRef(observable); // experiment
+    handleChange();
 
     return () => {
         ref.deref()?.off(handleChange);
