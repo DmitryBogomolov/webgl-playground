@@ -43,18 +43,18 @@ export function computed<P1, P2, P3, T>(
 ): Observable<T>;
 export function computed<P, T>(
     handler: (args: P) => T,
-    observables: ReadonlyArray<Observable<unknown>>,
+    observables: Iterable<Observable<unknown>>,
 ): Observable<T> {
-    let isDirty = true;
+    let isChanged = true;
     let currentValue: T;
     const emitter = new EventEmitter();
     setupOnOff(target as Observable<T>, emitter.proxy());
+    const refs = Array.from(observables, (obj) => {
+        obj.on(notify);
+        return new WeakRef(obj); // experiment
+    });
     const valuesCache: unknown[] = [];
-    valuesCache.length = observables.length;
-    // TODO: Use WeakRef.
-    for (let i = 0; i < observables.length; ++i) {
-        observables[i].on(notify);
-    }
+    valuesCache.length = refs.length;
 
     return target as Observable<T>;
 
@@ -62,23 +62,27 @@ export function computed<P, T>(
         if (value !== undefined) {
             throw new Error('computed:read_only');
         }
-        calculate();
+        if (isChanged) {
+            calculate();
+            isChanged = false;
+        }
         return currentValue;
     }
 
     function calculate(): void {
-        if (!isDirty) {
-            return;
-        }
-        for (let i = 0; i < observables.length; ++i) {
-            valuesCache[i] = observables[i]();
+        for (let i = 0; i < refs.length; ++i) {
+            const obj = refs[i].deref();
+            if (obj) {
+                valuesCache[i] = obj();
+            } else {
+                return;
+            }
         }
         currentValue = handler(valuesCache as unknown as P);
-        isDirty = false;
     }
 
     function notify(): void {
-        isDirty = true;
+        isChanged = true;
         emitter.emit();
     }
 }
@@ -97,12 +101,16 @@ function setupOnOff<T>(target: Observable<T>, emitter: EventProxy): void {
 export function bind<T>(observable: Observable<T>, func: (value: T) => void): () => void {
     observable.on(handleChange);
     handleChange();
+    const ref = new WeakRef(observable); // experiment
 
     return () => {
-        observable.off(handleChange);
+        ref.deref()?.off(handleChange);
     };
 
     function handleChange(): void {
-        func(observable());
+        const obj = ref.deref();
+        if (obj) {
+            func(obj());
+        }
     }
 }
