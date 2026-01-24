@@ -1,4 +1,4 @@
-import type { Program, SHADER_UNIFORM_VALUE, Vec3, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
+import type { Program, SHADER_UNIFORM_VALUE, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -109,7 +109,7 @@ export function main(): () => void {
     );
 
     const lightPosition = computed(
-        ([lightDirection, lightDistance]) => mul3(lightDirection as Vec3, -lightDistance),
+        ([lightDirection, lightDistance]) => mul3(lightDirection, -lightDistance),
         [lightDirection, lightDistance],
     );
 

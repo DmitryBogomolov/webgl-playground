@@ -25,13 +25,25 @@ export function observable<T>(initial: T): Observable<T> {
     }
 }
 
-type ObservableType<T> = T extends Observable<infer P> ? P : never;
-type ObservableListTypes<T extends readonly unknown[]> = { -readonly [P in keyof T]: ObservableType<T[P]> };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function computed<K extends readonly Observable<any>[], T>(
-    handler: (args: ObservableListTypes<K>) => T,
-    observables: K,
+// export function computed<K extends readonly unknown[], T>(
+//     handler: (args: K) => T,
+//     observables: { readonly [P in keyof K]: Observable<K[P]> },
+// ): Observable<T>
+export function computed<P1, T>(
+    handler: (args: Readonly<[P1]>) => T,
+    observables: Readonly<[Observable<P1>]>,
+): Observable<T>;
+export function computed<P1, P2, T>(
+    handler: (args: Readonly<[P1, P2]>) => T,
+    observables: Readonly<[Observable<P1>, Observable<P2>]>,
+): Observable<T>;
+export function computed<P1, P2, P3, T>(
+    handler: (args: Readonly<[P1, P2, P3]>) => T,
+    observables: Readonly<[Observable<P1>, Observable<P2>, Observable<P3>]>,
+): Observable<T>;
+export function computed<P, T>(
+    handler: (args: P) => T,
+    observables: ReadonlyArray<Observable<unknown>>,
 ): Observable<T> {
     let isDirty = true;
     let currentValue: T;
@@ -61,7 +73,7 @@ export function computed<K extends readonly Observable<any>[], T>(
         for (let i = 0; i < observables.length; ++i) {
             valuesCache[i] = observables[i]();
         }
-        currentValue = handler(valuesCache as ObservableListTypes<K>);
+        currentValue = handler(valuesCache as unknown as P);
         isDirty = false;
     }
 
