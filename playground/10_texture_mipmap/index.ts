@@ -10,7 +10,7 @@ import {
     fovSize2Dist, deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { observable, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
 import { makePrimitive } from './primitive';
@@ -61,7 +61,6 @@ export function main(): () => void {
     const ANIMATION_SPEED = PI2 / 10;
     const ANIMATION_RADIUS = 10;
 
-    const { observable, dispose: disposeObservables } = observablesFactory();
     const xRotation = observable(0);
     const yRotation = observable(0);
     const mat = mat4() as Mat4Mut;
@@ -71,17 +70,17 @@ export function main(): () => void {
         'nearest', 'linear',
         'nearest_mipmap_nearest', 'linear_mipmap_nearest', 'nearest_mipmap_linear', 'linear_mipmap_linear',
     ];
-    const magFilter = observable(MAG_FILTER_OPTIONS[0]) as Observable<string>;
-    const minFilter = observable(MIN_FILTER_OPTIONS[0]) as Observable<string>;
+    const magFilter = observable(MAG_FILTER_OPTIONS[0]);
+    const minFilter = observable(MIN_FILTER_OPTIONS[0]);
 
-    magFilter.on((value) => {
+    bind(magFilter, (value) => {
         texture.setParameters({
-            mag_filter: value as TEXTURE_MAG_FILTER,
+            mag_filter: value,
         });
     });
-    minFilter.on((value) => {
+    bind(minFilter, (value) => {
         texture.setParameters({
-            min_filter: value as TEXTURE_MIN_FILTER,
+            min_filter: value,
         });
     });
 
@@ -134,16 +133,13 @@ export function main(): () => void {
     const controlRoot = createControls(container, [
         { label: 'x rotation', min: -30, max: +30, value: xRotation },
         { label: 'y rotation', min: -30, max: +30, value: yRotation },
-        { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter },
-        { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter },
+        { label: 'mag filter', options: MAG_FILTER_OPTIONS, selection: magFilter as Observable<string> },
+        { label: 'min filter', options: MIN_FILTER_OPTIONS, selection: minFilter as Observable<string> },
     ]);
 
     const animate = animation(runtime);
 
     return () => {
-        disposeAll([
-            disposeObservables, animate, cancelRender, controlRoot,
-            primitive.program(), primitive, texture, runtime,
-        ]);
+        disposeAll([animate, cancelRender, controlRoot, primitive.program(), primitive, texture, runtime]);
     };
 }

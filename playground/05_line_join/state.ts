@@ -8,12 +8,6 @@ export class State {
     readonly changedVertex = observable({ index: -1 });
     readonly thickness = observable(50);
 
-    dispose(): void {
-        this.changedVertices.dispose();
-        this.changedVertex.dispose();
-        this.thickness.dispose();
-    }
-
     vertices(): ReadonlyArray<Vec2> {
         return this._vertices;
     }

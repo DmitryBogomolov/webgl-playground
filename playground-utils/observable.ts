@@ -1,31 +1,15 @@
 import type { EventProxy } from 'lib';
 import { EventEmitter } from 'lib';
 
-export interface ChangeHandler<T> {
-    (value: T): void;
-}
-
-export interface Observable<T> extends EventProxy<[T]> {
+export interface Observable<T> extends EventProxy {
     (): T;
-    (value: T): Observable<T>;
-    dispose(): void;
+    (value: T): this;
 }
 
-const DEFAULT_NOTIFY_DELAY = 0;
-
-export interface ObservableOptions {
-    readonly noEqualityCheck?: boolean;
-    readonly notifyDelay?: number;
-}
-
-export function observable<T>(initial: T, options?: ObservableOptions): Observable<T> {
+export function observable<T>(initial: T): Observable<T> {
     let currentValue = initial;
-    let notifyId = 0;
-    let disposed = false;
-    const emitter = new EventEmitter<[T]>();
-    patchWithMethods(target as Observable<T>, emitter, dispose);
-    const noEqualityCheck = options ? Boolean(options.noEqualityCheck) : false;
-    const notifyDelay = options ? (options.notifyDelay || DEFAULT_NOTIFY_DELAY) : DEFAULT_NOTIFY_DELAY;
+    const emitter = new EventEmitter();
+    setupOnOff(target as Observable<T>, emitter.proxy());
 
     return target as Observable<T>;
 
@@ -33,135 +17,100 @@ export function observable<T>(initial: T, options?: ObservableOptions): Observab
         if (value === undefined) {
             return currentValue;
         }
-        if (disposed) {
-            throw new Error('disposed');
-        }
-        if (noEqualityCheck || value !== currentValue) {
+        if (currentValue !== value) {
             currentValue = value;
-            cancelNotify(notifyId);
-            notifyId = scheduleNotify(notify, notifyDelay);
+            emitter.emit();
         }
         return target as Observable<T>;
     }
-    function dispose(): void {
-        disposed = true;
-        cancelNotify(notifyId);
-    }
-    function notify(): void {
-        emitter.emit(currentValue);
-    }
 }
 
-type ObservableType<T> = T extends Observable<infer P> ? P : never;
-type ObservableListTypes<T extends readonly unknown[]> = { -readonly [P in keyof T]: ObservableType<T[P]> };
-
-export interface ComputedOptions {
-    readonly notifyDelay?: number;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function computed<K extends ReadonlyArray<Observable<any>>, T>(
-    handler: (args: ObservableListTypes<K>) => T,
-    observables: K,
-    options?: ComputedOptions,
+// export function computed<K extends readonly unknown[], T>(
+//     handler: (args: K) => T,
+//     observables: { readonly [P in keyof K]: Observable<K[P]> },
+// ): Observable<T>
+export function computed<P1, T>(
+    handler: (args: Readonly<[P1]>) => T,
+    observables: Readonly<[Observable<P1>]>,
+): Observable<T>;
+export function computed<P1, P2, T>(
+    handler: (args: Readonly<[P1, P2]>) => T,
+    observables: Readonly<[Observable<P1>, Observable<P2>]>,
+): Observable<T>;
+export function computed<P1, P2, P3, T>(
+    handler: (args: Readonly<[P1, P2, P3]>) => T,
+    observables: Readonly<[Observable<P1>, Observable<P2>, Observable<P3>]>,
+): Observable<T>;
+export function computed<P, T>(
+    handler: (args: P) => T,
+    observables: Iterable<Observable<unknown>>,
 ): Observable<T> {
-    let notifyId = 0;
-    let disposed = false;
-    const emitter = new EventEmitter<[T]>();
-    const notifyDelay = options ? (options.notifyDelay || DEFAULT_NOTIFY_DELAY) : DEFAULT_NOTIFY_DELAY;
-    patchWithMethods(target as Observable<T>, emitter, dispose);
-    const valuesCache = [] as unknown as ObservableListTypes<K>;
-    const handlers = [] as ((value: unknown) => void)[];
-    let initialized = false;
-    observables.forEach((item, i) => {
-        handlers[i] = (value) => {
-            valuesCache[i] = value;
-            if (initialized) {
-                currentValue = handler(valuesCache);
-                cancelNotify(notifyId);
-                notifyId = scheduleNotify(notify, notifyDelay);
-            }
-        };
-        item.on(handlers[i]);
+    let isChanged = true;
+    let currentValue: T;
+    const emitter = new EventEmitter();
+    setupOnOff(target as Observable<T>, emitter.proxy());
+    const refs = Array.from(observables, (obj) => {
+        obj.on(notify);
+        return new WeakRef(obj); // experiment
     });
-    let currentValue = handler(valuesCache);
-    initialized = true;
+    const valuesCache: unknown[] = [];
+    valuesCache.length = refs.length;
 
     return target as Observable<T>;
 
-    function target(value?: T): T | Observable<T> {
-        if (value === undefined) {
-            return currentValue;
+    function target(value?: T): T {
+        if (value !== undefined) {
+            throw new Error('computed:read_only');
         }
-        if (disposed) {
-            throw new Error('disposed');
+        if (isChanged) {
+            calculate();
+            isChanged = false;
         }
-        throw new Error('computed is read only');
+        return currentValue;
     }
-    function notify(): void {
-        emitter.emit(currentValue);
-    }
-    function dispose(): void {
-        disposed = true;
-        observables.forEach((item, i) => {
-            item.off(handlers[i]);
-        });
-        cancelNotify(notifyId);
-    }
-}
 
-function patchWithMethods<T>(target: Observable<T>, emitter: EventEmitter<[T]>, dispose: () => void): void {
-    target.dispose = dispose;
-    target.on = function (handler) {
-        emitter.on(handler);
-        handler(target());
-        return this;
-    };
-    target.off = function (handler) {
-        emitter.off(handler);
-        return this;
-    };
-}
-
-function scheduleNotify(notify: () => void, delay: number): number {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    return setTimeout(notify as TimerHandler, delay);
-}
-
-function cancelNotify(id: number): void {
-    clearTimeout(id);
-}
-
-export interface ObservablesFactory {
-    readonly observable: typeof observable,
-    readonly computed: typeof computed,
-    readonly dispose: () => void;
-}
-
-export function observablesFactory(): ObservablesFactory {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const list: Observable<any>[] = [];
-
-    const origObservable = observable;
-    const origComputed = computed;
-
-    return {
-        observable(initial, options) {
-            const result = origObservable(initial, options);
-            list.push(result);
-            return result;
-        },
-
-        computed(handler, observables, options) {
-            const result = origComputed(handler, observables, options);
-            list.push(result);
-            return result;
-        },
-
-        dispose() {
-            for (const item of list) {
-                item.dispose();
+    function calculate(): void {
+        for (let i = 0; i < refs.length; ++i) {
+            const obj = refs[i].deref();
+            if (obj) {
+                valuesCache[i] = obj();
+            } else {
+                return;
             }
-        },
+        }
+        currentValue = handler(valuesCache as unknown as P);
+    }
+
+    function notify(): void {
+        isChanged = true;
+        emitter.emit();
+    }
+}
+
+function setupOnOff<T>(target: Observable<T>, emitter: EventProxy): void {
+    target.on = (handler) => {
+        emitter.on(handler);
+        return target;
     };
+    target.off = (handler) => {
+        emitter.off(handler);
+        return target;
+    };
+}
+
+export function bind<T>(observable: Observable<T>, func: (value: T) => void): () => void {
+    observable.on(handleChange);
+    const ref = new WeakRef(observable); // experiment
+    handleChange();
+
+    return () => {
+        ref.deref()?.off(handleChange);
+    };
+
+    function handleChange(): void {
+        const obj = ref.deref();
+        if (obj) {
+            func(obj());
+        }
+    }
 }

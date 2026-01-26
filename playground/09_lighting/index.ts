@@ -1,4 +1,4 @@
-import type { Program, SHADER_UNIFORM_VALUE, Vec3, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
+import type { Program, SHADER_UNIFORM_VALUE, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -10,7 +10,7 @@ import {
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
 
@@ -38,7 +38,6 @@ export function main(): () => void {
     const Y_VIEW_SIZE = fovDist2Size(YFOV, VIEW_DIST);
     const clr = color(0.2, 0.6, 0.1);
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const offsetCoeff = observable(0);
     const rotation = observable(0);
     const position = observable(0);
@@ -48,18 +47,27 @@ export function main(): () => void {
     const lightLimitPoint = observable(5);
     const lightLimitRange = observable(10);
 
-    const proj = observable(
-        mat4(),
-        { noEqualityCheck: true },
+    const aspectRatio = observable(1);
+
+    const _proj = mat4() as Mat4Mut;
+    const proj = computed(
+        ([aspectRatio]) => {
+            const mat = _proj;
+            perspective4x4({
+                aspect: aspectRatio,
+                yFov: YFOV,
+                zNear: 0.01,
+                zFar: 100,
+            }, mat);
+            return mat;
+        },
+        [aspectRatio],
     );
-    const view = observable(
-        lookAt4x4({
-            eye: mul3(VIEW_DIR, VIEW_DIST),
-            center: ZERO3,
-            up: YUNIT3,
-        }),
-        { noEqualityCheck: true },
-    );
+    const view = lookAt4x4({
+        eye: mul3(VIEW_DIR, VIEW_DIST),
+        center: ZERO3,
+        up: YUNIT3,
+    });
 
     const _model = mat4() as Mat4Mut;
     const model = computed(
@@ -75,7 +83,7 @@ export function main(): () => void {
 
     const _modelViewProj = mat4() as Mat4Mut;
     const modelViewProj = computed(
-        ([model, view, proj]) => {
+        ([model, proj]) => {
             const mat = _modelViewProj;
             identity4x4(mat);
             mul4x4(model, mat, mat);
@@ -83,7 +91,7 @@ export function main(): () => void {
             mul4x4(proj, mat, mat);
             return mat as Mat4;
         },
-        [model, view, proj],
+        [model, proj],
     );
 
     const _modelInvTrs = mat4() as Mat4Mut;
@@ -101,7 +109,7 @@ export function main(): () => void {
     );
 
     const lightPosition = computed(
-        ([lightDirection, lightDistance]) => mul3(lightDirection as Vec3, -lightDistance),
+        ([lightDirection, lightDistance]) => mul3(lightDirection, -lightDistance),
         [lightDirection, lightDistance],
     );
 
@@ -121,18 +129,11 @@ export function main(): () => void {
         [offsetCoeff, modelViewProj, modelInvTrs, lightDirection, lightPosition, lightLimit],
     );
 
-    const _proj = mat4() as Mat4Mut;
     runtime.renderSizeChanged().on(() => {
         const { x, y } = runtime.renderSize();
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);
-        perspective4x4({
-            aspect: x / y,
-            yFov: YFOV,
-            zNear: 0.01,
-            zFar: 100,
-        }, _proj);
-        proj(_proj);
+        aspectRatio(x / y);
     });
 
     runtime.frameRequested().on(() => {
@@ -167,8 +168,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelRender, controlRoot,
-            directionalProgram, pointProgram, spotProgram, primitive, runtime,
+            cancelRender, controlRoot, directionalProgram, pointProgram, spotProgram, primitive, runtime,
         ]);
     };
 }

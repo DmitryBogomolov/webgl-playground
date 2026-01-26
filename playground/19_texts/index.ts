@@ -9,7 +9,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
 import { makeLabelPrimitive, makeLabelTexture } from './label';
@@ -52,17 +52,19 @@ export function main(): () => void {
     const cameraLon = observable(0);
     const cameraLat = observable(10);
     const cameraDist = observable(5);
-    const cameraPos = computed(
-        ([cameraLon, cameraLat, cameraDist]) => ({
-            dist: cameraDist,
-            lon: deg2rad(cameraLon),
-            lat: deg2rad(cameraLat),
-        }),
-        [cameraLon, cameraLat, cameraDist],
+    bind(
+        computed(
+            ([cameraLon, cameraLat, cameraDist]) => ({
+                dist: cameraDist,
+                lon: deg2rad(cameraLon),
+                lat: deg2rad(cameraLat),
+            }),
+            [cameraLon, cameraLat, cameraDist],
+        ),
+        (cameraPos) => {
+            camera.setPosition(cameraPos);
+        },
     );
-    cameraPos.on((pos) => {
-        camera.setPosition(pos);
-    });
 
     const primitive = makePrimitive(runtime);
     const labelPrimitive = makeLabelPrimitive(runtime);
@@ -93,7 +95,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cameraPos, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cancelRender, controlRoot,
             disposeObjects, primitive.program(), primitive, labelPrimitive.program(), labelPrimitive, runtime,
         ]);
     };

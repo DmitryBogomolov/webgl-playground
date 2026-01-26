@@ -8,7 +8,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
 import { makeColorTexture, makeMappingTexture } from './texture';
@@ -58,7 +58,6 @@ export function main(): () => void {
     });
     const mappingCamera = new OrbitCamera();
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const rotation = observable(0);
     const position = observable(0);
     const projectionDist = observable(2);
@@ -82,32 +81,43 @@ export function main(): () => void {
         [rotation, position],
     );
 
-    const projectionPos = computed(
-        ([projectionDist, projectionLon, projectionLat]) => ({
-            dist: projectionDist,
-            lon: deg2rad(projectionLon),
-            lat: deg2rad(projectionLat),
-        }),
-        [projectionDist, projectionLon, projectionLat],
+    bind(
+        computed(
+            ([projectionDist, projectionLon, projectionLat]) => ({
+                dist: projectionDist,
+                lon: deg2rad(projectionLon),
+                lat: deg2rad(projectionLat),
+            }),
+            [projectionDist, projectionLon, projectionLat],
+        ),
+        (projectionPos) => {
+            mappingCamera.setPosition(projectionPos);
+        },
     );
-    projectionPos.on((pos) => {
-        mappingCamera.setPosition(pos);
-    });
 
-    const projectionSize = computed(
-        ([projectionWidth, projectionHeight]) => ({ x: projectionWidth, y: projectionHeight }),
-        [projectionWidth, projectionHeight],
+    bind(
+        computed(
+            ([projectionWidth, projectionHeight]) => ({ x: projectionWidth, y: projectionHeight }),
+            [projectionWidth, projectionHeight],
+        ),
+        (projectionSize) => {
+            mappingCamera.setViewportSize(projectionSize);
+        },
     );
-    projectionSize.on((size) => {
-        mappingCamera.setViewportSize(size);
-    });
 
-    projectionFOV.on((projectionFOV) => {
-        mappingCamera.setYFov(deg2rad(projectionFOV));
-    });
-    isPerpsectiveProjection.on((isPerpsectiveProjection) => {
-        mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
-    });
+    bind(
+        projectionFOV,
+        (projectionFOV) => {
+            mappingCamera.setYFov(deg2rad(projectionFOV));
+        },
+    );
+
+    bind(
+        isPerpsectiveProjection,
+        (isPerpsectiveProjection) => {
+            mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+        },
+    );
 
     const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);
 
@@ -159,7 +169,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelRender, controlRoot,
+            cancelRender, controlRoot,
             program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
         ]);
     };

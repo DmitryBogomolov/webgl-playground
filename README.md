@@ -69,4 +69,3 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 - uniform buffers
 - lazy and only necessary to_str in log methods
 - camera - binding methods
-- observable - lazy compute

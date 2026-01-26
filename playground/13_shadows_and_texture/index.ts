@@ -9,7 +9,7 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observablesFactory } from 'playground-utils/observable';
+import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } from './primitive';
 
@@ -56,7 +56,6 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const { observable, computed, dispose: disposeObservables } = observablesFactory();
     const viewLon = observable(0);
     const lightLon = observable(-60);
     const lightLat = observable(0);
@@ -74,26 +73,28 @@ export function main(): () => void {
         lon: 0,
     });
 
-    viewLon.on((viewLon) => {
+    bind(viewLon, (viewLon) => {
         viewProj.setPosition({ lon: deg2rad(viewLon) });
     });
 
-    const lightPos = computed(
-        ([lightLon, lightLat, lightDist]) => ({
-            dist: lightDist,
-            lon: deg2rad(lightLon),
-            lat: deg2rad(lightLat),
-        }),
-        [lightLon, lightLat, lightDist],
+    bind(
+        computed(
+            ([lightLon, lightLat, lightDist]) => ({
+                dist: lightDist,
+                lon: deg2rad(lightLon),
+                lat: deg2rad(lightLat),
+            }),
+            [lightLon, lightLat, lightDist],
+        ),
+        (lightPos) => {
+            depthViewProj.setPosition(lightPos);
+        },
     );
-    lightPos.on((pos) => {
-        depthViewProj.setPosition(pos);
-    });
 
-    zNear.on((zNear) => {
+    bind(zNear, (zNear) => {
         depthViewProj.setZNear(zNear);
     });
-    zFar.on((zFar) => {
+    bind(zFar, (zFar) => {
         depthViewProj.setZFar(zFar);
     });
 
@@ -162,7 +163,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            disposeObservables, cancelRender, controlRoot,
+            cancelRender, controlRoot,
             ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
         ]);
     };
