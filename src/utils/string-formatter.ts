@@ -14,7 +14,7 @@ export function toStr(obj: unknown): string {
         return String(obj);
     }
     if (Array.isArray(obj)) {
-        return JSON.stringify(obj);
+        return `[${obj.map(toStr).join(', ')}]`;
     }
     if (type === 'object') {
         if ((obj as object).toString !== objectToString) {
