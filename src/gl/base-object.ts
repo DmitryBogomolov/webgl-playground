@@ -32,7 +32,7 @@ export abstract class BaseObject {
 
     protected _logInfo_(message: string, ...args: unknown[]): void {
         const msg = args.length > 0 ? formatStr(message, ...args) : message;
-        this._logger.info(this._id + '.' + msg);
+        this._logger.info(`${this._id}: ${msg}`);
     }
 
     protected _logMethod(method: string, args: unknown): void {
@@ -49,7 +49,7 @@ export abstract class BaseObject {
 
     protected _logWarn_(message: string, ...args: unknown[]): void {
         const msg = args.length > 0 ? formatStr(message, ...args) : message;
-        this._logger.warn(this._id + '.' + msg);
+        this._logger.warn(`${this._id}: ${msg}`);
     }
 
     protected _logError(message: string | Error): Error {
@@ -69,12 +69,13 @@ export abstract class BaseObject {
             const err = new Error(message.message);
             err.name = message.name;
             err.stack = patchStack(message, message.message);
-            this._logger.error(this._id + '.' + (err.stack || err.message));
+            this._logger.error(`${this._id}: ${err.stack || err.message}`);
             throw err;
         }
         const msg = args.length > 0 ? formatStr(message, ...args) : message;
-        this._logger.error(this._id + '.' + msg);
-        return new Error(this._id + '.' + msg);
+        const err = `${this._id}: ${msg}`;
+        this._logger.error(err);
+        return new Error(err);
     }
 
     toString(): string {
