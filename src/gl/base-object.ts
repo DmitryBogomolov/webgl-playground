@@ -31,7 +31,7 @@ export abstract class BaseObject {
     }
 
     protected _logInfo_(message: string, ...args: unknown[]): void {
-        const msg = args.length > 0 ? formatStr(message, ...args) : message;
+        const msg = formatStr(message, ...args);
         this._logger.info(`${this._id}: ${msg}`);
     }
 
@@ -48,7 +48,7 @@ export abstract class BaseObject {
     }
 
     protected _logWarn_(message: string, ...args: unknown[]): void {
-        const msg = args.length > 0 ? formatStr(message, ...args) : message;
+        const msg = formatStr(message, ...args);
         this._logger.warn(`${this._id}: ${msg}`);
     }
 
@@ -72,8 +72,7 @@ export abstract class BaseObject {
             this._logger.error(`${this._id}: ${err.stack || err.message}`);
             throw err;
         }
-        const msg = args.length > 0 ? formatStr(message, ...args) : message;
-        const err = `${this._id}: ${msg}`;
+        const err = `${this._id}: ${formatStr(message, ...args)}`;
         this._logger.error(err);
         return new Error(err);
     }

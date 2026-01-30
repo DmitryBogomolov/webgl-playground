@@ -2,6 +2,9 @@
 const objectToString = Object.prototype.toString;
 
 export function formatStr(format: string, ...params: unknown[]): string {
+    if (params.length === 0) {
+        return format;
+    }
     return format.replace(/{(\d+)}/g, (_match, i: number) => toStr(params[i]));
 }
 
@@ -22,7 +25,7 @@ export function toStr(obj: unknown): string {
             return (obj as object).toString();
         }
         if (objectToString.call(obj) === '[object Object]') {
-            return JSON.stringify(obj);
+            return `{ ${Object.entries(obj).map(([key, val]) => `${key}: ${toStr(val)}`).join(', ')} }`;
         }
     }
     return String(obj);
