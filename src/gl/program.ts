@@ -176,7 +176,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger(), ...params });
-        this._logMethod('init', '');
+        this._logInfo_('init');
         this._runtime = params.runtime;
         const defines = buildDefines(params.defines);
         const vertSource = prepareSource(params.vertShader, defines);
@@ -199,7 +199,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     dispose(): void {
-        this._logMethod('dispose', '');
+        this._logInfo_('dispose');
         this._runtime.gl().deleteProgram(this._program);
         this._dispose();
     }
@@ -217,15 +217,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logMethod('set_uniform', `${name}: ${toStr(value)}`);
+        this._logInfo_('set_uniform({0}, {1})', name, value);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
-            throw this._logError(`uniform "${name}" is unknown`);
+            throw this._logError_(`uniform "${name}" is unknown`);
         }
         const setter = (uniform.arraySize > 1 ? UNIFORM_ARRAY_SETTERS_MAP : UNIFORM_SETTERS_MAP)[uniform.type];
         if (!setter) {
-            throw this._logError(`uniform "${name}" setter is not found`);
+            throw this._logError_(`uniform "${name}" setter is not found`);
         }
         // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
         // Otherwise it would cause an error.
