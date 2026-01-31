@@ -73,7 +73,7 @@ export class GlTFRenderer extends BaseObject {
             });
             this._setup(wrappers, programs, textures);
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this._logError_(err as Error);
         }
     }
 

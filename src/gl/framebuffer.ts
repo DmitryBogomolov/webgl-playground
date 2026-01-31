@@ -68,7 +68,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
                 !!params.useDepthTexture,
             );
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this._logError_(err as Error);
         }
         this._framebuffer = info.framebuffer;
         this._texture = info.texture;

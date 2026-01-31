@@ -190,7 +190,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
                 params.locations,
             );
         } catch (err) {
-            this._logError(err as Error);
+            this._logError_(err as Error);
         }
         this._program = info.program;
         this._attributes = info.attributes;
@@ -234,7 +234,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         try {
             setter(gl, uniform, value);
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this._logError_(err as Error);
         }
     }
 }
