@@ -131,7 +131,7 @@ export class Runtime extends BaseObject {
         this._contextRestored.emit({ event: e });
     };
 
-    private readonly _logMethodRef = this._logMethod.bind(this);
+    private readonly _logInfoRef = this._logInfo_.bind(this);
 
     constructor(params: RuntimeParams) {
         super(params);
@@ -244,7 +244,7 @@ export class Runtime extends BaseObject {
         if (!isRenderState(state)) {
             throw this._logError_('set_render_state({0}) - bad value', state);
         }
-        return applyRenderState(this._renderState, state, this._gl, this._logMethodRef);
+        return applyRenderState(this._renderState, state, this._gl, this._logInfoRef);
     }
 
     getClearColor(): Color {
