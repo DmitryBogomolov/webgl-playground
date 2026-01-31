@@ -2,27 +2,13 @@ import type { Vec2, Vec2Mut } from './vec2.types';
 import { upd2 } from './vec2.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
-export class Vec2Impl implements Vec2 {
-    readonly x: number;
-    readonly y: number;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    toString(): string {
-        return vec2str(this);
-    }
-}
-
 export const ZERO2 = vec2(0, 0);
 export const UNIT2 = vec2(1, 1);
 export const XUNIT2 = vec2(1, 0);
 export const YUNIT2 = vec2(0, 1);
 
 export function vec2(x: number, y: number): Vec2 {
-    return new Vec2Impl(x, y);
+    return { x, y };
 }
 
 export function isVec2(v: unknown): v is Vec2 {
