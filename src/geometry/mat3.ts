@@ -21,7 +21,7 @@ export function isMat3(mat: unknown): mat is Mat3 {
 }
 
 export function mat3(): Mat3 {
-    return Array.from({ length: MAT_SIZE }, () => 0) as unknown as Mat3;
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0];
 }
 
 export function eq3x3(lhs: Mat3, rhs: Mat3, eps: number = FLOAT_EQ_EPS): boolean {

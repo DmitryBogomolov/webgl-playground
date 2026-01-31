@@ -1,6 +1,7 @@
 import type { BaseObjectParams, Logger } from './base-object.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
+import { formatStr } from '../utils/string-formatter';
 
 let nextId = 1;
 
@@ -25,32 +26,27 @@ export abstract class BaseObject {
         this._disposed = null;
     }
 
-    protected _logInfo(message: string): void {
-        this._logger.info(this._id + '.' + message);
+    protected _logInfo(message: string, ...args: unknown[]): void {
+        const msg = formatStr(message, ...args);
+        this._logger.info(`${this._id}: ${msg}`);
     }
 
-    protected _logMethod(method: string, args: unknown): void {
-        this._logInfo(`${method}(${args})`);
+    protected _logWarn(message: string, ...args: unknown[]): void {
+        const msg = formatStr(message, ...args);
+        this._logger.warn(`${this._id}: ${msg}`);
     }
 
-    protected _logMethodError(method: string, args: unknown, err: string): void {
-        throw this._logError(`${method}(${args}): ${err}`);
-    }
-
-    protected _logWarn(message: string): void {
-        this._logger.warn(this._id + '.' + message);
-    }
-
-    protected _logError(message: string | Error): Error {
+    protected _logError(message: string | Error, ...args: unknown[]): Error {
         if (message instanceof Error) {
             const err = new Error(message.message);
             err.name = message.name;
             err.stack = patchStack(message, message.message);
-            this._logger.error(this._id + '.' + (err.stack || err.message));
+            this._logger.error(`${this._id}: ${err.stack || err.message}`);
             throw err;
         }
-        this._logger.error(this._id + '.' + message);
-        return new Error(this._id + '.' + message);
+        const err = `${this._id}: ${formatStr(message, ...args)}`;
+        this._logger.error(err);
+        return new Error(err);
     }
 
     toString(): string {

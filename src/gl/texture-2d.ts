@@ -1,5 +1,5 @@
 import type { TextureImageData, TextureImageDataOptions, TextureRuntime } from './texture-2d.types';
-import { TextureBase, textureImageDataToStr } from './texture-base';
+import { TextureBase } from './texture-base';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -10,9 +10,9 @@ export class Texture extends TextureBase {
 
     setImageData(imageData: TextureImageData, options?: TextureImageDataOptions): void {
         if (!imageData) {
-            throw this._logError('set_image_data: not defined');
+            throw this._logError('set_image_data: data not defined');
         }
-        this._logMethod('set_image_data', textureImageDataToStr(imageData));
+        this._logInfo('set_image_data({0})', imageData);
         this._beginDataUpdate(options);
         this._updateData(imageData, this._target);
     }

@@ -27,8 +27,8 @@ describe('string-formatter', () => {
         });
 
         it('support complex types', () => {
-            check('hello {0}', [[1, 2, 3]], 'hello [1,2,3]');
-            check('hello {0}', [{ a: 1, b: 2 }], 'hello {"a":1,"b":2}');
+            check('hello {0}', [[1, 2, 3]], 'hello [1, 2, 3]');
+            check('hello {0}', [{ a: 1, b: 2 }], 'hello { a: 1, b: 2 }');
             check('hello {0}', [Symbol('1')], 'hello Symbol(1)');
         });
     });

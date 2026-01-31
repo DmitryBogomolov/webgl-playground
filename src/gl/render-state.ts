@@ -6,7 +6,7 @@ import type {
     BLEND_FUNC,
 } from './render-state.types';
 import type { GLValuesMap } from './gl-values-map.types';
-import { toArgStr } from '../utils/string-formatter';
+import { formatStr } from '../utils/string-formatter';
 
 type RenderStateValidator<T extends keyof RenderState> = (
     value: RenderState[T],
@@ -15,7 +15,7 @@ type RenderStateComparer<T extends keyof RenderState> = (
     lhs: RenderState[T], rhs: RenderState[T],
 ) => boolean;
 type RenderStateUpdater<T extends keyof RenderState> = (
-    value: RenderState[T], gl: WebGL2RenderingContext, logMethod: (name: string, arg: unknown) => void,
+    value: RenderState[T], gl: WebGL2RenderingContext, log: (msg: string, ...args: unknown[]) => void,
 ) => void;
 
 type RenderStateValidators = {
@@ -87,7 +87,7 @@ const BLEND_FUNC_MAP_DST: GLValuesMap<BLEND_FUNC> = {
 
 function checkFuncArg(condition: boolean, name: string, arg: unknown): void {
     if (!condition) {
-        throw new Error(`${name}(${toArgStr(arg)}): bad value`);
+        throw new Error(formatStr('{0}: {1} - bad value', name, arg));
     }
 }
 
@@ -194,8 +194,8 @@ const RENDER_STATE_COMPARERS: RenderStateComparers = {
 };
 
 const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
-    depthTest: (depthTest, gl, logMethod) => {
-        logMethod('set_depth_test', depthTest);
+    depthTest: (depthTest, gl, log) => {
+        log('set_depth_test({0})', depthTest);
         if (depthTest) {
             gl.enable(GL_DEPTH_TEST);
         } else {
@@ -203,18 +203,18 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    depthMask: (depthMask, gl, logMethod) => {
-        logMethod('set_depth_mask', depthMask);
+    depthMask: (depthMask, gl, log) => {
+        log('set_depth_mask({0})', depthMask);
         gl.depthMask(depthMask);
     },
 
-    depthFunc: (depthFunc, gl, logMethod) => {
-        logMethod('set_depth_func', depthFunc);
+    depthFunc: (depthFunc, gl, log) => {
+        log('set_depth_func({0})', depthFunc);
         gl.depthFunc(DEPTH_FUNC_MAP[depthFunc]);
     },
 
-    stencilTest: (stencilTest, gl, logMethod) => {
-        logMethod('set_stencil_test', stencilTest);
+    stencilTest: (stencilTest, gl, log) => {
+        log('set_stencil_test({0})', stencilTest);
         if (stencilTest) {
             gl.enable(GL_STENCIL_TEST);
         } else {
@@ -222,13 +222,13 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    stencilMask: (stencilMask, gl, logMethod) => {
-        logMethod('set_stencil_mask', stencilMask);
+    stencilMask: (stencilMask, gl, log) => {
+        log('set_stencil_mask({0})', stencilMask);
         gl.stencilMask(stencilMask);
     },
 
-    stencilFunc: (stencilFunc, gl, logMethod) => {
-        logMethod('set_stencil_func', toArgStr(stencilFunc));
+    stencilFunc: (stencilFunc, gl, log) => {
+        log('set_stencil_func({0})', stencilFunc);
         gl.stencilFunc(
             STENCIL_FUNC_MAP[stencilFunc.func],
             stencilFunc.ref,
@@ -236,8 +236,8 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         );
     },
 
-    stencilOp: (stencilOp, gl, logMethod) => {
-        logMethod('set_stencil_op', toArgStr(stencilOp));
+    stencilOp: (stencilOp, gl, log) => {
+        log('set_stencil_op({0})', stencilOp);
         gl.stencilOp(
             STENCIL_OP_MAP[stencilOp.fail],
             STENCIL_OP_MAP[stencilOp.zfail],
@@ -245,8 +245,8 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         );
     },
 
-    culling: (culling, gl, logMethod) => {
-        logMethod('set_culling', culling);
+    culling: (culling, gl, log) => {
+        log('set_culling({0})', culling);
         if (culling) {
             gl.enable(GL_CULL_FACE);
         } else {
@@ -254,13 +254,13 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    cullFace: (cullFace, gl, logMethod) => {
-        logMethod('set_cull_face', cullFace);
+    cullFace: (cullFace, gl, log) => {
+        log('set_cull_face({0})', cullFace);
         gl.cullFace(CULL_FACE_MAP[cullFace]);
     },
 
-    blending: (blending, gl, logMethod) => {
-        logMethod('set_blending', blending);
+    blending: (blending, gl, log) => {
+        log('set_blending({0})', blending);
         if (blending) {
             gl.enable(GL_BLEND);
         } else {
@@ -268,8 +268,8 @@ const RENDER_STATE_UPDATERS: RenderStateUpdaters = {
         }
     },
 
-    blendFunc: (blendFunc, gl, logMethod) => {
-        logMethod('set_blend_func', blendFunc);
+    blendFunc: (blendFunc, gl, log) => {
+        log('set_blend_func({0})', blendFunc);
         gl.blendFunc(BLEND_FUNC_MAP_SRC[blendFunc], BLEND_FUNC_MAP_DST[blendFunc]);
     },
 };
@@ -296,7 +296,7 @@ export function applyRenderState(
     currentState: RenderState,
     appliedState: RenderState,
     gl: WebGL2RenderingContext,
-    logMethod: (name: string, arg: unknown) => void,
+    log: (msg: string, ...args: unknown[]) => void,
 ): boolean {
     if (currentState === appliedState) {
         return false;
@@ -316,7 +316,7 @@ export function applyRenderState(
     for (const key of keys) {
         const val = appliedState[key];
         const update = RENDER_STATE_UPDATERS[key];
-        update(val as never, gl, logMethod);
+        update(val as never, gl, log);
         changes[key] = val;
     }
     Object.assign(currentState, changes);
@@ -324,7 +324,7 @@ export function applyRenderState(
 }
 
 // Initial state is formed according to specification.
-// These values could be queried with `gl.getParameter` but that would unnecessarily increase in startup time.
+// These values could be queried with `gl.getParameter` but that would affect startup time.
 function getDefaultRenderState(): RenderState {
     return {
         depthTest: false,

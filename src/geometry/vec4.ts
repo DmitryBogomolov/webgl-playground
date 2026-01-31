@@ -2,24 +2,6 @@ import type { Vec4, Vec4Mut } from './vec4.types';
 import { upd4 } from './vec4.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
-export class Vec4Impl implements Vec4 {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-    readonly w: number;
-
-    constructor(x: number, y: number, z: number, w: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.w = w;
-    }
-
-    toString(): string {
-        return vec4str(this);
-    }
-}
-
 export const ZERO4 = vec4(0, 0, 0, 0);
 export const UNIT4 = vec4(1, 1, 1, 1);
 export const XUNIT4 = vec4(1, 0, 0, 0);
@@ -28,7 +10,7 @@ export const ZUNIT4 = vec4(0, 0, 1, 0);
 export const WUNIT4 = vec4(0, 0, 0, 1);
 
 export function vec4(x: number, y: number, z: number, w: number): Vec4 {
-    return new Vec4Impl(x, y, z, w);
+    return { x, y, z, w };
 }
 
 export function isVec4(v: unknown): v is Vec4 {
