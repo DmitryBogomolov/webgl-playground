@@ -26,17 +26,17 @@ export abstract class BaseObject {
         this._disposed = null;
     }
 
-    protected _logInfo_(message: string, ...args: unknown[]): void {
+    protected _logInfo(message: string, ...args: unknown[]): void {
         const msg = formatStr(message, ...args);
         this._logger.info(`${this._id}: ${msg}`);
     }
 
-    protected _logWarn_(message: string, ...args: unknown[]): void {
+    protected _logWarn(message: string, ...args: unknown[]): void {
         const msg = formatStr(message, ...args);
         this._logger.warn(`${this._id}: ${msg}`);
     }
 
-    protected _logError_(message: string | Error, ...args: unknown[]): Error {
+    protected _logError(message: string | Error, ...args: unknown[]): Error {
         if (message instanceof Error) {
             const err = new Error(message.message);
             err.name = message.name;

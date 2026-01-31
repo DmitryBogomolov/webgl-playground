@@ -73,7 +73,7 @@ export class GlTFRenderer extends BaseObject {
             });
             this._setup(wrappers, programs, textures);
         } catch (err) {
-            throw this._logError_(err as Error);
+            throw this._logError(err as Error);
         }
     }
 
@@ -81,7 +81,7 @@ export class GlTFRenderer extends BaseObject {
         data: GlTFRendererData,
     ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
         if (!data) {
-            throw this._logError_('set_data - data not defined');
+            throw this._logError('set_data - data not defined');
         }
         if (isRawData(data)) {
             const source = data.data;
@@ -100,7 +100,7 @@ export class GlTFRenderer extends BaseObject {
             const resolveUri: GlTFResolveUriFunc = (uri) => this._load(baseUrl + uri);
             return { source, resolveUri };
         }
-        throw this._logError_('set_data({0}) - bad value', data);
+        throw this._logError('set_data({0}) - bad value', data);
     }
 
     private _reset(): void {
@@ -132,19 +132,19 @@ export class GlTFRenderer extends BaseObject {
     }
 
     setProjMat(mat: Mat4): void {
-        this._logInfo_('set_proj_mat({0})', mat);
+        this._logInfo('set_proj_mat({0})', mat);
         this._projMat = clone4x4(mat);
     }
 
     setViewMat(mat: Mat4): void {
-        this._logInfo_('set_view_mat({0})', mat);
+        this._logInfo('set_view_mat({0})', mat);
         this._viewMat = clone4x4(mat);
         const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
         this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
     }
 
     setLightDirection(lightDirection: Vec3): void {
-        this._logInfo_('set_light_direction({0})', lightDirection);
+        this._logInfo('set_light_direction({0})', lightDirection);
         this._lightDirection = norm3(lightDirection);
     }
 
