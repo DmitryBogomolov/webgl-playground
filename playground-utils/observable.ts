@@ -49,12 +49,12 @@ export function computed<P, T>(
     let currentValue: T;
     const emitter = new EventEmitter();
     setupOnOff(target as Observable<T>, emitter.proxy());
-    const refs = Array.from(observables, (obj) => {
+    const list = Array.from(observables, (obj) => {
         obj.on(notify);
-        return new WeakRef(obj); // experiment
+        return obj;
     });
     const valuesCache: unknown[] = [];
-    valuesCache.length = refs.length;
+    valuesCache.length = list.length;
 
     return target as Observable<T>;
 
@@ -70,13 +70,8 @@ export function computed<P, T>(
     }
 
     function calculate(): void {
-        for (let i = 0; i < refs.length; ++i) {
-            const obj = refs[i].deref();
-            if (obj) {
-                valuesCache[i] = obj();
-            } else {
-                return;
-            }
+        for (let i = 0; i < list.length; ++i) {
+            valuesCache[i] = list[i]();
         }
         currentValue = handler(valuesCache as unknown as P);
     }
@@ -100,17 +95,13 @@ function setupOnOff<T>(target: Observable<T>, emitter: EventProxy): void {
 
 export function bind<T>(observable: Observable<T>, func: (value: T) => void): () => void {
     observable.on(handleChange);
-    const ref = new WeakRef(observable); // experiment
     handleChange();
 
     return () => {
-        ref.deref()?.off(handleChange);
+        observable.off(handleChange);
     };
 
     function handleChange(): void {
-        const obj = ref.deref();
-        if (obj) {
-            func(obj());
-        }
+        func(observable());
     }
 }
