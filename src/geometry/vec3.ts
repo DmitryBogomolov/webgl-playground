@@ -2,22 +2,6 @@ import type { Vec3, Vec3Mut } from './vec3.types';
 import { upd3 } from './vec3.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
-export class Vec3Impl implements Vec3 {
-    readonly x: number;
-    readonly y: number;
-    readonly z: number;
-
-    constructor(x: number, y: number, z: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    toString(): string {
-        return vec3str(this);
-    }
-}
-
 export const ZERO3 = vec3(0, 0, 0);
 export const UNIT3 = vec3(1, 1, 1);
 export const XUNIT3 = vec3(1, 0, 0);
@@ -25,7 +9,7 @@ export const YUNIT3 = vec3(0, 1, 0);
 export const ZUNIT3 = vec3(0, 0, 1);
 
 export function vec3(x: number, y: number, z: number): Vec3 {
-    return new Vec3Impl(x, y, z);
+    return { x, y, z };
 }
 
 export function isVec3(v: unknown): v is Vec3 {

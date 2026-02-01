@@ -24,7 +24,7 @@ export function isMat4(mat: unknown): mat is Mat4 {
 }
 
 export function mat4(): Mat4 {
-    return Array.from({ length: MAT_SIZE }, () => 0) as unknown as Mat4;
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 }
 
 export function eq4x4(lhs: Mat4, rhs: Mat4, eps: number = FLOAT_EQ_EPS): boolean {
