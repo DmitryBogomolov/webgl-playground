@@ -1,5 +1,5 @@
 import type { Runtime } from 'lib';
-import { observable } from './observable';
+import { observable, bind } from './observable';
 
 const ICON_SIZE = 16;
 
@@ -16,33 +16,21 @@ export function animation(runtime: Runtime): () => void {
     });
     runtime.canvas().parentElement!.appendChild(button);
 
-    value.on(handleChange);
-    value.on(setIconClass);
-    handleChange();
-    setIconClass();
-
-    return dispose;
-
-    function setIconClass(): void {
-        const val = value();
+    const cancel = bind(value, (val) => {
         img.src = `/static/${val ? 'play' : 'pause'}-solid.svg`;
-    }
-
-    function dispose(): void {
-        value.off(handleChange);
-        value.off(setIconClass);
-        runtime.frameRequested().off(handleFrame);
-        button.remove();
-    }
-
-    function handleChange(): void {
-        if (value()) {
+        if (val) {
             runtime.frameRequested().on(handleFrame);
             runtime.requestFrameRender();
         } else {
             runtime.frameRequested().off(handleFrame);
         }
-    }
+    });
+
+    return () => {
+        cancel();
+        runtime.frameRequested().off(handleFrame);
+        button.remove();
+    };
 
     function handleFrame(): void {
         runtime.requestFrameRender();
