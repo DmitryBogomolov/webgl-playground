@@ -11,6 +11,7 @@ import {
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { trackBall } from 'playground-utils/track-ball';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
 /**
@@ -114,10 +115,17 @@ export function main(): () => void {
         { label: 'camera dist', value: cameraDist, min: 4, max: 16 },
     ]);
 
+    const cancelBall = trackBall({
+        element: runtime.canvas(),
+        callback: () => {
+
+        },
+    });
+
     return () => {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cancelRender, controlRoot,
+            cameraLon, cameraLat, cameraDist, cancelRender, controlRoot, cancelBall,
             disposeObjects, framebuffer, runtime,
         ]);
     };
