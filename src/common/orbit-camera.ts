@@ -40,9 +40,10 @@ export class OrbitCamera extends ViewProj {
         throw new TypeError('setUpDir - not supported');
     }
 
-    setEyePos(_value: Vec3): void {
-        throw new TypeError('setEyePos - not supported');
-    }
+    // TODO: Temporary!
+    // setEyePos(_value: Vec3): void {
+    //     throw new TypeError('setEyePos - not supported');
+    // }
 
     setOrientation(originDir: Vec3, upDir: Vec3 = clone3(YUNIT3)): void {
         check(isVec3(originDir) && !isZero(originDir), 'origin_dir', toArgStr(originDir));
