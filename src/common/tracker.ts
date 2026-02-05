@@ -1,4 +1,6 @@
 import type { TrackerEvent, TrackerEventProxy, TRACKER_EVENTS } from './tracker.types';
+import type { Vec2Mut } from '../geometry/vec2.types';
+import { vec2 } from '../geometry/vec2';
 import { getEventCoords } from '../utils/pointer-event';
 import { EventEmitter } from './event-emitter';
 
@@ -30,37 +32,31 @@ export class Tracker {
     private readonly _handlePointerDown = (e: PointerEvent): void => {
         this._addDocumentListeners();
         e.preventDefault();
-        const coords = getEventCoords(e);
-        this._emit('start', { coords, nativeEvent: e });
+        this._emit('start', makeEvent(e));
     };
 
     private readonly _handlePointerMove = (e: PointerEvent): void => {
-        const coords = getEventCoords(e);
-        this._emit('move', { coords, nativeEvent: e });
+        this._emit('move', makeEvent(e));
     };
 
     private readonly _handlePointerUp = (e: PointerEvent): void => {
         this._removeDocumentListeners();
-        const coords = getEventCoords(e);
-        this._emit('end', { coords, nativeEvent: e });
+        this._emit('end', makeEvent(e));
     };
 
     private readonly _handleHover = (e: PointerEvent): void => {
         e.preventDefault();
-        const coords = getEventCoords(e);
-        this._emit('hover', { coords, nativeEvent: e });
+        this._emit('hover', makeEvent(e));
     };
 
     private readonly _handleClick = (e: MouseEvent): void => {
         e.preventDefault();
-        const coords = getEventCoords(e);
-        this._emit('click', { coords, nativeEvent: e });
+        this._emit('click', makeEvent(e));
     };
 
     private readonly _handleDblClick = (e: MouseEvent): void => {
         e.preventDefault();
-        const coords = getEventCoords(e);
-        this._emit('dblclick', { coords, nativeEvent: e });
+        this._emit('dblclick', makeEvent(e));
     };
 
     private _addElementListeners(): void {
@@ -90,6 +86,14 @@ export class Tracker {
         document.removeEventListener('pointerup', this._handlePointerUp);
         document.removeEventListener('pointercancel', this._handlePointerUp);
     }
+}
+
+const _event_scratch = { coords: vec2(0, 0) as Vec2Mut, nativeEvent: {} as PointerEvent | MouseEvent };
+
+function makeEvent(e: MouseEvent | PointerEvent): TrackerEvent {
+    getEventCoords(e, _event_scratch.coords);
+    _event_scratch.nativeEvent = e;
+    return _event_scratch;
 }
 
 function createEmitters(): Record<TRACKER_EVENTS, EventEmitter<[TrackerEvent]>> {
