@@ -9,7 +9,7 @@ import {
     mat4,
     color, colors,
     deg2rad,
-    makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
+    getEventCoords, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
@@ -110,11 +110,10 @@ export function main(): () => void {
         selectedObjects: new Set(),
     };
 
-    const getCoords = makeEventCoordsGetter(container);
     container.addEventListener('click', handleClick);
 
     function handleClick(e: MouseEvent): void {
-        const coords = getCoords(e);
+        const coords = getEventCoords(e);
         // Flip Y coordinate.
         const objectId = findObjectId(state, { x: coords.x, y: runtime.renderSize().y - coords.y });
         if (objectId > 0) {

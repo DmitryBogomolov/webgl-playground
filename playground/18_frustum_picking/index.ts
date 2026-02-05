@@ -7,7 +7,7 @@ import {
     vec3,
     mat4,
     color, colors,
-    uint2bytes, makeEventCoordsGetter, deg2rad, makePixelViewProjMat,
+    uint2bytes, getEventCoords, deg2rad, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
@@ -76,11 +76,10 @@ export function main(): () => void {
         pixelCoord: ZERO2,
     };
 
-    const getCoords = makeEventCoordsGetter(container);
     container.addEventListener('pointermove', handlePointerMove);
 
     function handlePointerMove(e: PointerEvent): void {
-        const coords = getCoords(e);
+        const coords = getEventCoords(e);
         // Flip Y coordinate.
         state.pixelCoord = vec2(coords.x, runtime.renderSize().y - coords.y);
         runtime.requestFrameRender();
