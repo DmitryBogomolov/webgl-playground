@@ -1,6 +1,6 @@
 import type { OrbitCameraEyePosition as OrbitCameraPosition } from './orbit-camera.types';
 import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
-import type { Vec4Mut } from '../geometry/vec4.types';
+import type { Vec4 } from '../geometry/vec4.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
 import type { SphericalMut } from '../geometry/spherical.types';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, cross3 } from '../geometry/vec3';
@@ -9,12 +9,12 @@ import { QUAT4_UNIT, quat4apply, quat4fromMat } from '../geometry/quat4';
 import { mat4, identity4x4 } from '../geometry/mat4';
 import { floatEq } from '../geometry/float-eq';
 import { ViewProj } from './view-proj';
-import { toArgStr } from '../utils/string-formatter';
+import { formatStr } from '../utils/string-formatter';
 import { rowcol2idxRank } from '../geometry/helpers';
 import { spherical2zxy } from '../geometry/spherical';
 
 export class OrbitCamera extends ViewProj {
-    private readonly _rotationQuat = clone4(QUAT4_UNIT);
+    private _rotationQuat = clone4(QUAT4_UNIT);
     private _originDir: Vec3 = clone3(ZUNIT3);
     private _lon = 0;
     private _lat = 0;
@@ -46,17 +46,18 @@ export class OrbitCamera extends ViewProj {
     // }
 
     setOrientation(originDir: Vec3, upDir: Vec3 = clone3(YUNIT3)): void {
-        check(isVec3(originDir) && !isZero(originDir), 'origin_dir', toArgStr(originDir));
-        check(isVec3(upDir) && !isZero(upDir), 'up_dir', toArgStr(upDir));
+        check(isVec3(originDir) && !isZero(originDir), 'origin_dir', originDir);
+        check(isVec3(upDir) && !isZero(upDir), 'up_dir', upDir);
         const xDir = _x_scratch;
         const yDir = _y_scratch;
         const zDir = _z_scratch;
         makeAxes(originDir, upDir, xDir, yDir, zDir);
+        check(!isZero(xDir) && !isZero(yDir) && !isZero(zDir), 'orientation', 'parallel');
         if (eq3(this._originDir, zDir) && eq3(this.getUpDir(), yDir)) {
             return;
         }
         this._originDir = clone3(zDir);
-        makeRotation(xDir, yDir, zDir, this._rotationQuat as Vec4Mut);
+        this._rotationQuat = makeRotation(xDir, yDir, zDir);
         super.setUpDir(yDir);
         this._updateEyePos();
     }
@@ -86,11 +87,6 @@ function makeAxes(originDir: Vec3, upDir: Vec3, xDir: Vec3Mut, yDir: Vec3Mut, zD
     norm3(originDir, zDir);
     cross3(upDir, zDir, xDir);
     cross3(zDir, xDir, yDir);
-    check(
-        !isZero(xDir) && !isZero(yDir) && !isZero(zDir),
-        'orientation',
-        `${toArgStr(originDir)} | ${toArgStr(upDir)}`,
-    );
     norm3(xDir, xDir);
     norm3(yDir, yDir);
 }
@@ -100,7 +96,7 @@ const ROTATION_MAP = {
     yx: rowcol2idxRank(4, 0, 1), yy: rowcol2idxRank(4, 1, 1), yz: rowcol2idxRank(4, 2, 1),
     zx: rowcol2idxRank(4, 0, 2), zy: rowcol2idxRank(4, 1, 2), zz: rowcol2idxRank(4, 2, 2),
 } as const;
-function makeRotation(xDir: Vec3, yDir: Vec3, zDir: Vec3, rotation: Vec4Mut): void {
+function makeRotation(xDir: Vec3, yDir: Vec3, zDir: Vec3): Vec4 {
     const mat = _mat_scratch;
     identity4x4(mat);
     const { xx, xy, xz, yx, yy, yz, zx, zy, zz } = ROTATION_MAP;
@@ -113,7 +109,7 @@ function makeRotation(xDir: Vec3, yDir: Vec3, zDir: Vec3, rotation: Vec4Mut): vo
     mat[zx] = zDir.x;
     mat[zy] = zDir.y;
     mat[zz] = zDir.z;
-    quat4fromMat(mat, rotation);
+    return quat4fromMat(mat);
 }
 
 function makeEyePos(lon: number, lat: number, dist: number, eye: Vec3Mut): void {
@@ -138,6 +134,9 @@ const PI = Math.PI;
 const DBL_PI = PI * 2;
 const HLF_PI = PI / 2;
 const EPS = 0.05;
+const MAX_LAT = +HLF_PI - EPS;
+const MIN_LAT = -HLF_PI + EPS;
+const MIN_DIST = EPS;
 
 function clampLon(value: number): number {
     if (value > +PI) {
@@ -150,24 +149,24 @@ function clampLon(value: number): number {
 }
 
 function clampLat(value: number): number {
-    if (value >= +HLF_PI) {
-        return +HLF_PI - EPS;
+    if (value > MAX_LAT) {
+        return MAX_LAT;
     }
-    if (value <= -HLF_PI) {
-        return -HLF_PI + EPS;
+    if (value < MIN_LAT) {
+        return MIN_LAT;
     }
     return value;
 }
 
 function clampDist(value: number): number {
-    if (value <= 0) {
-        return EPS;
+    if (value < MIN_DIST) {
+        return MIN_DIST;
     }
     return value;
 }
 
 function check(condition: boolean, name: string, value: unknown): void {
     if (!condition) {
-        throw new Error(`${name}: bad value ${value}`);
+        throw new Error(formatStr('{0}: bad value {1}', name, value));
     }
 }
