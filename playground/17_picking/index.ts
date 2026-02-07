@@ -116,8 +116,8 @@ export function main(): () => void {
 
     const cancelBall = trackBall({
         element: runtime.canvas(),
+        initial: { x: 0, y: 3, z: 10 },
         callback: (v) => {
-            console.log('###', v);
             camera.setEyePos(v);
             idCamera.setEyePos(v);
         },
