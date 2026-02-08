@@ -94,23 +94,29 @@ export function trackBall(params: TrackBallParams): () => void {
 
 function createControl(): HTMLElement {
     const size = 180;
-    const cc = size / 2;
-    const step = 40;
-    const pad = 2;
-    const az_size = step - 2 * pad;
-    const az_r = cc - pad - az_size / 2;
-    const el_size = az_size;
-    const el_r = cc - step - pad - el_size / 2;
+    const pad = 4;
+    const sizeAz = 20;
+    const sizeEl = 20;
+    const rc = size / 2;
+    const rAz = rc - pad - pad - sizeAz / 2;
+    const rEl = rAz - sizeAz / 2 - pad - pad - sizeEl / 2;
     const root = document.createElement('div');
+    const az = Math.PI / 180 * 60;
+    const el = Math.PI / 180 * 20;
     root.className = 'track-ball';
     root.setAttribute('style', 'position: absolute; right: 0; top: 5%; padding: 4px;');
     root.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" stroke="none" fill="none">
-            <circle cx="${cc}" cy="${cc}" r="${cc}" stroke="red" stroke-width="1" />
-            <circle cx="${cc}" cy="${cc}" r="${cc - az_size - step}" stroke="red" stroke-width="1" />
-            <circle cx="${cc}" cy="${cc + az_r}" r="${az_size / 2}" stroke="green" stroke-width="1" />
-            <circle cx="${cc}" cy="${cc + el_r}" r="${el_size / 2}" stroke="green" stroke-width="1" />
+            <circle cx="${rc}" cy="${rc}" r="${rAz + sizeAz / 2 + pad}" stroke="red" stroke-width="1" />
+            <circle cx="${rc}" cy="${rc}" r="${rAz - sizeAz / 2 - pad}" stroke="red" stroke-width="1" />
+            <circle cx="${rc}" cy="${rc}" r="${sizeAz / 2}" fill="green" />
+            <circle cx="${rc}" cy="${rc}" r="${sizeEl / 2}" fill="green" />
         </svg>
     `;
+    const elAz = root.firstElementChild!.children[2];
+    elAz.setAttribute('cx', String(rc + rAz * Math.sin(az)));
+    elAz.setAttribute('cy', String(rc + rAz * Math.cos(az)));
+    const elEl = root.firstElementChild!.children[3];
+    elEl.setAttribute('cy', String(rc - rEl * Math.sin(el)));
     return root;
 }
