@@ -93,22 +93,23 @@ export function trackBall(params: TrackBallParams): () => void {
 }
 
 function createControl(): HTMLElement {
-    const SVG_NS = 'http://www.w3.org/2000/svg';
-    const SIZE = 180;
-    const CX = SIZE / 2;
-    const CY = SIZE / 2;
-    const R = SIZE / 2 - 2;
-    const D1 = R / 4 | 0;
+    const size = 180;
+    const cc = size / 2;
+    const step = 40;
+    const pad = 2;
+    const az_size = step - 2 * pad;
+    const az_r = cc - pad - az_size / 2;
+    const el_size = az_size;
+    const el_r = cc - step - pad - el_size / 2;
     const root = document.createElement('div');
     root.className = 'track-ball';
-    root.style.position = 'absolute';
     root.setAttribute('style', 'position: absolute; right: 0; top: 5%; padding: 4px;');
     root.innerHTML = `
-        <svg xmlns="${SVG_NS}" width="${SIZE}" height="${SIZE}" stroke="none" fill="none">
-            <circle cx="${CX}" cy="${CY}" r="${R}" stroke="red" stroke-width="1" />
-            <circle cx="${CX}" cy="${CY}" r="${R - D1}" stroke="red" stroke-width="1" />
-            <circle cx="${CX}" cy="${CY + R - D1 / 2}" r="${D1 / 2 - 2}" stroke="red" stroke-width="1" />
-            <circle cx="${CX}" cy="${CY + R - D1 - D1 / 2}" r="${D1 / 2 - 2}" stroke="red" stroke-width="1" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" stroke="none" fill="none">
+            <circle cx="${cc}" cy="${cc}" r="${cc}" stroke="red" stroke-width="1" />
+            <circle cx="${cc}" cy="${cc}" r="${cc - az_size - step}" stroke="red" stroke-width="1" />
+            <circle cx="${cc}" cy="${cc + az_r}" r="${az_size / 2}" stroke="green" stroke-width="1" />
+            <circle cx="${cc}" cy="${cc + el_r}" r="${el_size / 2}" stroke="green" stroke-width="1" />
         </svg>
     `;
     return root;
