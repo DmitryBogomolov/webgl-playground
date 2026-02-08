@@ -58,10 +58,10 @@ export function trackBall(params: TrackBallParams): () => void {
         } else {
             azimuth += dx * X_PX_SENSE;
             if (azimuth > +Math.PI) {
-                azimuth -= Math.PI;
+                azimuth -= 2 * Math.PI;
             }
             if (azimuth < -Math.PI) {
-                azimuth += Math.PI;
+                azimuth += 2 * Math.PI;
             }
             elevation += -dy * Y_PX_SENSE;
             if (elevation > MAX_ELEVATION) {
