@@ -48,7 +48,7 @@ export function trackBall(params: TrackBallParams): () => void {
         prevCoords = clone2(e.coords);
 
         if (isSecondary) {
-            distance += Math.sign(dx) * Math.hypot(dx, dy) * DIST_PX_SENSE;
+            distance += dx * DIST_PX_SENSE;
             if (distance < MIN_DISTANCE) {
                 distance = MIN_DISTANCE;
             }
@@ -83,7 +83,33 @@ export function trackBall(params: TrackBallParams): () => void {
         isSecondary = false;
     });
 
+    const control = createControl();
+    params.element.parentElement!.appendChild(control);
+
     return () => {
         tracker.dispose();
+        control.remove();
     };
+}
+
+function createControl(): HTMLElement {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SIZE = 180;
+    const CX = SIZE / 2;
+    const CY = SIZE / 2;
+    const R = SIZE / 2 - 2;
+    const D1 = R / 4 | 0;
+    const root = document.createElement('div');
+    root.className = 'track-ball';
+    root.style.position = 'absolute';
+    root.setAttribute('style', 'position: absolute; right: 0; top: 5%; padding: 4px;');
+    root.innerHTML = `
+        <svg xmlns="${SVG_NS}" width="${SIZE}" height="${SIZE}" stroke="none" fill="none">
+            <circle cx="${CX}" cy="${CY}" r="${R}" stroke="red" stroke-width="1" />
+            <circle cx="${CX}" cy="${CY}" r="${R - D1}" stroke="red" stroke-width="1" />
+            <circle cx="${CX}" cy="${CY + R - D1 / 2}" r="${D1 / 2 - 2}" stroke="red" stroke-width="1" />
+            <circle cx="${CX}" cy="${CY + R - D1 - D1 / 2}" r="${D1 / 2 - 2}" stroke="red" stroke-width="1" />
+        </svg>
+    `;
+    return root;
 }
