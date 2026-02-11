@@ -23,7 +23,6 @@ export function trackBall(params: TrackBallParams): () => void {
 
     const vec = clone3(params.initial ?? DEFAULT) as Vec3Mut;
     let { azimuth, elevation, distance } = zxy2spherical(params.initial ?? DEFAULT);
-    params.callback(vec);
 
     let prevCoords: Vec2 | null = null;
     let isSecondary = false;
@@ -71,9 +70,8 @@ export function trackBall(params: TrackBallParams): () => void {
                 elevation = MIN_ELEVATION;
             }
         }
-        spherical2zxy({ azimuth, elevation, distance }, vec);
-        params.callback(vec);
 
+        update();
     });
     tracker.event('end').on(() => {
         if (!prevCoords) {
@@ -83,40 +81,81 @@ export function trackBall(params: TrackBallParams): () => void {
         isSecondary = false;
     });
 
-    const control = createControl();
-    params.element.parentElement!.appendChild(control);
+    function update(): void {
+        spherical2zxy({ azimuth, elevation, distance }, vec);
+        control.update(azimuth, elevation, (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE));
+        params.callback(vec);
+    }
+
+    const control = createControl(params.element.parentElement!);
+    update();
 
     return () => {
         tracker.dispose();
-        control.remove();
+        control.dispose();
     };
 }
 
-function createControl(): HTMLElement {
+interface Control {
+    dispose(): void;
+    update(az: number, el: number, dist: number): void;
+}
+
+function createControl(container: HTMLElement): Control {
     const size = 180;
+    const rFull = size / 2;
     const pad = 4;
-    const sizeAz = 20;
-    const sizeEl = 20;
-    const rc = size / 2;
-    const rAz = rc - pad - pad - sizeAz / 2;
-    const rEl = rAz - sizeAz / 2 - pad - pad - sizeEl / 2;
+    const sizeAz = Math.round(size / 10);
+    const sizeEl = sizeAz;
+    const sizeDist = sizeAz;
+    const rAz = rFull - pad - pad - sizeAz / 2;
+    const rEl = rAz - sizeAz / 2 - pad;
+    const minElSize = sizeEl / 3;
+    const deltaEl = sizeEl / 2 - minElSize;
+
     const root = document.createElement('div');
-    const az = Math.PI / 180 * 60;
-    const el = Math.PI / 180 * 20;
     root.className = 'track-ball';
-    root.setAttribute('style', 'position: absolute; right: 0; top: 5%; padding: 4px;');
+    root.setAttribute('style', 'position: absolute; right: 0; top: 5%;');
     root.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" stroke="none" fill="none">
-            <circle cx="${rc}" cy="${rc}" r="${rAz + sizeAz / 2 + pad}" stroke="red" stroke-width="1" />
-            <circle cx="${rc}" cy="${rc}" r="${rAz - sizeAz / 2 - pad}" stroke="red" stroke-width="1" />
-            <circle cx="${rc}" cy="${rc}" r="${sizeAz / 2}" fill="green" />
-            <circle cx="${rc}" cy="${rc}" r="${sizeEl / 2}" fill="green" />
+            <circle
+                cx="${rFull}" cy="${rFull}" r="${rFull - pad}"
+                stroke="red" stroke-width="1"
+            />
+            <circle
+                cx="${rFull}" cy="${rFull}" r="${rFull - pad - pad - sizeAz - pad}"
+                stroke="red" stroke-width="1"
+            />
+            <circle
+                cx="${rFull}" cy="${rFull}" r="${sizeAz / 2}"
+                fill="green"
+            />
+            <ellipse
+                cx="${rFull}" cy="${rFull}" rx="${sizeEl / 2}" ry="0"
+                fill="green"
+            />
+            <rect
+                x="0" y="${rFull - sizeDist / 2}" width="${sizeDist / 2}" height="${sizeDist}" rx="2" ry="2"
+                fill="green"
+            />
         </svg>
     `;
     const elAz = root.firstElementChild!.children[2];
-    elAz.setAttribute('cx', String(rc + rAz * Math.sin(az)));
-    elAz.setAttribute('cy', String(rc + rAz * Math.cos(az)));
     const elEl = root.firstElementChild!.children[3];
-    elEl.setAttribute('cy', String(rc - rEl * Math.sin(el)));
-    return root;
+    const elDist = root.firstElementChild!.children[4];
+
+    container.appendChild(root);
+    return {
+        dispose: () => {
+            root.remove();
+        },
+
+        update: (az, el, dist) => {
+            elAz.setAttribute('cx', String(rFull + rAz * Math.sin(az)));
+            elAz.setAttribute('cy', String(rFull + rAz * Math.cos(az)));
+            elEl.setAttribute('cy', String(rFull - rEl * Math.sin(el)));
+            elEl.setAttribute('ry', String(minElSize + Math.abs(Math.cos(el)) * deltaEl));
+            elDist.setAttribute('x', String(rFull + (dist * 2 - 1) * rEl - sizeDist / 4));
+        },
+    };
 }
