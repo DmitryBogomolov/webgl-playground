@@ -129,14 +129,17 @@ function createControl(container: HTMLElement): Control {
             <circle
                 cx="${rFull}" cy="${rFull}" r="${sizeAz / 2}"
                 fill="green"
+                style="cursor: grab;"
             />
             <ellipse
                 cx="${rFull}" cy="${rFull}" rx="${sizeEl / 2}" ry="0"
                 fill="green"
+                style="cursor: grab;"
             />
             <rect
                 x="0" y="${rFull - sizeDist / 2}" width="${sizeDist / 2}" height="${sizeDist}" rx="2" ry="2"
                 fill="green"
+                style="cursor: grab;"
             />
         </svg>
     `;
@@ -144,10 +147,22 @@ function createControl(container: HTMLElement): Control {
     const elEl = root.firstElementChild!.children[3];
     const elDist = root.firstElementChild!.children[4];
 
+    const tracker = new Tracker(root);
+    tracker.event('start').on((e) => {
+
+    });
+    tracker.event('move').on((e) => {
+
+    });
+    tracker.event('end').on((e) => {
+
+    });
+
     container.appendChild(root);
     return {
         dispose: () => {
             root.remove();
+            tracker.dispose();
         },
 
         update: (az, el, dist) => {
