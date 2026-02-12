@@ -31,6 +31,7 @@ export function trackBall(params: TrackBallParams): () => void {
             return;
         }
         prevCoords = clone2(e.coords);
+        document.body.style.cursor = 'move';
     });
     tracker.event('move').on((e) => {
         if (!prevCoords) {
@@ -77,9 +78,14 @@ export function trackBall(params: TrackBallParams): () => void {
         if (!prevCoords) {
             return;
         }
+        reset();
+    });
+
+    function reset(): void {
         prevCoords = null;
         isSecondary = false;
-    });
+        document.body.style.cursor = '';
+    }
 
     function update(): void {
         spherical2zxy({ azimuth, elevation, distance }, vec);
@@ -91,6 +97,7 @@ export function trackBall(params: TrackBallParams): () => void {
     update();
 
     return () => {
+        reset();
         tracker.dispose();
         control.dispose();
     };
@@ -117,27 +124,31 @@ function createControl(container: HTMLElement): Control {
     root.className = 'track-ball';
     root.setAttribute('style', 'position: absolute; right: 0; top: 5%;');
     root.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" stroke="none" fill="none">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="${size}" height="${size}" viewBox="${-size / 2} ${-size / 2} ${size} ${size}"
+            stroke="none" fill="none"
+        >
             <circle
-                cx="${rFull}" cy="${rFull}" r="${rFull - pad}"
+                cx="0" cy="0" r="${rFull - pad}"
                 stroke="red" stroke-width="1"
             />
             <circle
-                cx="${rFull}" cy="${rFull}" r="${rFull - pad - pad - sizeAz - pad}"
+                cx="0" cy="0" r="${rFull - pad - pad - sizeAz - pad}"
                 stroke="red" stroke-width="1"
             />
             <circle
-                cx="${rFull}" cy="${rFull}" r="${sizeAz / 2}"
+                cx="0" cy="0" r="${sizeAz / 2}"
                 fill="green"
                 style="cursor: grab;"
             />
             <ellipse
-                cx="${rFull}" cy="${rFull}" rx="${sizeEl / 2}" ry="0"
+                cx="0" cy="0" rx="${sizeEl / 2}" ry="0"
                 fill="green"
                 style="cursor: grab;"
             />
             <rect
-                x="0" y="${rFull - sizeDist / 2}" width="${sizeDist / 2}" height="${sizeDist}" rx="2" ry="2"
+                x="0" y="${-sizeDist / 2}" width="${sizeDist / 2}" height="${sizeDist}" rx="2" ry="2"
                 fill="green"
                 style="cursor: grab;"
             />
@@ -166,11 +177,11 @@ function createControl(container: HTMLElement): Control {
         },
 
         update: (az, el, dist) => {
-            elAz.setAttribute('cx', String(rFull + rAz * Math.sin(az)));
-            elAz.setAttribute('cy', String(rFull + rAz * Math.cos(az)));
-            elEl.setAttribute('cy', String(rFull - rEl * Math.sin(el)));
+            elAz.setAttribute('cx', String(rAz * Math.sin(az)));
+            elAz.setAttribute('cy', String(rAz * Math.cos(az)));
+            elEl.setAttribute('cy', String(-rEl * Math.sin(el)));
             elEl.setAttribute('ry', String(minElSize + Math.abs(Math.cos(el)) * deltaEl));
-            elDist.setAttribute('x', String(rFull + (dist * 2 - 1) * rEl - sizeDist / 4));
+            elDist.setAttribute('x', String((dist * 2 - 1) * rEl - sizeDist / 4));
         },
     };
 }
