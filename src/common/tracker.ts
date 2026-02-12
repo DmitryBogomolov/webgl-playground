@@ -32,31 +32,31 @@ export class Tracker {
     private readonly _handlePointerDown = (e: PointerEvent): void => {
         this._addDocumentListeners();
         e.preventDefault();
-        this._emit('start', makeEvent(e));
+        this._emit('start', this._makeEvent(e));
     };
 
     private readonly _handlePointerMove = (e: PointerEvent): void => {
-        this._emit('move', makeEvent(e));
+        this._emit('move', this._makeEvent(e));
     };
 
     private readonly _handlePointerUp = (e: PointerEvent): void => {
         this._removeDocumentListeners();
-        this._emit('end', makeEvent(e));
+        this._emit('end', this._makeEvent(e));
     };
 
     private readonly _handleHover = (e: PointerEvent): void => {
         e.preventDefault();
-        this._emit('hover', makeEvent(e));
+        this._emit('hover', this._makeEvent(e));
     };
 
     private readonly _handleClick = (e: MouseEvent): void => {
         e.preventDefault();
-        this._emit('click', makeEvent(e));
+        this._emit('click', this._makeEvent(e));
     };
 
     private readonly _handleDblClick = (e: MouseEvent): void => {
         e.preventDefault();
-        this._emit('dblclick', makeEvent(e));
+        this._emit('dblclick', this._makeEvent(e));
     };
 
     private _addElementListeners(): void {
@@ -86,15 +86,15 @@ export class Tracker {
         document.removeEventListener('pointerup', this._handlePointerUp);
         document.removeEventListener('pointercancel', this._handlePointerUp);
     }
+
+    private _makeEvent(e: MouseEvent | PointerEvent): TrackerEvent {
+        getEventCoords(e, this._element, _event_scratch.coords);
+        _event_scratch.nativeEvent = e;
+        return _event_scratch;
+    }
 }
 
 const _event_scratch = { coords: vec2(0, 0) as Vec2Mut, nativeEvent: {} as PointerEvent | MouseEvent };
-
-function makeEvent(e: MouseEvent | PointerEvent): TrackerEvent {
-    getEventCoords(e, _event_scratch.coords);
-    _event_scratch.nativeEvent = e;
-    return _event_scratch;
-}
 
 function createEmitters(): Record<TRACKER_EVENTS, EventEmitter<[TrackerEvent]>> {
     return {
