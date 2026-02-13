@@ -1,5 +1,5 @@
 import type { Vec2, Vec3, Vec3Mut } from 'lib';
-import { Tracker, spherical2zxy, zxy2spherical, clone2, clone3, vec3 } from 'lib';
+import { Tracker, spherical2zxy, zxy2spherical, clone2, clone3, vec3, rad2deg } from 'lib';
 
 export interface TrackBallParams {
     readonly element: HTMLElement;
@@ -105,20 +105,18 @@ export function trackBall(params: TrackBallParams): () => void {
 
 interface Control {
     dispose(): void;
-    update(az: number, el: number, dist: number): void;
+    update(azimuth: number, elevation: number, distance: number): void;
 }
 
 function createControl(container: HTMLElement): Control {
     const size = 180;
-    const rFull = size / 2;
+    const r = size / 2;
     const pad = 4;
-    const sizeAz = Math.round(size / 10);
-    const sizeEl = sizeAz;
-    const sizeDist = sizeAz;
-    const rAz = rFull - pad - pad - sizeAz / 2;
-    const rEl = rAz - sizeAz / 2 - pad;
-    const minElSize = sizeEl / 3;
-    const deltaEl = sizeEl / 2 - minElSize;
+    const sizeAzimuth = Math.round(size / 10);
+    const sizeElevation = sizeAzimuth;
+    const sizeDistance = sizeAzimuth;
+    const rAzimuth = r - pad - pad - sizeAzimuth / 2;
+    const rElevation = rAzimuth - sizeAzimuth / 2 - pad;
 
     const root = document.createElement('div');
     root.className = 'track-ball';
@@ -130,25 +128,27 @@ function createControl(container: HTMLElement): Control {
             stroke="none" fill="none"
         >
             <circle
-                cx="0" cy="0" r="${rFull - pad}"
+                cx="0" cy="0" r="${r - pad}"
                 stroke="red" stroke-width="1"
             />
             <circle
-                cx="0" cy="0" r="${rFull - pad - pad - sizeAz - pad}"
+                cx="0" cy="0" r="${r - pad - pad - sizeAzimuth - pad}"
                 stroke="red" stroke-width="1"
             />
             <circle
-                cx="0" cy="0" r="${sizeAz / 2}"
+                cx="0" cy="${rAzimuth}" r="${sizeAzimuth / 2}"
                 fill="green"
                 style="cursor: grab;"
             />
-            <ellipse
-                cx="0" cy="0" rx="${sizeEl / 2}" ry="0"
+            <circle
+                cx="0" cy="0" r="${sizeElevation / 2}"
                 fill="green"
                 style="cursor: grab;"
             />
             <rect
-                x="0" y="${-sizeDist / 2}" width="${sizeDist / 2}" height="${sizeDist}" rx="2" ry="2"
+                x="${-sizeDistance / 4}" y="${-sizeDistance / 2}"
+                width="${sizeDistance / 2}" height="${sizeDistance}"
+                rx="4" ry="4"
                 fill="green"
                 style="cursor: grab;"
             />
@@ -176,12 +176,14 @@ function createControl(container: HTMLElement): Control {
             tracker.dispose();
         },
 
-        update: (az, el, dist) => {
-            elAz.setAttribute('cx', String(rAz * Math.sin(az)));
-            elAz.setAttribute('cy', String(rAz * Math.cos(az)));
-            elEl.setAttribute('cy', String(-rEl * Math.sin(el)));
-            elEl.setAttribute('ry', String(minElSize + Math.abs(Math.cos(el)) * deltaEl));
-            elDist.setAttribute('x', String((dist * 2 - 1) * rEl - sizeDist / 4));
+        update: (azimuth, elevation, distance) => {
+            const angleAzimuth = rad2deg(-azimuth);
+            elAz.setAttribute('transform', `rotate(${angleAzimuth})`);
+            const positionElevation = -rElevation * Math.sin(elevation);
+            const scaleElevation = 0.6 * Math.cos(elevation) + 0.4;
+            elEl.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
+            const positionDistance = (distance * 2 - 1) * rElevation;
+            elDist.setAttribute('transform', `translate(${positionDistance} 0)`);
         },
     };
 }
