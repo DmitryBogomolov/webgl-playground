@@ -17,6 +17,7 @@ const MAX_ELEVATION = +Math.PI / 2 - ELEVATION_EPS;
 const MIN_ELEVATION = -Math.PI / 2 + ELEVATION_EPS;
 const MIN_DISTANCE = 0.1;
 const MAX_DISTANCE = 100;
+const CURSOR = 'move';
 
 export function trackBall(params: TrackBallParams): () => void {
     const tracker = new Tracker(params.element);
@@ -31,7 +32,7 @@ export function trackBall(params: TrackBallParams): () => void {
             return;
         }
         prevCoords = clone2(e.coords);
-        document.body.style.cursor = 'move';
+        setCursor(CURSOR);
     });
     tracker.event('move').on((e) => {
         if (!prevCoords) {
@@ -48,28 +49,10 @@ export function trackBall(params: TrackBallParams): () => void {
         prevCoords = clone2(e.coords);
 
         if (isSecondary) {
-            distance += dx * DIST_PX_SENSE;
-            if (distance < MIN_DISTANCE) {
-                distance = MIN_DISTANCE;
-            }
-            if (distance > MAX_DISTANCE) {
-                distance = MAX_DISTANCE;
-            }
+            setDistance(distance + dx * DIST_PX_SENSE);
         } else {
-            azimuth += dx * X_PX_SENSE;
-            if (azimuth > +Math.PI) {
-                azimuth -= 2 * Math.PI;
-            }
-            if (azimuth < -Math.PI) {
-                azimuth += 2 * Math.PI;
-            }
-            elevation += -dy * Y_PX_SENSE;
-            if (elevation > MAX_ELEVATION) {
-                elevation = MAX_ELEVATION;
-            }
-            if (elevation < MIN_ELEVATION) {
-                elevation = MIN_ELEVATION;
-            }
+            setAzimuth(azimuth + dx * X_PX_SENSE);
+            setElevation(elevation + -dy * Y_PX_SENSE);
         }
 
         update();
@@ -81,10 +64,40 @@ export function trackBall(params: TrackBallParams): () => void {
         reset();
     });
 
+    function setAzimuth(value: number): void {
+        azimuth = value;
+        if (azimuth > +Math.PI) {
+            azimuth -= 2 * Math.PI;
+        }
+        if (azimuth < -Math.PI) {
+            azimuth += 2 * Math.PI;
+        }
+    }
+
+    function setElevation(value: number): void {
+        elevation = value;
+        if (elevation > MAX_ELEVATION) {
+            elevation = MAX_ELEVATION;
+        }
+        if (elevation < MIN_ELEVATION) {
+            elevation = MIN_ELEVATION;
+        }
+    }
+
+    function setDistance(value: number): void {
+        distance = value;
+        if (distance < MIN_DISTANCE) {
+            distance = MIN_DISTANCE;
+        }
+        if (distance > MAX_DISTANCE) {
+            distance = MAX_DISTANCE;
+        }
+    }
+
     function reset(): void {
         prevCoords = null;
         isSecondary = false;
-        document.body.style.cursor = '';
+        setCursor('');
     }
 
     function update(): void {
@@ -93,7 +106,18 @@ export function trackBall(params: TrackBallParams): () => void {
         params.callback(vec);
     }
 
-    const control = createControl(params.element.parentElement!);
+    const control = createControl(params.element.parentElement!, (change) => {
+        if (change.azimuth !== undefined) {
+            setAzimuth(change.azimuth);
+        }
+        if (change.elevation !== undefined) {
+            setElevation(change.elevation);
+        }
+        if (change.distance !== undefined) {
+            setDistance((MAX_DISTANCE - MIN_DISTANCE) * change.distance + MIN_DISTANCE);
+        }
+        update();
+    });
     update();
 
     return () => {
@@ -108,7 +132,10 @@ interface Control {
     update(azimuth: number, elevation: number, distance: number): void;
 }
 
-function createControl(container: HTMLElement): Control {
+function createControl(
+    container: HTMLElement,
+    notify: (change: { azimuth?: number; elevation?: number; distance?: number }) => void,
+): Control {
     const size = 180;
     const r = size / 2;
     const pad = 4;
@@ -117,6 +144,7 @@ function createControl(container: HTMLElement): Control {
     const sizeDistance = sizeAzimuth;
     const rAzimuth = r - pad - pad - sizeAzimuth / 2;
     const rElevation = rAzimuth - sizeAzimuth / 2 - pad;
+    const rDistance = rElevation;
 
     const root = document.createElement('div');
     root.className = 'track-ball';
@@ -136,37 +164,86 @@ function createControl(container: HTMLElement): Control {
                 stroke="red" stroke-width="1"
             />
             <circle
+                data-tag="azimuth"
                 cx="0" cy="${rAzimuth}" r="${sizeAzimuth / 2}"
                 fill="green"
-                style="cursor: grab;"
+                style="cursor: ${CURSOR};"
             />
             <circle
+                data-tag="elevation"
                 cx="0" cy="0" r="${sizeElevation / 2}"
                 fill="green"
-                style="cursor: grab;"
+                style="cursor: ${CURSOR};"
             />
             <rect
+                data-tag="distance"
                 x="${-sizeDistance / 4}" y="${-sizeDistance / 2}"
                 width="${sizeDistance / 2}" height="${sizeDistance}"
                 rx="4" ry="4"
                 fill="green"
-                style="cursor: grab;"
+                style="cursor: ${CURSOR};"
             />
         </svg>
     `;
-    const elAz = root.firstElementChild!.children[2];
-    const elEl = root.firstElementChild!.children[3];
-    const elDist = root.firstElementChild!.children[4];
+    const svgRoot = root.querySelector<HTMLElement>('svg')!;
+    const elementAzimuth = svgRoot.querySelector<HTMLElement>('[data-tag="azimuth"]')!;
+    const elementElevation = svgRoot.querySelector<HTMLElement>('[data-tag="elevation"]')!;
+    const elementDistance = svgRoot.querySelector<HTMLElement>('[data-tag="distance"]')!;
 
-    const tracker = new Tracker(root);
+    let mode: 'azimuth' | 'elevation' | 'distance' | null = null;
+
+    const tracker = new Tracker(svgRoot);
     tracker.event('start').on((e) => {
-
+        switch (e.nativeEvent.target) {
+        case elementAzimuth: {
+            mode = 'azimuth';
+            break;
+        }
+        case elementElevation: {
+            mode = 'elevation';
+            break;
+        }
+        case elementDistance: {
+            mode = 'distance';
+            break;
+        }
+        }
+        if (mode !== null) {
+            setCursor(CURSOR);
+        }
     });
     tracker.event('move').on((e) => {
-
+        switch (mode) {
+        case 'azimuth': {
+            const rect = svgRoot.getBoundingClientRect();
+            const xc = (rect.right - rect.left) / 2;
+            const yc = (rect.bottom - rect.top) / 2;
+            const dx = e.coords.x - xc;
+            const dy = e.coords.y - yc;
+            const azimuth = Math.atan2(dx, dy);
+            notify({ azimuth });
+            break;
+        }
+        case 'elevation': {
+            const rect = svgRoot.getBoundingClientRect();
+            const yc = (rect.bottom - rect.top) / 2;
+            const dy = clamp((e.coords.y - yc) / rElevation, -1, +1);
+            const elevation = -Math.asin(dy);
+            notify({ elevation });
+            break;
+        }
+        case 'distance': {
+            const rect = svgRoot.getBoundingClientRect();
+            const xc = (rect.right - rect.left) / 2;
+            const distance = clamp((e.coords.x - xc + rDistance) / (2 * rDistance), 0, 1);
+            notify({ distance });
+            break;
+        }
+        }
     });
-    tracker.event('end').on((e) => {
-
+    tracker.event('end').on(() => {
+        setCursor('');
+        mode = null;
     });
 
     container.appendChild(root);
@@ -178,12 +255,26 @@ function createControl(container: HTMLElement): Control {
 
         update: (azimuth, elevation, distance) => {
             const angleAzimuth = rad2deg(-azimuth);
-            elAz.setAttribute('transform', `rotate(${angleAzimuth})`);
+            elementAzimuth.setAttribute('transform', `rotate(${angleAzimuth})`);
             const positionElevation = -rElevation * Math.sin(elevation);
             const scaleElevation = 0.6 * Math.cos(elevation) + 0.4;
-            elEl.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
-            const positionDistance = (distance * 2 - 1) * rElevation;
-            elDist.setAttribute('transform', `translate(${positionDistance} 0)`);
+            elementElevation.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
+            const positionDistance = (distance * 2 - 1) * rDistance;
+            elementDistance.setAttribute('transform', `translate(${positionDistance} 0)`);
         },
     };
+}
+
+function setCursor(val: string): void {
+    document.body.style.cursor = val;
+}
+
+function clamp(val: number, min: number, max: number): number {
+    if (val <= min) {
+        return min;
+    }
+    if (val >= max) {
+        return max;
+    }
+    return val;
 }
