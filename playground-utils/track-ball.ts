@@ -1,4 +1,4 @@
-import type { Vec2, Vec3, Vec3Mut } from 'lib';
+import type { Vec2, Vec3, Vec3Mut, Spherical, SphericalMut } from 'lib';
 import { Tracker, spherical2zxy, zxy2spherical, clone2, clone3, vec3, rad2deg } from 'lib';
 
 export interface TrackBallParams {
@@ -101,8 +101,13 @@ export function trackBall(params: TrackBallParams): () => void {
     }
 
     function update(): void {
-        spherical2zxy({ azimuth, elevation, distance }, vec);
-        control.update(azimuth, elevation, (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE));
+        const coords = _coords_scratch;
+        coords.azimuth = azimuth;
+        coords.elevation = elevation;
+        coords.distance = distance;
+        spherical2zxy(coords, vec);
+        coords.distance = (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
+        control.update(coords);
         params.callback(vec);
     }
 
@@ -127,14 +132,16 @@ export function trackBall(params: TrackBallParams): () => void {
     };
 }
 
+const _coords_scratch = { azimuth: 0, elevation: 0, distance: 0 } as SphericalMut;
+
 interface Control {
     dispose(): void;
-    update(azimuth: number, elevation: number, distance: number): void;
+    update(coords: Spherical): void;
 }
 
 function createControl(
     container: HTMLElement,
-    notify: (change: { azimuth?: number; elevation?: number; distance?: number }) => void,
+    notify: (change: Partial<Spherical>) => void,
 ): Control {
     const size = 180;
     const r = size / 2;
@@ -253,13 +260,13 @@ function createControl(
             tracker.dispose();
         },
 
-        update: (azimuth, elevation, distance) => {
-            const angleAzimuth = rad2deg(-azimuth);
+        update: (coords) => {
+            const angleAzimuth = rad2deg(-coords.azimuth);
             elementAzimuth.setAttribute('transform', `rotate(${angleAzimuth})`);
-            const positionElevation = -rElevation * Math.sin(elevation);
-            const scaleElevation = 0.6 * Math.cos(elevation) + 0.4;
+            const positionElevation = -rElevation * Math.sin(coords.elevation);
+            const scaleElevation = 0.6 * Math.cos(coords.elevation) + 0.4;
             elementElevation.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
-            const positionDistance = (distance * 2 - 1) * rDistance;
+            const positionDistance = (coords.distance * 2 - 1) * rDistance;
             elementDistance.setAttribute('transform', `translate(${positionDistance} 0)`);
         },
     };
