@@ -111,17 +111,20 @@ export function trackBall(params: TrackBallParams): () => void {
         params.callback(vec);
     }
 
-    const control = createControl(params.element.parentElement!, (change) => {
-        if (change.azimuth !== undefined) {
-            setAzimuth(change.azimuth);
-        }
-        if (change.elevation !== undefined) {
-            setElevation(change.elevation);
-        }
-        if (change.distance !== undefined) {
-            setDistance((MAX_DISTANCE - MIN_DISTANCE) * change.distance + MIN_DISTANCE);
-        }
-        update();
+    const control = createControl({
+        container: params.element.parentElement!,
+        notify: (change) => {
+            if (change.azimuth !== undefined) {
+                setAzimuth(change.azimuth);
+            }
+            if (change.elevation !== undefined) {
+                setElevation(change.elevation);
+            }
+            if (change.distance !== undefined) {
+                setDistance((MAX_DISTANCE - MIN_DISTANCE) * change.distance + MIN_DISTANCE);
+            }
+            update();
+        },
     });
     update();
 
@@ -134,15 +137,17 @@ export function trackBall(params: TrackBallParams): () => void {
 
 const _coords_scratch = { azimuth: 0, elevation: 0, distance: 0 } as SphericalMut;
 
+interface ControlParams {
+    readonly container: HTMLElement;
+    readonly notify: (change: Partial<Spherical>) => void;
+}
+
 interface Control {
     dispose(): void;
     update(coords: Spherical): void;
 }
 
-function createControl(
-    container: HTMLElement,
-    notify: (change: Partial<Spherical>) => void,
-): Control {
+function createControl(params: ControlParams): Control {
     const size = 180;
     const r = size / 2;
     const pad = 4;
@@ -192,72 +197,63 @@ function createControl(
             />
         </svg>
     `;
-    const svgRoot = root.querySelector<HTMLElement>('svg')!;
-    const elementAzimuth = svgRoot.querySelector<HTMLElement>('[data-tag="azimuth"]')!;
-    const elementElevation = svgRoot.querySelector<HTMLElement>('[data-tag="elevation"]')!;
-    const elementDistance = svgRoot.querySelector<HTMLElement>('[data-tag="distance"]')!;
+    const elementRoot = root.querySelector<HTMLElement>('svg')!;
+    const elementAzimuth = elementRoot.querySelector<HTMLElement>('[data-tag="azimuth"]')!;
+    const elementElevation = elementRoot.querySelector<HTMLElement>('[data-tag="elevation"]')!;
+    const elementDistance = elementRoot.querySelector<HTMLElement>('[data-tag="distance"]')!;
 
-    let mode: 'azimuth' | 'elevation' | 'distance' | null = null;
+    type Handler = (coords: Vec2) => void;
+    const handlers: Readonly<Record<string, Handler>> = {
+        azimuth: (coords) => {
+            const rect = elementRoot.getBoundingClientRect();
+            const xc = (rect.right - rect.left) / 2;
+            const yc = (rect.bottom - rect.top) / 2;
+            const dx = coords.x - xc;
+            const dy = coords.y - yc;
+            const azimuth = Math.atan2(dx, dy);
+            params.notify({ azimuth });
+        },
+        elevation: (coords) => {
+            const rect = elementRoot.getBoundingClientRect();
+            const yc = (rect.bottom - rect.top) / 2;
+            const dy = clamp((coords.y - yc) / rElevation, -1, +1);
+            const elevation = -Math.asin(dy);
+            params.notify({ elevation });
+        },
+        distance: (coords) => {
+            const rect = elementRoot.getBoundingClientRect();
+            const xc = (rect.right - rect.left) / 2;
+            const distance = clamp((coords.x - xc + rDistance) / (2 * rDistance), 0, 1);
+            params.notify({ distance });
+        },
+    };
+    let handler: Handler | null = null;
 
-    const tracker = new Tracker(svgRoot);
+    const tracker = new Tracker(elementRoot);
     tracker.event('start').on((e) => {
-        switch (e.nativeEvent.target) {
-        case elementAzimuth: {
-            mode = 'azimuth';
-            break;
-        }
-        case elementElevation: {
-            mode = 'elevation';
-            break;
-        }
-        case elementDistance: {
-            mode = 'distance';
-            break;
-        }
-        }
-        if (mode !== null) {
+        const { tag } = (e.nativeEvent.target as HTMLElement).dataset;
+        handler = (handlers[tag as string] ?? null) as Handler | null;
+        if (handler) {
             setCursor(CURSOR);
         }
     });
     tracker.event('move').on((e) => {
-        switch (mode) {
-        case 'azimuth': {
-            const rect = svgRoot.getBoundingClientRect();
-            const xc = (rect.right - rect.left) / 2;
-            const yc = (rect.bottom - rect.top) / 2;
-            const dx = e.coords.x - xc;
-            const dy = e.coords.y - yc;
-            const azimuth = Math.atan2(dx, dy);
-            notify({ azimuth });
-            break;
-        }
-        case 'elevation': {
-            const rect = svgRoot.getBoundingClientRect();
-            const yc = (rect.bottom - rect.top) / 2;
-            const dy = clamp((e.coords.y - yc) / rElevation, -1, +1);
-            const elevation = -Math.asin(dy);
-            notify({ elevation });
-            break;
-        }
-        case 'distance': {
-            const rect = svgRoot.getBoundingClientRect();
-            const xc = (rect.right - rect.left) / 2;
-            const distance = clamp((e.coords.x - xc + rDistance) / (2 * rDistance), 0, 1);
-            notify({ distance });
-            break;
-        }
+        if (handler) {
+            handler(e.coords);
         }
     });
     tracker.event('end').on(() => {
-        setCursor('');
-        mode = null;
+        if (handler) {
+            setCursor('');
+            handler = null;
+        }
     });
 
-    container.appendChild(root);
+    params.container.appendChild(root);
     return {
         dispose: () => {
-            root.remove();
             tracker.dispose();
+            root.remove();
         },
 
         update: (coords) => {
