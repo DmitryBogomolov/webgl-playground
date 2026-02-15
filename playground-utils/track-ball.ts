@@ -1,29 +1,39 @@
 import type { Vec2, Vec3, Vec3Mut, Spherical, SphericalMut } from 'lib';
-import { Tracker, spherical2zxy, zxy2spherical, clone2, clone3, vec3, rad2deg } from 'lib';
+import { Tracker, spherical2zxy, zxy2spherical, clone2, vec3, rad2deg } from 'lib';
+
+export interface DistanceParams {
+    readonly min: number;
+    readonly max: number;
+}
 
 export interface TrackBallParams {
     readonly element: HTMLElement;
     readonly callback: (v: Vec3) => void;
     readonly initial?: Vec3;
+    readonly distance?: DistanceParams;
 }
 
-const DEFAULT = vec3(0, 0, 1);
+const DEFAULT_COORDS = vec3(0, 0, 1);
+const DEFAULT_DISTANCE: DistanceParams = { min: 1, max: 100 };
 
-const X_PX_SENSE = Math.PI / 180 / 4;
-const Y_PX_SENSE = Math.PI / 180 / 4;
-const DIST_PX_SENSE = 1 / 200;
-const ELEVATION_EPS = Math.PI / 180 * 3;
-const MAX_ELEVATION = +Math.PI / 2 - ELEVATION_EPS;
-const MIN_ELEVATION = -Math.PI / 2 + ELEVATION_EPS;
-const MIN_DISTANCE = 0.1;
-const MAX_DISTANCE = 100;
+const PI = Math.PI;
+const DBLPI = 2 * Math.PI;
+const X_PX_SENSE = PI / 180 / 4;
+const Y_PX_SENSE = PI / 180 / 4;
+const ELEVATION_EPS = PI / 180 * 3;
+const MIN_ELEVATION = -PI / 2 + ELEVATION_EPS;
+const MAX_ELEVATION = +PI / 2 - ELEVATION_EPS;
+const DIST_PX_SENSE = 1 / 100;
 const CURSOR = 'move';
 
 export function trackBall(params: TrackBallParams): () => void {
     const tracker = new Tracker(params.element);
 
-    const vec = clone3(params.initial ?? DEFAULT) as Vec3Mut;
-    let { azimuth, elevation, distance } = zxy2spherical(params.initial ?? DEFAULT);
+    const { min: minDistance, max: maxDistance } = params.distance ?? DEFAULT_DISTANCE;
+    let azimuth = 0;
+    let elevation = 0;
+    let distance = 0;
+    initPosition();
 
     let prevCoords: Vec2 | null = null;
     let isSecondary = false;
@@ -66,11 +76,11 @@ export function trackBall(params: TrackBallParams): () => void {
 
     function setAzimuth(value: number): void {
         azimuth = value;
-        if (azimuth > +Math.PI) {
-            azimuth -= 2 * Math.PI;
+        if (azimuth > +PI) {
+            azimuth -= +azimuth / DBLPI | 0 * DBLPI;
         }
         if (azimuth < -Math.PI) {
-            azimuth += 2 * Math.PI;
+            azimuth -= -azimuth / DBLPI | 0 * DBLPI;
         }
     }
 
@@ -86,11 +96,11 @@ export function trackBall(params: TrackBallParams): () => void {
 
     function setDistance(value: number): void {
         distance = value;
-        if (distance < MIN_DISTANCE) {
-            distance = MIN_DISTANCE;
+        if (distance < minDistance) {
+            distance = minDistance;
         }
-        if (distance > MAX_DISTANCE) {
-            distance = MAX_DISTANCE;
+        if (distance > maxDistance) {
+            distance = maxDistance;
         }
     }
 
@@ -100,13 +110,22 @@ export function trackBall(params: TrackBallParams): () => void {
         setCursor('');
     }
 
+    function initPosition(): void {
+        const coords = _coords_scratch;
+        zxy2spherical(params.initial ?? DEFAULT_COORDS, coords);
+        setAzimuth(coords.azimuth);
+        setElevation(coords.elevation);
+        setDistance(coords.distance);
+    }
+
     function update(): void {
         const coords = _coords_scratch;
+        const vec = _vec_scratch;
         coords.azimuth = azimuth;
         coords.elevation = elevation;
         coords.distance = distance;
         spherical2zxy(coords, vec);
-        coords.distance = (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE);
+        coords.distance = (distance - minDistance) / (maxDistance - minDistance);
         control.update(coords);
         params.callback(vec);
     }
@@ -121,7 +140,7 @@ export function trackBall(params: TrackBallParams): () => void {
                 setElevation(change.elevation);
             }
             if (change.distance !== undefined) {
-                setDistance((MAX_DISTANCE - MIN_DISTANCE) * change.distance + MIN_DISTANCE);
+                setDistance((maxDistance - minDistance) * change.distance + minDistance);
             }
             update();
         },
@@ -135,6 +154,7 @@ export function trackBall(params: TrackBallParams): () => void {
     };
 }
 
+const _vec_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _coords_scratch = { azimuth: 0, elevation: 0, distance: 0 } as SphericalMut;
 
 interface ControlParams {

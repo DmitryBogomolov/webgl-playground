@@ -2,17 +2,16 @@ import type { Runtime, Program, Vec2, Mat4Mut, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    OrbitCamera,
+    ViewProj,
     vec2, ZERO2,
     vec3,
     mat4,
     color, colors,
-    uint2bytes, getEventCoords, deg2rad, makePixelViewProjMat,
+    uint2bytes, getEventCoords, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
-import { createControls } from 'playground-utils/controls';
 import { makeObjectsFactory, SceneItem } from './primitive';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Frusum picking.
@@ -26,7 +25,7 @@ export type DESCRIPTION = never;
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
-    readonly camera: OrbitCamera;
+    readonly camera: ViewProj;
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -44,25 +43,9 @@ export function main(): () => void {
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });
-    const camera = new OrbitCamera();
+    const camera = new ViewProj();
     const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
-    const cameraLon = observable(0);
-    const cameraLat = observable(20);
-    const cameraDist = observable(10);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
     const cancelRender = renderOnChange(runtime, [camera]);
 
     const state: State = {
@@ -92,16 +75,19 @@ export function main(): () => void {
         renderFrame(state);
     });
 
-    const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
-        { label: 'camera dist', value: cameraDist, min: 4, max: 16 },
-    ]);
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 4, max: 16 },
+        initial: { x: 0, y: 3, z: 10 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
 
     return () => {
         container.removeEventListener('pointermove', handlePointerMove);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cancelRender, controlRoot,
+            cancelRender, disposeTrackBall,
             disposeObjects, framebuffer, runtime,
         ]);
     };
