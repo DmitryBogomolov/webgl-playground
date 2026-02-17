@@ -3,19 +3,17 @@ import type { GlyphAtlas } from './glyph';
 import {
     createRenderState,
     Texture,
-    OrbitCamera,
+    ViewProj,
     divc2,
     vec3, add3,
     translation4x4,
     color, colors,
-    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
-import { createControls } from 'playground-utils/controls';
 import { makePrimitive } from './primitive';
 import { makeStringPrimitive, makeStringProgram, getNextLabel } from './label';
 import { makeGlyphAtlas } from './glyph';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Glyph texts.
@@ -42,14 +40,14 @@ interface LabelInfo {
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: OrbitCamera;
+    readonly camera: ViewProj;
     readonly atlasTexture: Texture;
     readonly primitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
 export function main(): () => void {
-    const { runtime, container } = setup();
+    const { runtime } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
     const atlas = makeGlyphAtlas(FONT_SIZE);
@@ -59,23 +57,7 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const { objects, disposeObjects } = makeObjects(runtime, atlas);
 
-    const camera = new OrbitCamera();
-    const cameraLon = observable(0);
-    const cameraLat = observable(10);
-    const cameraDist = observable(5);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
+    const camera = new ViewProj();
 
     const state: State = {
         runtime,
@@ -92,17 +74,20 @@ export function main(): () => void {
         renderScene(state);
     });
 
-    const cancelRender = renderOnChange(runtime, [camera]);
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 3, max: 8 },
+        initial: { x: 0, y: 1, z: 5 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
 
-    const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
-        { label: 'camera dist', value: cameraDist, min: 3, max: 8, step: 0.2 },
-    ]);
+    const cancelRender = renderOnChange(runtime, [camera]);
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cameraDist, cancelRender, controlRoot,
+            cancelRender, disposeTrackBall,
             disposeObjects, primitive.program(), primitive, atlasTexture, runtime,
         ]);
     };

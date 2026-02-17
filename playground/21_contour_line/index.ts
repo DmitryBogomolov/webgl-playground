@@ -9,10 +9,11 @@ import {
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
+import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Contour line.
@@ -39,23 +40,6 @@ export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const camera = new OrbitCamera();
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(20);
-    const cameraDist = observable(2);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
 
     const xRotation = observable(0);
     const yRotation = observable(0);
@@ -106,12 +90,17 @@ export function main(): () => void {
             updateContourPrimitive(state);
         });
     });
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 2, max: 4 },
+        initial: { x: 0, y: 1, z: 2 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
     const cancelRender = renderOnChange(runtime, [camera, modelMat, contourEnabled, contourThickness]);
 
     const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
-        { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
         { label: 'x rotation', value: xRotation, min: -180, max: +180 },
         { label: 'y rotation', value: yRotation, min: -180, max: +180 },
         { label: 'enabled', checked: contourEnabled },
@@ -119,7 +108,7 @@ export function main(): () => void {
     ]);
 
     return () => {
-        disposeAll([cancelRender, controlRoot, primitive, contourPrimitive, runtime]);
+        disposeAll([cancelRender, disposeTrackBall, controlRoot, primitive, contourPrimitive, runtime]);
     };
 }
 

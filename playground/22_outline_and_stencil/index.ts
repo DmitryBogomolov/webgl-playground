@@ -3,18 +3,18 @@ import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     Framebuffer,
     vec3,
     mat4,
     color, colors,
-    deg2rad,
     getEventCoords, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
+import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Outline and stencil.
@@ -30,7 +30,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: OrbitCamera;
+    readonly camera: ViewProj;
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
@@ -44,29 +44,12 @@ interface State {
 
 export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
-    const camera = new OrbitCamera();
+    const camera = new ViewProj();
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(20);
-    const cameraDist = observable(5);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
 
     const outlineThickness = observable(10);
 
@@ -132,19 +115,24 @@ export function main(): () => void {
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 1, max: 6 },
+        initial: { x: 0, y: 1, z: 5 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
     const cancelRender = renderOnChange(runtime, [camera, outlineThickness]);
 
     const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
-        { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
         { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
     ]);
 
     return () => {
         container.removeEventListener('click', handleClick);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, outlineThickness, controlRoot, cancelRender,
+            controlRoot, disposeTrackBall, cancelRender,
             disposeModels, framebuffer, runtime,
         ]);
     };
