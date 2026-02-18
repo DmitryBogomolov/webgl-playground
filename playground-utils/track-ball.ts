@@ -1,10 +1,15 @@
 import type { Vec2, Vec3, Vec3Mut, Spherical, SphericalMut } from 'lib';
 import { Tracker, spherical2zxy, zxy2spherical, clone2, vec3, rad2deg } from 'lib';
 
-export interface DistanceParams {
-    readonly min: number;
-    readonly max: number;
-}
+export type DistanceParams = (
+    | {
+        readonly min: number;
+        readonly max: number;
+    }
+    | {
+        readonly fixed: number;
+    }
+);
 
 export interface TrackBallParams {
     readonly element: HTMLElement;
@@ -12,9 +17,6 @@ export interface TrackBallParams {
     readonly initial?: Vec3;
     readonly distance?: DistanceParams;
 }
-
-const DEFAULT_COORDS = vec3(0, 0, 1);
-const DEFAULT_DISTANCE: DistanceParams = { min: 1, max: 100 };
 
 const PI = Math.PI;
 const DBLPI = 2 * Math.PI;
@@ -26,14 +28,19 @@ const MAX_ELEVATION = +PI / 2 - ELEVATION_EPS;
 const DIST_PX_SENSE = 1 / 100;
 const CURSOR = 'move';
 
+interface DistanceConfig {
+    readonly min: number;
+    readonly max: number;
+    readonly isFixed: boolean;
+}
+
+const DEFAULT_DISTANCE_CONFIG: DistanceConfig = { min: 1, max: 100, isFixed: false };
+
 export function trackBall(params: TrackBallParams): () => void {
     const tracker = new Tracker(params.element);
 
-    const { min: minDistance, max: maxDistance } = params.distance ?? DEFAULT_DISTANCE;
-    let azimuth = 0;
-    let elevation = 0;
-    let distance = 0;
-    initPosition();
+    const distanceConfig = makeDistanceConfig(params.distance);
+    const coords = makeCoords(params.initial, distanceConfig);
 
     let prevCoords: Vec2 | null = null;
     let isSecondary = false;
@@ -48,10 +55,12 @@ export function trackBall(params: TrackBallParams): () => void {
         if (!prevCoords) {
             return;
         }
-        if (e.nativeEvent.button === 2) {
-            isSecondary = !isSecondary;
-            prevCoords = clone2(e.coords);
-            return;
+        if (!distanceConfig.isFixed) {
+            if (e.nativeEvent.button === 2) {
+                isSecondary = !isSecondary;
+                prevCoords = clone2(e.coords);
+                return;
+            }
         }
 
         const dx = e.coords.x - prevCoords.x;
@@ -59,10 +68,10 @@ export function trackBall(params: TrackBallParams): () => void {
         prevCoords = clone2(e.coords);
 
         if (isSecondary) {
-            setDistance(distance + dx * DIST_PX_SENSE);
+            setDistance(coords, distanceConfig, coords.distance + dx * DIST_PX_SENSE);
         } else {
-            setAzimuth(azimuth + dx * X_PX_SENSE);
-            setElevation(elevation + -dy * Y_PX_SENSE);
+            setAzimuth(coords, coords.azimuth + dx * X_PX_SENSE);
+            setElevation(coords, coords.elevation + -dy * Y_PX_SENSE);
         }
 
         update();
@@ -74,73 +83,29 @@ export function trackBall(params: TrackBallParams): () => void {
         reset();
     });
 
-    function setAzimuth(value: number): void {
-        azimuth = value;
-        if (azimuth > +PI) {
-            azimuth -= +azimuth / DBLPI | 0 * DBLPI;
-        }
-        if (azimuth < -Math.PI) {
-            azimuth -= -azimuth / DBLPI | 0 * DBLPI;
-        }
-    }
-
-    function setElevation(value: number): void {
-        elevation = value;
-        if (elevation > MAX_ELEVATION) {
-            elevation = MAX_ELEVATION;
-        }
-        if (elevation < MIN_ELEVATION) {
-            elevation = MIN_ELEVATION;
-        }
-    }
-
-    function setDistance(value: number): void {
-        distance = value;
-        if (distance < minDistance) {
-            distance = minDistance;
-        }
-        if (distance > maxDistance) {
-            distance = maxDistance;
-        }
-    }
-
     function reset(): void {
         prevCoords = null;
         isSecondary = false;
         setCursor('');
     }
 
-    function initPosition(): void {
-        const coords = _coords_scratch;
-        zxy2spherical(params.initial ?? DEFAULT_COORDS, coords);
-        setAzimuth(coords.azimuth);
-        setElevation(coords.elevation);
-        setDistance(coords.distance);
-    }
-
     function update(): void {
-        const coords = _coords_scratch;
-        const vec = _vec_scratch;
-        coords.azimuth = azimuth;
-        coords.elevation = elevation;
-        coords.distance = distance;
-        spherical2zxy(coords, vec);
-        coords.distance = (distance - minDistance) / (maxDistance - minDistance);
         control.update(coords);
-        params.callback(vec);
+        params.callback(spherical2zxy(coords, _vec_scratch));
     }
 
     const control = createControl({
         container: params.element.parentElement!,
+        distance: distanceConfig,
         notify: (change) => {
             if (change.azimuth !== undefined) {
-                setAzimuth(change.azimuth);
+                setAzimuth(coords, change.azimuth);
             }
             if (change.elevation !== undefined) {
-                setElevation(change.elevation);
+                setElevation(coords, change.elevation);
             }
             if (change.distance !== undefined) {
-                setDistance((maxDistance - minDistance) * change.distance + minDistance);
+                setDistance(coords, distanceConfig, change.distance);
             }
             update();
         },
@@ -154,11 +119,83 @@ export function trackBall(params: TrackBallParams): () => void {
     };
 }
 
+function makeDistanceConfig(params: DistanceParams | undefined): DistanceConfig {
+    if (!params) {
+        return { ...DEFAULT_DISTANCE_CONFIG };
+    }
+    if ('fixed' in params) {
+        if (params.fixed <= 0) {
+            throw new Error(`params.distance.fixed: ${params.fixed}`);
+        }
+        return {
+            min: params.fixed,
+            max: params.fixed,
+            isFixed: true,
+        };
+    } else {
+        if (params.min <= 0) {
+            throw new Error(`params.distance.min: ${params.min}`);
+        }
+        if (params.max <= params.min) {
+            throw new Error(`params.distance.min: ${params.min}`);
+        }
+        return {
+            min: params.min,
+            max: params.max,
+            isFixed: false,
+        };
+    }
+}
+
+function makeCoords(initial: Vec3 | undefined, distanceConfig: DistanceConfig): SphericalMut {
+    const coords = { azimuth: 0, elevation: 0, distance: 1 } as SphericalMut;
+    if (initial) {
+        zxy2spherical(initial, coords);
+    }
+    setAzimuth(coords, coords.azimuth);
+    setElevation(coords, coords.elevation);
+    setDistance(coords, distanceConfig, coords.distance);
+    return coords;
+}
+
+function setAzimuth(coords: SphericalMut, value: number): void {
+    let azimuth = value;
+    if (azimuth > +PI) {
+        azimuth -= +azimuth / DBLPI | 0 * DBLPI;
+    }
+    if (azimuth < -Math.PI) {
+        azimuth -= -azimuth / DBLPI | 0 * DBLPI;
+    }
+    coords.azimuth = azimuth;
+}
+
+function setElevation(coords: SphericalMut, value: number): void {
+    let elevation = value;
+    if (elevation > MAX_ELEVATION) {
+        elevation = MAX_ELEVATION;
+    }
+    if (elevation < MIN_ELEVATION) {
+        elevation = MIN_ELEVATION;
+    }
+    coords.elevation = elevation;
+}
+
+function setDistance(coords: SphericalMut, config: DistanceConfig, value: number): void {
+    let distance = value;
+    if (distance < config.min) {
+        distance = config.min;
+    }
+    if (distance > config.max) {
+        distance = config.max;
+    }
+    coords.distance = distance;
+}
+
 const _vec_scratch = vec3(0, 0, 0) as Vec3Mut;
-const _coords_scratch = { azimuth: 0, elevation: 0, distance: 0 } as SphericalMut;
 
 interface ControlParams {
     readonly container: HTMLElement;
+    readonly distance: DistanceConfig;
     readonly notify: (change: Partial<Spherical>) => void;
 }
 
@@ -166,6 +203,8 @@ interface Control {
     dispose(): void;
     update(coords: Spherical): void;
 }
+
+type Fx = (x: number) => number;
 
 function createControl(params: ControlParams): Control {
     const size = 180;
@@ -177,6 +216,9 @@ function createControl(params: ControlParams): Control {
     const rAzimuth = r - pad - pad - sizeAzimuth / 2;
     const rElevation = rAzimuth - sizeAzimuth / 2 - pad;
     const rDistance = rElevation;
+
+    const packDist = packDistance(params.distance);
+    const unpackDist = unpackDistance(params.distance);
 
     const root = document.createElement('div');
     root.className = 'track-ball';
@@ -221,6 +263,9 @@ function createControl(params: ControlParams): Control {
     const elementAzimuth = elementRoot.querySelector<HTMLElement>('[data-tag="azimuth"]')!;
     const elementElevation = elementRoot.querySelector<HTMLElement>('[data-tag="elevation"]')!;
     const elementDistance = elementRoot.querySelector<HTMLElement>('[data-tag="distance"]')!;
+    if (params.distance.isFixed) {
+        elementDistance.remove();
+    }
 
     type Handler = (coords: Vec2) => void;
     const handlers: Readonly<Record<string, Handler>> = {
@@ -244,7 +289,7 @@ function createControl(params: ControlParams): Control {
             const rect = elementRoot.getBoundingClientRect();
             const xc = (rect.right - rect.left) / 2;
             const distance = clamp((coords.x - xc + rDistance) / (2 * rDistance), 0, 1);
-            params.notify({ distance });
+            params.notify({ distance: unpackDist(distance) });
         },
     };
     let handler: Handler | null = null;
@@ -282,7 +327,7 @@ function createControl(params: ControlParams): Control {
             const positionElevation = -rElevation * Math.sin(coords.elevation);
             const scaleElevation = 0.6 * Math.cos(coords.elevation) + 0.4;
             elementElevation.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
-            const positionDistance = (coords.distance * 2 - 1) * rDistance;
+            const positionDistance = (packDist(coords.distance) * 2 - 1) * rDistance;
             elementDistance.setAttribute('transform', `translate(${positionDistance} 0)`);
         },
     };
@@ -290,6 +335,14 @@ function createControl(params: ControlParams): Control {
 
 function setCursor(val: string): void {
     document.body.style.cursor = val;
+}
+
+function packDistance({ min, max }: DistanceConfig): Fx {
+    return (t) => (t - min) / (max - min);
+}
+
+function unpackDistance({ min, max }: DistanceConfig): Fx {
+    return (t) => (max - min) * t + min;
 }
 
 function clamp(val: number, min: number, max: number): number {
