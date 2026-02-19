@@ -2,15 +2,16 @@ import type { Runtime, Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
+import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
 import { makeTexture } from './texture';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Skybox.
@@ -26,7 +27,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: OrbitCamera;
+    readonly camera: ViewProj;
     readonly modelMat: Observable<Mat4>;
     readonly normalMat: Observable<Mat4>;
     readonly isCubeShown: Observable<boolean>;
@@ -40,24 +41,7 @@ export function main(): () => void {
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);
-    const camera = new OrbitCamera();
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(0);
-    const cameraDist = observable(2);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
+    const camera = new ViewProj();
 
     const modelLon = observable(0);
     const modelLat = observable(0);
@@ -72,6 +56,14 @@ export function main(): () => void {
         },
         [modelLon, modelLat],
     );
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 1, max: 5 },
+        initial: { x: 0, y: 0, z: 2 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
 
     const _normalMat = mat4() as Mat4Mut;
     const normalMat = computed(
@@ -90,16 +82,16 @@ export function main(): () => void {
     });
 
     const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -360, max: +360 },
-        { label: 'camera lat', value: cameraLat, min: -80, max: +80 },
-        { label: 'camera dist', value: cameraDist, min: 1, max: 5, step: 0.2 },
         { label: 'model lon', value: modelLon, min: -90, max: +90 },
         { label: 'model lat', value: modelLat, min: -90, max: +90 },
         { label: 'cube', checked: isCubeShown },
     ]);
 
     return () => {
-        disposeAll([cancelRender, controlRoot, quad.program(), quad, cube.program(), cube, texture, runtime]);
+        disposeAll([
+            cancelRender, controlRoot, disposeTrackBall,
+            quad.program(), quad, cube.program(), cube, texture, runtime,
+        ]);
     };
 }
 

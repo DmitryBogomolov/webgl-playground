@@ -4,15 +4,13 @@ import {
     Primitive,
     Program,
     TextureCube,
-    OrbitCamera,
+    ViewProj,
     generateCube,
     UNIT3,
-    deg2rad,
     parseVertexSchema,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
-import { createControls } from 'playground-utils/controls';
+import { trackBall } from 'playground-utils/track-ball';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
 
@@ -25,29 +23,13 @@ import fragShader from './shaders/cube.frag';
 export type DESCRIPTION = never;
 
 export function main(): () => void {
-    const { runtime, container } = setup();
+    const { runtime } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
-    const camera = new OrbitCamera();
+    const camera = new ViewProj();
 
     const cancelRender = renderOnChange(runtime, [camera]);
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(30);
-    bind(
-        computed(
-            ([cameraLon, cameraLat]) => ({
-                dist: 2,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
 
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
@@ -65,14 +47,18 @@ export function main(): () => void {
         primitive.render();
     });
 
-    const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
-    ]);
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { fixed: 2 },
+        initial: { x: 0, y: 1, z: 2 },
+        callback: (v) => {
+            camera.setEyePos(v);
+        },
+    });
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cancelRender, controlRoot,
+            cancelRender, disposeTrackBall,
             primitive.program(), primitive, texture, runtime,
         ]);
     };
