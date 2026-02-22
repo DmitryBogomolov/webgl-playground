@@ -1,11 +1,12 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     color,
     vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
@@ -50,13 +51,13 @@ export function main(): () => void {
     });
 
     const wireframeColor = color(0.1, 0.1, 0.1);
-    const camera = new OrbitCamera();
-    camera.setPosition({
-        dist: 5,
-        lon: 0,
-        lat: Math.atan2(2, 5),
+    const camera = new ViewProj();
+    camera.setEyePos({
+        x: 0,
+        y: 2,
+        z: 5,
     });
-    const mappingCamera = new OrbitCamera();
+    const mappingCamera = new ViewProj();
 
     const rotation = observable(0);
     const position = observable(0);
@@ -83,15 +84,15 @@ export function main(): () => void {
 
     bind(
         computed(
-            ([projectionDist, projectionLon, projectionLat]) => ({
-                dist: projectionDist,
-                lon: deg2rad(projectionLon),
-                lat: deg2rad(projectionLat),
-            }),
+            ([projectionDist, projectionLon, projectionLat]) => {
+                const lon = deg2rad(projectionLon);
+                const lat = deg2rad(projectionLat);
+                return spherical2zxy({ azimuth: lon, elevation: lat, distance: projectionDist });
+            },
             [projectionDist, projectionLon, projectionLat],
         ),
         (projectionPos) => {
-            mappingCamera.setPosition(projectionPos);
+            mappingCamera.setEyePos(projectionPos);
         },
     );
 

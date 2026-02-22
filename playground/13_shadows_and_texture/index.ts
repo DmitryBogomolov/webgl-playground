@@ -2,15 +2,17 @@ import type { Runtime, Primitive, Program, Vec3, Mat4, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    OrbitCamera,
+    ViewProj,
     vec3,
     translation4x4, inversetranspose4x4,
     colors, color,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { trackBall } from 'playground-utils/track-ball';
 import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } from './primitive';
 
 /**
@@ -42,8 +44,8 @@ interface State {
     readonly program: Program;
     readonly depthProgram: Program;
     readonly framebuffer: Framebuffer;
-    readonly viewProj: OrbitCamera;
-    readonly depthViewProj: OrbitCamera;
+    readonly viewProj: ViewProj;
+    readonly depthViewProj: ViewProj;
     readonly backgroundColor: Color;
     readonly depthDataBackgroundColor: Color;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -65,29 +67,29 @@ export function main(): () => void {
     const zNear = observable(0.5);
     const zFar = observable(10);
 
-    const viewProj = new OrbitCamera();
-    const depthViewProj = new OrbitCamera();
-    viewProj.setPosition({
-        dist: 6,
-        lat: Math.atan2(3, 5),
-        lon: 0,
-    });
+    const viewProj = new ViewProj();
+    const depthViewProj = new ViewProj();
 
-    bind(viewLon, (viewLon) => {
-        viewProj.setPosition({ lon: deg2rad(viewLon) });
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        initial: { x: 0, y: 3, z: 5 },
+        distance: { fixed: 6 },
+        callback: (v) => {
+            viewProj.setEyePos(v);
+        }
     });
 
     bind(
         computed(
-            ([lightLon, lightLat, lightDist]) => ({
-                dist: lightDist,
-                lon: deg2rad(lightLon),
-                lat: deg2rad(lightLat),
-            }),
+            ([lightLon, lightLat, lightDist]) => {
+                const lon = deg2rad(lightLon);
+                const lat = deg2rad(lightLat);
+                return spherical2zxy({ azimuth: lon, elevation: lat, distance: lightDist });
+            },
             [lightLon, lightLat, lightDist],
         ),
         (lightPos) => {
-            depthViewProj.setPosition(lightPos);
+            depthViewProj.setEyePos(lightPos);
         },
     );
 
@@ -153,7 +155,6 @@ export function main(): () => void {
     const cancelRender = renderOnChange(runtime, [viewProj, depthViewProj]);
 
     const controlRoot = createControls(container, [
-        { label: 'view lon', value: viewLon, min: -180, max: +180 },
         { label: 'light lon', value: lightLon, min: -180, max: +180 },
         { label: 'light lat', value: lightLat, min: -60, max: +60 },
         { label: 'light dist', value: lightDist, min: 2, max: 10, step: 0.5 },
@@ -163,7 +164,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cancelRender, controlRoot,
+            cancelRender, controlRoot, disposeTrackBall,
             ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
         ]);
     };
@@ -202,7 +203,7 @@ function renderDepthData({
     });
 }
 
-function renderWireframe(wireframe: Primitive, viewProj: OrbitCamera, depthViewProj: OrbitCamera): void {
+function renderWireframe(wireframe: Primitive, viewProj: ViewProj, depthViewProj: ViewProj): void {
     wireframe.program().setUniform('u_view_proj', viewProj.getTransformMat());
     wireframe.program().setUniform('u_model', depthViewProj.getInvtransformMat());
     wireframe.render();
