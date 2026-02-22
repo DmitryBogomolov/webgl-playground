@@ -1,12 +1,13 @@
-import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color, Vec3Mut } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    OrbitCamera,
-    vec3, norm3,
+    ViewProj,
+    vec3, norm3, rotate3, YUNIT3,
     mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
     color,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, Observable } from 'playground-utils/observable';
@@ -33,8 +34,8 @@ interface State {
     readonly textureBackgroundColor: Color;
     readonly backgroundColor: Color;
     readonly lightDir: Vec3;
-    readonly camera: OrbitCamera;
-    readonly textureCamera: OrbitCamera;
+    readonly camera: ViewProj;
+    readonly textureCamera: ViewProj;
     readonly framebuffer: Framebuffer;
     readonly texturePlane: Primitive;
     readonly object: Primitive;
@@ -51,13 +52,12 @@ export function main(): () => void {
     const xRotation = observable(0);
     const yRotation = observable(30);
 
-    let textureCameraLon = 0;
     const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
-    const textureCamera = new OrbitCamera();
-    textureCamera.setPosition({ dist: 5, lon: textureCameraLon, lat: Math.atan2(2, 5) });
+    const textureCamera = new ViewProj();
+    const eyePosition = spherical2zxy({ azimuth: 0, elevation: Math.atan2(2, 5), distance: 5 }) as Vec3Mut;
 
-    const camera = new OrbitCamera();
-    camera.setPosition({ dist: 2 });
+    const camera = new ViewProj();
+    camera.setEyePos({ x: 0, y: 0, z: 2 });
 
     const _targetModel = mat4() as Mat4Mut;
     const targetModel = computed(
@@ -120,9 +120,9 @@ export function main(): () => void {
 
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
-            textureCameraLon += CAMERA_ROTATION_SPEED * delta / 1000;
+            rotate3(eyePosition, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000, eyePosition);
         }
-        textureCamera.setPosition({ lon: textureCameraLon });
+        textureCamera.setEyePos(eyePosition);
 
         renderToTexture(state);
         renderScene(state);
