@@ -1,13 +1,13 @@
-import type { Runtime, Primitive, Vec3, Color } from 'lib';
+import type { Runtime, Primitive, Vec3, Color, Mat4 } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     vec3,
     color,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable } from 'playground-utils/observable';
+import { observable, wrapped } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
 import { findContour } from './contour';
@@ -24,11 +24,11 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: OrbitCamera;
+    readonly camera: ViewProj;
     readonly primitive: Primitive;
     readonly contourPrimitive: Primitive;
     readonly modelClr: Color;
-    readonly modelPoints: ReadonlyArray<Vec3>;
+    readonly updateContour: Observable<void>;
     readonly contourEnabled: Observable<boolean>;
     readonly contourThickness: Observable<number>;
 }
@@ -36,13 +36,28 @@ interface State {
 export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const camera = new OrbitCamera();
+    const camera = new ViewProj();
 
     const contourEnabled = observable(true);
     const contourThickness = observable(16);
+    const modelPoints: ReadonlyArray<Vec3> = [
+        vec3(-0.5, -0.5, -0.5),
+        vec3(+0.5, -0.5, -0.5),
+        vec3(+0.5, +0.5, -0.5),
+        vec3(-0.5, +0.5, -0.5),
+        vec3(-0.5, -0.5, +0.5),
+        vec3(+0.5, -0.5, +0.5),
+        vec3(+0.5, +0.5, +0.5),
+        vec3(-0.5, +0.5, +0.5),
+    ];
 
     const primitive = makePrimitive(runtime);
     const contourPrimitive = makeContourPrimitive(runtime);
+
+    const updateContour = wrapped(() => {
+        const points = findContour(modelPoints, camera.getTransformMat());
+        updateContourData(contourPrimitive, points);
+    }, camera.changed())
 
     const state: State = {
         runtime,
@@ -50,16 +65,7 @@ export function main(): () => void {
         primitive,
         contourPrimitive,
         modelClr: color(0.5, 0.1, 0.5),
-        modelPoints: [
-            vec3(-0.5, -0.5, -0.5),
-            vec3(+0.5, -0.5, -0.5),
-            vec3(+0.5, +0.5, -0.5),
-            vec3(-0.5, +0.5, -0.5),
-            vec3(-0.5, -0.5, +0.5),
-            vec3(+0.5, -0.5, +0.5),
-            vec3(+0.5, +0.5, +0.5),
-            vec3(-0.5, +0.5, +0.5),
-        ],
+        updateContour,
         contourEnabled,
         contourThickness,
     };
@@ -69,9 +75,6 @@ export function main(): () => void {
     });
     runtime.frameRequested().on(() => {
         renderScene(state);
-    });
-    camera.changed().on(() => {
-        updateContourPrimitive(state);
     });
     const disposeTrackBall = trackBall({
         element: runtime.canvas(),
@@ -105,6 +108,7 @@ function renderScene({
     camera,
     primitive,
     contourPrimitive,
+    updateContour,
     modelClr,
     contourEnabled,
     contourThickness,
@@ -117,14 +121,10 @@ function renderScene({
     primitive.render();
 
     if (contourEnabled()) {
+        updateContour();
         runtime.setRenderState(contourRenderState);
         contourPrimitive.program().setUniform('u_canvas_size', runtime.renderSize());
         contourPrimitive.program().setUniform('u_thickness', contourThickness());
         contourPrimitive.render();
     }
-}
-
-function updateContourPrimitive({ contourPrimitive, camera, modelPoints }: State): void {
-    const points = findContour(modelPoints, camera.getTransformMat());
-    updateContourData(contourPrimitive, points);
 }
