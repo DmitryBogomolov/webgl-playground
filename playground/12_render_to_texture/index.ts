@@ -4,14 +4,12 @@ import {
     Framebuffer,
     ViewProj,
     vec3, norm3, rotate3, YUNIT3,
-    mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
+    identity4x4, translation4x4, apply4x4, yrotation4x4,
     color,
     deg2rad,
     spherical2zxy,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, Observable } from 'playground-utils/observable';
-import { createControls } from 'playground-utils/controls';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 import { makeObject, makeTexturePlane } from './primitive';
 
@@ -40,7 +38,7 @@ interface State {
     readonly texturePlane: Primitive;
     readonly object: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
-    readonly targetModel: Observable<Mat4>;
+    readonly targetModels: ReadonlyArray<Mat4>;
 }
 
 export function main(): () => void {
@@ -49,27 +47,12 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const xRotation = observable(0);
-    const yRotation = observable(30);
-
     const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
     const textureCamera = new ViewProj();
     const eyePosition = spherical2zxy({ azimuth: 0, elevation: Math.atan2(2, 5), distance: 5 }) as Vec3Mut;
 
     const camera = new ViewProj();
-    camera.setEyePos({ x: 0, y: 0, z: 2 });
-
-    const _targetModel = mat4() as Mat4Mut;
-    const targetModel = computed(
-        ([xRotation, yRotation]) => {
-            const mat = _targetModel;
-            identity4x4(mat);
-            apply4x4(mat, xrotation4x4, deg2rad(xRotation));
-            apply4x4(mat, yrotation4x4, deg2rad(yRotation));
-            return mat as Mat4;
-        },
-        [xRotation, yRotation],
-    );
+    camera.setEyePos({ x: 0, y: 0.3, z: 3 });
 
     const framebuffer = new Framebuffer({
         runtime,
@@ -109,10 +92,12 @@ export function main(): () => void {
                 model: translation4x4(vec3(0, 0, -1.6)),
             },
         ],
-        targetModel,
+        targetModels: [
+            makeTargetMat(+45, -2.5),
+            makeTargetMat(0, 0),
+            makeTargetMat(-45, +2.5),
+        ],
     };
-
-    const cancelRender = renderOnChange(runtime, [targetModel]);
 
     runtime.renderSizeChanged().on(() => {
         camera.setViewportSize(runtime.renderSize());
@@ -128,17 +113,11 @@ export function main(): () => void {
         renderScene(state);
     });
 
-    const controlRoot = createControls(container, [
-        { label: 'x rotation', value: xRotation, min: -45, max: +45 },
-        { label: 'y rotation', value: yRotation, min: -45, max: +45 },
-    ]);
-
     const animate = animation(runtime);
 
     return () => {
         disposeAll([
-            xRotation, yRotation, targetModel, cancelRender, animate, controlRoot,
-            texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
+            animate, texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
         ]);
     };
 }
@@ -161,7 +140,7 @@ function renderToTexture({
 }
 
 function renderScene({
-    runtime, backgroundColor, framebuffer, texturePlane, camera, targetModel,
+    runtime, backgroundColor, framebuffer, texturePlane, camera, targetModels,
 }: State): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
@@ -170,7 +149,16 @@ function renderScene({
     runtime.setTextureUnit(2, framebuffer.texture());
     const program = texturePlane.program();
     program.setUniform('u_view_proj', camera.getTransformMat());
-    program.setUniform('u_model', targetModel());
     program.setUniform('u_texture', 2);
-    texturePlane.render();
+    for (const model of targetModels) {
+        program.setUniform('u_model', model);
+        texturePlane.render();
+    }
+}
+
+function makeTargetMat(rotate: number, offset: number): Mat4 {
+    const mat = identity4x4() as Mat4Mut;
+    apply4x4(mat, yrotation4x4, deg2rad(rotate));
+    apply4x4(mat, translation4x4, vec3(offset, 0, 0));
+    return mat as Mat4;
 }
