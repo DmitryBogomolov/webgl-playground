@@ -16,6 +16,7 @@ import type { Color } from '../common/color.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { RenderTarget } from './render-target.types';
+import type { RenderLoopEventProxy } from './render-loop.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import { BaseObject } from './base-object';
 import { EventEmitter } from '../common/event-emitter';
@@ -342,7 +343,7 @@ export class Runtime extends BaseObject {
         return this._renderState.blendFunc;
     }
 
-    frameRequested(): EventProxy<[number, number]> {
+    frameRequested(): RenderLoopEventProxy {
         return this._renderLoop.frameRequested();
     }
 

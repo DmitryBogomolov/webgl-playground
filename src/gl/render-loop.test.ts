@@ -1,3 +1,4 @@
+import type { RenderLoopEvent, RenderLoopEventHandler } from './render-loop.types';
 import { RenderLoop } from './render-loop';
 
 describe('render loop', () => {
@@ -19,6 +20,15 @@ describe('render loop', () => {
         function triggerFrame(time: number): void {
             const { calls } = mockRequestAnimationFrame.mock;
             calls[calls.length - 1][0](time);
+        }
+
+        function makeCallback(func?: () => void): { callback: RenderLoopEventHandler, calls: RenderLoopEvent[] } {
+            const calls: RenderLoopEvent[] = [];
+            const callback: RenderLoopEventHandler = (e) => {
+                calls.push({ ...e });
+                func?.();
+            };
+            return { callback, calls };
         }
 
         it('do not request frame immediately', () => {
@@ -63,17 +73,17 @@ describe('render loop', () => {
         it('invoke callback', () => {
             const loop = new RenderLoop();
             loop.update();
-            const callback = jest.fn();
+            const { calls, callback } = makeCallback();
             loop.frameRequested().on(callback);
 
             triggerFrame(10);
             triggerFrame(25);
             triggerFrame(70);
 
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [15, 25],
-                [45, 70],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 15, timestamp: 25 },
+                { delta: 45, timestamp: 70 },
             ]);
         });
 
@@ -82,17 +92,15 @@ describe('render loop', () => {
             mockRequestAnimationFrame.mockReturnValueOnce(3);
             const loop = new RenderLoop();
             loop.update();
-            const callback = jest.fn(() => {
-                loop.update();
-            });
+            const { calls, callback } = makeCallback(() => loop.update());
             loop.frameRequested().on(callback);
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
                 [expect.any(Function)],
             ]);
             triggerFrame(10);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
             ]);
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
@@ -100,9 +108,9 @@ describe('render loop', () => {
                 [expect.any(Function)],
             ]);
             triggerFrame(30);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [20, 30],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 20, timestamp: 30 },
             ]);
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
@@ -111,48 +119,48 @@ describe('render loop', () => {
                 [expect.any(Function)],
             ]);
             triggerFrame(70);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [20, 30],
-                [40, 70],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 20, timestamp: 30 },
+                { delta: 40, timestamp: 70 },
             ]);
         });
 
         it('add or remove callbacks twice', () => {
             const loop = new RenderLoop();
             loop.update();
-            const callback = jest.fn();
+            const { calls, callback } = makeCallback();
 
             loop.frameRequested().on(callback);
             loop.frameRequested().on(callback);
             triggerFrame(10);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [0, 10],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 0, timestamp: 10 },
             ]);
 
             loop.frameRequested().off(callback);
             triggerFrame(30);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [0, 10],
-                [20, 30],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 0, timestamp: 10 },
+                { delta: 20, timestamp: 30 },
             ]);
 
             loop.frameRequested().off(callback);
             triggerFrame(70);
-            expect(callback.mock.calls).toEqual([
-                [0, 10],
-                [0, 10],
-                [20, 30],
+            expect(calls).toEqual([
+                { delta: 0, timestamp: 10 },
+                { delta: 0, timestamp: 10 },
+                { delta: 20, timestamp: 30 },
             ]);
         });
 
         it('remove all callbacks', () => {
             const loop = new RenderLoop();
             loop.update();
-            const callback1 = jest.fn();
-            const callback2 = jest.fn();
+            const { calls: calls1, callback: callback1 } = makeCallback();
+            const { calls: calls2, callback: callback2 } = makeCallback();
             loop.frameRequested().on(callback1);
             loop.frameRequested().on(callback2);
 
@@ -160,11 +168,11 @@ describe('render loop', () => {
             loop.reset();
             triggerFrame(40);
 
-            expect(callback1.mock.calls).toEqual([
-                [0, 10],
+            expect(calls1).toEqual([
+                { delta: 0, timestamp: 10 },
             ]);
-            expect(callback2.mock.calls).toEqual([
-                [0, 10],
+            expect(calls2).toEqual([
+                { delta: 0, timestamp: 10 },
             ]);
         });
     });
