@@ -157,7 +157,7 @@ describe('render loop', () => {
             loop.frameRequested().on(callback2);
 
             triggerFrame(10);
-            loop.clearCallbacks();
+            loop.reset();
             triggerFrame(40);
 
             expect(callback1.mock.calls).toEqual([

@@ -152,8 +152,7 @@ export class Runtime extends BaseObject {
 
     dispose(): void {
         this._logInfo('dispose');
-        this._renderLoop.cancel();
-        this._renderLoop.clearCallbacks();
+        this._renderLoop.reset();
         this._renderSizeChanged.clear();
         this._contextLost.clear();
         this._contextRestored.clear();
