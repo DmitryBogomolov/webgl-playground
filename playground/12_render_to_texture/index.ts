@@ -32,8 +32,8 @@ interface State {
     readonly textureBackgroundColor: Color;
     readonly backgroundColor: Color;
     readonly lightDir: Vec3;
-    readonly camera: ViewProj;
-    readonly textureCamera: ViewProj;
+    readonly vp: ViewProj;
+    readonly textureVP: ViewProj;
     readonly framebuffer: Framebuffer;
     readonly texturePlane: Primitive;
     readonly object: Primitive;
@@ -42,24 +42,24 @@ interface State {
 }
 
 export function main(): () => void {
-    const { runtime, container } = setup();
+    const { runtime } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
 
     const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
-    const textureCamera = new ViewProj();
-    const eyePosition = spherical2zxy({ azimuth: 0, elevation: Math.atan2(2, 5), distance: 5 }) as Vec3Mut;
+    const textureVP = new ViewProj();
+    const eyePosition = spherical2zxy({ azimuth: 0, elevation: Math.atan2(2, 5), distance: 5 });
 
-    const camera = new ViewProj();
-    camera.setEyePos({ x: 0, y: 0.3, z: 3 });
+    const vp = new ViewProj();
+    vp.setEyePos({ x: 0, y: 0.3, z: 3 });
 
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
         size: { x: 256, y: 256 },
     });
-    textureCamera.setViewportSize(framebuffer.size());
+    textureVP.setViewportSize(framebuffer.size());
 
     const texturePlane = makeTexturePlane(runtime);
     const object = makeObject(runtime);
@@ -69,8 +69,8 @@ export function main(): () => void {
         backgroundColor: color(0.4, 0.4, 0.4),
         textureBackgroundColor: color(0.7, 0.7, 0.7),
         lightDir: norm3(vec3(1, 3, 2)),
-        camera,
-        textureCamera,
+        vp,
+        textureVP,
         framebuffer,
         texturePlane,
         object,
@@ -100,14 +100,14 @@ export function main(): () => void {
     };
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
-            rotate3(eyePosition, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000, eyePosition);
+            rotate3(eyePosition, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000, eyePosition as Vec3Mut);
         }
-        textureCamera.setEyePos(eyePosition);
+        textureVP.setEyePos(eyePosition);
 
         renderToTexture(state);
         renderScene(state);
@@ -123,14 +123,14 @@ export function main(): () => void {
 }
 
 function renderToTexture({
-    runtime, framebuffer, textureBackgroundColor, object, objects, textureCamera, lightDir,
+    runtime, framebuffer, textureBackgroundColor, object, objects, textureVP, lightDir,
 }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(textureBackgroundColor);
     runtime.clearBuffer('color|depth');
 
     const program = object.program();
-    program.setUniform('u_view_proj', textureCamera.getTransformMat());
+    program.setUniform('u_view_proj', textureVP.getTransformMat());
     program.setUniform('u_light_dir', lightDir);
     for (const { clr, model } of objects) {
         program.setUniform('u_color', clr);
@@ -140,7 +140,7 @@ function renderToTexture({
 }
 
 function renderScene({
-    runtime, backgroundColor, framebuffer, texturePlane, camera, targetModels,
+    runtime, backgroundColor, framebuffer, texturePlane, vp, targetModels,
 }: State): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
@@ -148,7 +148,7 @@ function renderScene({
 
     runtime.setTextureUnit(2, framebuffer.texture());
     const program = texturePlane.program();
-    program.setUniform('u_view_proj', camera.getTransformMat());
+    program.setUniform('u_view_proj', vp.getTransformMat());
     program.setUniform('u_texture', 2);
     for (const model of targetModels) {
         program.setUniform('u_model', model);

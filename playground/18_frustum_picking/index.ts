@@ -25,7 +25,7 @@ export type DESCRIPTION = never;
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
-    readonly camera: ViewProj;
+    readonly vp: ViewProj;
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -43,15 +43,15 @@ export function main(): () => void {
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });
-    const camera = new ViewProj();
+    const vp = new ViewProj();
     const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
-    const cancelRender = renderOnChange(runtime, [camera]);
+    const cancelRender = renderOnChange(runtime, [vp]);
 
     const state: State = {
         runtime,
         framebuffer,
-        camera,
+        vp,
         program,
         idProgram,
         objects,
@@ -69,7 +69,7 @@ export function main(): () => void {
     }
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);
@@ -80,7 +80,7 @@ export function main(): () => void {
         distance: { min: 4, max: 16 },
         initial: { x: 0, y: 3, z: 10 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
 
@@ -99,12 +99,12 @@ function renderFrame(state: State): void {
 }
 
 const _transformMat = mat4();
-function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pixelCoord }: State): number {
+function findCurrentPixel({ runtime, framebuffer, vp, objects, idProgram, pixelCoord }: State): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
     const transformMat = _transformMat as Mat4Mut;
-    makePixelViewProjMat(camera, pixelCoord, transformMat);
+    makePixelViewProjMat(vp, pixelCoord, transformMat);
     idProgram.setUniform('u_view_proj', transformMat);
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
@@ -118,11 +118,11 @@ function findCurrentPixel({ runtime, framebuffer, camera, objects, idProgram, pi
     return new Uint32Array(buffer.buffer)[0];
 }
 
-function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
+function renderScene({ runtime, backgroundColor, vp, program, objects }: State, pixelIdx: number): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
-    program.setUniform('u_view_proj', camera.getTransformMat());
+    program.setUniform('u_view_proj', vp.getTransformMat());
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
         program.setUniform('u_model', modelMat);

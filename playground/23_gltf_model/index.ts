@@ -37,19 +37,19 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const camera = new ViewProj();
+    const vp = new ViewProj();
 
     const renderer = new GlTFRenderer({ runtime });
 
-    const cancelRender = renderOnChange(runtime, [camera, renderer]);
+    const cancelRender = renderOnChange(runtime, [vp, renderer]);
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
-        renderer.setProjMat(camera.getProjMat());
-        renderer.setViewMat(camera.getViewMat());
+        renderer.setProjMat(vp.getProjMat());
+        renderer.setViewMat(vp.getViewMat());
         renderer.render();
     });
     const disposeTrackBall = trackBall({
@@ -57,7 +57,7 @@ export function main(): () => void {
         initial: { x: 0, y: 1, z: 2 },
         distance: { fixed: 5 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
 

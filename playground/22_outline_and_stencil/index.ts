@@ -30,7 +30,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: ViewProj;
+    readonly vp: ViewProj;
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
@@ -44,7 +44,7 @@ interface State {
 
 export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
-    const camera = new ViewProj();
+    const vp = new ViewProj();
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
@@ -81,7 +81,7 @@ export function main(): () => void {
     ]);
     const state: State = {
         runtime,
-        camera,
+        vp,
         models,
         backgroundColor: color(0.8, 0.8, 0.8),
         objectProgram,
@@ -110,7 +110,7 @@ export function main(): () => void {
     }
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderScene(state);
@@ -120,10 +120,10 @@ export function main(): () => void {
         distance: { min: 1, max: 6 },
         initial: { x: 0, y: 1, z: 5 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
-    const cancelRender = renderOnChange(runtime, [camera, outlineThickness]);
+    const cancelRender = renderOnChange(runtime, [vp, outlineThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
@@ -167,7 +167,7 @@ const colorIdRenderState = createRenderState({
 });
 
 function renderObjects({
-    runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
+    runtime, vp: camera, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
     runtime.setRenderState(objectRenderState);
     runtime.setClearColor(backgroundColor);
@@ -196,7 +196,7 @@ function renderObjects({
 }
 
 function renderOutline({
-    runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
+    runtime, vp: camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
 }: State): void {
     runtime.setRenderState(outlineRenderState);
     for (const { primitive, mat, id } of models) {
@@ -213,7 +213,7 @@ function renderOutline({
 }
 
 const _transformMat = mat4();
-function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
+function findObjectId({ runtime, framebuffer, vp: camera, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setRenderState(colorIdRenderState);
     runtime.setClearColor(colors.NONE);

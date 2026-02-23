@@ -27,7 +27,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: ViewProj;
+    readonly vp: ViewProj;
     readonly modelMat: Observable<Mat4>;
     readonly normalMat: Observable<Mat4>;
     readonly isCubeShown: Observable<boolean>;
@@ -41,7 +41,7 @@ export function main(): () => void {
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
     const texture = makeTexture(runtime);
-    const camera = new ViewProj();
+    const vp = new ViewProj();
 
     const modelLon = observable(0);
     const modelLat = observable(0);
@@ -61,7 +61,7 @@ export function main(): () => void {
         distance: { min: 1, max: 5 },
         initial: { x: 0, y: 0, z: 2 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
 
@@ -73,12 +73,12 @@ export function main(): () => void {
 
     const isCubeShown = observable(true);
 
-    const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, camera]);
+    const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, vp]);
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
-        renderFrame({ runtime, camera: camera, modelMat, normalMat, isCubeShown, quad, cube, texture });
+        renderFrame({ runtime, vp, modelMat, normalMat, isCubeShown, quad, cube, texture });
     });
 
     const controlRoot = createControls(container, [
@@ -107,7 +107,7 @@ const quadRenderState = createRenderState({
 });
 
 function renderFrame({
-    runtime, camera, modelMat, normalMat, isCubeShown, quad, cube, texture,
+    runtime, vp, modelMat, normalMat, isCubeShown, quad, cube, texture,
 }: State): void {
     runtime.clearBuffer('color|depth');
 
@@ -117,15 +117,15 @@ function renderFrame({
         // Depth func is reset to default value (because it is changed for quad).
         runtime.setRenderState(defaultRenderState);
         cube.program().setUniform('u_texture', 4);
-        cube.program().setUniform('u_view_proj', camera.getTransformMat());
+        cube.program().setUniform('u_view_proj', vp.getTransformMat());
         cube.program().setUniform('u_model', modelMat());
         cube.program().setUniform('u_model_invtrs', normalMat());
-        cube.program().setUniform('u_camera_position', camera.getEyePos());
+        cube.program().setUniform('u_camera_position', vp.getEyePos());
         cube.render();
     }
 
     runtime.setRenderState(quadRenderState);
     quad.program().setUniform('u_texture', 4);
-    quad.program().setUniform('u_view_proj_inv', camera.getInvtransformMat());
+    quad.program().setUniform('u_view_proj_inv', vp.getInvtransformMat());
     quad.render();
 }

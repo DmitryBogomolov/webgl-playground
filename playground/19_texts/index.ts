@@ -36,7 +36,7 @@ interface LabelInfo {
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: ViewProj;
+    readonly vp: ViewProj;
     readonly primitive: Primitive;
     readonly labelPrimitive: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -45,7 +45,7 @@ interface State {
 export function main(): () => void {
     const { runtime } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const camera = new ViewProj();
+    const vp = new ViewProj();
 
     const primitive = makePrimitive(runtime);
     const labelPrimitive = makeLabelPrimitive(runtime);
@@ -53,14 +53,14 @@ export function main(): () => void {
 
     const state: State = {
         runtime,
-        camera,
+        vp,
         primitive,
         labelPrimitive,
         objects,
     };
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderScene(state);
@@ -71,11 +71,11 @@ export function main(): () => void {
         distance: { min: 3, max: 8 },
         initial: { x: 0, y: 1, z: 5 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
 
-    const cancelRender = renderOnChange(runtime, [camera]);
+    const cancelRender = renderOnChange(runtime, [vp]);
 
     return () => {
         disposeAll([
@@ -96,12 +96,12 @@ const labelRenderState = createRenderState({
     blending: true,
 });
 
-function renderScene({ runtime, camera, primitive, labelPrimitive, objects }: State): void {
+function renderScene({ runtime, vp, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
-    const viewProjMat = camera.getTransformMat();
+    const viewProjMat = vp.getTransformMat();
     const canvasSize = runtime.renderSize();
-    const baseDist = camera.getViewDist();
-    const viewPos = camera.getEyePos();
+    const baseDist = vp.getViewDist();
+    const viewPos = vp.getEyePos();
 
     runtime.setRenderState(primitiveRenderState);
     for (const { modelMat } of objects) {

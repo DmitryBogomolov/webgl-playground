@@ -1,4 +1,4 @@
-import type { Runtime, Primitive, Vec3, Color, Mat4 } from 'lib';
+import type { Runtime, Primitive, Vec3, Color } from 'lib';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -24,7 +24,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: ViewProj;
+    readonly vp: ViewProj;
     readonly primitive: Primitive;
     readonly contourPrimitive: Primitive;
     readonly modelClr: Color;
@@ -36,7 +36,7 @@ interface State {
 export function main(): () => void {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
-    const camera = new ViewProj();
+    const vp = new ViewProj();
 
     const contourEnabled = observable(true);
     const contourThickness = observable(16);
@@ -54,14 +54,17 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const contourPrimitive = makeContourPrimitive(runtime);
 
-    const updateContour = wrapped(() => {
-        const points = findContour(modelPoints, camera.getTransformMat());
-        updateContourData(contourPrimitive, points);
-    }, camera.changed())
+    const updateContour = wrapped(
+        () => {
+            const points = findContour(modelPoints, vp.getTransformMat());
+            updateContourData(contourPrimitive, points);
+        },
+        vp.changed(),
+    );
 
     const state: State = {
         runtime,
-        camera,
+        vp,
         primitive,
         contourPrimitive,
         modelClr: color(0.5, 0.1, 0.5),
@@ -71,7 +74,7 @@ export function main(): () => void {
     };
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderScene(state);
@@ -81,10 +84,10 @@ export function main(): () => void {
         distance: { min: 2, max: 4 },
         initial: { x: 0, y: 1, z: 2 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
-    const cancelRender = renderOnChange(runtime, [camera, contourEnabled, contourThickness]);
+    const cancelRender = renderOnChange(runtime, [vp, contourEnabled, contourThickness]);
 
     const controlRoot = createControls(container, [
         { label: 'enabled', checked: contourEnabled },
@@ -105,7 +108,7 @@ const contourRenderState = createRenderState({
 
 function renderScene({
     runtime,
-    camera,
+    vp,
     primitive,
     contourPrimitive,
     updateContour,
@@ -116,7 +119,7 @@ function renderScene({
     runtime.clearBuffer('color|depth');
 
     runtime.setRenderState(objectRenderState);
-    primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+    primitive.program().setUniform('u_view_proj', vp.getTransformMat());
     primitive.program().setUniform('u_color', modelClr);
     primitive.render();
 

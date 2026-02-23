@@ -27,8 +27,8 @@ export type DESCRIPTION = never;
 interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
-    readonly camera: ViewProj;
-    readonly idCamera: ViewProj,
+    readonly vp: ViewProj;
+    readonly idVP: ViewProj,
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -47,17 +47,17 @@ export function main(): () => void {
         // Zero values make framebuffer incomplete.
         size: { x: 1, y: 1 },
     });
-    const camera = new ViewProj();
-    const idCamera = new ViewProj();
+    const vp = new ViewProj();
+    const idVP = new ViewProj();
     const { objects, program, idProgram, disposeObjects } = makeObjects(runtime);
 
-    const cancelRender = renderOnChange(runtime, [camera]);
+    const cancelRender = renderOnChange(runtime, [vp]);
 
     const state: State = {
         runtime,
         framebuffer,
-        camera,
-        idCamera,
+        vp,
+        idVP,
         program,
         idProgram,
         objects,
@@ -82,8 +82,8 @@ export function main(): () => void {
         const x = canvasSize.x >> 1;
         const y = x >> 1;
         framebuffer.resize(vec2(x, y));
-        camera.setViewportSize(canvasSize);
-        idCamera.setViewportSize(framebuffer.size());
+        vp.setViewportSize(canvasSize);
+        idVP.setViewportSize(framebuffer.size());
     });
     runtime.frameRequested().on(() => {
         renderFrame(state);
@@ -94,8 +94,8 @@ export function main(): () => void {
         distance: { min: 4, max: 16 },
         initial: { x: 0, y: 3, z: 10 },
         callback: (v) => {
-            camera.setEyePos(v);
-            idCamera.setEyePos(v);
+            vp.setEyePos(v);
+            idVP.setEyePos(v);
         },
     });
 
@@ -114,11 +114,11 @@ function renderFrame(state: State): void {
     renderScene(state, pixelIdx);
 }
 
-function renderColorIds({ runtime, framebuffer, idCamera, idProgram, objects }: State): void {
+function renderColorIds({ runtime, framebuffer, idVP, idProgram, objects }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(colors.NONE);
     runtime.clearBuffer('color|depth');
-    idProgram.setUniform('u_view_proj', idCamera.getTransformMat());
+    idProgram.setUniform('u_view_proj', idVP.getTransformMat());
     for (const { primitive, modelMat, id } of objects) {
         primitive.setProgram(idProgram);
         idProgram.setUniform('u_model', modelMat);
@@ -133,11 +133,11 @@ function findCurrentPixel({ runtime, framebuffer, pixelCoord }: State): number {
     return new Uint32Array(buffer.buffer)[0];
 }
 
-function renderScene({ runtime, backgroundColor, camera, program, objects }: State, pixelIdx: number): void {
+function renderScene({ runtime, backgroundColor, vp, program, objects }: State, pixelIdx: number): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
     runtime.clearBuffer('color|depth');
-    program.setUniform('u_view_proj', camera.getTransformMat());
+    program.setUniform('u_view_proj', vp.getTransformMat());
     for (const { primitive, id, modelMat, normalMat } of objects) {
         primitive.setProgram(program);
         program.setUniform('u_model', modelMat);

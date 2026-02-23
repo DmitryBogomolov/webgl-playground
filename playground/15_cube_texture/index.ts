@@ -27,22 +27,22 @@ export function main(): () => void {
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
-    const camera = new ViewProj();
+    const vp = new ViewProj();
 
-    const cancelRender = renderOnChange(runtime, [camera]);
+    const cancelRender = renderOnChange(runtime, [vp]);
 
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);
-        primitive.program().setUniform('u_view_proj', camera.getTransformMat());
+        primitive.program().setUniform('u_view_proj', vp.getTransformMat());
         primitive.program().setUniform('u_texture', 2);
         primitive.render();
     });
@@ -52,7 +52,7 @@ export function main(): () => void {
         distance: { fixed: 2 },
         initial: { x: 0, y: 1, z: 2 },
         callback: (v) => {
-            camera.setEyePos(v);
+            vp.setEyePos(v);
         },
     });
 
