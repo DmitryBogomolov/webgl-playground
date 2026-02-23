@@ -105,3 +105,28 @@ export function bind<T>(observable: Observable<T>, func: (value: T) => void): ()
         func(observable());
     }
 }
+
+export function wrapped<T>(get: () => T, changed: EventProxy): Observable<T> {
+    let isChanged = true;
+    let currentValue: T;
+    const emitter = new EventEmitter();
+    setupOnOff(target as Observable<T>, emitter.proxy());
+    changed.on(notify);
+    return target as Observable<T>;
+
+    function target(value?: T): T {
+        if (value !== undefined) {
+            throw new Error('wrapped:read_only');
+        }
+        if (isChanged) {
+            currentValue = get();
+            isChanged = false;
+        }
+        return currentValue;
+    }
+
+    function notify(): void {
+        isChanged = true;
+        emitter.emit();
+    }
+}

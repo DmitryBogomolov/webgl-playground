@@ -117,12 +117,13 @@ export function rotate3(v: Vec3, axis: Vec3, rotation: number, out: Vec3Mut = v3
     const c = Math.cos(rotation);
     const s = Math.sin(rotation);
     const t = 1 - c;
-    const { x, y, z } = norm3(axis, out);
+    const { x: vx, y: vy, z: vz } = v;
+    const { x: ax, y: ay, z: az } = norm3(axis, out);
     return upd3(
         out,
-        v.x * (x * x * t + c) + v.y * (x * y * t - z * s) + v.z * (x * z * t + y * s),
-        v.x * (y * x * t - z * s) + v.y * (y * y * t + c) + v.z * (y * z * t - x * s),
-        v.x * (z * x * t - y * s) + v.y * (z * y * t + x * s) + v.z * (z * z * t + c),
+        vx * (ax * ax * t + c) + vy * (ax * ay * t - az * s) + vz * (ax * az * t + ay * s),
+        vx * (ay * ax * t - az * s) + vy * (ay * ay * t + c) + vz * (ay * az * t - ax * s),
+        vx * (az * ax * t - ay * s) + vy * (az * ay * t + ax * s) + vz * (az * az * t + c),
     );
 }
 

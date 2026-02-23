@@ -6,7 +6,7 @@ import type { EventProxy } from './event-emitter.types';
 import type { Mapping } from './mapping.types';
 import { EventEmitter } from './event-emitter';
 import { fovDist2Size } from '../utils/fov';
-import { toArgStr } from '../utils/string-formatter';
+import { formatStr } from '../utils/string-formatter';
 import { vec2, isVec2, eq2, clone2, mul2 } from '../geometry/vec2';
 import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, dist3 } from '../geometry/vec3';
 import { mat4, perspective4x4, orthographic4x4, lookAt4x4, mul4x4, inverse4x4 } from '../geometry/mat4';
@@ -104,8 +104,7 @@ export class ViewProj {
     }
 
     setViewportSize(value: Vec2): void {
-        check(isVec2(value), 'viewport_size', value);
-        check(value.x > 0 && value.y > 0, 'viewport_size', toArgStr(value));
+        check(isVec2(value) && value.x > 0 && value.y > 0, 'viewport_size', value);
         if (!eq2(this._viewportSize, value)) {
             this._viewportSize = clone2(value);
             this._markProjDirty();
@@ -133,8 +132,7 @@ export class ViewProj {
     }
 
     setUpDir(value: Vec3): void {
-        check(isVec3(value), 'up_dir', value);
-        check(!eq3(value, ZERO3), 'up_dir', toArgStr(ZERO3));
+        check(isVec3(value) && !eq3(value, ZERO3), 'up_dir', value);
         const upDir = norm3(value, _v3_scratch as Vec3Mut);
         if (!eq3(this._upDir, upDir)) {
             this._upDir = clone3(upDir);
@@ -256,12 +254,12 @@ interface ProjImpl {
 const perspectiveImpl: ProjImpl = {
     type: 'perspective',
 
-    buildMat(zNear, zFar, yFov, { x, y }, mat) {
+    buildMat(zNear, zFar, yFov, viewportSize, mat) {
         perspective4x4({
             zNear,
             zFar,
             yFov,
-            aspect: x / y,
+            aspect: viewportSize.x / viewportSize.y,
         }, mat);
     },
 
@@ -308,6 +306,6 @@ const PROJ_TYPE_TO_IMPL_MAP: Mapping<CAMERA_PROJECTION, ProjImpl> = {
 
 function check(condition: boolean, name: string, value: unknown): void {
     if (!condition) {
-        throw new Error(`${name}: bad value ${value}`);
+        throw new Error(formatStr('{0}: bad value {1}', name, value));
     }
 }

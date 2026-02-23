@@ -3,18 +3,18 @@ import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     Framebuffer,
     vec3,
     mat4,
     color, colors,
-    deg2rad,
-    makeEventCoordsGetter, uint2bytes, makePixelViewProjMat,
+    getEventCoords, uint2bytes, makePixelViewProjMat,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
+import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * Outline and stencil.
@@ -30,7 +30,7 @@ export type DESCRIPTION = never;
 
 interface State {
     readonly runtime: Runtime;
-    readonly camera: OrbitCamera;
+    readonly vp: ViewProj;
     readonly models: ReadonlyArray<Model>;
     readonly objectProgram: Program;
     readonly outlineProgram: Program;
@@ -44,29 +44,12 @@ interface State {
 
 export function main(): () => void {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
-    const camera = new OrbitCamera();
+    const vp = new ViewProj();
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
         size: { x: 1, y: 1 },
     });
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(20);
-    const cameraDist = observable(5);
-    bind(
-        computed(
-            ([cameraLon, cameraLat, cameraDist]) => ({
-                dist: cameraDist,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat, cameraDist],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
 
     const outlineThickness = observable(10);
 
@@ -98,7 +81,7 @@ export function main(): () => void {
     ]);
     const state: State = {
         runtime,
-        camera,
+        vp,
         models,
         backgroundColor: color(0.8, 0.8, 0.8),
         objectProgram,
@@ -110,11 +93,10 @@ export function main(): () => void {
         selectedObjects: new Set(),
     };
 
-    const getCoords = makeEventCoordsGetter(container);
     container.addEventListener('click', handleClick);
 
     function handleClick(e: MouseEvent): void {
-        const coords = getCoords(e);
+        const coords = getEventCoords(e);
         // Flip Y coordinate.
         const objectId = findObjectId(state, { x: coords.x, y: runtime.renderSize().y - coords.y });
         if (objectId > 0) {
@@ -128,24 +110,29 @@ export function main(): () => void {
     }
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         renderScene(state);
     });
-    const cancelRender = renderOnChange(runtime, [camera, outlineThickness]);
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        distance: { min: 1, max: 6 },
+        initial: { x: 0, y: 1, z: 5 },
+        callback: (v) => {
+            vp.setEyePos(v);
+        },
+    });
+    const cancelRender = renderOnChange(runtime, [vp, outlineThickness]);
 
     const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -30, max: +30 },
-        { label: 'camera dist', value: cameraDist, min: 1, max: 8, step: 0.2 },
         { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
     ]);
 
     return () => {
         container.removeEventListener('click', handleClick);
         disposeAll([
-            cameraLon, cameraLat, cameraDist, outlineThickness, controlRoot, cancelRender,
+            controlRoot, disposeTrackBall, cancelRender,
             disposeModels, framebuffer, runtime,
         ]);
     };
@@ -180,7 +167,7 @@ const colorIdRenderState = createRenderState({
 });
 
 function renderObjects({
-    runtime, camera, backgroundColor, models, objectProgram, selectedObjects,
+    runtime, vp: camera, backgroundColor, models, objectProgram, selectedObjects,
 }: State): void {
     runtime.setRenderState(objectRenderState);
     runtime.setClearColor(backgroundColor);
@@ -209,7 +196,7 @@ function renderObjects({
 }
 
 function renderOutline({
-    runtime, camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
+    runtime, vp: camera, models, outlineProgram, outlineColor, outlineThickness, selectedObjects,
 }: State): void {
     runtime.setRenderState(outlineRenderState);
     for (const { primitive, mat, id } of models) {
@@ -226,7 +213,7 @@ function renderOutline({
 }
 
 const _transformMat = mat4();
-function findObjectId({ runtime, framebuffer, camera, idProgram, models }: State, coords: Vec2): number {
+function findObjectId({ runtime, framebuffer, vp: camera, idProgram, models }: State, coords: Vec2): number {
     runtime.setRenderTarget(framebuffer);
     runtime.setRenderState(colorIdRenderState);
     runtime.setClearColor(colors.NONE);

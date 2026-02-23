@@ -1,16 +1,15 @@
-import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color } from 'lib';
+import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color, Vec3Mut } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    OrbitCamera,
-    vec3, norm3,
-    mat4, identity4x4, translation4x4, apply4x4, xrotation4x4, yrotation4x4,
+    ViewProj,
+    vec3, norm3, rotate3, YUNIT3,
+    identity4x4, translation4x4, apply4x4, yrotation4x4,
     color,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, Observable } from 'playground-utils/observable';
-import { createControls } from 'playground-utils/controls';
+import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 import { makeObject, makeTexturePlane } from './primitive';
 
@@ -33,50 +32,34 @@ interface State {
     readonly textureBackgroundColor: Color;
     readonly backgroundColor: Color;
     readonly lightDir: Vec3;
-    readonly camera: OrbitCamera;
-    readonly textureCamera: OrbitCamera;
+    readonly vp: ViewProj;
+    readonly textureVP: ViewProj;
     readonly framebuffer: Framebuffer;
     readonly texturePlane: Primitive;
     readonly object: Primitive;
     readonly objects: ReadonlyArray<ObjectInfo>;
-    readonly targetModel: Observable<Mat4>;
+    readonly targetModels: ReadonlyArray<Mat4>;
 }
 
 export function main(): () => void {
-    const { runtime, container } = setup();
+    const { runtime } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
     }));
 
-    const xRotation = observable(0);
-    const yRotation = observable(30);
-
-    let textureCameraLon = 0;
     const CAMERA_ROTATION_SPEED = (2 * Math.PI) * 0.1;
-    const textureCamera = new OrbitCamera();
-    textureCamera.setPosition({ dist: 5, lon: textureCameraLon, lat: Math.atan2(2, 5) });
+    const textureVP = new ViewProj();
+    const eyePosition = spherical2zxy({ azimuth: 0, elevation: Math.atan2(2, 5), distance: 5 });
 
-    const camera = new OrbitCamera();
-    camera.setPosition({ dist: 2 });
-
-    const _targetModel = mat4() as Mat4Mut;
-    const targetModel = computed(
-        ([xRotation, yRotation]) => {
-            const mat = _targetModel;
-            identity4x4(mat);
-            apply4x4(mat, xrotation4x4, deg2rad(xRotation));
-            apply4x4(mat, yrotation4x4, deg2rad(yRotation));
-            return mat as Mat4;
-        },
-        [xRotation, yRotation],
-    );
+    const vp = new ViewProj();
+    vp.setEyePos({ x: 0, y: 0.3, z: 3 });
 
     const framebuffer = new Framebuffer({
         runtime,
         attachment: 'color|depth',
         size: { x: 256, y: 256 },
     });
-    textureCamera.setViewportSize(framebuffer.size());
+    textureVP.setViewportSize(framebuffer.size());
 
     const texturePlane = makeTexturePlane(runtime);
     const object = makeObject(runtime);
@@ -86,8 +69,8 @@ export function main(): () => void {
         backgroundColor: color(0.4, 0.4, 0.4),
         textureBackgroundColor: color(0.7, 0.7, 0.7),
         lightDir: norm3(vec3(1, 3, 2)),
-        camera,
-        textureCamera,
+        vp,
+        textureVP,
         framebuffer,
         texturePlane,
         object,
@@ -109,49 +92,45 @@ export function main(): () => void {
                 model: translation4x4(vec3(0, 0, -1.6)),
             },
         ],
-        targetModel,
+        targetModels: [
+            makeTargetMat(+45, -2.5),
+            makeTargetMat(0, 0),
+            makeTargetMat(-45, +2.5),
+        ],
     };
 
-    const cancelRender = renderOnChange(runtime, [targetModel]);
-
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on((delta) => {
         if (delta < 250) {
-            textureCameraLon += CAMERA_ROTATION_SPEED * delta / 1000;
+            rotate3(eyePosition, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000, eyePosition as Vec3Mut);
         }
-        textureCamera.setPosition({ lon: textureCameraLon });
+        textureVP.setEyePos(eyePosition);
 
         renderToTexture(state);
         renderScene(state);
     });
 
-    const controlRoot = createControls(container, [
-        { label: 'x rotation', value: xRotation, min: -45, max: +45 },
-        { label: 'y rotation', value: yRotation, min: -45, max: +45 },
-    ]);
-
     const animate = animation(runtime);
 
     return () => {
         disposeAll([
-            xRotation, yRotation, targetModel, cancelRender, animate, controlRoot,
-            texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
+            animate, texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
         ]);
     };
 }
 
 function renderToTexture({
-    runtime, framebuffer, textureBackgroundColor, object, objects, textureCamera, lightDir,
+    runtime, framebuffer, textureBackgroundColor, object, objects, textureVP, lightDir,
 }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(textureBackgroundColor);
     runtime.clearBuffer('color|depth');
 
     const program = object.program();
-    program.setUniform('u_view_proj', textureCamera.getTransformMat());
+    program.setUniform('u_view_proj', textureVP.getTransformMat());
     program.setUniform('u_light_dir', lightDir);
     for (const { clr, model } of objects) {
         program.setUniform('u_color', clr);
@@ -161,7 +140,7 @@ function renderToTexture({
 }
 
 function renderScene({
-    runtime, backgroundColor, framebuffer, texturePlane, camera, targetModel,
+    runtime, backgroundColor, framebuffer, texturePlane, vp, targetModels,
 }: State): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
@@ -169,8 +148,17 @@ function renderScene({
 
     runtime.setTextureUnit(2, framebuffer.texture());
     const program = texturePlane.program();
-    program.setUniform('u_view_proj', camera.getTransformMat());
-    program.setUniform('u_model', targetModel());
+    program.setUniform('u_view_proj', vp.getTransformMat());
     program.setUniform('u_texture', 2);
-    texturePlane.render();
+    for (const model of targetModels) {
+        program.setUniform('u_model', model);
+        texturePlane.render();
+    }
+}
+
+function makeTargetMat(rotate: number, offset: number): Mat4 {
+    const mat = identity4x4() as Mat4Mut;
+    apply4x4(mat, yrotation4x4, deg2rad(rotate));
+    apply4x4(mat, translation4x4, vec3(offset, 0, 0));
+    return mat as Mat4;
 }

@@ -1,13 +1,13 @@
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     GlTFRenderer,
     color,
-    deg2rad,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
-import { observable, computed, bind } from 'playground-utils/observable';
+import { observable, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { trackBall } from 'playground-utils/track-ball';
 
 /**
  * GlTF model.
@@ -37,36 +37,28 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const camera = new OrbitCamera();
+    const vp = new ViewProj();
 
     const renderer = new GlTFRenderer({ runtime });
 
-    const cancelRender = renderOnChange(runtime, [camera, renderer]);
-
-    const cameraLon = observable(0);
-    const cameraLat = observable(30);
-    bind(
-        computed(
-            ([cameraLon, cameraLat]) => ({
-                dist: 5,
-                lon: deg2rad(cameraLon),
-                lat: deg2rad(cameraLat),
-            }),
-            [cameraLon, cameraLat],
-        ),
-        (cameraPos) => {
-            camera.setPosition(cameraPos);
-        },
-    );
+    const cancelRender = renderOnChange(runtime, [vp, renderer]);
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color');
-        renderer.setProjMat(camera.getProjMat());
-        renderer.setViewMat(camera.getViewMat());
+        renderer.setProjMat(vp.getProjMat());
+        renderer.setViewMat(vp.getViewMat());
         renderer.render();
+    });
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        initial: { x: 0, y: 1, z: 2 },
+        distance: { fixed: 5 },
+        callback: (v) => {
+            vp.setEyePos(v);
+        },
     });
 
     const selectedModelName = observable(MODELS[0].name);
@@ -76,14 +68,12 @@ export function main(): () => void {
     });
 
     const controlRoot = createControls(container, [
-        { label: 'camera lon', value: cameraLon, min: -180, max: +180 },
-        { label: 'camera lat', value: cameraLat, min: -50, max: +50 },
         { label: 'model', options: MODELS.map((info) => info.name), selection: selectedModelName },
     ]);
 
     return () => {
         disposeAll([
-            cameraLon, cameraLat, cancelRender, controlRoot,
+            cancelRender, controlRoot, disposeTrackBall,
             renderer, runtime,
         ]);
     };

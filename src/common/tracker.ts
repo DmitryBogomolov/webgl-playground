@@ -1,16 +1,15 @@
 import type { TrackerEvent, TrackerEventProxy, TRACKER_EVENTS } from './tracker.types';
-import type { GetEventCoordsFunc } from '../utils/pointer-event.types';
-import { makeEventCoordsGetter } from '../utils/pointer-event';
+import type { Vec2Mut } from '../geometry/vec2.types';
+import { vec2 } from '../geometry/vec2';
+import { getEventCoords } from '../utils/pointer-event';
 import { EventEmitter } from './event-emitter';
 
 export class Tracker {
     private readonly _element: HTMLElement;
     private readonly _emitters = createEmitters();
-    private readonly _getEventCoords: GetEventCoordsFunc;
 
     constructor(element: HTMLElement) {
         this._element = element;
-        this._getEventCoords = makeEventCoordsGetter(this._element);
         this._addElementListeners();
     }
 
@@ -33,40 +32,35 @@ export class Tracker {
     private readonly _handlePointerDown = (e: PointerEvent): void => {
         this._addDocumentListeners();
         e.preventDefault();
-        const coords = this._getEventCoords(e);
-        this._emit('start', { coords, nativeEvent: e });
+        this._emit('start', this._makeEvent(e));
     };
 
     private readonly _handlePointerMove = (e: PointerEvent): void => {
-        const coords = this._getEventCoords(e);
-        this._emit('move', { coords, nativeEvent: e });
+        this._emit('move', this._makeEvent(e));
     };
 
     private readonly _handlePointerUp = (e: PointerEvent): void => {
         this._removeDocumentListeners();
-        const coords = this._getEventCoords(e);
-        this._emit('end', { coords, nativeEvent: e });
+        this._emit('end', this._makeEvent(e));
     };
 
     private readonly _handleHover = (e: PointerEvent): void => {
         e.preventDefault();
-        const coords = this._getEventCoords(e);
-        this._emit('hover', { coords, nativeEvent: e });
+        this._emit('hover', this._makeEvent(e));
     };
 
     private readonly _handleClick = (e: MouseEvent): void => {
         e.preventDefault();
-        const coords = this._getEventCoords(e);
-        this._emit('click', { coords, nativeEvent: e });
+        this._emit('click', this._makeEvent(e));
     };
 
     private readonly _handleDblClick = (e: MouseEvent): void => {
         e.preventDefault();
-        const coords = this._getEventCoords(e);
-        this._emit('dblclick', { coords, nativeEvent: e });
+        this._emit('dblclick', this._makeEvent(e));
     };
 
     private _addElementListeners(): void {
+        this._element.addEventListener('contextmenu', preventDefault);
         this._element.addEventListener('pointerdown', this._handlePointerDown);
         this._element.addEventListener('pointermove', this._handleHover);
         this._element.addEventListener('click', this._handleClick);
@@ -74,6 +68,7 @@ export class Tracker {
     }
 
     private _removeElementListeners(): void {
+        this._element.removeEventListener('contextmenu', preventDefault);
         this._element.removeEventListener('pointerdown', this._handlePointerDown);
         this._element.removeEventListener('pointermove', this._handleHover);
         this._element.removeEventListener('click', this._handleClick);
@@ -91,7 +86,15 @@ export class Tracker {
         document.removeEventListener('pointerup', this._handlePointerUp);
         document.removeEventListener('pointercancel', this._handlePointerUp);
     }
+
+    private _makeEvent(e: MouseEvent | PointerEvent): TrackerEvent {
+        getEventCoords(e, this._element, _event_scratch.coords);
+        _event_scratch.nativeEvent = e;
+        return _event_scratch;
+    }
 }
+
+const _event_scratch = { coords: vec2(0, 0) as Vec2Mut, nativeEvent: {} as PointerEvent | MouseEvent };
 
 function createEmitters(): Record<TRACKER_EVENTS, EventEmitter<[TrackerEvent]>> {
     return {
@@ -102,4 +105,8 @@ function createEmitters(): Record<TRACKER_EVENTS, EventEmitter<[TrackerEvent]>> 
         move: new EventEmitter(),
         end: new EventEmitter(),
     };
+}
+
+function preventDefault(e: Event): void {
+    e.preventDefault();
 }

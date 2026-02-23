@@ -2,15 +2,17 @@ import type { Runtime, Primitive, Program, Vec3, Mat4, Color } from 'lib';
 import {
     createRenderState,
     Framebuffer,
-    OrbitCamera,
+    ViewProj,
     vec3,
     translation4x4, inversetranspose4x4,
     colors, color,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
+import { trackBall } from 'playground-utils/track-ball';
 import { makeProgram, makeDepthProgram, makeCube, makeSphere, makeWireframe } from './primitive';
 
 /**
@@ -42,8 +44,8 @@ interface State {
     readonly program: Program;
     readonly depthProgram: Program;
     readonly framebuffer: Framebuffer;
-    readonly viewProj: OrbitCamera;
-    readonly depthViewProj: OrbitCamera;
+    readonly vp: ViewProj;
+    readonly depthVP: ViewProj;
     readonly backgroundColor: Color;
     readonly depthDataBackgroundColor: Color;
     readonly objects: ReadonlyArray<ObjectInfo>;
@@ -56,7 +58,6 @@ export function main(): () => void {
         depthTest: true,
     }));
 
-    const viewLon = observable(0);
     const lightLon = observable(-60);
     const lightLat = observable(0);
     const lightDist = observable(5);
@@ -65,37 +66,37 @@ export function main(): () => void {
     const zNear = observable(0.5);
     const zFar = observable(10);
 
-    const viewProj = new OrbitCamera();
-    const depthViewProj = new OrbitCamera();
-    viewProj.setPosition({
-        dist: 6,
-        lat: Math.atan2(3, 5),
-        lon: 0,
-    });
+    const vp = new ViewProj();
+    const depthVP = new ViewProj();
 
-    bind(viewLon, (viewLon) => {
-        viewProj.setPosition({ lon: deg2rad(viewLon) });
+    const disposeTrackBall = trackBall({
+        element: runtime.canvas(),
+        initial: { x: 0, y: 3, z: 5 },
+        distance: { fixed: 6 },
+        callback: (v) => {
+            vp.setEyePos(v);
+        },
     });
 
     bind(
         computed(
-            ([lightLon, lightLat, lightDist]) => ({
-                dist: lightDist,
-                lon: deg2rad(lightLon),
-                lat: deg2rad(lightLat),
-            }),
+            ([lightLon, lightLat, lightDist]) => {
+                const lon = deg2rad(lightLon);
+                const lat = deg2rad(lightLat);
+                return spherical2zxy({ azimuth: lon, elevation: lat, distance: lightDist });
+            },
             [lightLon, lightLat, lightDist],
         ),
         (lightPos) => {
-            depthViewProj.setPosition(lightPos);
+            depthVP.setEyePos(lightPos);
         },
     );
 
     bind(zNear, (zNear) => {
-        depthViewProj.setZNear(zNear);
+        depthVP.setZNear(zNear);
     });
     bind(zFar, (zFar) => {
-        depthViewProj.setZFar(zFar);
+        depthVP.setZFar(zFar);
     });
 
     const framebuffer = new Framebuffer({
@@ -108,7 +109,7 @@ export function main(): () => void {
     const depthProgram = makeDepthProgram(runtime);
     const wireframe = makeWireframe(runtime);
 
-    depthViewProj.setViewportSize(framebuffer.size());
+    depthVP.setViewportSize(framebuffer.size());
 
     const objects: ObjectInfo[] = [
         makeObject(
@@ -133,8 +134,8 @@ export function main(): () => void {
         program,
         depthProgram,
         framebuffer,
-        viewProj,
-        depthViewProj,
+        vp,
+        depthVP,
         backgroundColor: color(0.7, 0.7, 0.7),
         depthDataBackgroundColor: colors.WHITE,
         objects,
@@ -142,7 +143,7 @@ export function main(): () => void {
     };
 
     runtime.renderSizeChanged().on(() => {
-        viewProj.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {
@@ -150,10 +151,9 @@ export function main(): () => void {
         renderScene(state);
     });
 
-    const cancelRender = renderOnChange(runtime, [viewProj, depthViewProj]);
+    const cancelRender = renderOnChange(runtime, [vp, depthVP]);
 
     const controlRoot = createControls(container, [
-        { label: 'view lon', value: viewLon, min: -180, max: +180 },
         { label: 'light lon', value: lightLon, min: -180, max: +180 },
         { label: 'light lat', value: lightLat, min: -60, max: +60 },
         { label: 'light dist', value: lightDist, min: 2, max: 10, step: 0.5 },
@@ -163,7 +163,7 @@ export function main(): () => void {
 
     return () => {
         disposeAll([
-            cancelRender, controlRoot,
+            cancelRender, controlRoot, disposeTrackBall,
             ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
         ]);
     };
@@ -191,25 +191,25 @@ function renderObjects(
 }
 
 function renderDepthData({
-    runtime, framebuffer, depthDataBackgroundColor, depthProgram, depthViewProj, objects,
+    runtime, framebuffer, depthDataBackgroundColor, depthProgram, depthVP, objects,
 }: State): void {
     runtime.setRenderTarget(framebuffer);
     runtime.setClearColor(depthDataBackgroundColor);
     runtime.clearBuffer('color|depth');
-    depthProgram.setUniform('u_view_proj', depthViewProj.getTransformMat());
+    depthProgram.setUniform('u_view_proj', depthVP.getTransformMat());
     renderObjects(objects, depthProgram, (obj) => {
         depthProgram.setUniform('u_model', obj.model);
     });
 }
 
-function renderWireframe(wireframe: Primitive, viewProj: OrbitCamera, depthViewProj: OrbitCamera): void {
-    wireframe.program().setUniform('u_view_proj', viewProj.getTransformMat());
-    wireframe.program().setUniform('u_model', depthViewProj.getInvtransformMat());
+function renderWireframe(wireframe: Primitive, vp: ViewProj, depthVP: ViewProj): void {
+    wireframe.program().setUniform('u_view_proj', vp.getTransformMat());
+    wireframe.program().setUniform('u_model', depthVP.getInvtransformMat());
     wireframe.render();
 }
 
 function renderScene({
-    runtime, backgroundColor, program, framebuffer, viewProj, depthViewProj, objects, wireframe,
+    runtime, backgroundColor, program, framebuffer, vp, depthVP, objects, wireframe,
 }: State): void {
     runtime.setRenderTarget(null);
     runtime.setClearColor(backgroundColor);
@@ -217,14 +217,14 @@ function renderScene({
     // Color buffer (instead of depth buffer) could be used here.
     // But depth texture is used to demonstrate depth texture usage.
     runtime.setTextureUnit(4, framebuffer.depthTexture());
-    program.setUniform('u_view_proj', viewProj.getTransformMat());
-    program.setUniform('u_light_pos', depthViewProj.getEyePos());
-    program.setUniform('u_depth_view_proj', depthViewProj.getTransformMat());
+    program.setUniform('u_view_proj', vp.getTransformMat());
+    program.setUniform('u_light_pos', depthVP.getEyePos());
+    program.setUniform('u_depth_view_proj', depthVP.getTransformMat());
     program.setUniform('u_depth_texture', 4);
     renderObjects(objects, program, (obj) => {
         program.setUniform('u_model', obj.model);
         program.setUniform('u_model_invtrs', obj.modelInvtrs);
         program.setUniform('u_color', obj.color);
     });
-    renderWireframe(wireframe, viewProj, depthViewProj);
+    renderWireframe(wireframe, vp, depthVP);
 }

@@ -1,11 +1,12 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
 import {
     createRenderState,
-    OrbitCamera,
+    ViewProj,
     color,
     vec3,
     mat4, apply4x4, identity4x4, yrotation4x4, translation4x4,
     deg2rad,
+    spherical2zxy,
 } from 'lib';
 import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
@@ -50,13 +51,13 @@ export function main(): () => void {
     });
 
     const wireframeColor = color(0.1, 0.1, 0.1);
-    const camera = new OrbitCamera();
-    camera.setPosition({
-        dist: 5,
-        lon: 0,
-        lat: Math.atan2(2, 5),
+    const vp = new ViewProj();
+    vp.setEyePos({
+        x: 0,
+        y: 2,
+        z: 5,
     });
-    const mappingCamera = new OrbitCamera();
+    const mappingVP = new ViewProj();
 
     const rotation = observable(0);
     const position = observable(0);
@@ -83,15 +84,15 @@ export function main(): () => void {
 
     bind(
         computed(
-            ([projectionDist, projectionLon, projectionLat]) => ({
-                dist: projectionDist,
-                lon: deg2rad(projectionLon),
-                lat: deg2rad(projectionLat),
-            }),
+            ([projectionDist, projectionLon, projectionLat]) => {
+                const lon = deg2rad(projectionLon);
+                const lat = deg2rad(projectionLat);
+                return spherical2zxy({ azimuth: lon, elevation: lat, distance: projectionDist });
+            },
             [projectionDist, projectionLon, projectionLat],
         ),
         (projectionPos) => {
-            mappingCamera.setPosition(projectionPos);
+            mappingVP.setEyePos(projectionPos);
         },
     );
 
@@ -101,53 +102,53 @@ export function main(): () => void {
             [projectionWidth, projectionHeight],
         ),
         (projectionSize) => {
-            mappingCamera.setViewportSize(projectionSize);
+            mappingVP.setViewportSize(projectionSize);
         },
     );
 
     bind(
         projectionFOV,
         (projectionFOV) => {
-            mappingCamera.setYFov(deg2rad(projectionFOV));
+            mappingVP.setYFov(deg2rad(projectionFOV));
         },
     );
 
     bind(
         isPerpsectiveProjection,
         (isPerpsectiveProjection) => {
-            mappingCamera.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
+            mappingVP.setProjType(isPerpsectiveProjection ? 'perspective' : 'orthographic');
         },
     );
 
-    const cancelRender = renderOnChange(runtime, [model, camera, mappingCamera, isWireframeShown]);
+    const cancelRender = renderOnChange(runtime, [model, vp, mappingVP, isWireframeShown]);
 
     runtime.renderSizeChanged().on(() => {
-        camera.setViewportSize(runtime.renderSize());
+        vp.setViewportSize(runtime.renderSize());
     });
 
     runtime.frameRequested().on(() => {
         runtime.clearBuffer('color|depth');
         // Map ndc to unit range and get offset in ndc space.
-        const coeff = 3 * (2 / camera.getXViewSize());
+        const coeff = 3 * (2 / vp.getXViewSize());
         for (const { primitive, offset } of primitives) {
             const program = primitive.program();
             runtime.setTextureUnit(4, colorTexture);
             runtime.setTextureUnit(5, mappingTexture);
             program.setUniform('u_offset', coeff * offset);
-            program.setUniform('u_proj', camera.getProjMat());
-            program.setUniform('u_view', camera.getViewMat());
+            program.setUniform('u_proj', vp.getProjMat());
+            program.setUniform('u_view', vp.getViewMat());
             program.setUniform('u_model', model());
             program.setUniform('u_texture', 4);
             program.setUniform('u_mapping_texture', 5);
-            program.setUniform('u_mapping_mat', mappingCamera.getTransformMat());
+            program.setUniform('u_mapping_mat', mappingVP.getTransformMat());
             primitive.render();
 
             if (isWireframeShown()) {
                 const program = wireframe.program();
                 program.setUniform('u_offset', coeff * offset);
-                program.setUniform('u_proj', camera.getProjMat());
-                program.setUniform('u_view', camera.getViewMat());
-                program.setUniform('u_model', mappingCamera.getInvtransformMat());
+                program.setUniform('u_proj', vp.getProjMat());
+                program.setUniform('u_view', vp.getViewMat());
+                program.setUniform('u_model', mappingVP.getInvtransformMat());
                 program.setUniform('u_color', wireframeColor);
                 wireframe.render();
             }
