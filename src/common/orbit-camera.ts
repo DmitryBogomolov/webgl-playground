@@ -3,7 +3,7 @@ import type { Vec3, Vec3Mut } from '../geometry/vec3.types';
 import type { Vec4 } from '../geometry/vec4.types';
 import type { Mat4Mut } from '../geometry/mat4.types';
 import type { SphericalMut } from '../geometry/spherical.types';
-import { ZERO3, YUNIT3, ZUNIT3, vec3, isVec3, eq3, clone3, norm3, cross3 } from '../geometry/vec3';
+import { YUNIT3, ZUNIT3, vec3, isVec3, isZero3, isUnit3, eq3, clone3, norm3, cross3 } from '../geometry/vec3';
 import { clone4 } from '../geometry/vec4';
 import { QUAT4_UNIT, quat4apply, quat4fromMat } from '../geometry/quat4';
 import { mat4, identity4x4 } from '../geometry/mat4';
@@ -40,19 +40,18 @@ export class OrbitCamera extends ViewProj {
         throw new TypeError('setUpDir - not supported');
     }
 
-    // TODO: Temporary!
-    // setEyePos(_value: Vec3): void {
-    //     throw new TypeError('setEyePos - not supported');
-    // }
+    setEyePos(_value: Vec3): void {
+        throw new TypeError('setEyePos - not supported');
+    }
 
     setOrientation(originDir: Vec3, upDir: Vec3 = clone3(YUNIT3)): void {
-        check(isVec3(originDir) && !isZero(originDir), 'origin_dir', originDir);
-        check(isVec3(upDir) && !isZero(upDir), 'up_dir', upDir);
+        check(isVec3(originDir) && !isZero3(originDir), 'origin_dir', originDir);
+        check(isVec3(upDir) && !isZero3(upDir), 'up_dir', upDir);
         const xDir = _x_scratch;
         const yDir = _y_scratch;
         const zDir = _z_scratch;
         makeAxes(originDir, upDir, xDir, yDir, zDir);
-        check(!isZero(xDir) && !isZero(yDir) && !isZero(zDir), 'orientation', 'parallel');
+        check(isUnit3(xDir) && isUnit3(yDir) && isUnit3(zDir), 'orientation', 'parallel');
         if (eq3(this._originDir, zDir) && eq3(this.getUpDir(), yDir)) {
             return;
         }
@@ -125,10 +124,6 @@ const _z_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _eyePos_scratch = vec3(0, 0, 0) as Vec3Mut;
 const _spherical_scratch = { distance: 0, azimuth: 0, elevation: 0 } as SphericalMut;
 const _mat_scratch = mat4() as Mat4Mut;
-
-function isZero(v: Vec3): boolean {
-    return eq3(v, ZERO3);
-}
 
 const PI = Math.PI;
 const DBL_PI = PI * 2;
