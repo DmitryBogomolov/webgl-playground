@@ -50,7 +50,7 @@ export function main(): () => void {
     const viewProj = mat4() as Mat4Mut;
     const unit = identity4x4();
 
-    runtime.frameRequested().on((delta) => {
+    runtime.frameRequested().on(({ delta }) => {
         const { x, y } = runtime.renderSize();
         perspective4x4({
             aspect: x / y,
