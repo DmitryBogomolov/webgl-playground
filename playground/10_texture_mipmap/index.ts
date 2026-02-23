@@ -98,7 +98,7 @@ export function main(): () => void {
         });
     });
 
-    runtime.frameRequested().on((delta) => {
+    runtime.frameRequested().on(({ delta }) => {
         runtime.clearBuffer('color|depth');
         const program = primitive.program();
 

@@ -1,14 +1,16 @@
-import type { EventProxy } from '../common/event-emitter.types';
+import type { RenderLoopEvent, RenderLoopEventProxy } from './render-loop.types';
 import { EventEmitter } from '../common/event-emitter';
 
 export class RenderLoop {
     // (delta: number, timestamp: number) => void
-    private readonly _frameRequested = new EventEmitter<[number, number]>();
+    private readonly _frameRequested = new EventEmitter<[RenderLoopEvent]>();
     private readonly _handleFrame: FrameRequestCallback = (timestamp) => {
         this._requestId = 0;
-        const delta = (timestamp - this._timestamp) || 0; // ms
+        const e = _event_scratch;
+        e.delta = (timestamp - this._timestamp) || 0; // ms
+        e.timestamp = timestamp;
         this._timestamp = timestamp;
-        this._frameRequested.emit(delta, timestamp);
+        this._frameRequested.emit(e);
     };
     private _requestId = 0;
     private _timestamp = NaN;
@@ -24,11 +26,14 @@ export class RenderLoop {
         }
     }
 
-    frameRequested(): EventProxy<[number, number]> {
+    frameRequested(): RenderLoopEventProxy {
         return this._frameRequested.proxy();
     }
 
-    clearCallbacks(): void {
+    reset(): void {
+        this.cancel();
         this._frameRequested.clear();
     }
 }
+
+const _event_scratch = { delta: 0, timestamp: 0 };

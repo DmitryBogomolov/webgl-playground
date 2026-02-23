@@ -56,7 +56,7 @@ describe('orbit-camera', () => {
             expect(camera.getEyePos()).toBeVec3({ x: 0.9806, y: 0, z: 0.1961 });
         });
 
-        it.only('set orientation / bad values', () => {
+        it('set orientation / bad values', () => {
             const camera = new OrbitCamera();
 
             expect(() => {

@@ -32,7 +32,7 @@ export function main(): () => void {
     const transformation2 = mat3() as Mat3Mut;
     const transformation3 = mat3() as Mat3Mut;
 
-    runtime.frameRequested().on((delta) => {
+    runtime.frameRequested().on(({ delta }) => {
         if (delta < 250) {
             animate1(delta, transformation1);
             animate2(delta, transformation2);
