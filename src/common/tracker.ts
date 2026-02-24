@@ -1,32 +1,25 @@
-import type { TrackerEvent, TrackerEventProxy, TRACKER_EVENTS } from './tracker.types';
+import type { TrackerEvent, TRACKER_EVENTS, TrackerHandlers } from './tracker.types';
 import type { Vec2Mut } from '../geometry/vec2.types';
 import { vec2 } from '../geometry/vec2';
 import { getEventCoords } from '../utils/pointer-event';
-import { EventEmitter } from './event-emitter';
 
 export class Tracker {
     private readonly _element: HTMLElement;
-    private readonly _emitters = createEmitters();
+    private readonly _handlers: TrackerHandlers;
 
-    constructor(element: HTMLElement) {
+    constructor(element: HTMLElement, handlers: TrackerHandlers) {
         this._element = element;
+        this._handlers = handlers;
         this._addElementListeners();
     }
 
     dispose(): void {
-        for (const emitter of Object.values(this._emitters)) {
-            emitter.clear();
-        }
         this._removeElementListeners();
         this._removeDocumentListeners();
     }
 
-    event(name: TRACKER_EVENTS): TrackerEventProxy {
-        return this._emitters[name].proxy();
-    }
-
     private _emit(name: TRACKER_EVENTS, event: TrackerEvent): void {
-        this._emitters[name].emit(event);
+        this._handlers[name]?.(event);
     }
 
     private readonly _handlePointerDown = (e: PointerEvent): void => {
@@ -95,17 +88,6 @@ export class Tracker {
 }
 
 const _event_scratch = { coords: vec2(0, 0) as Vec2Mut, nativeEvent: {} as PointerEvent | MouseEvent };
-
-function createEmitters(): Record<TRACKER_EVENTS, EventEmitter<[TrackerEvent]>> {
-    return {
-        click: new EventEmitter(),
-        dblclick: new EventEmitter(),
-        hover: new EventEmitter(),
-        start: new EventEmitter(),
-        move: new EventEmitter(),
-        end: new EventEmitter(),
-    };
-}
 
 function preventDefault(e: Event): void {
     e.preventDefault();
