@@ -46,7 +46,7 @@ export class GlTFRenderer extends BaseObject {
     }
 
     dispose(): void {
-        this._changed.clear();
+        this._changed.reset();
         this._loader.dispose();
         this._reset();
         this._dispose();

@@ -94,7 +94,7 @@ describe('event-emitter', () => {
 
             emitter.emit(0);
 
-            emitter.clear();
+            emitter.reset();
 
             emitter.emit(1);
 

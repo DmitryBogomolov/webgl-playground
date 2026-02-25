@@ -32,7 +32,7 @@ export class RenderLoop {
 
     reset(): void {
         this.cancel();
-        this._frameRequested.clear();
+        this._frameRequested.reset();
     }
 }
 

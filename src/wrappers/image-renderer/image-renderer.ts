@@ -58,7 +58,7 @@ export class ImageRenderer extends BaseObject {
     dispose(): void {
         this._texture.dispose();
         releasePrimitive(this._runtime);
-        this._changed.clear();
+        this._changed.reset();
         this._dispose();
     }
 

@@ -154,9 +154,9 @@ export class Runtime extends BaseObject {
     dispose(): void {
         this._logInfo('dispose');
         this._renderLoop.reset();
-        this._renderSizeChanged.clear();
-        this._contextLost.clear();
-        this._contextRestored.clear();
+        this._renderSizeChanged.reset();
+        this._contextLost.reset();
+        this._contextRestored.reset();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         this._cancelCanvasTracking();

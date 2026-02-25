@@ -94,7 +94,7 @@ class Request {
 
     dispose(): void {
         this._cancel();
-        this._done.clear();
+        this._done.reset();
     }
 
     done(): EventProxy {

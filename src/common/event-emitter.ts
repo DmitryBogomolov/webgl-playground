@@ -43,11 +43,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
         return this;
     }
 
-    count(): number {
-        return this._handlers.length;
-    }
-
-    clear(): this {
+    reset(): this {
         this._handlers.length = 0;
         this._emitHandlers = null;
         return this;
