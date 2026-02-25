@@ -58,7 +58,8 @@ export abstract class BaseObject {
     }
 
     disposed(): EventProxy {
-        return this._disposed.proxy();
+        // TODO_GETTER
+        return this._disposed.proxy;
     }
 }
 

@@ -98,7 +98,8 @@ class Request {
     }
 
     done(): EventProxy {
-        return this._done.proxy();
+        // TODO_GETTER
+        return this._done.proxy;
     }
 
     result<T = unknown>(): T {

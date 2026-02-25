@@ -352,7 +352,8 @@ export class Runtime extends BaseObject {
     }
 
     renderSizeChanged(): EventProxy {
-        return this._renderSizeChanged.proxy();
+        // TODO_GETTER
+        return this._renderSizeChanged.proxy;
     }
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {

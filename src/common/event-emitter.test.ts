@@ -112,8 +112,8 @@ describe('event-emitter', () => {
         it('use proxy', () => {
             const emitter = new EventEmitter<[number]>();
             const stub = jest.fn();
-            emitter.proxy().on(stub);
-            emitter.proxy().on(stub);
+            emitter.proxy.on(stub);
+            emitter.proxy.on(stub);
 
             emitter.emit(0);
             expect(stub.mock.calls).toEqual([
@@ -121,7 +121,7 @@ describe('event-emitter', () => {
                 [0],
             ]);
 
-            emitter.proxy().off(stub);
+            emitter.proxy.off(stub);
             emitter.emit(1);
             expect(stub.mock.calls).toEqual([
                 [0],
@@ -129,7 +129,7 @@ describe('event-emitter', () => {
                 [1],
             ]);
 
-            emitter.proxy().off(stub);
+            emitter.proxy.off(stub);
             emitter.emit(2);
             expect(stub.mock.calls).toEqual([
                 [0],
@@ -137,8 +137,8 @@ describe('event-emitter', () => {
                 [1],
             ]);
 
-            emitter.proxy().off(stub);
-            emitter.proxy().off(stub);
+            emitter.proxy.off(stub);
+            emitter.proxy.off(stub);
         });
 
         it('add another handler in handler', () => {

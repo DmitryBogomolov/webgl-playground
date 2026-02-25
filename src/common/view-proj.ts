@@ -34,7 +34,8 @@ export class ViewProj {
      * Notifies about any change.
      */
     changed(): EventProxy {
-        return this._changed.proxy();
+        // TODO_GETTER
+        return this._changed.proxy;
     }
 
     private _markProjDirty(): void {

@@ -80,7 +80,8 @@ export class ImageRenderer extends BaseObject {
     }
 
     changed(): EventProxy {
-        return this._changed.proxy();
+        // TODO_GETTER
+        return this._changed.proxy;
     }
 
     renderSize(): Vec2 {

@@ -14,7 +14,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
     };
     private _emitHandlers: EventHandler<T>[] | null = null;
 
-    proxy(): EventProxy<T> {
+    get proxy(): EventProxy<T> {
         return this._proxy;
     }
 

@@ -27,7 +27,8 @@ export class RenderLoop {
     }
 
     frameRequested(): RenderLoopEventProxy {
-        return this._frameRequested.proxy();
+        // TODO_GETTER
+        return this._frameRequested.proxy;
     }
 
     reset(): void {

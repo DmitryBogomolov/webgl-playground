@@ -128,7 +128,8 @@ export class GlTFRenderer extends BaseObject {
     }
 
     changed(): EventProxy {
-        return this._changed.proxy();
+        // TODO_GETTER
+        return this._changed.proxy;
     }
 
     setProjMat(mat: Mat4): void {
