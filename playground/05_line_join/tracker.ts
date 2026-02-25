@@ -176,12 +176,11 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         processPointerPosition(coords);
     }
 
-    const tracker = new Tracker(canvas);
-    tracker.event('hover').on(onHover);
-    tracker.event('start').on(onStart);
-    tracker.event('move').on(onMove);
-    tracker.event('end').on(onEnd);
-    tracker.event('dblclick').on(onDblClick);
-
-    return tracker;
+    return new Tracker(canvas, {
+        start: onStart,
+        move: onMove,
+        end: onEnd,
+        hover: onHover,
+        dblclick: onDblClick,
+    });
 }

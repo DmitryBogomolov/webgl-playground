@@ -87,14 +87,15 @@ export function main(): () => void {
         }
     }
 
-    const tracker = new Tracker(container);
+    const tracker = new Tracker(container, {
+        start: (e) => {
+            processPointerPosition(e.coords);
+        },
+        move: (e) => {
+            processPointerPosition(e.coords);
+        },
+    });
 
-    tracker.event('start').on((e) => {
-        processPointerPosition(e.coords);
-    });
-    tracker.event('move').on((e) => {
-        processPointerPosition(e.coords);
-    });
     texcoord.on(() => {
         runtime.requestFrameRender();
     });

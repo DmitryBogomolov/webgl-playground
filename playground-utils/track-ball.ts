@@ -37,50 +37,49 @@ interface DistanceConfig {
 const DEFAULT_DISTANCE_CONFIG: DistanceConfig = { min: 1, max: 100, isFixed: false };
 
 export function trackBall(params: TrackBallParams): () => void {
-    const tracker = new Tracker(params.element);
-
     const distanceConfig = makeDistanceConfig(params.distance);
     const coords = makeCoords(params.initial, distanceConfig);
-
     let prevCoords: Vec2 | null = null;
     let isSecondary = false;
-    tracker.event('start').on((e) => {
-        if (e.nativeEvent.button !== 0) {
-            return;
-        }
-        prevCoords = clone2(e.coords);
-        setCursor(CURSOR);
-    });
-    tracker.event('move').on((e) => {
-        if (!prevCoords) {
-            return;
-        }
-        if (!distanceConfig.isFixed) {
-            if (e.nativeEvent.button === 2) {
-                isSecondary = !isSecondary;
-                prevCoords = clone2(e.coords);
+    const tracker = new Tracker(params.element, {
+        start: (e) => {
+            if (e.nativeEvent.button !== 0) {
                 return;
             }
-        }
+            prevCoords = clone2(e.coords);
+            setCursor(CURSOR);
+        },
+        move: (e) => {
+            if (!prevCoords) {
+                return;
+            }
+            if (!distanceConfig.isFixed) {
+                if (e.nativeEvent.button === 2) {
+                    isSecondary = !isSecondary;
+                    prevCoords = clone2(e.coords);
+                    return;
+                }
+            }
 
-        const dx = e.coords.x - prevCoords.x;
-        const dy = e.coords.y - prevCoords.y;
-        prevCoords = clone2(e.coords);
+            const dx = e.coords.x - prevCoords.x;
+            const dy = e.coords.y - prevCoords.y;
+            prevCoords = clone2(e.coords);
 
-        if (isSecondary) {
-            setDistance(coords, distanceConfig, coords.distance + dx * DIST_PX_SENSE);
-        } else {
-            setAzimuth(coords, coords.azimuth + dx * X_PX_SENSE);
-            setElevation(coords, coords.elevation + -dy * Y_PX_SENSE);
-        }
+            if (isSecondary) {
+                setDistance(coords, distanceConfig, coords.distance + dx * DIST_PX_SENSE);
+            } else {
+                setAzimuth(coords, coords.azimuth + dx * X_PX_SENSE);
+                setElevation(coords, coords.elevation + -dy * Y_PX_SENSE);
+            }
 
-        update();
-    });
-    tracker.event('end').on(() => {
-        if (!prevCoords) {
-            return;
-        }
-        reset();
+            update();
+        },
+        end: () => {
+            if (!prevCoords) {
+                return;
+            }
+            reset();
+        },
     });
 
     function reset(): void {
@@ -294,24 +293,25 @@ function createControl(params: ControlParams): Control {
     };
     let handler: Handler | null = null;
 
-    const tracker = new Tracker(elementRoot);
-    tracker.event('start').on((e) => {
-        const { tag } = (e.nativeEvent.target as HTMLElement).dataset;
-        handler = (handlers[tag as string] ?? null) as Handler | null;
-        if (handler) {
-            setCursor(CURSOR);
-        }
-    });
-    tracker.event('move').on((e) => {
-        if (handler) {
-            handler(e.coords);
-        }
-    });
-    tracker.event('end').on(() => {
-        if (handler) {
-            setCursor('');
-            handler = null;
-        }
+    const tracker = new Tracker(elementRoot, {
+        start: (e) => {
+            const { tag } = (e.nativeEvent.target as HTMLElement).dataset;
+            handler = (handlers[tag as string] ?? null) as Handler | null;
+            if (handler) {
+                setCursor(CURSOR);
+            }
+        },
+        move: (e) => {
+            if (handler) {
+                handler(e.coords);
+            }
+        },
+        end: () => {
+            if (handler) {
+                setCursor('');
+                handler = null;
+            }
+        },
     });
 
     params.container.appendChild(root);
