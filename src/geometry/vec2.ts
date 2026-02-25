@@ -2,10 +2,10 @@ import type { Vec2, Vec2Mut } from './vec2.types';
 import { upd2 } from './vec2.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
-export const ZERO2 = vec2(0, 0);
-export const UNIT2 = vec2(1, 1);
-export const XUNIT2 = vec2(1, 0);
-export const YUNIT2 = vec2(0, 1);
+export const ZERO2 = Object.freeze(vec2(0, 0));
+export const UNIT2 = Object.freeze(vec2(1, 1));
+export const XUNIT2 = Object.freeze(vec2(1, 0));
+export const YUNIT2 = Object.freeze(vec2(0, 1));
 
 export function vec2(x: number, y: number): Vec2 {
     return { x, y };

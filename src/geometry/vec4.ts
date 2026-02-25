@@ -2,12 +2,12 @@ import type { Vec4, Vec4Mut } from './vec4.types';
 import { upd4 } from './vec4.helper';
 import { floatEq as eq, FLOAT_EQ_EPS } from './float-eq';
 
-export const ZERO4 = vec4(0, 0, 0, 0);
-export const UNIT4 = vec4(1, 1, 1, 1);
-export const XUNIT4 = vec4(1, 0, 0, 0);
-export const YUNIT4 = vec4(0, 1, 0, 0);
-export const ZUNIT4 = vec4(0, 0, 1, 0);
-export const WUNIT4 = vec4(0, 0, 0, 1);
+export const ZERO4 = Object.freeze(vec4(0, 0, 0, 0));
+export const UNIT4 = Object.freeze(vec4(1, 1, 1, 1));
+export const XUNIT4 = Object.freeze(vec4(1, 0, 0, 0));
+export const YUNIT4 = Object.freeze(vec4(0, 1, 0, 0));
+export const ZUNIT4 = Object.freeze(vec4(0, 0, 1, 0));
+export const WUNIT4 = Object.freeze(vec4(0, 0, 0, 1));
 
 export function vec4(x: number, y: number, z: number, w: number): Vec4 {
     return { x, y, z, w };
