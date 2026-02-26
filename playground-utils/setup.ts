@@ -87,7 +87,9 @@ function createLogger(): Logger {
     }
 }
 
-export function disposeAll(disposables: Iterable<{ dispose(): void } | (() => void)>): void {
+export type Disposable = { dispose(): void } | (() => void);
+
+export function disposeAll(disposables: Iterable<Disposable>): void {
     for (const disposable of disposables) {
         if ('dispose' in disposable) {
             disposable.dispose();
@@ -97,9 +99,11 @@ export function disposeAll(disposables: Iterable<{ dispose(): void } | (() => vo
     }
 }
 
+export type Changeble = EventProxy | { changed(): EventProxy } | { readonly changed: EventProxy };
+
 export function renderOnChange(
     runtime: Runtime,
-    targets: Iterable<EventProxy | { changed(): EventProxy }>,
+    targets: Iterable<Changeble>,
 ): () => void {
     for (const changeable of targets) {
         proxy(changeable).on(update);
@@ -111,8 +115,11 @@ export function renderOnChange(
         }
     };
 
-    function proxy(target: EventProxy | { changed(): EventProxy }): EventProxy {
-        return 'changed' in target ? target.changed() : target;
+    function proxy(target: Changeble): EventProxy {
+        if ('changed' in target) {
+            return typeof target.changed === 'function' ? target.changed() : target.changed;
+        }
+        return target;
     }
 
     function update(): void {

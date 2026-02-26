@@ -13,7 +13,7 @@ import { BaseObject } from '../../gl/base-object';
 import { EventEmitter } from '../../common/event-emitter';
 import { Loader } from '../../common/loader';
 import { vec3, norm3 } from '../../geometry/vec3';
-import { mat4, identity4x4, clone4x4, inverse4x4 } from '../../geometry/mat4';
+import { mat4, identity4x4, clone4x4, inverse4x4, mat4col } from '../../geometry/mat4';
 import { parseGlTF } from '../../gltf/parse';
 import { processScene, destroyScene } from './scene';
 import { createPrograms, destroyPrograms } from './program';
@@ -127,8 +127,7 @@ export class GlTFRenderer extends BaseObject {
         this._changed.emit();
     }
 
-    changed(): EventProxy {
-        // TODO_GETTER
+    get changed(): EventProxy {
         return this._changed.proxy;
     }
 
@@ -140,8 +139,8 @@ export class GlTFRenderer extends BaseObject {
     setViewMat(mat: Mat4): void {
         this._logInfo('set_view_mat({0})', mat);
         this._viewMat = clone4x4(mat);
-        const invViewMat = inverse4x4(this._viewMat, _m4_scratch as Mat4Mut);
-        this._eyePosition = vec3(invViewMat[12], invViewMat[13], invViewMat[14]);
+        const invViewMat = inverse4x4(this._viewMat, _m4_scratch);
+        this._eyePosition = mat4col(invViewMat, 3);
     }
 
     setLightDirection(lightDirection: Vec3): void {
@@ -182,4 +181,4 @@ export class GlTFRenderer extends BaseObject {
     }
 }
 
-const _m4_scratch = mat4();
+const _m4_scratch = mat4() as Mat4Mut;
