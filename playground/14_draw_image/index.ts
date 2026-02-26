@@ -54,7 +54,7 @@ export function main(): () => void {
 }
 
 function render1(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
 
@@ -85,7 +85,7 @@ function render1(renderSize: Vec2, image: ImageRenderer, step: number): void {
 }
 
 function render2(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
 
@@ -118,7 +118,7 @@ function render2(renderSize: Vec2, image: ImageRenderer, step: number): void {
 }
 
 function render3(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
     image.setRegion({});

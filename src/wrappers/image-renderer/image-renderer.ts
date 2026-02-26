@@ -79,12 +79,11 @@ export class ImageRenderer extends BaseObject {
         this._changed.emit();
     }
 
-    changed(): EventProxy {
-        // TODO_GETTER
+    get changed(): EventProxy {
         return this._changed.proxy;
     }
 
-    renderSize(): Vec2 {
+    get renderSize(): Vec2 {
         return this._renderSize;
     }
 
@@ -100,7 +99,7 @@ export class ImageRenderer extends BaseObject {
         this._matDirty = true;
     }
 
-    imageSize(): Vec2 {
+    get imageSize(): Vec2 {
         return this._texture.size();
     }
 
@@ -115,7 +114,7 @@ export class ImageRenderer extends BaseObject {
         });
     }
 
-    textureUnit(): number {
+    get textureUnit(): number {
         return this._textureUnit;
     }
 
@@ -130,7 +129,7 @@ export class ImageRenderer extends BaseObject {
         this._textureUnit = unit;
     }
 
-    region(): ImageRendererRegion {
+    get region(): ImageRendererRegion {
         return this._region;
     }
 
@@ -146,7 +145,7 @@ export class ImageRenderer extends BaseObject {
         this._matDirty = this._texmatDirty = true;
     }
 
-    location(): ImageRendererLocation {
+    get location(): ImageRendererLocation {
         return this._location;
     }
 
