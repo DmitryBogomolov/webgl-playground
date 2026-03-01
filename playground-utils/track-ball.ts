@@ -327,8 +327,10 @@ function createControl(params: ControlParams): Control {
             const positionElevation = -rElevation * Math.sin(coords.elevation);
             const scaleElevation = 0.6 * Math.cos(coords.elevation) + 0.4;
             elementElevation.setAttribute('transform', `translate(0 ${positionElevation}) scale(1 ${scaleElevation})`);
-            const positionDistance = (packDist(coords.distance) * 2 - 1) * rDistance;
-            elementDistance.setAttribute('transform', `translate(${positionDistance} 0)`);
+            if (!params.distance.isFixed) {
+                const positionDistance = (packDist(coords.distance) * 2 - 1) * rDistance;
+                elementDistance.setAttribute('transform', `translate(${positionDistance} 0)`);
+            }
         },
     };
 }
