@@ -1,13 +1,13 @@
-import { httpRequest } from './http_request';
+import { httpRequest } from './http-request';
 
-describe('http_request', () => {
+describe('http-request', () => {
     describe('http request', () => {
         let fetch: jest.SpyInstance;
         const _fetch = global.fetch;
         const _AbortController = global.AbortController;
 
         interface StubController {
-            readonly signal: string;
+            readonly signal: unknown;
             readonly abort: jest.Mock;
         }
         let controllers: StubController[];
@@ -16,7 +16,9 @@ describe('http_request', () => {
             fetch = jest.fn();
             function AbortController(): StubController {
                 const controller: StubController = {
-                    signal: `TEST_SIGNAL:${controllers.length}`,
+                    signal: {
+                        throwIfAborted: jest.fn(),
+                    },
                     abort: jest.fn(),
                 };
                 controllers.push(controller);
@@ -47,8 +49,8 @@ describe('http_request', () => {
             fetch.mockResolvedValue(stubResponse({ tag: 'test-data' }));
             const { task: response } = httpRequest('/test-url');
 
-            expect(fetch).toBeCalledWith('/test-url', { signal: 'TEST_SIGNAL:0' });
             expect(controllers.length).toEqual(1);
+            expect(fetch).toBeCalledWith('/test-url', { signal: controllers[0].signal });
 
             const result = await response;
             expect(result).toEqual({ tag: 'test-data' });
@@ -66,9 +68,9 @@ describe('http_request', () => {
 
             expect(fetch).toBeCalledTimes(3);
             expect(controllers.length).toEqual(3);
-            expect(fetch).toHaveBeenNthCalledWith(1, '/test-url-1', { signal: 'TEST_SIGNAL:0' });
-            expect(fetch).toHaveBeenNthCalledWith(2, '/test-url-2', { signal: 'TEST_SIGNAL:1' });
-            expect(fetch).toHaveBeenNthCalledWith(3, '/test-url-3', { signal: 'TEST_SIGNAL:2' });
+            expect(fetch).toHaveBeenNthCalledWith(1, '/test-url-1', { signal: controllers[0].signal });
+            expect(fetch).toHaveBeenNthCalledWith(2, '/test-url-2', { signal: controllers[1].signal });
+            expect(fetch).toHaveBeenNthCalledWith(3, '/test-url-3', { signal: controllers[2].signal });
 
             const results = await Promise.all([response1.task, response2.task, response3.task]);
             expect(results).toEqual([100, 200, 300]);
@@ -124,7 +126,7 @@ describe('http_request', () => {
             const result = await response.task;
 
             expect(result).toEqual(100);
-            expect(fetch).toBeCalledWith('/test-url', { method: 'POST', signal: 'TEST_SIGNAL:0' });
+            expect(fetch).toBeCalledWith('/test-url', { method: 'POST', signal: controllers[0].signal });
         });
 
         it('receive binary response', async () => {

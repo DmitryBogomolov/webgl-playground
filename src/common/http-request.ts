@@ -1,4 +1,4 @@
-import type { HttpRequestParams, HttpResponseInfo, HTTP_RESPONSE_TYPE } from './http_request.types';
+import type { HttpRequestParams, HttpResponseInfo, HTTP_RESPONSE_TYPE } from './http-request.types';
 import type { Mapping } from './mapping.types';
 
 const RESPONSE_READERS: Mapping<HTTP_RESPONSE_TYPE, (response: Response) => Promise<unknown>> = {
