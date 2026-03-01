@@ -34,7 +34,6 @@ export * from './common/view-proj.types';
 export * from './common/view-proj';
 export * from './common/tracker.types';
 export * from './common/tracker';
-export * from './common/loader.types';
 export * from './common/loader';
 export * from './common/orbit-camera.types';
 export * from './common/orbit-camera';
