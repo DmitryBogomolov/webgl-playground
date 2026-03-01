@@ -45,9 +45,9 @@ describe('http_request', () => {
 
         it('load', async () => {
             fetch.mockResolvedValue(stubResponse({ tag: 'test-data' }));
-            const { response } = httpRequest('/test-url');
+            const { task: response } = httpRequest('/test-url');
 
-            expect(fetch).toBeCalledWith('/test-url', { method: 'GET', signal: 'TEST_SIGNAL:0' });
+            expect(fetch).toBeCalledWith('/test-url', { signal: 'TEST_SIGNAL:0' });
             expect(controllers.length).toEqual(1);
 
             const result = await response;
@@ -60,17 +60,17 @@ describe('http_request', () => {
             fetch.mockResolvedValueOnce(stubResponse(200));
             fetch.mockResolvedValueOnce(stubResponse(300));
 
-            const { response: response1 } = httpRequest('/test-url-1');
-            const { response: response2 } = httpRequest('/test-url-2');
-            const { response: response3 } = httpRequest('/test-url-3');
+            const response1 = httpRequest('/test-url-1');
+            const response2 = httpRequest('/test-url-2');
+            const response3 = httpRequest('/test-url-3');
 
             expect(fetch).toBeCalledTimes(3);
             expect(controllers.length).toEqual(3);
-            expect(fetch).toHaveBeenNthCalledWith(1, '/test-url-1', { method: 'GET', signal: 'TEST_SIGNAL:0' });
-            expect(fetch).toHaveBeenNthCalledWith(2, '/test-url-2', { method: 'GET', signal: 'TEST_SIGNAL:1' });
-            expect(fetch).toHaveBeenNthCalledWith(3, '/test-url-3', { method: 'GET', signal: 'TEST_SIGNAL:2' });
+            expect(fetch).toHaveBeenNthCalledWith(1, '/test-url-1', { signal: 'TEST_SIGNAL:0' });
+            expect(fetch).toHaveBeenNthCalledWith(2, '/test-url-2', { signal: 'TEST_SIGNAL:1' });
+            expect(fetch).toHaveBeenNthCalledWith(3, '/test-url-3', { signal: 'TEST_SIGNAL:2' });
 
-            const results = await Promise.all([response1, response2, response3]);
+            const results = await Promise.all([response1.task, response2.task, response3.task]);
             expect(results).toEqual([100, 200, 300]);
             expect(controllers[0].abort).toBeCalledTimes(0);
             expect(controllers[1].abort).toBeCalledTimes(0);
@@ -89,13 +89,13 @@ describe('http_request', () => {
         it('cancel several times', () => {
             fetch.mockResolvedValue(stubResponse(0));
 
-            const { cancel: cancel1 } = httpRequest('/test-url-1');
-            cancel1();
-            cancel1();
+            const response1 = httpRequest('/test-url-1');
+            response1.cancel();
+            response1.cancel();
 
-            const { cancel: cancel2 } = httpRequest('/test-url-2');
-            cancel2();
-            cancel1();
+            const response2 = httpRequest('/test-url-2');
+            response2.cancel();
+            response1.cancel();
 
             expect(controllers[0].abort).toBeCalledWith();
             expect(controllers[1].abort).toBeCalledWith();
@@ -104,24 +104,24 @@ describe('http_request', () => {
         it('handle request error', async () => {
             fetch.mockRejectedValue(new Error('test-error'));
 
-            const { response } = httpRequest('/test-url');
+            const response = httpRequest('/test-url');
 
-            await expect(response).rejects.toEqual(new Error('test-error'));
+            await expect(response.task).rejects.toEqual(new Error('test-error'));
         });
 
         it('handle bad response', async () => {
             fetch.mockResolvedValue({ ...stubResponse(0), ok: false, statusText: 'test-error' });
 
-            const { response } = httpRequest('/test-url');
+            const response = httpRequest('/test-url');
 
-            await expect(response).rejects.toEqual(new Error('/test-url: test-error'));
+            await expect(response.task).rejects.toEqual(new Error('/test-url: test-error'));
         });
 
         it('perform POST request', async () => {
             fetch.mockResolvedValue(stubResponse(100));
 
-            const { response } = httpRequest('/test-url', { method: 'POST' });
-            const result = await response;
+            const response = httpRequest('/test-url', { method: 'POST' });
+            const result = await response.task;
 
             expect(result).toEqual(100);
             expect(fetch).toBeCalledWith('/test-url', { method: 'POST', signal: 'TEST_SIGNAL:0' });
@@ -130,8 +130,8 @@ describe('http_request', () => {
         it('receive binary response', async () => {
             fetch.mockResolvedValue(stubResponse('test buffer'));
 
-            const { response } = httpRequest('/test-url', { contentType: 'binary' });
-            const result = await response;
+            const response = httpRequest('/test-url', { contentType: 'binary' });
+            const result = await response.task;
 
             expect(result).toEqual('test buffer');
         });
@@ -142,8 +142,8 @@ describe('http_request', () => {
                 text: () => Promise.resolve('test text'),
             });
 
-            const { response } = httpRequest('/test-url', { contentType: 'text' });
-            const result = await response;
+            const response = httpRequest('/test-url', { contentType: 'text' });
+            const result = await response.task;
 
             expect(result).toEqual('test text');
         });
@@ -154,8 +154,8 @@ describe('http_request', () => {
                 json: () => Promise.resolve('test json'),
             });
 
-            const { response } = httpRequest('/test-url', { contentType: 'json' });
-            const result = await response;
+            const response = httpRequest('/test-url', { contentType: 'json' });
+            const result = await response.task;
 
             expect(result).toEqual('test json');
         });
@@ -166,8 +166,8 @@ describe('http_request', () => {
                 blob: () => Promise.resolve('test blob'),
             });
 
-            const { response } = httpRequest('/test-url', { contentType: 'blob' });
-            const result = await response;
+            const response = httpRequest('/test-url', { contentType: 'blob' });
+            const result = await response.task;
 
             expect(result).toEqual('test blob');
         });
