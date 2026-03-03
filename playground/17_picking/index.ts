@@ -70,14 +70,14 @@ export function main(): () => void {
     function handlePointerMove(e: PointerEvent): void {
         let coords = getEventCoords(e);
         // Flip Y coordinate.
-        const canvasSize = runtime.renderSize();
+        const canvasSize = runtime.renderSize;
         coords = vec2(coords.x, canvasSize.y - coords.y);
         state.pixelCoord = mapPixelCoodinates(coords, canvasSize, framebuffer.size());
         runtime.requestFrameRender();
     }
 
-    runtime.renderSizeChanged().on(() => {
-        const canvasSize = runtime.renderSize();
+    runtime.renderSizeChanged.on(() => {
+        const canvasSize = runtime.renderSize;
         // Framebuffer size and aspect ratio are made different to demonstrate pixel mapping issue.
         const x = canvasSize.x >> 1;
         const y = x >> 1;
@@ -85,12 +85,12 @@ export function main(): () => void {
         vp.setViewportSize(canvasSize);
         idVP.setViewportSize(framebuffer.size());
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderFrame(state);
     });
 
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 4, max: 16 },
         initial: { x: 0, y: 3, z: 10 },
         callback: (v) => {

@@ -99,11 +99,11 @@ export function main(): () => void {
         ],
     };
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
 
-    runtime.frameRequested().on(({ delta }) => {
+    runtime.frameRequested.on(({ delta }) => {
         if (delta < 250) {
             rotate3(eyePosition, YUNIT3, CAMERA_ROTATION_SPEED * delta / 1000, eyePosition as Vec3Mut);
         }

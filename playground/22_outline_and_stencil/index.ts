@@ -98,7 +98,7 @@ export function main(): () => void {
     function handleClick(e: MouseEvent): void {
         const coords = getEventCoords(e);
         // Flip Y coordinate.
-        const objectId = findObjectId(state, { x: coords.x, y: runtime.renderSize().y - coords.y });
+        const objectId = findObjectId(state, { x: coords.x, y: runtime.renderSize.y - coords.y });
         if (objectId > 0) {
             if (state.selectedObjects.has(objectId)) {
                 state.selectedObjects.delete(objectId);
@@ -109,14 +109,14 @@ export function main(): () => void {
         }
     }
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderScene(state);
     });
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 1, max: 6 },
         initial: { x: 0, y: 1, z: 5 },
         callback: (v) => {
@@ -204,7 +204,7 @@ function renderOutline({
             outlineProgram.setUniform('u_view_proj', camera.getTransformMat());
             outlineProgram.setUniform('u_model', mat);
             outlineProgram.setUniform('u_color', outlineColor);
-            outlineProgram.setUniform('u_canvas_size', runtime.renderSize());
+            outlineProgram.setUniform('u_canvas_size', runtime.renderSize);
             outlineProgram.setUniform('u_thickness', outlineThickness());
             primitive.setProgram(outlineProgram);
             primitive.render();

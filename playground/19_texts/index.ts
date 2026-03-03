@@ -59,15 +59,15 @@ export function main(): () => void {
         objects,
     };
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderScene(state);
     });
 
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 3, max: 8 },
         initial: { x: 0, y: 1, z: 5 },
         callback: (v) => {
@@ -99,7 +99,7 @@ const labelRenderState = createRenderState({
 function renderScene({ runtime, vp, primitive, labelPrimitive, objects }: State): void {
     runtime.clearBuffer('color|depth');
     const viewProjMat = vp.getTransformMat();
-    const canvasSize = runtime.renderSize();
+    const canvasSize = runtime.renderSize;
     const baseDist = vp.getViewDist();
     const viewPos = vp.getEyePos();
 

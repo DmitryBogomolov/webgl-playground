@@ -36,7 +36,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     let action: 'none' | 'move_vertex' | 'change_thickness' = 'none';
     let targetVertex = stubVertex;
 
-    const canvas = runtime.canvas();
+    const { canvas } = runtime;
 
     function getCanvasSize(): Vec2 {
         return { x: canvas.clientWidth, y: canvas.clientHeight };

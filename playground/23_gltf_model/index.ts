@@ -43,17 +43,17 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(runtime, [vp, renderer]);
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer('color');
         renderer.setProjMat(vp.getProjMat());
         renderer.setViewMat(vp.getViewMat());
         renderer.render();
     });
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         initial: { x: 0, y: 1, z: 2 },
         distance: { fixed: 5 },
         callback: (v) => {

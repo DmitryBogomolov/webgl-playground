@@ -28,7 +28,7 @@ export function main(): () => void {
         scale: 0,
     };
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer();
         primitive.program().setUniform('u_scale', state.scale);
         primitive.program().setUniform('u_color', state.clr);

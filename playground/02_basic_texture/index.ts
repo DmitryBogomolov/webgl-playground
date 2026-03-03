@@ -100,10 +100,10 @@ export function main(): () => void {
         runtime.requestFrameRender();
     });
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer();
 
-        const ratio = mul2(inv2(runtime.renderSize()), 2);
+        const ratio = mul2(inv2(runtime.renderSize), 2);
         const size = mul2(ratio, TEXTURE_SIZE / 2);
         const offset = mul2(ratio, OFFSET + TEXTURE_SIZE / 2);
 

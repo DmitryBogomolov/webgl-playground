@@ -64,19 +64,19 @@ export function main(): () => void {
     function handlePointerMove(e: PointerEvent): void {
         const coords = getEventCoords(e);
         // Flip Y coordinate.
-        state.pixelCoord = vec2(coords.x, runtime.renderSize().y - coords.y);
+        state.pixelCoord = vec2(coords.x, runtime.renderSize.y - coords.y);
         runtime.requestFrameRender();
     }
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderFrame(state);
     });
 
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 4, max: 16 },
         initial: { x: 0, y: 3, z: 10 },
         callback: (v) => {

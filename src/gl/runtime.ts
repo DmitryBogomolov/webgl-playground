@@ -224,11 +224,11 @@ export class Runtime extends BaseObject {
         this._gl.viewport(0, 0, this._viewportSize.x, this._viewportSize.y);
     }
 
-    canvas(): HTMLCanvasElement {
+    get canvas(): HTMLCanvasElement {
         return this._canvas;
     }
 
-    renderSize(): Vec2 {
+    get renderSize(): Vec2 {
         return this._renderSize;
     }
 
@@ -343,8 +343,7 @@ export class Runtime extends BaseObject {
         return this._renderState.blendFunc;
     }
 
-    frameRequested(): RenderLoopEventProxy {
-        // TODO_GETTER
+    get frameRequested(): RenderLoopEventProxy {
         return this._renderLoop.frameRequested;
     }
 
@@ -352,8 +351,7 @@ export class Runtime extends BaseObject {
         this._renderLoop.update();
     }
 
-    renderSizeChanged(): EventProxy {
-        // TODO_GETTER
+    get renderSizeChanged(): EventProxy {
         return this._renderSizeChanged.proxy;
     }
 

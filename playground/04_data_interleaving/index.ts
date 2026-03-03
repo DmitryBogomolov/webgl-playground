@@ -35,7 +35,7 @@ export function main(): () => void {
 
     const primitiveAoS = makeAoSPrimitive(runtime, vertices1, indices);
     const primitiveSoA = makeSoAPrimitive(runtime, vertices2, indices);
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer();
         primitiveAoS.render();
         primitiveSoA.render();

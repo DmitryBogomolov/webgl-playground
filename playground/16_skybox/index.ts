@@ -57,7 +57,7 @@ export function main(): () => void {
         [modelLon, modelLat],
     );
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 1, max: 5 },
         initial: { x: 0, y: 0, z: 2 },
         callback: (v) => {
@@ -74,10 +74,10 @@ export function main(): () => void {
     const isCubeShown = observable(true);
 
     const cancelRender = renderOnChange(runtime, [modelMat, normalMat, isCubeShown, vp]);
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderFrame({ runtime, vp, modelMat, normalMat, isCubeShown, quad, cube, texture });
     });
 
