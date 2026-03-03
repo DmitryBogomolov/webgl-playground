@@ -344,7 +344,8 @@ export class Runtime extends BaseObject {
     }
 
     frameRequested(): RenderLoopEventProxy {
-        return this._renderLoop.frameRequested();
+        // TODO_GETTER
+        return this._renderLoop.frameRequested;
     }
 
     requestFrameRender(): void {

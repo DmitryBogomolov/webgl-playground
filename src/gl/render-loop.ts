@@ -2,7 +2,6 @@ import type { RenderLoopEvent, RenderLoopEventProxy } from './render-loop.types'
 import { EventEmitter } from '../common/event-emitter';
 
 export class RenderLoop {
-    // (delta: number, timestamp: number) => void
     private readonly _frameRequested = new EventEmitter<[RenderLoopEvent]>();
     private readonly _handleFrame: FrameRequestCallback = (timestamp) => {
         this._requestId = 0;
@@ -26,8 +25,7 @@ export class RenderLoop {
         }
     }
 
-    frameRequested(): RenderLoopEventProxy {
-        // TODO_GETTER
+    get frameRequested(): RenderLoopEventProxy {
         return this._frameRequested.proxy;
     }
 

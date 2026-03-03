@@ -74,7 +74,7 @@ describe('render loop', () => {
             const loop = new RenderLoop();
             loop.update();
             const { calls, callback } = makeCallback();
-            loop.frameRequested().on(callback);
+            loop.frameRequested.on(callback);
 
             triggerFrame(10);
             triggerFrame(25);
@@ -93,7 +93,7 @@ describe('render loop', () => {
             const loop = new RenderLoop();
             loop.update();
             const { calls, callback } = makeCallback(() => loop.update());
-            loop.frameRequested().on(callback);
+            loop.frameRequested.on(callback);
 
             expect(mockRequestAnimationFrame.mock.calls).toEqual([
                 [expect.any(Function)],
@@ -131,15 +131,15 @@ describe('render loop', () => {
             loop.update();
             const { calls, callback } = makeCallback();
 
-            loop.frameRequested().on(callback);
-            loop.frameRequested().on(callback);
+            loop.frameRequested.on(callback);
+            loop.frameRequested.on(callback);
             triggerFrame(10);
             expect(calls).toEqual([
                 { delta: 0, timestamp: 10 },
                 { delta: 0, timestamp: 10 },
             ]);
 
-            loop.frameRequested().off(callback);
+            loop.frameRequested.off(callback);
             triggerFrame(30);
             expect(calls).toEqual([
                 { delta: 0, timestamp: 10 },
@@ -147,7 +147,7 @@ describe('render loop', () => {
                 { delta: 20, timestamp: 30 },
             ]);
 
-            loop.frameRequested().off(callback);
+            loop.frameRequested.off(callback);
             triggerFrame(70);
             expect(calls).toEqual([
                 { delta: 0, timestamp: 10 },
@@ -161,8 +161,8 @@ describe('render loop', () => {
             loop.update();
             const { calls: calls1, callback: callback1 } = makeCallback();
             const { calls: calls2, callback: callback2 } = makeCallback();
-            loop.frameRequested().on(callback1);
-            loop.frameRequested().on(callback2);
+            loop.frameRequested.on(callback1);
+            loop.frameRequested.on(callback2);
 
             triggerFrame(10);
             loop.reset();
