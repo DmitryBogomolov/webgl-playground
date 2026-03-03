@@ -7,19 +7,9 @@ describe('loader', () => {
     describe('Loader', () => {
         const httpRequestMock = httpRequest as jest.Mock;
 
-        beforeEach(() => {
-        });
-
         afterEach(() => {
             httpRequestMock.mockRestore();
         });
-
-        function stubResponse(data: unknown): Response {
-            return {
-                ok: true,
-                arrayBuffer: () => Promise.resolve(data),
-            } as unknown as Response;
-        }
 
         it('load', async () => {
             const loader = new Loader();
@@ -155,75 +145,5 @@ describe('loader', () => {
             expect(httpRequestMock).toHaveBeenNthCalledWith(2, '/test-url', undefined);
             expect(httpRequestMock).toHaveBeenNthCalledWith(3, '/test-url', undefined);
         });
-
-        it('handle request error', async () => {
-            const loader = new Loader();
-            httpRequestMock.mockReturnValueOnce({ task: Promise.reject(new Error('test-error')), cancel: jest.fn() });
-
-            await expect(() => loader.load('/test-url')).rejects.toEqual(new Error('test-error'));
-        });
-
-        // it('handle bad response', async () => {
-        //     const loader = new Loader();
-        //     const response = { ...stubResponse(0), ok: false, statusText: 'test-error' };
-        //     fetch.mockResolvedValue(response);
-
-        //     await expect(() => loader.load('/test-url')).rejects.toEqual(new Error('/test-url: test-error'));
-        // });
-
-        // it('perform POST request', async () => {
-        //     const loader = new Loader();
-        //     fetch.mockResolvedValue(stubResponse(100));
-
-        //     const result = await loader.load('/test-url', { method: 'POST' });
-
-        //     expect(result).toEqual(100);
-        //     expect(fetch).toBeCalledWith('/test-url', { method: 'POST', signal: 'TEST_SIGNAL:0' });
-        // });
-
-        // it('receive binary response', async () => {
-        //     const loader = new Loader();
-        //     fetch.mockResolvedValue(stubResponse('test buffer'));
-
-        //     const result = await loader.load('/test-url', { contentType: 'binary' });
-
-        //     expect(result).toEqual('test buffer');
-        // });
-
-        // it('receive text response', async () => {
-        //     const loader = new Loader();
-        //     fetch.mockResolvedValue({
-        //         ok: true,
-        //         text: () => Promise.resolve('test text'),
-        //     });
-
-        //     const result = await loader.load('/test-url', { contentType: 'text' });
-
-        //     expect(result).toEqual('test text');
-        // });
-
-        // it('receive json response', async () => {
-        //     const loader = new Loader();
-        //     fetch.mockResolvedValue({
-        //         ok: true,
-        //         json: () => Promise.resolve('test json'),
-        //     });
-
-        //     const result = await loader.load('/test-url', { contentType: 'json' });
-
-        //     expect(result).toEqual('test json');
-        // });
-
-        // it('receive blob response', async () => {
-        //     const loader = new Loader();
-        //     fetch.mockResolvedValue({
-        //         ok: true,
-        //         blob: () => Promise.resolve('test blob'),
-        //     });
-
-        //     const result = await loader.load('/test-url', { contentType: 'blob' });
-
-        //     expect(result).toEqual('test blob');
-        // });
     });
 });

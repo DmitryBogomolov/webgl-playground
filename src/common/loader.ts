@@ -1,4 +1,4 @@
-import type { HttpRequestParams, HttpResponseInfo } from './http-request.types';
+import type { HttpRequestParams } from './http-request.types';
 import { httpRequest } from './http-request';
 
 export class Loader {
@@ -6,9 +6,6 @@ export class Loader {
     private readonly _tasks = new Map<Promise<unknown>, () => void>();
 
     dispose(): void {
-        for (const request of Array.from(this._entries.values())) {
-            request.cancel();
-        }
         for (const task of Array.from(this._tasks.keys())) {
             this.cancel(task);
         }
@@ -19,15 +16,19 @@ export class Loader {
         void response.task.finally(() => {
             this._entries.delete(key);
         });
+        let refCount = 0;
         const entry: Entry = {
-            response,
-            cancel: (): void => {
-                if (this._entries.has(key)) {
+            promise: response.task,
+            incRef: () => {
+                ++refCount;
+            },
+            decRef: () => {
+                --refCount;
+                if (refCount === 0 && this._entries.has(key)) {
                     this._entries.delete(key);
                     response.cancel();
                 }
             },
-            refCount: 0,
         };
         this._entries.set(key, entry);
         return entry;
@@ -43,27 +44,25 @@ export class Loader {
         let cancel!: () => void;
         const task = new Promise<unknown>((resolve, reject) => {
             cancel = () => {
-                this._tasks.delete(task);
-                entry.refCount -= 1;
-                if (entry.refCount === 0) {
-                    entry.cancel();
+                if (this._tasks.has(task)) {
+                    this._tasks.delete(task);
+                    entry.decRef();
                 }
             };
-            entry.response.task.then(
+            entry.promise.then(
                 (data) => {
                     if (this._tasks.has(task)) {
-                        cancel();
                         resolve(data);
                     }
                 },
                 (err) => {
                     if (this._tasks.has(task)) {
-                        cancel();
                         reject(err);
                     }
                 },
             );
-            entry.refCount += 1;
+            void entry.promise.finally(cancel);
+            entry.incRef();
         });
         this._tasks.set(task, cancel);
         return task as Promise<T>;
@@ -76,7 +75,7 @@ export class Loader {
 }
 
 interface Entry {
-    readonly response: HttpResponseInfo;
-    readonly cancel: () => void;
-    refCount: number;
+    readonly promise: Promise<unknown>;
+    incRef(): void;
+    decRef(): void;
 }
