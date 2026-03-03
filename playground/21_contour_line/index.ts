@@ -59,7 +59,7 @@ export function main(): () => void {
             const points = findContour(modelPoints, vp.getTransformMat());
             updateContourData(contourPrimitive, points);
         },
-        vp.changed(),
+        vp.changed,
     );
 
     const state: State = {

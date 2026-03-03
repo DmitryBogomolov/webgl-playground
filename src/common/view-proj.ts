@@ -33,8 +33,7 @@ export class ViewProj {
     /**
      * Notifies about any change.
      */
-    changed(): EventProxy {
-        // TODO_GETTER
+    get changed(): EventProxy {
         return this._changed.proxy;
     }
 

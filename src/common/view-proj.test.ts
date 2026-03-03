@@ -151,7 +151,7 @@ describe('view-proj', () => {
         it('emit changed event', () => {
             const vp = new ViewProj();
             let count = 0;
-            vp.changed().on(() => {
+            vp.changed.on(() => {
                 ++count;
             });
 
@@ -174,7 +174,7 @@ describe('view-proj', () => {
         it('return actual state on changed event', () => {
             const vp = new ViewProj();
             let handler: () => void;
-            vp.changed().on(() => {
+            vp.changed.on(() => {
                 handler();
             });
             vp.getTransformMat();

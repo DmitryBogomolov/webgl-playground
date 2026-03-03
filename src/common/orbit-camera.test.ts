@@ -39,7 +39,7 @@ describe('orbit-camera', () => {
         it('set orientation', () => {
             const camera = new OrbitCamera();
             const stub = jest.fn();
-            camera.changed().on(stub);
+            camera.changed.on(stub);
 
             camera.setOrientation({ x: 1, y: 1, z: 1 });
 
@@ -70,7 +70,7 @@ describe('orbit-camera', () => {
         it('set position', () => {
             const camera = new OrbitCamera();
             const stub = jest.fn();
-            camera.changed().on(stub);
+            camera.changed.on(stub);
 
             camera.setPosition({ dist: 2 });
 
