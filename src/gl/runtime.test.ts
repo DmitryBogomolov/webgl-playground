@@ -85,8 +85,8 @@ describe('runtime', () => {
         it('create runtime', () => {
             const runtime = new Runtime({ element: container });
 
-            expect(runtime.canvas()).toEqual(canvas);
-            expect(runtime.renderSize()).toEqual({ x: 0, y: 0 });
+            expect(runtime.canvas).toEqual(canvas);
+            expect(runtime.renderSize).toEqual({ x: 0, y: 0 });
             expect(canvas.getContext as jest.Mock).toBeCalledWith(
                 'webgl2',
                 {
@@ -104,7 +104,7 @@ describe('runtime', () => {
         it('resize / devicePixelContentBoxSize', () => {
             const renderSizeChanged = jest.fn();
             const runtime = new Runtime({ element: container });
-            runtime.renderSizeChanged().on(renderSizeChanged);
+            runtime.renderSizeChanged.on(renderSizeChanged);
 
             const entry: Pick<ResizeObserverEntry, 'devicePixelContentBoxSize'> = {
                 devicePixelContentBoxSize: [{ inlineSize: 402, blockSize: 304 }],
@@ -114,7 +114,7 @@ describe('runtime', () => {
                 null as unknown as ResizeObserver,
             );
 
-            expect(runtime.renderSize()).toEqual({ x: 402, y: 304 });
+            expect(runtime.renderSize).toEqual({ x: 402, y: 304 });
             expect(canvas.width).toEqual(402);
             expect(canvas.height).toEqual(304);
             expect(renderSizeChanged).toBeCalledTimes(1);
@@ -124,7 +124,7 @@ describe('runtime', () => {
         it('resize / contentBoxSize', () => {
             const renderSizeChanged = jest.fn();
             const runtime = new Runtime({ element: container });
-            runtime.renderSizeChanged().on(renderSizeChanged);
+            runtime.renderSizeChanged.on(renderSizeChanged);
 
             const entry: Pick<ResizeObserverEntry, 'contentBoxSize'> = {
                 contentBoxSize: [{ inlineSize: 203, blockSize: 102 }],
@@ -135,7 +135,7 @@ describe('runtime', () => {
                 null as unknown as ResizeObserver,
             );
 
-            expect(runtime.renderSize()).toEqual({ x: 812, y: 408 });
+            expect(runtime.renderSize).toEqual({ x: 812, y: 408 });
             expect(canvas.width).toEqual(812);
             expect(canvas.height).toEqual(408);
             expect(renderSizeChanged).toBeCalledTimes(1);
@@ -145,7 +145,7 @@ describe('runtime', () => {
         it('resize / contentRect', () => {
             const renderSizeChanged = jest.fn();
             const runtime = new Runtime({ element: container });
-            runtime.renderSizeChanged().on(renderSizeChanged);
+            runtime.renderSizeChanged.on(renderSizeChanged);
 
             const entry: Pick<ResizeObserverEntry, 'contentRect'> = {
                 contentRect: { width: 203, height: 102 } as unknown as DOMRectReadOnly,
@@ -156,7 +156,7 @@ describe('runtime', () => {
                 null as unknown as ResizeObserver,
             );
 
-            expect(runtime.renderSize()).toEqual({ x: 812, y: 408 });
+            expect(runtime.renderSize).toEqual({ x: 812, y: 408 });
             expect(canvas.width).toEqual(812);
             expect(canvas.height).toEqual(408);
             expect(renderSizeChanged).toBeCalledTimes(1);

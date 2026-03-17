@@ -21,7 +21,7 @@ export abstract class BaseObject {
             throw new Error('DEBUG: already disposed');
         }
         this._disposed.emit();
-        this._disposed.clear();
+        this._disposed.reset();
         // @ts-ignore DEBUG
         this._disposed = null;
     }
@@ -57,8 +57,8 @@ export abstract class BaseObject {
         return this._logger;
     }
 
-    disposed(): EventProxy {
-        return this._disposed.proxy();
+    get disposed(): EventProxy {
+        return this._disposed.proxy;
     }
 }
 

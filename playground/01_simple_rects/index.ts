@@ -17,7 +17,7 @@ interface Vertex {
 export function main(): () => void {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer();
         primitive.render();
     });

@@ -34,11 +34,11 @@ export function main(): () => void {
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer('color|depth');
 
         runtime.setCubeTextureUnit(2, texture);
@@ -48,7 +48,7 @@ export function main(): () => void {
     });
 
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { fixed: 2 },
         initial: { x: 0, y: 1, z: 2 },
         callback: (v) => {

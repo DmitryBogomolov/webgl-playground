@@ -34,13 +34,13 @@ export function main(): () => void {
     let step = 0;
     const SPEED = 0.1;
 
-    runtime.frameRequested().on(({ delta }) => {
+    runtime.frameRequested.on(({ delta }) => {
         runtime.clearBuffer('color');
         if (delta < 250) {
             step = (step + SPEED * delta / 1000) % 1;
         }
 
-        const size = runtime.renderSize();
+        const size = runtime.renderSize;
         render1(size, imageLeaves, step);
         render2(size, imageCells, step);
         render3(size, imageLetter, step);
@@ -54,7 +54,7 @@ export function main(): () => void {
 }
 
 function render1(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
 
@@ -85,7 +85,7 @@ function render1(renderSize: Vec2, image: ImageRenderer, step: number): void {
 }
 
 function render2(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
 
@@ -118,7 +118,7 @@ function render2(renderSize: Vec2, image: ImageRenderer, step: number): void {
 }
 
 function render3(renderSize: Vec2, image: ImageRenderer, step: number): void {
-    const size = image.imageSize();
+    const { imageSize: size } = image;
 
     image.setRenderSize(renderSize);
     image.setRegion({});

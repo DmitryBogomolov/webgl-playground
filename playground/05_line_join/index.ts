@@ -30,7 +30,7 @@ export function main(): () => void {
     const tree = new SearchTree(runtime, state);
     const tracker = setupTracker(runtime, tree, state);
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer();
         bevelLine.render();
         roundLine.render();

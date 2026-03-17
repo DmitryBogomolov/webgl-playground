@@ -86,10 +86,10 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(runtime, [xRotation, yRotation, magFilter, minFilter]);
 
-    runtime.renderSizeChanged().on(() => {
+    runtime.renderSizeChanged.on(() => {
         identity4x4(proj);
         apply4x4(proj, translation4x4, vec3(0, 0, -DISTANCE));
-        const { x, y } = runtime.renderSize();
+        const { x, y } = runtime.renderSize;
         apply4x4(proj, perspective4x4, {
             yFov: YFOV,
             aspect: x / y,
@@ -98,11 +98,11 @@ export function main(): () => void {
         });
     });
 
-    runtime.frameRequested().on(({ delta }) => {
+    runtime.frameRequested.on(({ delta }) => {
         runtime.clearBuffer('color|depth');
         const program = primitive.program();
 
-        const { x: xCanvas, y: yCanvas } = runtime.renderSize();
+        const { x: xCanvas, y: yCanvas } = runtime.renderSize;
 
         if (delta < 250) {
             animationAngle = (animationAngle + delta * ANIMATION_SPEED / 1000) % PI2;

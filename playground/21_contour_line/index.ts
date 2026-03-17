@@ -59,7 +59,7 @@ export function main(): () => void {
             const points = findContour(modelPoints, vp.getTransformMat());
             updateContourData(contourPrimitive, points);
         },
-        vp.changed(),
+        vp.changed,
     );
 
     const state: State = {
@@ -73,14 +73,14 @@ export function main(): () => void {
         contourThickness,
     };
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderScene(state);
     });
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         distance: { min: 2, max: 4 },
         initial: { x: 0, y: 1, z: 2 },
         callback: (v) => {
@@ -126,7 +126,7 @@ function renderScene({
     if (contourEnabled()) {
         updateContour();
         runtime.setRenderState(contourRenderState);
-        contourPrimitive.program().setUniform('u_canvas_size', runtime.renderSize());
+        contourPrimitive.program().setUniform('u_canvas_size', runtime.renderSize);
         contourPrimitive.program().setUniform('u_thickness', contourThickness());
         contourPrimitive.render();
     }

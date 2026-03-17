@@ -122,11 +122,11 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(runtime, [model, vp, mappingVP, isWireframeShown]);
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer('color|depth');
         // Map ndc to unit range and get offset in ndc space.
         const coeff = 3 * (2 / vp.getXViewSize());

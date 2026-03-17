@@ -4,6 +4,7 @@ import type {
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Program } from './program';
 import type { GLValuesMap } from './gl-values-map.types';
+import type { Mapping } from '../common/mapping.types';
 import { BaseObject } from './base-object';
 
 const WebGL = WebGL2RenderingContext.prototype;
@@ -35,7 +36,7 @@ const INDEX_TYPE_MAP: GLValuesMap<INDEX_TYPE> = {
     'ushort': WebGL.UNSIGNED_SHORT,
     'uint': WebGL.UNSIGNED_INT,
 };
-const INDEX_SIZE_MAP: Readonly<Record<number, number>> = {
+const INDEX_SIZE_MAP: Mapping<number, number> = {
     [WebGL.UNSIGNED_BYTE]: 1,
     [WebGL.UNSIGNED_SHORT]: 2,
     [WebGL.UNSIGNED_INT]: 4,

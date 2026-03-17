@@ -70,7 +70,7 @@ export function main(): () => void {
     const depthVP = new ViewProj();
 
     const disposeTrackBall = trackBall({
-        element: runtime.canvas(),
+        element: runtime.canvas,
         initial: { x: 0, y: 3, z: 5 },
         distance: { fixed: 6 },
         callback: (v) => {
@@ -142,11 +142,11 @@ export function main(): () => void {
         wireframe,
     };
 
-    runtime.renderSizeChanged().on(() => {
-        vp.setViewportSize(runtime.renderSize());
+    runtime.renderSizeChanged.on(() => {
+        vp.setViewportSize(runtime.renderSize);
     });
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         renderDepthData(state);
         renderScene(state);
     });

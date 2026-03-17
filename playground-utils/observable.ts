@@ -9,7 +9,7 @@ export interface Observable<T> extends EventProxy {
 export function observable<T>(initial: T): Observable<T> {
     let currentValue = initial;
     const emitter = new EventEmitter();
-    setupOnOff(target as Observable<T>, emitter.proxy());
+    setupOnOff(target as Observable<T>, emitter.proxy);
 
     return target as Observable<T>;
 
@@ -48,7 +48,7 @@ export function computed<P, T>(
     let isChanged = true;
     let currentValue: T;
     const emitter = new EventEmitter();
-    setupOnOff(target as Observable<T>, emitter.proxy());
+    setupOnOff(target as Observable<T>, emitter.proxy);
     const list = Array.from(observables, (obj) => {
         obj.on(notify);
         return obj;
@@ -110,7 +110,7 @@ export function wrapped<T>(get: () => T, changed: EventProxy): Observable<T> {
     let isChanged = true;
     let currentValue: T;
     const emitter = new EventEmitter();
-    setupOnOff(target as Observable<T>, emitter.proxy());
+    setupOnOff(target as Observable<T>, emitter.proxy);
     changed.on(notify);
     return target as Observable<T>;
 

@@ -95,11 +95,11 @@ describe('image-renderer', () => {
         });
 
         it('initial state', () => {
-            expect(renderer.renderSize()).toEqual({ x: 640, y: 480 });
-            expect(renderer.imageSize()).toEqual({ x: 40, y: 30 });
-            expect(renderer.textureUnit()).toEqual(0);
-            expect(renderer.region()).toEqual({});
-            expect(renderer.location()).toEqual({ x1: 0, y1: 0 });
+            expect(renderer.renderSize).toEqual({ x: 640, y: 480 });
+            expect(renderer.imageSize).toEqual({ x: 40, y: 30 });
+            expect(renderer.textureUnit).toEqual(0);
+            expect(renderer.region).toEqual({});
+            expect(renderer.location).toEqual({ x1: 0, y1: 0 });
         });
 
         it('render', () => {
@@ -122,7 +122,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.textureUnit()).toEqual(4);
+            expect(renderer.textureUnit).toEqual(4);
             expect(program.setUniform).toHaveBeenNthCalledWith(3, 'u_texture', 4);
             expect(runtime.setTextureUnit).toHaveBeenCalledWith(4, texture);
         });
@@ -132,7 +132,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.region()).toEqual({ x1: 2, x2: 3, y1: 1, y2: 4 });
+            expect(renderer.region).toEqual({ x1: 2, x2: 3, y1: 1, y2: 4 });
             expect(program.setUniform).toHaveBeenNthCalledWith(
                 1, 'u_mat', expect.numArray([0.0547, 0, 0, 0, 0, 0.0521, 0, 0, 0, 0, -2, 0, -0.9453, -0.9479, -1, 1]),
             );
@@ -146,7 +146,7 @@ describe('image-renderer', () => {
 
             renderer.render();
 
-            expect(renderer.location()).toEqual({ x2: 110, y2: 40, width: 20, height: 10 });
+            expect(renderer.location).toEqual({ x2: 110, y2: 40, width: 20, height: 10 });
             expect(program.setUniform).toHaveBeenNthCalledWith(
                 1, 'u_mat', expect.numArray([0.0313, 0, 0, 0, 0, 0.0208, 0, 0, 0, 0, -2, 0, 0.625, 0.8125, -1, 1]),
             );
@@ -158,7 +158,7 @@ describe('image-renderer', () => {
         it('set image data / raw', () => {
             const testData = { size: { x: 60, y: 50 }, data: new Uint8Array([1, 2, 3, 4]) };
             let changed = false;
-            renderer.changed().on(() => {
+            renderer.changed.on(() => {
                 changed = true;
             });
 
@@ -172,7 +172,7 @@ describe('image-renderer', () => {
             const testData = { tag: 'test-data' };
             (makeImage as jest.Mock).mockResolvedValue(testData);
             const promise = new Promise<void>((resolve) => {
-                renderer.changed().on(resolve);
+                renderer.changed.on(resolve);
             });
 
             renderer.setImageData({ url: '/test-url' });

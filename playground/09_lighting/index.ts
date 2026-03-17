@@ -129,14 +129,14 @@ export function main(): () => void {
         [offsetCoeff, modelViewProj, modelInvTrs, lightDirection, lightPosition, lightLimit],
     );
 
-    runtime.renderSizeChanged().on(() => {
-        const { x, y } = runtime.renderSize();
+    runtime.renderSizeChanged.on(() => {
+        const { x, y } = runtime.renderSize;
         const xViewSize = x / y * Y_VIEW_SIZE;
         offsetCoeff(2 / xViewSize);
         aspectRatio(x / y);
     });
 
-    runtime.frameRequested().on(() => {
+    runtime.frameRequested.on(() => {
         runtime.clearBuffer('color|depth');
 
         // Sphere x-diameter is 3.2. Let offset be a little bigger.

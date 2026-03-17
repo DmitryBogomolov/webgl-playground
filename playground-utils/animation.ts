@@ -14,21 +14,21 @@ export function animation(runtime: Runtime): () => void {
     button.addEventListener('click', () => {
         value(!value());
     });
-    runtime.canvas().parentElement!.appendChild(button);
+    runtime.canvas.parentElement!.appendChild(button);
 
     const cancel = bind(value, (val) => {
         img.src = `/static/${val ? 'play' : 'pause'}-solid.svg`;
         if (val) {
-            runtime.frameRequested().on(handleFrame);
+            runtime.frameRequested.on(handleFrame);
             runtime.requestFrameRender();
         } else {
-            runtime.frameRequested().off(handleFrame);
+            runtime.frameRequested.off(handleFrame);
         }
     });
 
     return () => {
         cancel();
-        runtime.frameRequested().off(handleFrame);
+        runtime.frameRequested.off(handleFrame);
         button.remove();
     };
 

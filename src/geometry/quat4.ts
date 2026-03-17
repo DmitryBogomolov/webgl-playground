@@ -9,7 +9,7 @@ import { floatEq as eq } from './float-eq';
 // https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
 // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
 
-export const QUAT4_UNIT = vec4(0, 0, 0, 1);
+export const QUAT4_UNIT = Object.freeze(vec4(0, 0, 0, 1));
 
 const ANGLE_EPS = Math.PI / 180 / 1000;
 const DOT_EPS = 1 - Math.cos(ANGLE_EPS);

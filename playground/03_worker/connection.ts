@@ -1,1 +1,1 @@
-export const CONNECTION_ID = 1010;
+export const CONNECTION_INIT = '_connection:init_';

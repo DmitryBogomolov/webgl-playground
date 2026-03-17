@@ -154,9 +154,9 @@ export class Runtime extends BaseObject {
     dispose(): void {
         this._logInfo('dispose');
         this._renderLoop.reset();
-        this._renderSizeChanged.clear();
-        this._contextLost.clear();
-        this._contextRestored.clear();
+        this._renderSizeChanged.reset();
+        this._contextLost.reset();
+        this._contextRestored.reset();
         this._canvas.removeEventListener('webglcontextlost', this._handleContextLost);
         this._canvas.removeEventListener('webglcontextrestored', this._handleContextRestored);
         this._cancelCanvasTracking();
@@ -224,11 +224,11 @@ export class Runtime extends BaseObject {
         this._gl.viewport(0, 0, this._viewportSize.x, this._viewportSize.y);
     }
 
-    canvas(): HTMLCanvasElement {
+    get canvas(): HTMLCanvasElement {
         return this._canvas;
     }
 
-    renderSize(): Vec2 {
+    get renderSize(): Vec2 {
         return this._renderSize;
     }
 
@@ -343,16 +343,16 @@ export class Runtime extends BaseObject {
         return this._renderState.blendFunc;
     }
 
-    frameRequested(): RenderLoopEventProxy {
-        return this._renderLoop.frameRequested();
+    get frameRequested(): RenderLoopEventProxy {
+        return this._renderLoop.frameRequested;
     }
 
     requestFrameRender(): void {
         this._renderLoop.update();
     }
 
-    renderSizeChanged(): EventProxy {
-        return this._renderSizeChanged.proxy();
+    get renderSizeChanged(): EventProxy {
+        return this._renderSizeChanged.proxy;
     }
 
     useProgram(program: GLHandleWrapper<WebGLProgram> | null): void {
