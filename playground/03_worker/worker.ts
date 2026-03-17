@@ -1,7 +1,7 @@
 import type { Color } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import { color, BackgroundChannel } from 'lib';
-import { CONNECTION_ID } from './connection';
+import { color } from 'lib';
+import { CONNECTION_INIT } from './connection';
 
 const SCALE_CHANGE_SPEED = 0.1;
 const COLOR_CHANGE_SPEED = 4;
@@ -34,19 +34,27 @@ function buildColor(value: number): Color {
     return color(ret[0], ret[1], ret[2]);
 }
 
-const channel = new BackgroundChannel<WorkerMessage, MainThreadMessage>({
-    connectionId: CONNECTION_ID,
-    flushDelay: 5,
-    handler: (message) => {
+globalThis.onmessage = (e) => {
+    if (e.data === CONNECTION_INIT) {
+        setupConnection(e.ports[0]);
+        globalThis.onmessage = null;
+    }
+};
+
+function setupConnection(port: MessagePort): void {
+    port.onmessage = (e) => {
+        const message = e.data as MainThreadMessage;
         switch (message.type) {
-        case 'main:update-scale':
+        case 'main:update-scale': {
             updateScale(message.scale);
-            channel.send({ type: 'worker:set-scale', scale: buildScale(currentScale) });
-            break;
-        case 'main:update-color':
-            updateColor(message.color);
-            channel.send({ type: 'worker:set-color', color: buildColor(currentColor) });
+            port.postMessage({ type: 'worker:set-scale', scale: buildScale(currentScale) } satisfies WorkerMessage);
             break;
         }
-    },
-});
+        case 'main:update-color': {
+            updateColor(message.color);
+            port.postMessage({ type: 'worker:set-color', color: buildColor(currentColor) } satisfies WorkerMessage);
+            break;
+        }
+        }
+    };
+}

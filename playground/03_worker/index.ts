@@ -1,8 +1,8 @@
 import type { Runtime, Color, Vec2 } from 'lib';
 import type { MainThreadMessage, WorkerMessage } from './messages';
-import { Primitive, Program, ForegroundChannel, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
+import { Primitive, Program, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
 import { setup, disposeAll } from 'playground-utils/setup';
-import { CONNECTION_ID } from './connection';
+import { CONNECTION_INIT } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -45,22 +45,24 @@ function runWorker(runtime: Runtime, state: State): () => void {
     const SCALE_UPDATE_INTERVAL = 0.2 * 1000;
     const COLOR_UPDATE_INTERVAL = 1 * 1000;
 
-    const channel = new ForegroundChannel<MainThreadMessage, WorkerMessage>({
-        worker: new Worker(WORKER_URL),
-        connectionId: CONNECTION_ID,
-        flushDelay: 5,
-        handler: (message) => {
-            switch (message.type) {
-            case 'worker:set-scale':
-                state.scale = message.scale;
-                break;
-            case 'worker:set-color':
-                state.clr = message.color;
-                break;
-            }
+    const { port1, port2 } = new MessageChannel();
+    const worker = new Worker(WORKER_URL);
+    worker.postMessage(CONNECTION_INIT, [port2]);
+    port1.onmessage = (e) => {
+        const message = e.data as WorkerMessage;
+        switch (message.type) {
+        case 'worker:set-scale': {
+            state.scale = message.scale;
             runtime.requestFrameRender();
-        },
-    });
+            break;
+        }
+        case 'worker:set-color': {
+            state.clr = message.color;
+            runtime.requestFrameRender();
+            break;
+        }
+        }
+    };
 
     let scaleDelta = 0;
     let colorDelta = 0;
@@ -74,17 +76,18 @@ function runWorker(runtime: Runtime, state: State): () => void {
         scaleDelta += delta;
         colorDelta += delta;
         if (scaleDelta > SCALE_UPDATE_INTERVAL) {
-            channel.send({ type: 'main:update-scale', scale: scaleDelta / 1000 });
+            port1.postMessage({ type: 'main:update-scale', scale: scaleDelta / 1000 } satisfies MainThreadMessage);
             scaleDelta = 0;
         }
         if (colorDelta > COLOR_UPDATE_INTERVAL) {
-            channel.send({ type: 'main:update-color', color: colorDelta / 1000 });
+            port1.postMessage({ type: 'main:update-color', color: colorDelta / 1000 } satisfies MainThreadMessage);
             colorDelta = 0;
         }
     }, 25);
 
     return () => {
-        channel.dispose();
+        worker.terminate();
+        port1.close();
         clearInterval(interval);
     };
 }
