@@ -28,6 +28,8 @@ export * from './geometry/spherical.types';
 export * from './geometry/spherical';
 export * from './common/color.types';
 export * from './common/color';
+export * from './common/logger.types';
+export * from './common/logger';
 export * from './common/event-emitter.types';
 export * from './common/event-emitter';
 export * from './common/view-proj.types';

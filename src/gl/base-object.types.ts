@@ -1,11 +1,7 @@
-export interface Logger {
-    info(message: string): void;
-    warn(message: string): void;
-    error(message: string): void;
-}
+import type { LogHandler } from '../common/logger.types';
 
 export interface BaseObjectParams {
-    readonly logger?: Logger;
+    readonly logger?: LogHandler;
     readonly name?: string;
     readonly tag?: string;
 }

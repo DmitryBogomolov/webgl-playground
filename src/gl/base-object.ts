@@ -1,7 +1,8 @@
-import type { BaseObjectParams, Logger } from './base-object.types';
+import type { BaseObjectParams } from './base-object.types';
+import type { Logger } from '../common/logger.types';
 import { EventProxy } from '../common/event-emitter.types';
 import { EventEmitter } from '../common/event-emitter';
-import { formatStr } from '../utils/string-formatter';
+import { logger } from '../common/logger';
 
 let nextId = 1;
 
@@ -13,7 +14,7 @@ export abstract class BaseObject {
     constructor(params: BaseObjectParams) {
         const name = params.name || this.constructor.name;
         this._id = `${name}#${params.tag || String(nextId++)}`;
-        this._logger = params.logger || stubLogger;
+        this._logger = logger(params.logger ?? (() => { /* none */ }), { prefix: this._id });
     }
 
     protected _dispose(): void {
@@ -27,33 +28,26 @@ export abstract class BaseObject {
     }
 
     protected _logInfo(message: string, ...args: unknown[]): void {
-        const msg = formatStr(message, ...args);
-        this._logger.info(`${this._id}: ${msg}`);
+        this._logger.info(message, ...args);
     }
 
     protected _logWarn(message: string, ...args: unknown[]): void {
-        const msg = formatStr(message, ...args);
-        this._logger.warn(`${this._id}: ${msg}`);
+        this._logger.warn(message, ...args);
     }
 
     protected _logError(message: string | Error, ...args: unknown[]): Error {
         if (message instanceof Error) {
-            const err = new Error(message.message);
-            err.name = message.name;
-            err.stack = patchStack(message, message.message);
-            this._logger.error(`${this._id}: ${err.stack || err.message}`);
-            throw err;
+            this._logger.error(message);
+            return message;
         }
-        const err = `${this._id}: ${formatStr(message, ...args)}`;
-        this._logger.error(err);
-        return new Error(err);
+        return new Error(this._logger.error(message, ...args));
     }
 
     toString(): string {
         return this._id;
     }
 
-    logger(): Logger {
+    get logger(): Logger {
         return this._logger;
     }
 
@@ -61,19 +55,3 @@ export abstract class BaseObject {
         return this._disposed.proxy;
     }
 }
-
-// TODO: Is it required? Should it be moved next to Logger?
-function patchStack(err: Error, message: string): string | undefined {
-    if (!err.stack) {
-        return undefined;
-    }
-    const prefix = err.name + ': ';
-    const k = err.stack.indexOf('\n');
-    return prefix + message + err.stack.substring(k);
-}
-
-const stubLogger: Logger = {
-    info() { /* empty */ },
-    warn() { /* empty */ },
-    error() { /* empty */ },
-};

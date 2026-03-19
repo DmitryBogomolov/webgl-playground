@@ -55,7 +55,7 @@ export class Primitive extends BaseObject {
     private _program: Program = EMPTY_PROGRAM;
 
     constructor(params: PrimitiveParams) {
-        super({ logger: params.runtime.logger(), ...params });
+        super({ logger: params.runtime.logger.handler, ...params });
         this._logInfo('init');
         this._runtime = params.runtime;
         this._vao = new VertexArrayObject(this._runtime, this._id);
