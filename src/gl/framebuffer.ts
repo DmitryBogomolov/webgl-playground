@@ -82,7 +82,6 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
         this._texture.dispose();
         this._depthTexture?.dispose();
         this._renderbuffer?.dispose();
-        this._dispose();
     }
 
     glHandle(): WebGLFramebuffer {

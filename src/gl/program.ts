@@ -201,7 +201,6 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     dispose(): void {
         this._logInfo('dispose');
         this._runtime.gl().deleteProgram(this._program);
-        this._dispose();
     }
 
     glHandle(): WebGLProgram {

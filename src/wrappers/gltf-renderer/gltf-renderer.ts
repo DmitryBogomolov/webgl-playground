@@ -49,7 +49,6 @@ export class GlTFRenderer extends BaseObject {
         this._changed.reset();
         this._loader.dispose();
         this._reset();
-        this._dispose();
     }
 
     private async _load(url: string): Promise<ArrayBufferView> {

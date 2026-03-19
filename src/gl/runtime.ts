@@ -165,7 +165,6 @@ export class Runtime extends BaseObject {
         }
         this._disposeBindings();
         this._loseContext();
-        this._dispose();
     }
 
     private _disposeBindings(): void {

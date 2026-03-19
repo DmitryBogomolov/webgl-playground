@@ -65,7 +65,6 @@ export class Primitive extends BaseObject {
 
     dispose(): void {
         this._logInfo('dispose');
-        this._dispose();
         this._vao.dispose();
         this._vertexBuffer.dispose();
         this._indexBuffer.dispose();

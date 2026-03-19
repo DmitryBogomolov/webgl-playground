@@ -59,7 +59,6 @@ export class ImageRenderer extends BaseObject {
         this._texture.dispose();
         releasePrimitive(this._runtime);
         this._changed.reset();
-        this._dispose();
     }
 
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);

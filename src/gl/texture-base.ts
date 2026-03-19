@@ -118,7 +118,6 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     dispose(): void {
         this._logInfo('dispose');
         this._runtime.gl().deleteTexture(this._texture);
-        this._dispose();
     }
 
     glHandle(): WebGLTexture {
