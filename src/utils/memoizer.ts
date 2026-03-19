@@ -1,9 +1,9 @@
-import { compareArrays } from './compare';
+import { arraysEqual } from './compare';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function memoize<T extends (...args: any[]) => any>(
     func: T,
-    compareArgs: (lhs: Parameters<T>, rhs: Parameters<T>) => boolean = compareArrays,
+    compareArgs: (lhs: Parameters<T>, rhs: Parameters<T>) => boolean = arraysEqual,
 ): T {
     let memoizedArgs: Parameters<T> = null as unknown as Parameters<T>;
     let memoizedValue: ReturnType<T>;
