@@ -14,22 +14,6 @@ export abstract class BaseObject {
         this._logger = logger(params.logger ?? (() => { /* none */ }), { prefix: this._id });
     }
 
-    protected _logInfo(message: string, ...args: unknown[]): void {
-        this._logger.info(message, ...args);
-    }
-
-    protected _logWarn(message: string, ...args: unknown[]): void {
-        this._logger.warn(message, ...args);
-    }
-
-    protected _logError(message: string | Error, ...args: unknown[]): Error {
-        if (message instanceof Error) {
-            this._logger.error(message);
-            return message;
-        }
-        return new Error(this._logger.error(message, ...args));
-    }
-
     toString(): string {
         return this._id;
     }

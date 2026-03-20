@@ -55,7 +55,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 
     constructor(params: FramebufferParams) {
         super({ logger: params.runtime.logger.handler, ...params });
-        this._logInfo('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
+        this.logger.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
         this._runtime = params.runtime;
         this._size = clone2(params.size);
         let info!: ReturnType<typeof setupFramebuffer>;
@@ -68,7 +68,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
                 !!params.useDepthTexture,
             );
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this.logger.error(err as Error);
         }
         this._framebuffer = info.framebuffer;
         this._texture = info.texture;
@@ -77,7 +77,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this.logger.info('dispose');
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
         this._texture.dispose();
         this._depthTexture?.dispose();
@@ -105,7 +105,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this._logInfo('resize({0})', this._size);
+        this.logger.info('resize({0})', this._size);
         resizeTexture(this._texture, size);
         if (this._depthTexture) {
             resizeTexture(this._depthTexture, size);

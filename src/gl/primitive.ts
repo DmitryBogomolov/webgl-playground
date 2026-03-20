@@ -56,7 +56,7 @@ export class Primitive extends BaseObject {
 
     constructor(params: PrimitiveParams) {
         super({ logger: params.runtime.logger.handler, ...params });
-        this._logInfo('init');
+        this.logger.info('init');
         this._runtime = params.runtime;
         this._vao = new VertexArrayObject(this._runtime, this._id);
         this._vertexBuffer = new Buffer(this._runtime, this._id);
@@ -64,7 +64,7 @@ export class Primitive extends BaseObject {
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this.logger.info('dispose');
         this._vao.dispose();
         this._vertexBuffer.dispose();
         this._indexBuffer.dispose();
@@ -73,10 +73,10 @@ export class Primitive extends BaseObject {
     /** Setup attributes, vertex and index data, primitive mode, index range */
     setup(config: PrimitiveConfig): void {
         if (!config) {
-            throw this._logError('setup: config not defined');
+            throw this.logger.error('setup: config not defined');
         }
         const { vertexData, indexData } = config;
-        this._logInfo(
+        this.logger.info(
             'setup(vertex={0}, index={1}, schema={2}, index={3}, primitive={4})',
             isBufferSource(vertexData) ? vertexData.byteLength : vertexData,
             isBufferSource(indexData) ? indexData.byteLength : indexData,
@@ -115,14 +115,14 @@ export class Primitive extends BaseObject {
 
     /** Reset vertex data */
     setVertexData(vertexData: BufferSource | number): void {
-        this._logInfo('set_vertex_data({0})', isBufferSource(vertexData) ? vertexData.byteLength : vertexData);
+        this.logger.info('set_vertex_data({0})', isBufferSource(vertexData) ? vertexData.byteLength : vertexData);
         this._runtime.bindArrayBuffer(this._vertexBuffer);
         this._runtime.gl().bufferData(GL_ARRAY_BUFFER, vertexData as number, GL_STATIC_DRAW);
     }
 
     /** Reset index data */
     setIndexData(indexData: BufferSource | number): void {
-        this._logInfo('set_index_data({0})', isBufferSource(indexData) ? indexData.byteLength : indexData);
+        this.logger.info('set_index_data({0})', isBufferSource(indexData) ? indexData.byteLength : indexData);
         try {
             // Vertex array object must be bound because element array binding is part of its state.
             this._runtime.bindVertexArray(this._vao);
@@ -141,7 +141,7 @@ export class Primitive extends BaseObject {
 
     /** Change part of vertex data */
     updateVertexData(vertexData: BufferSource, offset: number = 0): void {
-        this._logInfo('update_vertex_data(data={0}, offset={1})', vertexData.byteLength, offset);
+        this.logger.info('update_vertex_data(data={0}, offset={1})', vertexData.byteLength, offset);
         const gl = this._runtime.gl();
         this._runtime.bindArrayBuffer(this._vertexBuffer);
         gl.bufferSubData(GL_ARRAY_BUFFER, offset, vertexData);
@@ -149,7 +149,7 @@ export class Primitive extends BaseObject {
 
     /** Change part of index data */
     updateIndexData(indexData: BufferSource, offset: number = 0): void {
-        this._logInfo('update_index_data(data={0}, offset={1})', indexData.byteLength, offset);
+        this.logger.info('update_index_data(data={0}, offset={1})', indexData.byteLength, offset);
         const gl = this._runtime.gl();
         // Vertex array object must be bound because element array binding is part of its state.
         this._runtime.bindVertexArray(this._vao);
@@ -160,13 +160,13 @@ export class Primitive extends BaseObject {
     /** Change index range */
     updateIndexRange(range: PrimitiveIndexRange): void {
         if (!range) {
-            throw this._logError('update_index_range: range not defined');
+            throw this.logger.error('update_index_range: range not defined');
         }
         const { indexOffset, indexCount } = range;
         if (indexOffset! < 0 || indexCount! < 0) {
-            throw this._logError('update_index_range: {0} - bad values', range);
+            throw this.logger.error('update_index_range: {0} - bad values', range);
         }
-        this._logInfo('update_index_range({0})', range);
+        this.logger.info('update_index_range({0})', range);
         if (indexOffset! > 0) {
             this._indexOffset = indexOffset!;
         }
@@ -184,16 +184,16 @@ export class Primitive extends BaseObject {
         if (this._program === program) {
             return;
         }
-        this._logInfo('set_program({0})', prog);
+        this.logger.info('set_program({0})', prog);
         this._program = prog;
     }
 
     render(): void {
         const gl = this._runtime.gl();
         if (this._program === EMPTY_PROGRAM) {
-            throw this._logError('render: cannot render without program');
+            throw this.logger.error('render: cannot render without program');
         }
-        this._logInfo('render');
+        this.logger.info('render');
         this._runtime.useProgram(this._program);
         this._runtime.bindVertexArray(this._vao);
         gl.drawElements(this._primitiveMode, this._indexCount, this._indexType, this._indexOffset);

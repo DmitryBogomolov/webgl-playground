@@ -12,23 +12,26 @@ export function logger(handler: LogHandler, params?: LogParams): Logger {
             return str;
         },
 
-        warn: (message: string, ...args: unknown[]) => {
+        warn: (message, ...args) => {
             const str = formatStr(message, ...args);
             h('WARNING' satisfies LogLevel, str);
             return str;
         },
 
-        error: (message: string | Error, ...args: unknown[]) => {
-            let str;
+        error: (message, ...args) => {
+            let str: string;
+            let err: Error;
             if (message instanceof Error) {
                 str = `${String(message)}\n${message.stack}`;
+                err = message;
             } else {
                 str = formatStr(message, ...args);
+                err = new Error(str);
             }
             h('ERROR' satisfies LogLevel, str);
-            return str;
+            return err;
         },
-    };
+    } satisfies Logger;
 }
 
 function prefixed(handler: LogHandler, prefix: string): LogHandler {

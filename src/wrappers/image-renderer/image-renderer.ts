@@ -88,12 +88,12 @@ export class ImageRenderer extends BaseObject {
 
     setRenderSize(renderSize: Vec2): void {
         if (!renderSize || !isVec2(renderSize)) {
-            throw this._logError('set_render_size({0}) - bad value', renderSize);
+            throw this.logger.error('set_render_size({0}) - bad value', renderSize);
         }
         if (eq2(this._renderSize, renderSize)) {
             return;
         }
-        this._logInfo('set_render_size({0})', renderSize);
+        this.logger.info('set_render_size({0})', renderSize);
         this._renderSize = clone2(renderSize);
         this._matDirty = true;
     }
@@ -104,9 +104,9 @@ export class ImageRenderer extends BaseObject {
 
     setImageData(data: ImageRendererImageData): void {
         if (!data) {
-            throw this._logError('set_image_data - data not defined');
+            throw this.logger.error('set_image_data - data not defined');
         }
-        this._logInfo('set_image_data({0})', dataToStr(data));
+        this.logger.info('set_image_data({0})', dataToStr(data));
         updateTexture(this._texture, data, () => {
             this._matDirty = this._texmatDirty = true;
             this._notifyChanged();
@@ -119,12 +119,12 @@ export class ImageRenderer extends BaseObject {
 
     setTextureUnit(unit: number): void {
         if (!(unit >= 0)) {
-            throw this._logError('set_texture_unit({0}) - bad value', unit);
+            throw this.logger.error('set_texture_unit({0}) - bad value', unit);
         }
         if (this._textureUnit === unit) {
             return;
         }
-        this._logInfo('set_texture_unit({0})', unit);
+        this.logger.info('set_texture_unit({0})', unit);
         this._textureUnit = unit;
     }
 
@@ -134,12 +134,12 @@ export class ImageRenderer extends BaseObject {
 
     setRegion(region: ImageRendererRegion): void {
         if (!region) {
-            throw this._logError('set_region - region not defined');
+            throw this.logger.error('set_region - region not defined');
         }
         if (compareRegions(this._region, region)) {
             return;
         }
-        this._logInfo('set_region({0})', region);
+        this.logger.info('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -150,18 +150,18 @@ export class ImageRenderer extends BaseObject {
 
     setLocation(location: ImageRendererLocation): void {
         if (!location) {
-            throw this._logError('set_location - location not defined');
+            throw this.logger.error('set_location - location not defined');
         }
         if (
             (location.x1 === undefined && location.x2 === undefined) ||
             (location.y1 === undefined && location.y2 === undefined)
         ) {
-            throw this._logError('set_location({0}) - not enough data', location);
+            throw this.logger.error('set_location({0}) - not enough data', location);
         }
         if (compareLocations(this._location, location)) {
             return;
         }
-        this._logInfo('set_location({0})', location);
+        this.logger.info('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
     }

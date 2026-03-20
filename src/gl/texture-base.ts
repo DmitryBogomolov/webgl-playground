@@ -109,14 +109,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
 
     constructor(params: TextureParams) {
         super({ logger: params.runtime.logger.handler, ...params });
-        this._logInfo('init');
+        this.logger.info('init');
         this._runtime = params.runtime;
         this._texture = this._createTexture();
         this._initTextureState();
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this.logger.info('dispose');
         this._runtime.gl().deleteTexture(this._texture);
     }
 
@@ -131,7 +131,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl().createTexture();
         if (!texture) {
-            throw this._logError('failed to create texture');
+            throw this.logger.error('failed to create texture');
         }
         return texture;
     }
@@ -196,14 +196,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     private _generateMipmap(): void {
-        this._logInfo('generate_mipmap');
+        this.logger.info('generate_mipmap');
         this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
         if (!params) {
-            throw this._logError('set_parameters - params not defined');
+            throw this.logger.error('set_parameters - params not defined');
         }
         for (const entry of Object.entries(params)) {
             const key = entry[0] as keyof State;
@@ -211,10 +211,10 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logError('set_paramaters({0}, {1}) - bad value', key, val);
+                    throw this.logger.error('set_paramaters({0}, {1}) - bad value', key, val);
                 }
                 if (this._state[key] !== val) {
-                    this._logInfo('set_parameters({0}, {1})', key, val);
+                    this.logger.info('set_parameters({0}, {1})', key, val);
                     this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
                     this._state[key] = val as never;

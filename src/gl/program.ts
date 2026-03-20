@@ -176,7 +176,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
 
     constructor(params: ProgramParams) {
         super({ logger: params.runtime.logger.handler, ...params });
-        this._logInfo('init');
+        this.logger.info('init');
         this._runtime = params.runtime;
         const defines = buildDefines(params.defines);
         const vertSource = prepareSource(params.vertShader, defines);
@@ -190,7 +190,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
                 params.locations,
             );
         } catch (err) {
-            this._logError(err as Error);
+            throw this.logger.error(err as Error);
         }
         this._program = info.program;
         this._attributes = info.attributes;
@@ -199,7 +199,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this.logger.info('dispose');
         this._runtime.gl().deleteProgram(this._program);
     }
 
@@ -216,15 +216,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logInfo('set_uniform({0}, {1})', name, value);
+        this.logger.info('set_uniform({0}, {1})', name, value);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
-            throw this._logError(`uniform "${name}" is unknown`);
+            throw this.logger.error(`uniform "${name}" is unknown`);
         }
         const setter = (uniform.arraySize > 1 ? UNIFORM_ARRAY_SETTERS_MAP : UNIFORM_SETTERS_MAP)[uniform.type];
         if (!setter) {
-            throw this._logError(`uniform "${name}" setter is not found`);
+            throw this.logger.error(`uniform "${name}" setter is not found`);
         }
         // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
         // Otherwise it would cause an error.
@@ -233,7 +233,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         try {
             setter(gl, uniform, value);
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this.logger.error(err as Error);
         }
     }
 }

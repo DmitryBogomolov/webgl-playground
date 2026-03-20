@@ -10,9 +10,9 @@ export class Texture extends TextureBase {
 
     setImageData(imageData: TextureImageData, options?: TextureImageDataOptions): void {
         if (!imageData) {
-            throw this._logError('set_image_data: data not defined');
+            throw this.logger.error('set_image_data: data not defined');
         }
-        this._logInfo('set_image_data({0})', imageData);
+        this.logger.info('set_image_data({0})', imageData);
         this._beginDataUpdate(options);
         this._updateData(imageData, this._target);
     }

@@ -8,8 +8,7 @@ export interface LogParams {
 
 export interface Logger {
     readonly handler: LogHandler;
-    info(message: string, ...args: unknown[]): string;
-    warn(message: string, ...args: unknown[]): string;
-    error(err: Error): string;
-    error(message: string, ...args: unknown[]): string;
+    readonly info: (message: string, ...args: unknown[]) => void;
+    readonly warn: (message: string, ...args: unknown[]) => void;
+    readonly error: (message: string | Error, ...args: unknown[]) => Error;
 }
