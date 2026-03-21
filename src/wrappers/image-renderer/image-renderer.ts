@@ -7,12 +7,12 @@ import type { Vec2 } from '../../geometry/vec2.types';
 import type { Mat4, Mat4Mut } from '../../geometry/mat4.types';
 import type { Runtime } from '../../gl/runtime';
 import type { EventProxy } from '../../common/event-emitter.types';
+import type { Logger } from '../../common/logger.types';
 import { clone2, eq2, isVec2, ZERO2 } from '../../geometry/vec2';
 import { vec3 } from '../../geometry/vec3';
 import {
     mat4, apply4x4, identity4x4, orthographic4x4, scaling4x4, zrotation4x4, translation4x4,
 } from '../../geometry/mat4';
-import { BaseObject } from '../../gl/base-object';
 import { Primitive } from '../../gl/primitive';
 import { Program } from '../../gl/program';
 import { Texture } from '../../gl/texture-2d';
@@ -21,6 +21,7 @@ import { parseVertexSchema } from '../../gl/vertex-schema';
 import { memoize } from '../../utils/memoizer';
 import { toArgStr } from '../../utils/string-formatter';
 import { makeImage } from '../../utils/image-maker';
+import { makeTag, makeLog } from '../../gl/helper';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -34,7 +35,9 @@ function isUrlData(data: ImageRendererImageData): data is ImageRendererUrlImageD
     return data && typeof (data as ImageRendererUrlImageData).url === 'string';
 }
 
-export class ImageRenderer extends BaseObject {
+export class ImageRenderer {
+    private readonly _tag: string;
+    private readonly _log: Logger;
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
     private readonly _texture: Texture;
@@ -49,7 +52,8 @@ export class ImageRenderer extends BaseObject {
     private _texmatDirty: boolean = true;
 
     constructor(params: ImageRendererParams) {
-        super({ logger: params.runtime.log.handler, ...params });
+        this._tag = makeTag('ImageRenderer', params.tag);
+        this._log = makeLog(params.log, this._tag);
         this._runtime = params.runtime;
         this._primitive = acquirePrimitive(this._runtime);
         this._texture = this._createTexture(params.tag);
@@ -88,12 +92,12 @@ export class ImageRenderer extends BaseObject {
 
     setRenderSize(renderSize: Vec2): void {
         if (!renderSize || !isVec2(renderSize)) {
-            throw this.logger.error('set_render_size({0}) - bad value', renderSize);
+            throw this._log.error('set_render_size({0}) - bad value', renderSize);
         }
         if (eq2(this._renderSize, renderSize)) {
             return;
         }
-        this.logger.info('set_render_size({0})', renderSize);
+        this._log.info('set_render_size({0})', renderSize);
         this._renderSize = clone2(renderSize);
         this._matDirty = true;
     }
@@ -104,9 +108,9 @@ export class ImageRenderer extends BaseObject {
 
     setImageData(data: ImageRendererImageData): void {
         if (!data) {
-            throw this.logger.error('set_image_data - data not defined');
+            throw this._log.error('set_image_data - data not defined');
         }
-        this.logger.info('set_image_data({0})', dataToStr(data));
+        this._log.info('set_image_data({0})', dataToStr(data));
         updateTexture(this._texture, data, () => {
             this._matDirty = this._texmatDirty = true;
             this._notifyChanged();
@@ -119,12 +123,12 @@ export class ImageRenderer extends BaseObject {
 
     setTextureUnit(unit: number): void {
         if (!(unit >= 0)) {
-            throw this.logger.error('set_texture_unit({0}) - bad value', unit);
+            throw this._log.error('set_texture_unit({0}) - bad value', unit);
         }
         if (this._textureUnit === unit) {
             return;
         }
-        this.logger.info('set_texture_unit({0})', unit);
+        this._log.info('set_texture_unit({0})', unit);
         this._textureUnit = unit;
     }
 
@@ -134,12 +138,12 @@ export class ImageRenderer extends BaseObject {
 
     setRegion(region: ImageRendererRegion): void {
         if (!region) {
-            throw this.logger.error('set_region - region not defined');
+            throw this._log.error('set_region - region not defined');
         }
         if (compareRegions(this._region, region)) {
             return;
         }
-        this.logger.info('set_region({0})', region);
+        this._log.info('set_region({0})', region);
         this._region = { ...region };
         this._matDirty = this._texmatDirty = true;
     }
@@ -150,18 +154,18 @@ export class ImageRenderer extends BaseObject {
 
     setLocation(location: ImageRendererLocation): void {
         if (!location) {
-            throw this.logger.error('set_location - location not defined');
+            throw this._log.error('set_location - location not defined');
         }
         if (
             (location.x1 === undefined && location.x2 === undefined) ||
             (location.y1 === undefined && location.y2 === undefined)
         ) {
-            throw this.logger.error('set_location({0}) - not enough data', location);
+            throw this._log.error('set_location({0}) - not enough data', location);
         }
         if (compareLocations(this._location, location)) {
             return;
         }
-        this.logger.info('set_location({0})', location);
+        this._log.info('set_location({0})', location);
         this._location = { ...location };
         this._matDirty = true;
     }
