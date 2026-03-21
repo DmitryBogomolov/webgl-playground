@@ -175,7 +175,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     private readonly _program: WebGLProgram;
 
     constructor(params: ProgramParams) {
-        super({ logger: params.runtime.logger.handler, ...params });
+        super({ logger: params.runtime.log.handler, ...params });
         this.logger.info('init');
         this._runtime = params.runtime;
         const defines = buildDefines(params.defines);

@@ -49,7 +49,7 @@ export class ImageRenderer extends BaseObject {
     private _texmatDirty: boolean = true;
 
     constructor(params: ImageRendererParams) {
-        super({ logger: params.runtime.logger.handler, ...params });
+        super({ logger: params.runtime.log.handler, ...params });
         this._runtime = params.runtime;
         this._primitive = acquirePrimitive(this._runtime);
         this._texture = this._createTexture(params.tag);

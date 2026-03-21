@@ -27,9 +27,9 @@ describe('image-renderer', () => {
         beforeEach(() => {
             runtime = {
                 toString: () => 'stub/runtime',
-                logger: {} as Logger,
+                log: {} as Logger,
                 setTextureUnit: jest.fn(),
-            } as Pick<Runtime, 'logger' | 'setTextureUnit'> as Runtime;
+            } as Pick<Runtime, 'log' | 'setTextureUnit'> as Runtime;
             renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
             renderer.setRenderSize({ x: 640, y: 480 });
             primitive = MockPrimitive.mock.instances[0];

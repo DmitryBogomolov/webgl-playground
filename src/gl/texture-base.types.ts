@@ -37,7 +37,7 @@ export type TextureImageData = TextureRawImageData | TexImageSource;
 
 export type TextureRuntimeBase = Pick<
     Runtime,
-    | 'gl' | 'logger'
+    | 'gl' | 'log'
     | 'setPixelStoreUnpackFlipYWebgl'
     | 'setPixelStoreUnpackPremultiplyAlphaWebgl'
     | 'setPixelStoreUnpackColorSpaceConversionWebgl'

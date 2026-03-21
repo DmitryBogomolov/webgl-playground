@@ -54,7 +54,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _size: Vec2 = vec2(0, 0);
 
     constructor(params: FramebufferParams) {
-        super({ logger: params.runtime.logger.handler, ...params });
+        super({ logger: params.runtime.log.handler, ...params });
         this.logger.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
         this._runtime = params.runtime;
         this._size = clone2(params.size);

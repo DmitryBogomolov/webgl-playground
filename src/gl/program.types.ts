@@ -45,7 +45,7 @@ export type SHADER_UNIFORM_VALUE = (
 
 export type ProgramRuntime = Pick<
     Runtime,
-    'gl' | 'logger' | 'useProgram'
+    'gl' | 'log' | 'useProgram'
 >;
 
 export interface ProgramParams extends BaseObjectParams {

@@ -174,7 +174,7 @@ export class Runtime {
         return this._tag;
     }
 
-    get logger(): Logger {
+    get log(): Logger {
         return this._log;
     }
 

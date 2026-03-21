@@ -41,7 +41,7 @@ export class GlTFRenderer extends BaseObject {
     private _lightDirection: Vec3 = norm3(vec3(0, -0.4, -1));
 
     constructor(params: GlTFRendererParams) {
-        super({ logger: params.runtime.logger.handler, ...params });
+        super({ logger: params.runtime.log.handler, ...params });
         this._runtime = params.runtime;
     }
 

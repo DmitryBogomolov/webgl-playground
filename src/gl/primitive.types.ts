@@ -25,7 +25,7 @@ export interface PrimitiveIndexRange {
 
 export type PrimitiveRuntime = Pick<
     Runtime,
-    | 'gl' | 'logger'
+    | 'gl' | 'log'
     | 'bindArrayBuffer' | 'bindElementArrayBuffer' | 'bindVertexArray' | 'useProgram'
 >;
 
