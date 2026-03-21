@@ -19,9 +19,9 @@ export class TextureCube extends TextureBase {
 
     setImageData(imageData: TextureCubeImageData, options?: TextureImageDataOptions): void {
         if (!imageData) {
-            throw this.logger.error('set_image_data: data not defined');
+            throw this._log.error('set_image_data: data not defined');
         }
-        this.logger.info('set_image_data({0})', imageData);
+        this._log.info('set_image_data({0})', imageData);
         this._beginDataUpdate(options);
         this._updateData(imageData.xNeg, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
         this._updateData(imageData.xPos, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
