@@ -35,7 +35,9 @@ async function checkDir(dirPath: string): Promise<Playground | null> {
     const workerPath = path.join(dirPath, WORKER_NAME);
     const markupPath = path.join(dirPath, MARKUP_NAME);
     const [indexExists, workerExists, markupExists] = await Promise.all([
-        fileExists(indexPath), fileExists(workerPath), fileExists(markupPath),
+        fileExists(indexPath),
+        fileExists(workerPath),
+        fileExists(markupPath),
     ]);
     if (!indexExists) {
         return null;

@@ -2,7 +2,7 @@ import type { LoaderDefinitionFunction } from 'webpack';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-export default <LoaderDefinitionFunction> async function (source: string): Promise<string> {
+export default <LoaderDefinitionFunction> function (source: string): Promise<string> {
     const pathIndex = new Map<string, number>();
     pathIndex.set(this.resourcePath, 0);
     return processSource(source, this.resourcePath, pathIndex).then(

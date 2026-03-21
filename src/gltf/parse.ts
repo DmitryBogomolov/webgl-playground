@@ -97,7 +97,8 @@ function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
 
 async function resolveReferences(
     gltf: GlTFSchema.GlTf,
-    resolvedBuffers: Map<number, ArrayBuffer>, resolvedImages: Map<number, ArrayBuffer>,
+    resolvedBuffers: Map<number, ArrayBuffer>,
+    resolvedImages: Map<number, ArrayBuffer>,
     resolveUri: GlTFResolveUriFunc,
 ): Promise<void> {
     const errors: Error[] = [];
@@ -136,7 +137,10 @@ async function resolveDataUri(uri: string): Promise<ArrayBufferView> {
 const DATA_URI_PREFIX = 'data:';
 
 async function resolveReference(
-    uri: string, idx: number, buffers: Map<number, ArrayBuffer>, errors: Error[],
+    uri: string,
+    idx: number,
+    buffers: Map<number, ArrayBuffer>,
+    errors: Error[],
     resolveUri: GlTFResolveUriFunc,
 ): Promise<void> {
     const resolve = uri.startsWith(DATA_URI_PREFIX) ? resolveDataUri : resolveUri;
