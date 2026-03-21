@@ -3,10 +3,11 @@ import type { RenderTarget } from './render-target.types';
 import type { TEXTURE_FORMAT, TextureParameters, TextureRuntime } from './texture-2d.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
+import type { Logger } from '../common/logger.types';
 import type { Vec2 } from '../geometry/vec2.types';
-import { BaseObject } from './base-object';
 import { vec2, eq2, clone2 } from '../geometry/vec2';
 import { Texture } from './texture-2d';
+import { makeTag, makeLog } from './helper';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -45,7 +46,9 @@ interface AttachmentInfo {
     renderbuffer: Renderbuffer | null;
 }
 
-export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
+export class Framebuffer implements GLHandleWrapper<WebGLFramebuffer>, RenderTarget {
+    private readonly _tag: string;
+    private readonly _log: Logger;
     private readonly _runtime: FramebufferRuntime;
     private readonly _framebuffer: WebGLFramebuffer;
     private readonly _texture: Texture;
@@ -54,8 +57,9 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     private _size: Vec2 = vec2(0, 0);
 
     constructor(params: FramebufferParams) {
-        super({ logger: params.runtime.log.handler, ...params });
-        this.logger.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
+        this._tag = makeTag('Framebuffer', params.tag);
+        this._log = makeLog(params.log, this._tag);
+        this._log.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
         this._runtime = params.runtime;
         this._size = clone2(params.size);
         let info!: ReturnType<typeof setupFramebuffer>;
@@ -63,12 +67,12 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             info = setupFramebuffer(
                 this._runtime,
                 params.attachment,
-                this._id,
+                this._tag,
                 this._size,
                 !!params.useDepthTexture,
             );
         } catch (err) {
-            throw this.logger.error(err as Error);
+            throw this._log.error(err as Error);
         }
         this._framebuffer = info.framebuffer;
         this._texture = info.texture;
@@ -77,11 +81,15 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
     }
 
     dispose(): void {
-        this.logger.info('dispose');
+        this._log.info('dispose');
         this._runtime.gl().deleteFramebuffer(this._framebuffer);
         this._texture.dispose();
         this._depthTexture?.dispose();
         this._renderbuffer?.dispose();
+    }
+
+    toString(): string {
+        return this._tag;
     }
 
     glHandle(): WebGLFramebuffer {
@@ -105,7 +113,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
             return;
         }
         this._size = clone2(size);
-        this.logger.info('resize({0})', this._size);
+        this._log.info('resize({0})', this._size);
         resizeTexture(this._texture, size);
         if (this._depthTexture) {
             resizeTexture(this._depthTexture, size);
@@ -119,7 +127,7 @@ export class Framebuffer extends BaseObject implements GLHandleWrapper<WebGLFram
 function setupFramebuffer(
     runtime: FramebufferRuntime,
     attachment: FRAMEBUFFER_ATTACHMENT,
-    id: string,
+    tag: string,
     size: Vec2,
     useDepthTexture: boolean,
 ): AttachmentInfo & { framebuffer: WebGLFramebuffer } {
@@ -136,10 +144,10 @@ function setupFramebuffer(
             info = setupColorAttachment(runtime, size);
             break;
         case 'color|depth':
-            info = setupColorDepthAttachment(runtime, id, size, useDepthTexture);
+            info = setupColorDepthAttachment(runtime, tag, size, useDepthTexture);
             break;
         case 'color|depth|stencil':
-            info = setupColorDepthStencilAttachment(runtime, id, size, useDepthTexture);
+            info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
             break;
         default:
             throw new Error(`bad attachment type: ${attachment}`);
@@ -178,12 +186,12 @@ function setupTexture(
 
 function setupRenderbuffer(
     runtime: FramebufferRuntime,
-    id: string,
+    tag: string,
     size: Vec2,
     format: number,
     attachment: number,
 ): Renderbuffer {
-    const renderbuffer = new Renderbuffer(runtime, id, format);
+    const renderbuffer = new Renderbuffer(runtime, tag, format);
     attachRenderbuffer(runtime, attachment, renderbuffer);
     resizeRenderbuffer(renderbuffer, size);
     return renderbuffer;
@@ -200,7 +208,7 @@ function setupColorAttachment(runtime: FramebufferRuntime, size: Vec2): Attachme
 
 function setupColorDepthAttachment(
     runtime: FramebufferRuntime,
-    id: string,
+    tag: string,
     size: Vec2,
     useDepthTexture: boolean,
 ): AttachmentInfo {
@@ -208,7 +216,7 @@ function setupColorDepthAttachment(
     const depthTexture = useDepthTexture
         ? setupTexture(runtime, size, 'depth_component32f', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
     const renderbuffer = useDepthTexture
-        ? null : setupRenderbuffer(runtime, id, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
+        ? null : setupRenderbuffer(runtime, tag, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
     return {
         ...info,
         depthTexture,
@@ -218,7 +226,7 @@ function setupColorDepthAttachment(
 
 function setupColorDepthStencilAttachment(
     runtime: FramebufferRuntime,
-    id: string,
+    tag: string,
     size: Vec2,
     useDepthTexture: boolean,
 ): AttachmentInfo {
@@ -236,7 +244,7 @@ function setupColorDepthStencilAttachment(
         ? null
         : setupRenderbuffer(
             runtime,
-            id,
+            tag,
             size,
             GL_DEPTH_STENCIL,
             GL_DEPTH_STENCIL_ATTACHMENT,
@@ -278,13 +286,13 @@ function attachRenderbuffer(runtime: FramebufferRuntime, attachment: number, ren
 
 class Renderbuffer implements GLHandleWrapper<WebGLRenderbuffer> {
     private readonly _runtime: FramebufferRuntime;
-    private readonly _id: string;
+    private readonly _tag: string;
     private readonly _format: number;
     private readonly _renderbuffer: WebGLRenderbuffer;
 
-    constructor(runtime: FramebufferRuntime, id: string, format: number) {
+    constructor(runtime: FramebufferRuntime, tag: string, format: number) {
         this._runtime = runtime;
-        this._id = id;
+        this._tag = tag;
         this._format = format;
         const renderbuffer = this._runtime.gl().createRenderbuffer();
         if (!renderbuffer) {
@@ -298,7 +306,7 @@ class Renderbuffer implements GLHandleWrapper<WebGLRenderbuffer> {
     }
 
     toString(): string {
-        return this._id;
+        return this._tag;
     }
 
     glHandle(): WebGLRenderbuffer {
