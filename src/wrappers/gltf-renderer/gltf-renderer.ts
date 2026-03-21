@@ -55,6 +55,10 @@ export class GlTFRenderer {
         this._reset();
     }
 
+    toString(): string {
+        return this._tag;
+    }
+
     private async _load(url: string): Promise<ArrayBufferView> {
         const buffer = await this._loader.load<ArrayBuffer>(url);
         return new Uint8Array(buffer);

@@ -65,6 +65,10 @@ export class ImageRenderer {
         this._changed.reset();
     }
 
+    toString(): string {
+        return this._tag;
+    }
+
     private readonly _updateLocationMatrix = memoize(updateLocationMatrix, compareUpdateLocationMatrixArgs);
     private readonly _updateRegionMatrix = memoize(updateRegionMatrix, compareUpdateRegionMatrixArgs);
 

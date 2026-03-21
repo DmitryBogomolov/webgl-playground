@@ -44,7 +44,6 @@ export * from './alg/kd-tree.types';
 export * from './alg/kd-tree';
 export * from './alg/figures.types';
 export * from './alg/figures';
-export * from './gl/base-object.types';
 export * from './gl/render-loop';
 export * from './gl/vertex-writer.types';
 export * from './gl/vertex-writer';
