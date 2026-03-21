@@ -19,14 +19,13 @@ import type { RenderTarget } from './render-target.types';
 import type { RenderLoopEventProxy } from './render-loop.types';
 import type { EventProxy } from '../common/event-emitter.types';
 import type { Logger } from '../common/logger.types';
-import { logger } from '../common/logger';
 import { EventEmitter } from '../common/event-emitter';
 import { RenderLoop } from './render-loop';
 import { makeRenderState, applyRenderState, isRenderState } from './render-state';
 import { ZERO2, eq2, clone2 } from '../geometry/vec2';
 import { color, isColor, colorEq } from '../common/color';
 import { trackElementResizing } from '../utils/size-tracker';
-import { uniqueId } from '../utils/unique-id';
+import { makeTag, makeLog } from './helper';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -137,8 +136,8 @@ export class Runtime {
     };
 
     constructor(params: RuntimeParams) {
-        this._tag = `Runtime#${params.tag || uniqueId()}`;
-        this._log = logger(params.log ?? (() => void 0), { prefix: this._tag });
+        this._tag = makeTag('Runtime', params.tag);
+        this._log = makeLog(params.log, this._tag);
         this._log.info('init');
         this._canvas = params.element instanceof HTMLCanvasElement ? params.element : createCanvas(params.element);
         this._gl = this._getContext(params.contextAttributes);
