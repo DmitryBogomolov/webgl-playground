@@ -1,5 +1,5 @@
 import type { Runtime } from './runtime';
-import type { BaseObjectParams } from './base-object.types';
+import type { LogHandler } from '../common/logger.types';
 import type { VertexSchemaInfo } from './vertex-schema.types';
 
 export type INDEX_TYPE = (
@@ -29,6 +29,8 @@ export type PrimitiveRuntime = Pick<
     | 'bindArrayBuffer' | 'bindElementArrayBuffer' | 'bindVertexArray' | 'useProgram'
 >;
 
-export interface PrimitiveParams extends BaseObjectParams {
+export interface PrimitiveParams {
+    readonly tag?: string;
+    readonly log?: LogHandler;
     readonly runtime: PrimitiveRuntime;
 }
