@@ -1,5 +1,4 @@
 import type { Vec2 } from '../../geometry/vec2.types';
-import type { LogHandler } from '../../common/logger.types';
 import type { Runtime } from '../../gl/runtime';
 
 export interface ImageRendererRawImageData {
@@ -37,6 +36,5 @@ export interface ImageRendererLocation extends ImageRendererRegion {
 
 export interface ImageRendererParams {
     readonly tag?: string;
-    readonly log?: LogHandler;
     readonly runtime: Runtime;
 }

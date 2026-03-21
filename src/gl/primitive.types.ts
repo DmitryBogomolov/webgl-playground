@@ -1,5 +1,4 @@
 import type { Runtime } from './runtime';
-import type { LogHandler } from '../common/logger.types';
 import type { VertexSchemaInfo } from './vertex-schema.types';
 
 export type INDEX_TYPE = (
@@ -31,6 +30,5 @@ export type PrimitiveRuntime = Pick<
 
 export interface PrimitiveParams {
     readonly tag?: string;
-    readonly log?: LogHandler;
     readonly runtime: PrimitiveRuntime;
 }

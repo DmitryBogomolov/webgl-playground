@@ -1,6 +1,5 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
-import type { LogHandler } from '../common/logger.types';
 import type { Runtime } from './runtime';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge' | 'mirrored_repeat');
@@ -45,6 +44,5 @@ export type TextureRuntimeBase = Pick<
 
 export interface TextureParams {
     readonly tag?: string;
-    readonly log?: LogHandler;
     readonly runtime: TextureRuntimeBase;
 }

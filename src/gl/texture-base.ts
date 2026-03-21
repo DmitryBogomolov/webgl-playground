@@ -111,10 +111,10 @@ export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
     };
 
     constructor(params: TextureParams) {
-        this._tag = makeTag(this.constructor.name, params.tag);
-        this._log = makeLog(params.log, this._tag);
-        this._log.info('init');
         this._runtime = params.runtime;
+        this._tag = makeTag(this.constructor.name, params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init');
         this._texture = this._createTexture();
         this._initTextureState();
     }

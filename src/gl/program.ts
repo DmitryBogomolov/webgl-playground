@@ -178,10 +178,10 @@ export class Program implements GLHandleWrapper<WebGLProgram> {
     private readonly _program: WebGLProgram;
 
     constructor(params: ProgramParams) {
-        this._tag = makeTag('Program', params.tag);
-        this._log = makeLog(params.log, this._tag);
-        this._log.info('init');
         this._runtime = params.runtime;
+        this._tag = makeTag('Program', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init');
         const defines = buildDefines(params.defines);
         const vertSource = prepareSource(params.vertShader, defines);
         const fragSource = prepareSource(params.fragShader, defines);

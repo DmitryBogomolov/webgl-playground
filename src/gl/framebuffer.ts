@@ -57,10 +57,10 @@ export class Framebuffer implements GLHandleWrapper<WebGLFramebuffer>, RenderTar
     private _size: Vec2 = vec2(0, 0);
 
     constructor(params: FramebufferParams) {
-        this._tag = makeTag('Framebuffer', params.tag);
-        this._log = makeLog(params.log, this._tag);
-        this._log.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
         this._runtime = params.runtime;
+        this._tag = makeTag('Framebuffer', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init({0}, {1}, {2})', params.attachment, params.size, params.useDepthTexture);
         this._size = clone2(params.size);
         let info!: ReturnType<typeof setupFramebuffer>;
         try {

@@ -44,9 +44,9 @@ export class GlTFRenderer {
     private _lightDirection: Vec3 = norm3(vec3(0, -0.4, -1));
 
     constructor(params: GlTFRendererParams) {
-        this._tag = makeTag('GlTFRenderer', params.tag);
-        this._log = makeLog(params.log, this._tag);
         this._runtime = params.runtime;
+        this._tag = makeTag('GlTFRenderer', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
     }
 
     dispose(): void {

@@ -1,5 +1,4 @@
 import type { Mapping } from '../../common/mapping.types';
-import type { LogHandler } from '../../common/logger.types';
 import type { Runtime } from '../../gl/runtime';
 
 export interface GlTFRendererRawData {
@@ -18,6 +17,5 @@ export type GlTFRendererData = (
 
 export interface GlTFRendererParams {
     readonly tag?: string;
-    readonly log?: LogHandler;
     readonly runtime: Runtime;
 }

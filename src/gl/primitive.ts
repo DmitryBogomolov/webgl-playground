@@ -58,10 +58,10 @@ export class Primitive {
     private _program: Program = EMPTY_PROGRAM;
 
     constructor(params: PrimitiveParams) {
-        this._tag = makeTag('Primitive', params.tag);
-        this._log = makeLog(params.log, this._tag);
-        this._log.info('init');
         this._runtime = params.runtime;
+        this._tag = makeTag('Primitive', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init');
         this._vao = new VertexArrayObject(this._runtime, this._tag);
         this._vertexBuffer = new Buffer(this._runtime, this._tag);
         this._indexBuffer = new Buffer(this._runtime, this._tag);

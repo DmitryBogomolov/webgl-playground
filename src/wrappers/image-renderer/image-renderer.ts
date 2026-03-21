@@ -52,9 +52,9 @@ export class ImageRenderer {
     private _texmatDirty: boolean = true;
 
     constructor(params: ImageRendererParams) {
-        this._tag = makeTag('ImageRenderer', params.tag);
-        this._log = makeLog(params.log, this._tag);
         this._runtime = params.runtime;
+        this._tag = makeTag('ImageRenderer', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
         this._primitive = acquirePrimitive(this._runtime);
         this._texture = this._createTexture(params.tag);
     }
