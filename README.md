@@ -59,7 +59,6 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 
 ### TODO
 
-- use message ports
 - use html webpack plugin properly (first - check how it is used now)
 - service worker for fetched content (in static bundle)
 - rework type system with fields picking
