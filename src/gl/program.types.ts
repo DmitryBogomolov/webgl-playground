@@ -3,7 +3,6 @@ import type { Vec3 } from '../geometry/vec3.types';
 import type { Vec4 } from '../geometry/vec4.types';
 import type { Color } from '../common/color.types';
 import type { Mapping } from '../common/mapping.types';
-import type { BaseObjectParams } from './base-object.types';
 import type { Runtime } from './runtime';
 
 export type SHADER_ATTRIBUTE_TYPE = (
@@ -45,10 +44,11 @@ export type SHADER_UNIFORM_VALUE = (
 
 export type ProgramRuntime = Pick<
     Runtime,
-    'gl' | 'logger' | 'useProgram'
+    'gl' | 'log' | 'useProgram'
 >;
 
-export interface ProgramParams extends BaseObjectParams {
+export interface ProgramParams {
+    readonly tag?: string;
     readonly runtime: ProgramRuntime;
     readonly vertShader: string;
     readonly fragShader: string;

@@ -4,7 +4,7 @@ import type {
 } from './program.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
 import type { Mapping } from '../common/mapping.types';
-import { BaseObject } from './base-object';
+import type { Logger } from '../common/logger.types';
 import { isVec2 } from '../geometry/vec2';
 import { isVec3 } from '../geometry/vec3';
 import { isVec4 } from '../geometry/vec4';
@@ -13,6 +13,7 @@ import { isMat3 } from '../geometry/mat3';
 import { isMat4 } from '../geometry/mat4';
 import { isColor } from '../common/color';
 import { toStr } from '../utils/string-formatter';
+import { makeTag, makeLog } from './helper';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -167,7 +168,9 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
     },
 };
 
-export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram> {
+export class Program implements GLHandleWrapper<WebGLProgram> {
+    private readonly _tag: string;
+    private readonly _log: Logger;
     private readonly _runtime: ProgramRuntime;
     private readonly _attributes: ShaderAttribute[];
     private readonly _uniforms: ShaderUniform[];
@@ -175,9 +178,10 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     private readonly _program: WebGLProgram;
 
     constructor(params: ProgramParams) {
-        super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
         this._runtime = params.runtime;
+        this._tag = makeTag('Program', params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init');
         const defines = buildDefines(params.defines);
         const vertSource = prepareSource(params.vertShader, defines);
         const fragSource = prepareSource(params.fragShader, defines);
@@ -190,7 +194,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
                 params.locations,
             );
         } catch (err) {
-            this._logError(err as Error);
+            throw this._log.error(err as Error);
         }
         this._program = info.program;
         this._attributes = info.attributes;
@@ -199,9 +203,12 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._log.info('dispose');
         this._runtime.gl().deleteProgram(this._program);
-        this._dispose();
+    }
+
+    toString(): string {
+        return this._tag;
     }
 
     glHandle(): WebGLProgram {
@@ -217,15 +224,15 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
     }
 
     setUniform(name: string, value: SHADER_UNIFORM_VALUE): void {
-        this._logInfo('set_uniform({0}, {1})', name, value);
+        this._log.info('set_uniform({0}, {1})', name, value);
         const gl = this._runtime.gl();
         const uniform = this._uniforms[this._uniformsMap[name]];
         if (!uniform) {
-            throw this._logError(`uniform "${name}" is unknown`);
+            throw this._log.error(`uniform "${name}" is unknown`);
         }
         const setter = (uniform.arraySize > 1 ? UNIFORM_ARRAY_SETTERS_MAP : UNIFORM_SETTERS_MAP)[uniform.type];
         if (!setter) {
-            throw this._logError(`uniform "${name}" setter is not found`);
+            throw this._log.error(`uniform "${name}" setter is not found`);
         }
         // Program must be set as CURRENT_PROGRAM before gl.uniformXXX is called.
         // Otherwise it would cause an error.
@@ -234,7 +241,7 @@ export class Program extends BaseObject implements GLHandleWrapper<WebGLProgram>
         try {
             setter(gl, uniform, value);
         } catch (err) {
-            throw this._logError(err as Error);
+            throw this._log.error(err as Error);
         }
     }
 }

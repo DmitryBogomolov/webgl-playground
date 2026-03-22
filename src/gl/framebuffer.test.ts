@@ -56,7 +56,7 @@ describe('framebuffer', () => {
             } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
-                logger: () => null,
+                log: () => null,
                 bindFramebuffer,
                 bindFramebufferRaw,
                 bindTexture,

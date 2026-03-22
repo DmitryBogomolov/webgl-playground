@@ -1,5 +1,7 @@
-export function compareArrays<T extends readonly unknown[]>(
-    lhs: T, rhs: T, compareItem: (lhs: unknown, rhs: unknown) => boolean = (lhs, rhs) => lhs === rhs,
+export function arraysEqual<T extends readonly unknown[]>(
+    lhs: T,
+    rhs: T,
+    compareItem: (lhs: unknown, rhs: unknown) => boolean = equalRef,
 ): boolean {
     if (lhs === rhs) {
         return true;
@@ -15,8 +17,10 @@ export function compareArrays<T extends readonly unknown[]>(
     return true;
 }
 
-export function compareObjects(
-    lhs: object, rhs: object, compareField: (lhs: unknown, rhs: unknown) => boolean = (lhs, rhs) => lhs === rhs,
+export function shallowEqual(
+    lhs: object,
+    rhs: object,
+    compareField: (lhs: unknown, rhs: unknown) => boolean = equalRef,
 ): boolean {
     if (lhs === rhs) {
         return true;
@@ -34,4 +38,8 @@ export function compareObjects(
         }
     }
     return true;
+}
+
+function equalRef<T>(lhs: T, rhs: T): boolean {
+    return lhs === rhs;
 }

@@ -1,5 +1,4 @@
 import type { Mapping } from '../../common/mapping.types';
-import type { BaseObjectParams } from '../../gl/base-object.types';
 import type { Runtime } from '../../gl/runtime';
 
 export interface GlTFRendererRawData {
@@ -16,6 +15,7 @@ export type GlTFRendererData = (
     | GlTFRendererUrlData
 );
 
-export interface GlTFRendererParams extends BaseObjectParams {
+export interface GlTFRendererParams {
+    readonly tag?: string;
     readonly runtime: Runtime;
 }

@@ -23,7 +23,7 @@ describe('primitive', () => {
             } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
-                logger: () => null,
+                log: () => null,
             } as unknown as Runtime;
         });
 

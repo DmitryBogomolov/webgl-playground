@@ -1,5 +1,5 @@
 import type { Runtime } from '../../gl/runtime';
-import type { Logger } from '../../gl/base-object.types';
+import type { Logger } from '../../common/logger.types';
 import { ImageRenderer } from './image-renderer';
 
 import { Primitive } from '../../gl/primitive';
@@ -18,19 +18,6 @@ describe('image-renderer', () => {
         const MockProgram = Program as jest.Mock<Program>;
         const MockTexture = Texture as jest.Mock<Texture>;
 
-        class StubLogger implements Logger {
-            info(): string {
-                return '';
-            }
-            warn(): string {
-                return '';
-            }
-            error(): Error {
-                return new Error('');
-            }
-        }
-        const stubLogger = new StubLogger();
-
         let runtime: Runtime;
         let renderer: ImageRenderer;
         let primitive: Primitive;
@@ -40,9 +27,9 @@ describe('image-renderer', () => {
         beforeEach(() => {
             runtime = {
                 toString: () => 'stub/runtime',
-                logger: () => stubLogger,
+                log: {} as Logger,
                 setTextureUnit: jest.fn(),
-            } as Pick<Runtime, 'logger' | 'setTextureUnit'> as Runtime;
+            } as Pick<Runtime, 'log' | 'setTextureUnit'> as Runtime;
             renderer = new ImageRenderer({ runtime, tag: 'tag/test' });
             renderer.setRenderSize({ x: 640, y: 480 });
             primitive = MockPrimitive.mock.instances[0];

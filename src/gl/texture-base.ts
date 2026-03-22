@@ -7,9 +7,10 @@ import type { Vec2 } from '../geometry/vec2.types';
 import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
 import type { GLValuesMap } from './gl-values-map.types';
 import type { Mapping } from '../common/mapping.types';
+import type { Logger } from '../common/logger.types';
 import type { GLHandleWrapper } from './gl-handle-wrapper.types';
-import { BaseObject } from './base-object';
 import { vec2, isVec2, eq2, clone2, ZERO2 } from '../geometry/vec2';
+import { makeTag, makeLog } from './helper';
 
 const WebGL = WebGL2RenderingContext.prototype;
 
@@ -89,7 +90,9 @@ const GL_MAPS: Mapping<keyof State, GLValuesMap<string>> = {
     'min_filter': MIN_FILTER_MAP,
 };
 
-export abstract class TextureBase extends BaseObject implements GLHandleWrapper<WebGLTexture> {
+export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
+    protected readonly _tag: string;
+    protected readonly _log: Logger;
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
     protected readonly _target!: number;
@@ -108,17 +111,21 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     };
 
     constructor(params: TextureParams) {
-        super({ logger: params.runtime.logger(), ...params });
-        this._logInfo('init');
         this._runtime = params.runtime;
+        this._tag = makeTag(this.constructor.name, params.tag);
+        this._log = makeLog(this._runtime.log.handler, this._tag);
+        this._log.info('init');
         this._texture = this._createTexture();
         this._initTextureState();
     }
 
     dispose(): void {
-        this._logInfo('dispose');
+        this._log.info('dispose');
         this._runtime.gl().deleteTexture(this._texture);
-        this._dispose();
+    }
+
+    toString(): string {
+        return this._tag;
     }
 
     glHandle(): WebGLTexture {
@@ -132,7 +139,7 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     private _createTexture(): WebGLTexture {
         const texture = this._runtime.gl().createTexture();
         if (!texture) {
-            throw this._logError('failed to create texture');
+            throw this._log.error('failed to create texture');
         }
         return texture;
     }
@@ -197,14 +204,14 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
     }
 
     private _generateMipmap(): void {
-        this._logInfo('generate_mipmap');
+        this._log.info('generate_mipmap');
         this._runtime.gl().generateMipmap(this._target);
     }
 
     setParameters(params: TextureParameters): void {
         const gl = this._runtime.gl();
         if (!params) {
-            throw this._logError('set_parameters - params not defined');
+            throw this._log.error('set_parameters - params not defined');
         }
         for (const entry of Object.entries(params)) {
             const key = entry[0] as keyof State;
@@ -212,10 +219,10 @@ export abstract class TextureBase extends BaseObject implements GLHandleWrapper<
             if (val !== undefined) {
                 const value = GL_MAPS[key][val];
                 if (!value) {
-                    throw this._logError('set_paramaters({0}, {1}) - bad value', key, val);
+                    throw this._log.error('set_paramaters({0}, {1}) - bad value', key, val);
                 }
                 if (this._state[key] !== val) {
-                    this._logInfo('set_parameters({0}, {1})', key, val);
+                    this._log.info('set_parameters({0}, {1})', key, val);
                     this._bind();
                     gl.texParameteri(this._target, GL_PARAMETER_NAMES[key], value);
                     this._state[key] = val as never;

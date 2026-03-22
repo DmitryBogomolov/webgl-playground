@@ -1,5 +1,4 @@
 import type { Vec2 } from '../geometry/vec2.types';
-import { vec2 } from '../geometry/vec2';
 
 export function trackElementResizing(element: Element, callback: (v: Vec2) => void): () => void {
     const observer = new ResizeObserver((entries) => {
@@ -31,5 +30,5 @@ function getObservedSize(entry: ResizeObserverEntry): Vec2 {
         height = entry.contentRect.height;
         dpr = devicePixelRatio;
     }
-    return vec2(Math.round(width * dpr), Math.round(height * dpr));
+    return { x: Math.round(width * dpr), y: Math.round(height * dpr) };
 }

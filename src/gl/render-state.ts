@@ -14,8 +14,9 @@ type RenderStateValidator<T extends keyof RenderState> = (
 type RenderStateComparer<T extends keyof RenderState> = (
     lhs: RenderState[T], rhs: RenderState[T],
 ) => boolean;
+type LogFunc = (msg: string, ...args: unknown[]) => void;
 type RenderStateUpdater<T extends keyof RenderState> = (
-    value: RenderState[T], gl: WebGL2RenderingContext, log: (msg: string, ...args: unknown[]) => void,
+    value: RenderState[T], gl: WebGL2RenderingContext, log: LogFunc,
 ) => void;
 
 type RenderStateValidators = {
@@ -296,7 +297,7 @@ export function applyRenderState(
     currentState: RenderState,
     appliedState: RenderState,
     gl: WebGL2RenderingContext,
-    log: (msg: string, ...args: unknown[]) => void,
+    log: LogFunc,
 ): boolean {
     if (currentState === appliedState) {
         return false;

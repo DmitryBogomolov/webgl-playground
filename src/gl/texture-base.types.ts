@@ -1,6 +1,5 @@
 import type { Vec2 } from '../geometry/vec2.types';
 import type { UNPACK_COLORSPACE_CONVERSION } from './runtime.types';
-import type { BaseObjectParams } from './base-object.types';
 import type { Runtime } from './runtime';
 
 export type TEXTURE_WRAP = ('repeat' | 'clamp_to_edge' | 'mirrored_repeat');
@@ -37,12 +36,13 @@ export type TextureImageData = TextureRawImageData | TexImageSource;
 
 export type TextureRuntimeBase = Pick<
     Runtime,
-    | 'gl' | 'logger'
+    | 'gl' | 'log'
     | 'setPixelStoreUnpackFlipYWebgl'
     | 'setPixelStoreUnpackPremultiplyAlphaWebgl'
     | 'setPixelStoreUnpackColorSpaceConversionWebgl'
 >;
 
-export interface TextureParams extends BaseObjectParams {
+export interface TextureParams {
+    readonly tag?: string;
     readonly runtime: TextureRuntimeBase;
 }

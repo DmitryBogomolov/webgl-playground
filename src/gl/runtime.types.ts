@@ -1,5 +1,5 @@
 import type { Vec2 } from '../geometry/vec2.types';
-import type { BaseObjectParams } from './base-object.types';
+import type { LogHandler } from '../common/logger.types';
 export type {
     BUFFER_MASK,
     DEPTH_FUNC,
@@ -23,7 +23,9 @@ export interface ReadPixelsOptions {
     readonly format?: READ_PIXELS_FORMAT;
 }
 
-export interface RuntimeParams extends BaseObjectParams {
+export interface RuntimeParams {
     readonly element: HTMLElement;
-    readonly contextAttributes?: WebGLContextAttributes;
+    readonly contextAttributes?: Readonly<WebGLContextAttributes>;
+    readonly log?: LogHandler;
+    readonly tag?: string;
 }

@@ -33,7 +33,7 @@ describe('texture', () => {
             } as unknown as WebGL2RenderingContext;
             runtime = {
                 gl: () => ctx,
-                logger: () => null,
+                log: () => null,
                 bindTexture,
             } as unknown as Runtime;
         });
