@@ -87,9 +87,8 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                         {
                             loader: 'css-loader',
                             options: {
-                                esModule: true,
                                 modules: {
-                                    // namedExport: true,
+                                    namedExport: false,
                                     localIdentName: '[name]__[local]',
                                 },
                             },
