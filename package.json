@@ -39,7 +39,7 @@
     "ts-loader": "^9.4.4",
     "ts-node": "^10.7.0",
     "typescript": "^5.1.6",
-    "webpack": "^5.88.2",
+    "webpack": "5.105.4",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   }
