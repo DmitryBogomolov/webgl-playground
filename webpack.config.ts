@@ -80,9 +80,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     use: [
                         {
                             loader: MiniCssWebpackPlugin.loader,
-                            options: {
-                                esModule: true,
-                            },
                         },
                         {
                             loader: 'css-loader',
