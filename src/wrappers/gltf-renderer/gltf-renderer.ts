@@ -59,9 +59,8 @@ export class GlTFRenderer {
         return this._tag;
     }
 
-    private async _load(url: string): Promise<ArrayBufferView> {
-        const buffer = await this._loader.load<ArrayBuffer>(url);
-        return new Uint8Array(buffer);
+    private _load(url: string): Promise<ArrayBufferView> {
+        return this._loader.load<ArrayBuffer>(url).then((buffer) => new Uint8Array(buffer));
     }
 
     async setData(data: GlTFRendererData): Promise<void> {
@@ -84,9 +83,7 @@ export class GlTFRenderer {
         }
     }
 
-    private async _processData(
-        data: GlTFRendererData,
-    ): Promise<{ source: ArrayBufferView, resolveUri: GlTFResolveUriFunc }> {
+    private async _processData(data: GlTFRendererData): Promise<ProcessedData> {
         if (!data) {
             throw this._log.error('set_data - data not defined');
         }
@@ -186,6 +183,11 @@ export class GlTFRenderer {
         }
         wrapper.primitive.render();
     }
+}
+
+interface ProcessedData {
+    source: ArrayBufferView;
+    resolveUri: GlTFResolveUriFunc;
 }
 
 const _m4_scratch = mat4() as Mat4Mut;

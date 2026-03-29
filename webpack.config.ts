@@ -1,8 +1,6 @@
 import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'path';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
@@ -60,13 +58,11 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             library: 'lib',
             libraryTarget: 'umd',
             globalObject: 'this',
+            clean: true,
         },
         resolve: {
             extensions: ['.ts', '.js'],
-            alias: {
-                lib: path.join(__dirname, './src/index.ts'),
-                'playground-utils': path.join(__dirname, './playground-utils/'),
-            },
+            tsconfig: path.join(__dirname, './tsconfig.json'),
         },
         module: {
             rules: [
@@ -80,16 +76,12 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     use: [
                         {
                             loader: MiniCssWebpackPlugin.loader,
-                            options: {
-                                esModule: true,
-                            },
                         },
                         {
                             loader: 'css-loader',
                             options: {
-                                esModule: true,
                                 modules: {
-                                    // namedExport: true,
+                                    namedExport: false,
                                     localIdentName: '[name]__[local]',
                                 },
                             },
@@ -108,16 +100,13 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             },
         },
         plugins: [
-            new CleanWebpackPlugin({ dry: false, dangerouslyAllowCleanPatternsOutsideProject: true }),
             new MiniCssWebpackPlugin(),
-            // Without it "[WDS] Nothing changed" (in browser console) is reported when template files are updated.
-            // As a result hot reload does not happen and page content is not updated.
-            // Somehow "HtmlWebpackPlugin" solves this.
-            new HtmlWebpackPlugin(),
             watchPlugin(playgrounds),
         ],
         devServer: {
             port: PORT,
+            hot: false,
+            liveReload: false,
             devMiddleware: {
                 publicPath: `${ASSETS_PATH}/`,
             },
@@ -133,7 +122,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
     };
 }
 
-export default async function (): Promise<Configuration> {
-    const playgrounds = await buildRegistry(path.join(__dirname, './playground'));
-    return config(playgrounds);
+export default function (): Promise<Configuration> {
+    return buildRegistry(path.join(__dirname, './playground')).then(config);
 }

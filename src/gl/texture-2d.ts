@@ -4,7 +4,11 @@ import { TextureBase } from './texture-base';
 const WebGL = WebGL2RenderingContext.prototype;
 
 export class Texture extends TextureBase {
-    protected _bind(): void {
+    protected override _initTarget(): number {
+        return WebGL.TEXTURE_2D;
+    }
+
+    protected override _bind(): void {
         (this._runtime as TextureRuntime).bindTexture(this);
     }
 
@@ -17,6 +21,3 @@ export class Texture extends TextureBase {
         this._updateData(imageData, this._target);
     }
 }
-
-// @ts-ignore Initialize before constructor.
-Texture.prototype._target = WebGL.TEXTURE_2D;
