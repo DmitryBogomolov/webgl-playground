@@ -1,5 +1,10 @@
+.PHONY: setup
 setup: node_modules package.json
 	@npm install
+
+.PHONY
+build:
+	@npm run build
 
 .PHONY: check
 check:
