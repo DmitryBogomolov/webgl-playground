@@ -1,7 +1,6 @@
 import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
@@ -105,14 +104,12 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         },
         plugins: [
             new MiniCssWebpackPlugin(),
-            // Without it "[WDS] Nothing changed" (in browser console) is reported when template files are updated.
-            // As a result hot reload does not happen and page content is not updated.
-            // Somehow "HtmlWebpackPlugin" solves this.
-            new HtmlWebpackPlugin(),
             watchPlugin(playgrounds),
         ],
         devServer: {
             port: PORT,
+            hot: false,
+            liveReload: false,
             devMiddleware: {
                 publicPath: `${ASSETS_PATH}/`,
             },
@@ -128,7 +125,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
     };
 }
 
-export default async function (): Promise<Configuration> {
-    const playgrounds = await buildRegistry(path.join(__dirname, './playground'));
-    return config(playgrounds);
+export default function (): Promise<Configuration> {
+    return buildRegistry(path.join(__dirname, './playground')).then(config);
 }
