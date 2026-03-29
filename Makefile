@@ -1,8 +1,7 @@
-.PHONY: setup
 setup: node_modules package.json
 	@npm install
 
-.PHONY
+.PHONY:
 build:
 	@npm run build
 
