@@ -62,10 +62,7 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         },
         resolve: {
             extensions: ['.ts', '.js'],
-            alias: {
-                lib: path.join(__dirname, './src/index.ts'),
-                'playground-utils': path.join(__dirname, './playground-utils/'),
-            },
+            tsconfig: path.join(__dirname, './tsconfig.json'),
         },
         module: {
             rules: [
