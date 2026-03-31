@@ -18,7 +18,8 @@ function isCheck(options: SharedControlOptions): options is CheckControlOptions 
 }
 
 export function createControls(
-    container: HTMLElement, controls: ReadonlyArray<SharedControlOptions>,
+    container: HTMLElement,
+    controls: ReadonlyArray<SharedControlOptions>,
 ): ControlsPanel {
     const panel = new ControlsPanel(container);
     controls.forEach((options) => {

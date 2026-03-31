@@ -5,7 +5,7 @@ export function getBinaryData(
     idx: number,
     byteOffset: number,
     byteLength: number | undefined,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
     const bufferView = asset.gltf.bufferViews![idx];
     const buffer = asset.gltf.buffers![bufferView.buffer];
     const offset = (bufferView.byteOffset || 0) + byteOffset;

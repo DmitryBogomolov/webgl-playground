@@ -30,7 +30,7 @@ const DEFAULT_SAMPLER: GlTFTextureSampler = {
 export function getTextureInfo(asset: GlTFAsset, idx: number): GlTFTexture {
     const texture = asset.gltf.textures![idx];
     const image = asset.gltf.images![texture.source!];
-    let data: Uint8Array;
+    let data: Uint8Array<ArrayBuffer>;
     if (image.bufferView !== undefined) {
         data = getBinaryData(asset, image.bufferView, 0, undefined);
     } else {

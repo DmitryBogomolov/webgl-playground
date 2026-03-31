@@ -142,7 +142,7 @@ interface AttributeInfo {
     readonly type: GlTF_ACCESSOR_TYPE;
     readonly stride: number;
     readonly count: number;
-    readonly data: Uint8Array;
+    readonly data: Uint8Array<ArrayBuffer>;
 }
 
 type TypeValidator = (type: GlTF_ACCESSOR_TYPE) => void;
@@ -175,7 +175,7 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
 
 interface SetVertexDataCtx {
     readonly attributes: VertexAttributeDefinition[];
-    readonly data: Uint8Array;
+    readonly data: Uint8Array<ArrayBuffer>;
     offset: number;
 }
 

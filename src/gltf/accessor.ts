@@ -85,7 +85,7 @@ export function getAccessorStride(gltf: GlTFSchema.GlTf, accessor: GlTFSchema.Ac
     return ACCESSOR_TYPE_SIZES[getAccessorType(accessor)];
 }
 
-export function getAccessorBinaryData(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array {
+export function getAccessorBinaryData(asset: GlTFAsset, accessor: GlTFSchema.Accessor): Uint8Array<ArrayBuffer> {
     const byteOffset = accessor.byteOffset || 0;
     const byteLength = accessor.count * getAccessorStride(asset.gltf, accessor);
     return getBinaryData(asset, accessor.bufferView!, byteOffset, byteLength);

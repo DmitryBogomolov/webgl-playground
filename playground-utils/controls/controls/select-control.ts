@@ -11,6 +11,11 @@ export interface SelectControlOptions {
 const NAME = 'select-control';
 const LABEL_CLASS = `${NAME}-label`;
 const SELECT_CLASS = `${NAME}-select`;
+const STYLES = [
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${SELECT_CLASS} ${INPUT_STYLE}`,
+].join('\n');
 
 export class SelectControl extends BaseControl {
     private readonly _select: HTMLSelectElement;
@@ -46,6 +51,14 @@ export class SelectControl extends BaseControl {
         this._options.selection.off(this._handleValueChange);
     }
 
+    protected override _initName(): string {
+        return NAME;
+    }
+
+    protected override _initStyles(): string {
+        return STYLES;
+    }
+
     private _updateSelectedIndex(): void {
         this._select.selectedIndex = this._options.options.indexOf(this._options.selection());
     }
@@ -59,14 +72,3 @@ export class SelectControl extends BaseControl {
         this._options.selection(value);
     };
 }
-
-const STYLES = [
-    `.${NAME} ${CONTROL_STYLE}`,
-    `.${LABEL_CLASS} ${LABEL_STYLE}`,
-    `.${SELECT_CLASS} ${INPUT_STYLE}`,
-].join('\n');
-
-Object.assign(SelectControl.prototype, {
-    _NAME: NAME,
-    _STYLES: STYLES,
-});
