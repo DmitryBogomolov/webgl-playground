@@ -1,8 +1,11 @@
 import type { GlTFAsset } from './asset.types';
 
 export function getBinaryData(
-    asset: GlTFAsset, idx: number, byteOffset: number, byteLength: number | undefined,
-): Uint8Array {
+    asset: GlTFAsset,
+    idx: number,
+    byteOffset: number,
+    byteLength: number | undefined,
+): Uint8Array<ArrayBuffer> {
     const bufferView = asset.gltf.bufferViews![idx];
     const buffer = asset.gltf.buffers![bufferView.buffer];
     const offset = (bufferView.byteOffset || 0) + byteOffset;

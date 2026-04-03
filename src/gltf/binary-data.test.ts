@@ -3,7 +3,7 @@ import { getBinaryData } from './binary-data';
 
 describe('binary-data', () => {
     describe('getBinaryData', () => {
-        function arr(start: number, end: number): Uint8Array {
+        function arr(start: number, end: number): Uint8Array<ArrayBuffer> {
             const list: number[] = [];
             for (let i = start; i !== end; ++i) {
                 list.push(i);

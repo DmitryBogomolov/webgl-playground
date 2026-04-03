@@ -38,7 +38,7 @@ export class BevelLine extends LineBase {
             },
             vertexSchema,
             eigen,
-        );
+        ).buffer;
     }
 
     protected _writeIndexes(vertexCount: number): ArrayBuffer {
@@ -50,7 +50,7 @@ export class BevelLine extends LineBase {
                 makeIndexes(list, i * 4 + 2);
             }
         }
-        return new Uint16Array(list);
+        return new Uint16Array(list).buffer;
     }
 
     protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
@@ -73,7 +73,7 @@ export class BevelLine extends LineBase {
             this._buffer,
         );
         const offset = startIdx * 4 * vertexSchema.vertexSize;
-        return [vertexData, offset];
+        return [vertexData.buffer, offset];
     }
 }
 

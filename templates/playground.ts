@@ -38,7 +38,7 @@ function setupButton(): () => void {
     button.textContent = 'X';
 
     return () => {
-        button!.textContent = 'O';
+        button.textContent = 'O';
     };
 
     function doCommand(): void {

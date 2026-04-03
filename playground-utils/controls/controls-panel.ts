@@ -4,6 +4,7 @@ import { SelectControl, SelectControlOptions } from './controls/select-control';
 import { CheckControl, CheckControlOptions } from './controls/check-control';
 
 const NAME = 'controls-panel';
+const STYLES = `.${NAME} { position: absolute; top: 0; padding: 4px; }\n`;
 
 export class ControlsPanel extends BaseControl {
     private readonly _controls: BaseControl[] = [];
@@ -17,6 +18,14 @@ export class ControlsPanel extends BaseControl {
         for (const control of this._controls) {
             control.dispose();
         }
+    }
+
+    protected override _initName(): string {
+        return NAME;
+    }
+
+    protected override _initStyles(): string {
+        return STYLES;
     }
 
     addRangeControl(options: RangeControlOptions): this {
@@ -35,9 +44,3 @@ export class ControlsPanel extends BaseControl {
     }
 }
 
-const STYLES = `.${NAME} { position: absolute; top: 0; padding: 4px; }\n`;
-
-Object.assign(ControlsPanel.prototype, {
-    _NAME: NAME,
-    _STYLES: STYLES,
-});
