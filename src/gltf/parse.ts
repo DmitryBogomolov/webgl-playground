@@ -18,7 +18,7 @@ export async function parseGlTF(data: ArrayBufferView, resolveUri?: GlTFResolveU
     if (buffer) {
         buffers.set(0, buffer);
     }
-    await resolveReferences(gltf, buffers, images, resolveUri || defaultResolveUri);
+    await resolveReferences(gltf, buffers, images, resolveUri ?? defaultResolveUri);
     return {
         gltf,
         buffers,
@@ -87,7 +87,7 @@ function checkNoBuffers(gltf: GlTFSchema.GlTf): void {
 
 function checkSingleBuffer(gltf: GlTFSchema.GlTf, buffer: ArrayBuffer): void {
     const { buffers } = gltf;
-    if (!(buffers && buffers.length === 1)) {
+    if (!(buffers?.length === 1)) {
         throw new Error('buffers should have single item');
     }
     if (buffers[0].byteLength !== buffer.byteLength) {

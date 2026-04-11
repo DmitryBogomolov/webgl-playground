@@ -73,8 +73,8 @@ export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Ve
         k = -k;
         sign = -1;
     }
-    let ta = 0;
-    let tb = 0;
+    let ta: number;
+    let tb: number;
     if (eq(k, 1, DOT_EPS)) {
         ta = 1 - t;
         tb = t;

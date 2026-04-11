@@ -48,6 +48,7 @@ function fromHex(val: string): number {
 }
 
 export function hex2color(hex: string): Color {
+    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
     if (hex[0] !== '#') {
         return color(0, 0, 0, 0);
     }

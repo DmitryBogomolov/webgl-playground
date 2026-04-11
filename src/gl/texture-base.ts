@@ -164,9 +164,9 @@ export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
         let unpackPremultiplyAlpha = false;
         let unpackColorSpaceConversion: UNPACK_COLORSPACE_CONVERSION = 'browser_default';
         if (options) {
-            unpackFlipY = !!(options.unpackFlipY || unpackFlipY);
-            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha || unpackPremultiplyAlpha);
-            unpackColorSpaceConversion = options.unpackColorSpaceConversion || unpackColorSpaceConversion;
+            unpackFlipY = !!(options.unpackFlipY ?? unpackFlipY);
+            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha ?? unpackPremultiplyAlpha);
+            unpackColorSpaceConversion = options.unpackColorSpaceConversion ?? unpackColorSpaceConversion;
         }
         this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);

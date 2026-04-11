@@ -240,8 +240,8 @@ function getRange(
 ): [number, number] {
     const p1 = offset1 !== undefined ? -viewportSize / 2 + offset1 : undefined;
     const p2 = offset2 !== undefined ? +viewportSize / 2 - offset2 : undefined;
-    const ps = size !== undefined ? size : textureSize;
-    return [p1 === undefined ? p2! - ps : p1, p2 === undefined ? p1! + ps : p2];
+    const ps = size ?? textureSize;
+    return [p1 ?? p2! - ps, p2 ?? p1! + ps];
 }
 
 function getActualSize(
@@ -249,7 +249,7 @@ function getActualSize(
     offset1: number | undefined,
     offset2: number | undefined,
 ): number {
-    const size = textureSize - Math.min(offset1 || 0, textureSize) - Math.min(offset2 || 0, textureSize);
+    const size = textureSize - Math.min(offset1 ?? 0, textureSize) - Math.min(offset2 ?? 0, textureSize);
     return Math.abs(size);
 }
 
@@ -311,10 +311,10 @@ function updateRegionMatrix(
     region: ImageRendererRegion,
 ): void {
     // Texture part boundaries in "[0, 1] * [0, 1]" space.
-    const x1 = (region.x1 || 0) / textureSize.x;
-    const x2 = 1 - (region.x2 || 0) / textureSize.x;
-    const y1 = (region.y1 || 0) / textureSize.y;
-    const y2 = 1 - (region.y2 || 0) / textureSize.y;
+    const x1 = (region.x1 ?? 0) / textureSize.x;
+    const x2 = 1 - (region.x2 ?? 0) / textureSize.x;
+    const y1 = (region.y1 ?? 0) / textureSize.y;
+    const y2 = 1 - (region.y2 ?? 0) / textureSize.y;
 
     identity4x4(mat);
     // Bring "[0, 1] * [0, 1]" to "[x1, x2] * [y1, y2]".
@@ -344,7 +344,7 @@ function acquirePrimitive(runtime: Runtime): Primitive {
     let shared = primitivesCache.get(runtime);
     if (!shared) {
         shared = {
-            primitive: createPrimitive(runtime, `ImageRenderer:shared:${runtime}`),
+            primitive: createPrimitive(runtime, `ImageRenderer:shared:${String(runtime)}`),
             refCount: 0,
         };
         primitivesCache.set(runtime, shared);

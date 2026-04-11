@@ -110,10 +110,9 @@ export function parseVertexSchema(schema: VertexSchemaDefinition): VertexSchemaI
         });
         totalSize += byteSize;
     }
-    for (let i = 0; i < list.length; ++i) {
-        const item = list[i];
+    for (const item of list) {
         if (item.stride === -1) {
-            // @ts-ignore Part of object initialization.
+            // @ts-expect-error Part of object initialization.
             item.stride = currentOffset;
         }
     }

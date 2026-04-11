@@ -8,8 +8,8 @@ export function getBinaryData(
 ): Uint8Array<ArrayBuffer> {
     const bufferView = asset.gltf.bufferViews![idx];
     const buffer = asset.gltf.buffers![bufferView.buffer];
-    const offset = (bufferView.byteOffset || 0) + byteOffset;
-    const length = byteLength || bufferView.byteLength;
+    const offset = (bufferView.byteOffset ?? 0) + byteOffset;
+    const length = byteLength ?? bufferView.byteLength;
     if (offset + length > buffer.byteLength) {
         throw new Error(`offset ${offset} and length ${length} mismatch buffer size ${buffer.byteLength}`);
     }

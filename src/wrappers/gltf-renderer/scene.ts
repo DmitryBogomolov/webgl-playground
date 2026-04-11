@@ -41,7 +41,7 @@ interface TraverseNodesCtx {
 function traverseNodes(nodeIdx: number, parentTransform: Mat4, ctx: TraverseNodesCtx): void {
     const { asset } = ctx;
     const node = getNode(nodeIdx, asset);
-    const nodeTransform = getNodeTransform(node) || identity4x4();
+    const nodeTransform = getNodeTransform(node) ?? identity4x4();
     mul4x4(parentTransform, nodeTransform, nodeTransform as Mat4Mut);
     if (node.mesh !== undefined) {
         const mesh = getMesh(node.mesh, asset);

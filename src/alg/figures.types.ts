@@ -7,9 +7,7 @@ export interface VertexData {
     readonly texcoord: Vec2;
 }
 
-export interface VertexMaker<T> {
-    (vertex: VertexData, idx: number): T;
-}
+export type VertexMaker<T> = (vertex: VertexData, idx: number) => T;
 
 export interface VertexIndexData<T> {
     readonly vertices: ReadonlyArray<T>;

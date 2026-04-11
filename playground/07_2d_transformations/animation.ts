@@ -3,9 +3,7 @@ import { vec2, mul2, identity3x3, apply3x3, rotation3x3, translation3x3 } from '
 
 const PI2 = Math.PI * 2;
 
-export interface Animation {
-    (delta: number, mat: Mat3Mut): void;
-}
+export type Animation = (delta: number, mat: Mat3Mut) => void;
 
 export function makeAnimation(size: Vec2, speed: number): Animation {
     const { x: rx, y: ry } = mul2(size, 0.5);

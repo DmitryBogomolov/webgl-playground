@@ -8,7 +8,7 @@ export const pixels: ReadonlyArray<Color> = [
     colors.CYAN, colors.GREEN, colors.BLUE, colors.BLACK,
 ];
 
-export const TEXTURE_SIZE: number = 4;
+export const TEXTURE_SIZE = 4;
 
 export function makeTextureData(): TextureImageData {
     const data = new Uint8ClampedArray(TEXTURE_SIZE * TEXTURE_SIZE * 4);

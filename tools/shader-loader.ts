@@ -2,6 +2,7 @@ import type { LoaderDefinitionFunction } from 'webpack';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 export default <LoaderDefinitionFunction> function (source: string): Promise<string> {
     const pathIndex = new Map<string, number>();
     pathIndex.set(this.resourcePath, 0);

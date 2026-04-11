@@ -1,7 +1,7 @@
 import { hasUrlParam } from 'playground-utils/url';
 import { tapRuntime, setConsoleCommand } from './tap';
 import './screenshot-button';
-// @ts-ignore Actual path is provided in loader.
+// @ts-expect-error Actual path is provided in loader.
 import { main } from '__PATH__';
 
 const doInit = main as () => (() => void);

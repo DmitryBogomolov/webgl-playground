@@ -12,7 +12,6 @@ export function memoize<T extends (...args: any[]) => any>(
             memoizedArgs = args;
             memoizedValue = func(...memoizedArgs) as ReturnType<T>;
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return memoizedValue;
     }
     return memoizedFunc as T;

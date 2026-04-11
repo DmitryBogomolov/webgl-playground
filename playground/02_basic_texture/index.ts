@@ -68,12 +68,12 @@ export function main(): () => void {
     };
 
     const controls: Controls = {
-        uNearest: document.querySelector('#u-nearest') as HTMLElement,
-        vNearest: document.querySelector('#v-nearest') as HTMLElement,
-        uLinear: document.querySelector('#u-linear') as HTMLElement,
-        vLinear: document.querySelector('#v-linear') as HTMLElement,
-        crossNearest: document.querySelector('#cross-nearest') as HTMLElement,
-        crossLinear: document.querySelector('#cross-linear') as HTMLElement,
+        uNearest: document.querySelector('#u-nearest')!,
+        vNearest: document.querySelector('#v-nearest')!,
+        uLinear: document.querySelector('#u-linear')!,
+        vLinear: document.querySelector('#v-linear')!,
+        crossNearest: document.querySelector('#cross-nearest')!,
+        crossLinear: document.querySelector('#cross-linear')!,
     };
 
     function processPointerPosition(position: Vec2): void {
@@ -209,7 +209,7 @@ function drawRect(
     program.setUniform('u_offset', offset);
     program.setUniform('u_texture', 2);
     program.setUniform('u_use_custom', !!texcoord);
-    program.setUniform('u_texcoord', texcoord || ZERO2);
+    program.setUniform('u_texcoord', texcoord ?? ZERO2);
     primitive.render();
 }
 

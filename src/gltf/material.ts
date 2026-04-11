@@ -17,18 +17,10 @@ export function getMaterialInfo(gltf: GlTFSchema.GlTf, primitive: GlTFSchema.Mes
     const baseColorFactor = pbr.baseColorFactor !== undefined
         ? color(...pbr.baseColorFactor as [number, number, number, number])
         : DEFAULT_BASE_COLOR_FACTOR;
-    const metallicFactor = pbr.metallicFactor !== undefined
-        ? pbr.metallicFactor
-        : DEFAULT_METALLIC_FACTOR;
-    const roughnessFactor = pbr.roughnessFactor !== undefined
-        ? pbr.roughnessFactor
-        : DEFAULT_ROUGHNESS_FACTOR;
-    const baseColorTextureIndex = pbr.baseColorTexture
-        ? pbr.baseColorTexture.index
-        : undefined;
-    const metallicRoughnessTextureIndex = pbr.metallicRoughnessTexture
-        ? pbr.metallicRoughnessTexture.index
-        : undefined;
+    const metallicFactor = pbr.metallicFactor ?? DEFAULT_METALLIC_FACTOR;
+    const roughnessFactor = pbr.roughnessFactor ?? DEFAULT_ROUGHNESS_FACTOR;
+    const baseColorTextureIndex = pbr.baseColorTexture?.index;
+    const metallicRoughnessTextureIndex = pbr.metallicRoughnessTexture?.index;
     return {
         baseColorFactor,
         metallicFactor,

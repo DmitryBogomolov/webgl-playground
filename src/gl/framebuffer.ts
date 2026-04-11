@@ -150,7 +150,7 @@ function setupFramebuffer(
             info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
             break;
         default:
-            throw new Error(`bad attachment type: ${attachment}`);
+            throw new Error(`bad attachment type: ${String(attachment)}`);
         }
         const status = runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
         if (status !== GL_FRAMEBUFFER_COMPLETE) {

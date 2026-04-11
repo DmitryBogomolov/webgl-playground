@@ -34,9 +34,7 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
     }
 
     emit(...args: T): this {
-        if (!this._emitHandlers) {
-            this._emitHandlers = this._handlers.slice();
-        }
+        this._emitHandlers ??= this._handlers.slice();
         for (const handler of this._emitHandlers) {
             handler(...args);
         }

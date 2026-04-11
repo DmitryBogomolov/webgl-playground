@@ -154,6 +154,7 @@ const DET3X3_MAP = range(MAT_RANK, (col) => {
 });
 export function det3x3(mat: Mat3): number {
     let sum = 0;
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < DET3X3_MAP.length; ++i) {
         const { sign, idx, indices } = DET3X3_MAP[i];
         sum += sign * mat[idx] * det2x2(mat, indices);
