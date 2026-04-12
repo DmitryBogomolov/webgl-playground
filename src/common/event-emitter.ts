@@ -2,6 +2,8 @@ import type { EventHandler, EventProxy } from './event-emitter.types';
 
 export class EventEmitter<T extends readonly unknown[] = []> implements EventProxy<T> {
     private readonly _handlers: EventHandler<T>[] = [];
+    private _emitHandlers: EventHandler<T>[] | null = null;
+
     private readonly _proxy: EventProxy<T> = {
         on: (handler) => {
             this.on(handler);
@@ -12,7 +14,6 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
             return this._proxy;
         },
     };
-    private _emitHandlers: EventHandler<T>[] | null = null;
 
     get proxy(): EventProxy<T> {
         return this._proxy;
@@ -49,7 +50,8 @@ export class EventEmitter<T extends readonly unknown[] = []> implements EventPro
 }
 
 export function eventOnce<T extends readonly unknown[] = []>(
-    proxy: EventProxy<T>, handler: EventHandler<T>,
+    proxy: EventProxy<T>,
+    handler: EventHandler<T>,
 ): () => void {
     const wrapper: EventHandler<T> = (...args) => {
         proxy.off(wrapper);

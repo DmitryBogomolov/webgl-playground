@@ -4,8 +4,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 import Mustache from 'mustache';
 
-export type Application =
-    NonNullable<Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']>;
+export type Application
+    = NonNullable<Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']>;
 
 export const CONTENT_PATH = '/static';
 export const ASSETS_PATH = '/assets';

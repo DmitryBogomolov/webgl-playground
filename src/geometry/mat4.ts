@@ -156,11 +156,11 @@ export function mul4v4(lhs: Mat4, rhs: Vec4, out: Vec4Mut = v4()): Vec4 {
 
 function det3x3(mat: Mat4, indices: ArrayLike<number>): number {
     return mat[indices[0]] * mat[indices[4]] * mat[indices[8]]
-        - mat[indices[0]] * mat[indices[7]] * mat[indices[5]]
-        - mat[indices[1]] * mat[indices[3]] * mat[indices[8]]
-        + mat[indices[1]] * mat[indices[6]] * mat[indices[5]]
-        + mat[indices[2]] * mat[indices[3]] * mat[indices[7]]
-        - mat[indices[2]] * mat[indices[6]] * mat[indices[4]];
+      - mat[indices[0]] * mat[indices[7]] * mat[indices[5]]
+      - mat[indices[1]] * mat[indices[3]] * mat[indices[8]]
+      + mat[indices[1]] * mat[indices[6]] * mat[indices[5]]
+      + mat[indices[2]] * mat[indices[3]] * mat[indices[7]]
+      - mat[indices[2]] * mat[indices[6]] * mat[indices[4]];
 }
 
 const DET4X4_MAP = range(MAT_RANK, (col) => {

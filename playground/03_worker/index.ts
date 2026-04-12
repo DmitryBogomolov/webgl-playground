@@ -51,16 +51,16 @@ function runWorker(runtime: Runtime, state: State): () => void {
     port1.onmessage = (e) => {
         const message = e.data as WorkerMessage;
         switch (message.type) {
-        case 'worker:set-scale': {
-            state.scale = message.scale;
-            runtime.requestFrameRender();
-            break;
-        }
-        case 'worker:set-color': {
-            state.clr = message.color;
-            runtime.requestFrameRender();
-            break;
-        }
+            case 'worker:set-scale': {
+                state.scale = message.scale;
+                runtime.requestFrameRender();
+                break;
+            }
+            case 'worker:set-color': {
+                state.clr = message.color;
+                runtime.requestFrameRender();
+                break;
+            }
         }
     };
 

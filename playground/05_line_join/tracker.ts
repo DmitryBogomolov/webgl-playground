@@ -150,23 +150,23 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         }
 
         switch (targetVertex.location) {
-        case 'center':
-            action = 'move_vertex';
-            break;
-        case 'border':
-            action = 'change_thickness';
-            break;
+            case 'center':
+                action = 'move_vertex';
+                break;
+            case 'border':
+                action = 'change_thickness';
+                break;
         }
     }
 
     function onMove({ coords }: TrackerEvent): void {
         switch (action) {
-        case 'move_vertex':
-            moveVertex(coords);
-            break;
-        case 'change_thickness':
-            changeThickness(coords);
-            break;
+            case 'move_vertex':
+                moveVertex(coords);
+                break;
+            case 'change_thickness':
+                changeThickness(coords);
+                break;
         }
     }
 

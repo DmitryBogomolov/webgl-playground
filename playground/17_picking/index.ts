@@ -152,7 +152,7 @@ function makeObjects(runtime: Runtime): {
     program: Program,
     idProgram: Program,
     disposeObjects: () => void,
- } {
+} {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { make: makeObject, program, idProgram, dispose: disposeObjects } = makeObjectsFactory(runtime);
     const objects: SceneItem[] = [

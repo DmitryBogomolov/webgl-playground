@@ -54,8 +54,8 @@ export class Tracker {
         const timestamp = now();
         this._emit('end', ev);
         if (
-            timestamp - this._clickTimestamp <= CLICK_DURATION &&
-            sqrdist2(ev.coords, this._clickCoords) <= CLICK_DISTANCE
+            timestamp - this._clickTimestamp <= CLICK_DURATION
+            && sqrdist2(ev.coords, this._clickCoords) <= CLICK_DISTANCE
         ) {
             this._emit('click', ev);
             ++this._dblClickCounter;

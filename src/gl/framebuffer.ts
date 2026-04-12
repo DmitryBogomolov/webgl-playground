@@ -140,17 +140,17 @@ function setupFramebuffer(
     try {
         runtime.bindFramebufferRaw(framebuffer);
         switch (attachment) {
-        case 'color':
-            info = setupColorAttachment(runtime, size);
-            break;
-        case 'color|depth':
-            info = setupColorDepthAttachment(runtime, tag, size, useDepthTexture);
-            break;
-        case 'color|depth|stencil':
-            info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
-            break;
-        default:
-            throw new Error(`bad attachment type: ${String(attachment)}`);
+            case 'color':
+                info = setupColorAttachment(runtime, size);
+                break;
+            case 'color|depth':
+                info = setupColorDepthAttachment(runtime, tag, size, useDepthTexture);
+                break;
+            case 'color|depth|stencil':
+                info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
+                break;
+            default:
+                throw new Error(`bad attachment type: ${String(attachment)}`);
         }
         const status = runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
         if (status !== GL_FRAMEBUFFER_COMPLETE) {
@@ -163,7 +163,6 @@ function setupFramebuffer(
         info?.depthTexture?.dispose();
         info?.renderbuffer?.dispose();
         throw err;
-
     } finally {
         runtime.bindFramebufferRaw(null);
     }

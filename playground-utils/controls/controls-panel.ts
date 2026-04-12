@@ -43,4 +43,3 @@ export class ControlsPanel extends BaseControl {
         return this;
     }
 }
-

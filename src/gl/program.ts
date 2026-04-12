@@ -157,7 +157,6 @@ const UNIFORM_ARRAY_SETTERS_MAP: UniformSettersMap = {
         } else {
             raiseError(`bool[${arraySize}]`, value);
         }
-
     },
     'float': (gl, { location, arraySize }, value) => {
         if (isNumArray(value, arraySize)) {

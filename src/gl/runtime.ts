@@ -423,7 +423,7 @@ export class Runtime {
 
     bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] ??   null) === handle) {
+        if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] ?? null) === handle) {
             return;
         }
         this._log.info('bind_cube_texture({0})', texture);
