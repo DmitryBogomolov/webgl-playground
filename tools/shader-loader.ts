@@ -2,6 +2,7 @@ import type { LoaderDefinitionFunction } from 'webpack';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 export default <LoaderDefinitionFunction> function (source: string): Promise<string> {
     const pathIndex = new Map<string, number>();
     pathIndex.set(this.resourcePath, 0);
@@ -29,7 +30,7 @@ function processSource(source: string, sourcePath: string, pathIndex: Map<string
 }
 
 function enumerateLines(source: string): number[] {
-    const lines = Array.from(source.matchAll(/\n/g), (match) => match.index! + 1);
+    const lines = Array.from(source.matchAll(/\n/g), (match) => match.index + 1);
     if (lines.at(-1) === source.length) {
         lines.pop();
     }
@@ -50,7 +51,7 @@ interface IncludeData {
 function collectIncludes(source: string, sourcePath: string): IncludeData[] {
     const re = new RegExp(PATTERN, 'g');
     const items = Array.from(source.matchAll(re), (match) => ({
-        position: match.index!,
+        position: match.index,
         name: match[1],
     }));
     if (!items.length) {

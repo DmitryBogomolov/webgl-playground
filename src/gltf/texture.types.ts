@@ -19,7 +19,7 @@ export interface GlTFTextureSampler {
 }
 
 export interface GlTFTexture {
-    readonly data: Uint8Array;
+    readonly data: Uint8Array<ArrayBuffer>;
     readonly mimeType: string;
     readonly sampler: GlTFTextureSampler;
 }

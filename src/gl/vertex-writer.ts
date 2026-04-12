@@ -44,8 +44,8 @@ export function writeVertexData<T>(
     vertices: Iterable<T> & { readonly length: number },
     vertexSchema: VertexSchemaInfo,
     getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
-    out?: Uint8Array,
-): Uint8Array {
+    out?: Uint8Array<ArrayBuffer>,
+): Uint8Array<ArrayBuffer> {
     const byteLength = vertices.length * vertexSchema.vertexSize;
     const vertexData = out ? new Uint8Array(out.buffer, out.byteOffset, byteLength) : new Uint8Array(byteLength);
     const writer = new VertexWriter(vertexSchema, vertexData);
@@ -62,11 +62,11 @@ export function writeVertexData<T>(
 }
 
 export class VertexWriter {
-    private readonly _target: ArrayBufferView;
+    private readonly _target: ArrayBufferView<ArrayBuffer>;
     private readonly _attributes: ReadonlyArray<VertexAttributeInfo>;
     private readonly _views = new Map<number, TypedArray>();
 
-    constructor(schema: VertexSchemaInfo, target: ArrayBufferLike) {
+    constructor(schema: VertexSchemaInfo, target: ArrayBuffer | ArrayBufferView<ArrayBuffer>) {
         this._target = wrapBuffer(target);
         this._attributes = schema.attributes;
     }
@@ -98,8 +98,10 @@ export class VertexWriter {
     }
 }
 
-function wrapBuffer(buffer: ArrayBufferView | ArrayBuffer): ArrayBufferView {
-    return ArrayBuffer.isView(buffer) ? buffer : { buffer, byteOffset: 0, byteLength: buffer.byteLength };
+function wrapBuffer(buffer: ArrayBuffer | ArrayBufferView<ArrayBuffer>): ArrayBufferView<ArrayBuffer> {
+    return ArrayBuffer.isView(buffer)
+        ? buffer
+        : { buffer, byteOffset: 0, byteLength: buffer.byteLength };
 }
 
 function eigen<T>(value: T): T {

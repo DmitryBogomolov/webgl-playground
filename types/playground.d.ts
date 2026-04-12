@@ -14,18 +14,8 @@ declare module '*.glsl' {
 }
 
 declare module '*.css' {
-    interface Fields {
-        readonly [key: string]: string;
-    }
-    declare const data: Fields;
+    declare const data: Readonly<Record<string, string>>;
     export default data;
-}
-
-declare module 'worker-loader!*' {
-    class LoadedWorker extends Worker {
-        constructor();
-    }
-    export default LoadedWorker;
 }
 
 declare const PLAYGROUND_NAME: string;

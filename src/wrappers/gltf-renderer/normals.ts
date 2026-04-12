@@ -13,10 +13,10 @@ const INDEX_TYPE_TO_VIEW: Mapping<GLTF_INDEX_TYPE, IndexViewCtor> = {
 };
 
 export function generateNormals(
-    positionData: Uint8Array,
-    indicesData: Uint8Array,
+    positionData: Uint8Array<ArrayBuffer>,
+    indicesData: Uint8Array<ArrayBuffer>,
     indicesType: GlTF_ACCESSOR_TYPE,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
     const positions = new Float32Array(
         positionData.buffer, positionData.byteOffset, positionData.byteLength >> 2,
     );
@@ -51,14 +51,14 @@ export function generateNormals(
     return new Uint8Array(normals.buffer);
 }
 
-function updateVec3(v: Vec3Mut, arr: { readonly [i: number]: number }, idx: number): void {
+function updateVec3(v: Vec3Mut, arr: Readonly<Record<number, number>>, idx: number): void {
     const k = 3 * idx;
     v.x = arr[k + 0];
     v.y = arr[k + 1];
     v.z = arr[k + 2];
 }
 
-function updateArr(arr: { [i: number]: number }, idx: number, v: Vec3): void {
+function updateArr(arr: Record<number, number>, idx: number, v: Vec3): void {
     const k = 3 * idx;
     arr[k + 0] = v.x;
     arr[k + 1] = v.y;

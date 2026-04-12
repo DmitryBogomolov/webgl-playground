@@ -5,7 +5,7 @@ import { Texture } from '../../gl/texture-2d';
 import { getTextureInfo } from '../../gltf/texture';
 
 export function createTextures(asset: GlTFAsset, runtime: Runtime, callback: () => void): Texture[] {
-    const count = asset.gltf.textures?.length || 0;
+    const count = asset.gltf.textures?.length ?? 0;
     const tasks: Promise<void>[] = [];
     const textures: Texture[] = [];
     for (let i = 0; i < count; ++i) {

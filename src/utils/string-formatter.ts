@@ -14,7 +14,7 @@ export function toStr(obj: unknown): string {
     }
     const type = typeof obj;
     if (type === 'symbol') {
-        return String(obj);
+        return String(obj as symbol);
     }
     if (Array.isArray(obj)) {
         return `[${obj.map(toStr).join(', ')}]`;
@@ -28,7 +28,7 @@ export function toStr(obj: unknown): string {
             return `{ ${Object.entries(obj).map(([key, val]) => `${key}: ${toStr(val)}`).join(', ')} }`;
         }
     }
-    return String(obj);
+    return String(obj as string);
 }
 
 export function toArgStr(obj: unknown): string {
@@ -37,7 +37,7 @@ export function toArgStr(obj: unknown): string {
     }
     const type = typeof obj;
     if (type === 'symbol') {
-        return String(obj);
+        return String(obj as symbol);
     }
     if (Array.isArray(obj)) {
         return obj.join(', ');
@@ -48,5 +48,5 @@ export function toArgStr(obj: unknown): string {
             .map(([key, val]) => `${key}=${val}`)
             .join(', ');
     }
-    return String(obj);
+    return String(obj as string);
 }

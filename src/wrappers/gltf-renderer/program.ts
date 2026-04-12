@@ -17,7 +17,7 @@ const releasers = new Map<Program, () => void>();
 function lockProgram(runtime: Runtime, description: Mapping<string, string>): Program {
     const collection = lockCollection(runtime);
     const key = getKey(description);
-    const item = collection.get(key) || createProgram(runtime, collection, key, description);
+    const item = collection.get(key) ?? createProgram(runtime, collection, key, description);
     ++item.refCount;
     return item.program;
 }

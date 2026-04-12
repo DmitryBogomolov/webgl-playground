@@ -339,7 +339,7 @@ function getDefaultRenderState(): RenderState {
         cullFace: 'back',
         blending: false,
         blendFunc: 'one|zero',
-        // @ts-ignore Internal tag.
+        // @ts-expect-error Internal tag.
         [RENDER_STATE]: RENDER_STATE,
     };
 }

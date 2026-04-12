@@ -45,16 +45,20 @@ function setupConnection(port: MessagePort): void {
     port.onmessage = (e) => {
         const message = e.data as MainThreadMessage;
         switch (message.type) {
-        case 'main:update-scale': {
-            updateScale(message.scale);
-            port.postMessage({ type: 'worker:set-scale', scale: buildScale(currentScale) } satisfies WorkerMessage);
-            break;
-        }
-        case 'main:update-color': {
-            updateColor(message.color);
-            port.postMessage({ type: 'worker:set-color', color: buildColor(currentColor) } satisfies WorkerMessage);
-            break;
-        }
+            case 'main:update-scale': {
+                updateScale(message.scale);
+                port.postMessage(
+                    { type: 'worker:set-scale', scale: buildScale(currentScale) } satisfies WorkerMessage,
+                );
+                break;
+            }
+            case 'main:update-color': {
+                updateColor(message.color);
+                port.postMessage(
+                    { type: 'worker:set-color', color: buildColor(currentColor) } satisfies WorkerMessage,
+                );
+                break;
+            }
         }
     };
 }

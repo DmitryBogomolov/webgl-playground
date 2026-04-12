@@ -11,20 +11,22 @@ function makeStyles(key: string, content: string): void {
 }
 
 export abstract class BaseControl {
-    protected readonly _NAME!: string;
-    protected readonly _STYLES!: string;
     protected readonly _root: HTMLDivElement;
     protected readonly _container: HTMLElement;
 
     constructor(container: HTMLElement) {
         this._root = document.createElement('div');
-        this._root.className = this._NAME;
+        this._root.className = this._initName();
         this._container = container;
         container.appendChild(this._root);
-        makeStyles(this._NAME, this._STYLES);
+        makeStyles(this._root.className, this._initStyles());
     }
 
     dispose(): void {
         this._root.remove();
     }
+
+    protected abstract _initName(): string;
+
+    protected abstract _initStyles(): string;
 }

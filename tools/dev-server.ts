@@ -1,11 +1,11 @@
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 import type { Playground, Template } from './playground.types';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import Mustache from 'mustache';
 
-export type Application =
-    NonNullable<Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']>;
+export type Application
+    = NonNullable<Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']>;
 
 export const CONTENT_PATH = '/static';
 export const ASSETS_PATH = '/assets';
@@ -105,15 +105,19 @@ export function collectTemplates(playgrounds: ReadonlyArray<Playground>): Templa
 }
 
 function watchTemplates(
-    playgrounds: ReadonlyArray<Playground>, templates: Map<string, string>, onChange: (name: string) => void,
+    playgrounds: ReadonlyArray<Playground>,
+    templates: Map<string, string>,
+    onChange: (name: string) => void,
 ): void {
     collectTemplates(playgrounds).forEach(({ name, path }) => {
-        function readTemplate(): void {
+        const readTemplate = (): void => {
             fs.readFile(path, 'utf8', (_err, data) => {
-                templates.set(name, data);
-                onChange(name);
+                if (data) {
+                    templates.set(name, data);
+                    onChange(name);
+                }
             });
-        }
+        };
         fs.watch(path, readTemplate);
         readTemplate();
     });

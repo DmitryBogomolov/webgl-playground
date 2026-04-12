@@ -9,8 +9,8 @@ import fragShader from './shaders/label.frag';
 // Calculates texture coordinates for each quad based on glyph location in atlas.
 // Also calculates total pixel size of generated quad (required in shader to calculate actual position).
 export function makeStringPrimitive(runtime: Runtime, program: Program, atlas: GlyphAtlas, text: string): {
-    primitive: Primitive,
-    size: Vec2,
+    primitive: Primitive;
+    size: Vec2;
 } {
     let fullWidth = 0;
     let fullHeight = 0;

@@ -139,7 +139,7 @@ function renderScene({ runtime, vp, primitive, atlasTexture, objects }: State): 
     }
 }
 
-function makeObjects(runtime: Runtime, atlas: GlyphAtlas): { objects: ObjectInfo[], disposeObjects: () => void } {
+function makeObjects(runtime: Runtime, atlas: GlyphAtlas): { objects: ObjectInfo[]; disposeObjects: () => void } {
     const objects: ObjectInfo[] = [];
     const STEP = 2;
     const program = makeStringProgram(runtime);

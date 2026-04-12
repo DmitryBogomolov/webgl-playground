@@ -44,7 +44,7 @@ export function main(): () => void {
     // Z-distance where [-0.5, +0.5] segment (of unit length) exactly matches full canvas height.
     const DISTANCE = fovSize2Dist(YFOV, 1);
 
-    const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2, size: number }> = [
+    const RENDER_SCHEMA: ReadonlyArray<{ offset: Vec2; size: number }> = [
         { offset: vec2(0, 0), size: 1 },
         { offset: vec2(-1.5, +0.4), size: 0.2 },
         { offset: vec2(-1.5, -0.3), size: 0.4 },

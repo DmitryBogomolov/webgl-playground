@@ -140,17 +140,17 @@ function setupFramebuffer(
     try {
         runtime.bindFramebufferRaw(framebuffer);
         switch (attachment) {
-        case 'color':
-            info = setupColorAttachment(runtime, size);
-            break;
-        case 'color|depth':
-            info = setupColorDepthAttachment(runtime, tag, size, useDepthTexture);
-            break;
-        case 'color|depth|stencil':
-            info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
-            break;
-        default:
-            throw new Error(`bad attachment type: ${attachment}`);
+            case 'color':
+                info = setupColorAttachment(runtime, size);
+                break;
+            case 'color|depth':
+                info = setupColorDepthAttachment(runtime, tag, size, useDepthTexture);
+                break;
+            case 'color|depth|stencil':
+                info = setupColorDepthStencilAttachment(runtime, tag, size, useDepthTexture);
+                break;
+            default:
+                throw new Error(`bad attachment type: ${String(attachment)}`);
         }
         const status = runtime.gl().checkFramebufferStatus(GL_FRAMEBUFFER);
         if (status !== GL_FRAMEBUFFER_COMPLETE) {
@@ -163,7 +163,6 @@ function setupFramebuffer(
         info?.depthTexture?.dispose();
         info?.renderbuffer?.dispose();
         throw err;
-
     } finally {
         runtime.bindFramebufferRaw(null);
     }
@@ -214,9 +213,11 @@ function setupColorDepthAttachment(
 ): AttachmentInfo {
     const info = setupColorAttachment(runtime, size);
     const depthTexture = useDepthTexture
-        ? setupTexture(runtime, size, 'depth_component32f', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT) : null;
+        ? setupTexture(runtime, size, 'depth_component32f', DEPTH_TEXTURE_PARAMS, GL_DEPTH_ATTACHMENT)
+        : null;
     const renderbuffer = useDepthTexture
-        ? null : setupRenderbuffer(runtime, tag, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
+        ? null
+        : setupRenderbuffer(runtime, tag, size, GL_DEPTH_COMPONENT16, GL_DEPTH_ATTACHMENT);
     return {
         ...info,
         depthTexture,

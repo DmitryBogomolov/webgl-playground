@@ -115,8 +115,8 @@ export class Primitive {
         } finally {
             this._runtime.bindVertexArray(null);
         }
-        this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode || DEFAULT_PRIMITIVE_MODE];
-        this._indexType = INDEX_TYPE_MAP[config.indexType || DEFAULT_INDEX_TYPE];
+        this._primitiveMode = PRIMITIVE_MODE_MAP[config.primitiveMode ?? DEFAULT_PRIMITIVE_MODE];
+        this._indexType = INDEX_TYPE_MAP[config.indexType ?? DEFAULT_INDEX_TYPE];
         const indexDataLength = isBufferSource(indexData) ? indexData.byteLength : indexData;
         this._setIndexRange(indexDataLength);
     }
@@ -188,7 +188,7 @@ export class Primitive {
     }
 
     setProgram(program: Program | null): void {
-        const prog = program || EMPTY_PROGRAM;
+        const prog = program ?? EMPTY_PROGRAM;
         if (this._program === program) {
             return;
         }

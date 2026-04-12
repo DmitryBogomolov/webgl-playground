@@ -29,7 +29,7 @@ export function quat4apply(q: Vec4, v: Vec3, out: Vec3Mut = v3()): Vec3 {
     const ix = qw * x + qy * z - qz * y;
     const iy = qw * y + qz * x - qx * z;
     const iz = qw * z + qx * y - qy * x;
-    const iw = - qx * x - qy * y - qz * z;
+    const iw = -qx * x - qy * y - qz * z;
     out.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
     out.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
     out.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
@@ -73,8 +73,8 @@ export function quat4slerp(a: Vec4, b: Vec4, t: number, out: Vec4Mut = v4()): Ve
         k = -k;
         sign = -1;
     }
-    let ta = 0;
-    let tb = 0;
+    let ta: number;
+    let tb: number;
     if (eq(k, 1, DOT_EPS)) {
         ta = 1 - t;
         tb = t;
