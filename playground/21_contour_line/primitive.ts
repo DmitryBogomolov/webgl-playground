@@ -73,7 +73,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     const vertexData = writeVertexData(
         {
             length: segmentCount * 4,
-            *[Symbol.iterator]() {
+            * [Symbol.iterator]() {
                 for (let i = 0; i < segmentCount; ++i) {
                     const p1 = points[i];
                     const p2 = points[pickIndex(i + 1, segmentCount)];

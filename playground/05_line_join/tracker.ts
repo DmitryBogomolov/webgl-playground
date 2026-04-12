@@ -70,8 +70,8 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
             return 'center';
         }
         if (
-            equal(len, state.thickness() / 2, BORDER_THRESHOLD) &&
-            equal(Math.abs(dot2(pointer, targetVertex.normal)) / len, 1, 0.1)
+            equal(len, state.thickness() / 2, BORDER_THRESHOLD)
+            && equal(Math.abs(dot2(pointer, targetVertex.normal)) / len, 1, 0.1)
         ) {
             return 'border';
         }

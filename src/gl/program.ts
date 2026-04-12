@@ -65,7 +65,6 @@ const UNIFORM_SETTERS_MAP: UniformSettersMap = {
         } else {
             raiseError('bool', value);
         }
-
     },
     'float': (gl, { location }, value) => {
         if (typeof value === 'number') {

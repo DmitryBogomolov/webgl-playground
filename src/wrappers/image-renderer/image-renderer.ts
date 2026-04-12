@@ -161,8 +161,8 @@ export class ImageRenderer {
             throw this._log.error('set_location - location not defined');
         }
         if (
-            (location.x1 === undefined && location.x2 === undefined) ||
-            (location.y1 === undefined && location.y2 === undefined)
+            (location.x1 === undefined && location.x2 === undefined)
+            || (location.y1 === undefined && location.y2 === undefined)
         ) {
             throw this._log.error('set_location({0}) - not enough data', location);
         }

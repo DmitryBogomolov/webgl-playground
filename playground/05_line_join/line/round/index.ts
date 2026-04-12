@@ -30,9 +30,9 @@ export class RoundLine extends LineBase {
         return writeVertexData(
             {
                 length: (vertices.length - 1) * 4,
-                *[Symbol.iterator]() {
+                * [Symbol.iterator]() {
                     for (let i = 0; i < vertices.length - 1; ++i) {
-                        yield *makeVertices(vertices, i, clr);
+                        yield* makeVertices(vertices, i, clr);
                     }
                 },
             },
@@ -58,9 +58,9 @@ export class RoundLine extends LineBase {
         const vertexData = writeVertexData(
             {
                 length: (endIdx - startIdx + 1) * 4,
-                *[Symbol.iterator]() {
+                * [Symbol.iterator]() {
                     for (let i = startIdx; i <= endIdx; ++i) {
-                        yield *makeVertices(vertices, i, clr);
+                        yield* makeVertices(vertices, i, clr);
                     }
                 },
             },

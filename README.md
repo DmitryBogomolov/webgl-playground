@@ -63,3 +63,16 @@ Downloaded from https://fontawesome.com/search?o=r&c=media-playback&s=solid.
 - rework type system with fields picking
 - extract some state object from Runtime - primitive and others would use it rather then entrire Runtime
 - uniform buffers
+
+    "@types/jest": "30.0.0",
+    "@typescript-eslint/eslint-plugin": "8.57.2",
+    "@typescript-eslint/parser": "8.57.2",
+    "eslint": "10.1.0",
+    "jest": "30.3.0",
+    "jest-environment-jsdom": "30.3.0",
+    "ts-jest": "29.4.6",
+    "ts-loader": "9.5.4",
+    "ts-node": "10.9.2",
+    "typescript": "6.0.2",
+    "webpack-cli": "7.0.2",
+    "webpack-dev-server": "5.2.3",

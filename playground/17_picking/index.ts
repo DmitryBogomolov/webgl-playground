@@ -28,7 +28,7 @@ interface State {
     readonly runtime: Runtime;
     readonly framebuffer: Framebuffer;
     readonly vp: ViewProj;
-    readonly idVP: ViewProj,
+    readonly idVP: ViewProj;
     readonly program: Program;
     readonly idProgram: Program;
     readonly objects: ReadonlyArray<SceneItem>;
@@ -148,10 +148,10 @@ function renderScene({ runtime, backgroundColor, vp, program, objects }: State, 
 }
 
 function makeObjects(runtime: Runtime): {
-    objects: ReadonlyArray<SceneItem>,
-    program: Program,
-    idProgram: Program,
-    disposeObjects: () => void,
+    objects: ReadonlyArray<SceneItem>;
+    program: Program;
+    idProgram: Program;
+    disposeObjects: () => void;
 } {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { make: makeObject, program, idProgram, dispose: disposeObjects } = makeObjectsFactory(runtime);

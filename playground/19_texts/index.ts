@@ -131,7 +131,7 @@ function renderScene({ runtime, vp, primitive, labelPrimitive, objects }: State)
     }
 }
 
-function makeObjects(runtime: Runtime): { objects: ObjectInfo[], disposeObjects: () => void } {
+function makeObjects(runtime: Runtime): { objects: ObjectInfo[]; disposeObjects: () => void } {
     const objects: ObjectInfo[] = [];
     const STEP = 2;
     let i = 0;

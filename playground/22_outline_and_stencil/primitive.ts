@@ -38,11 +38,11 @@ interface VertexInfo {
 }
 
 export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
-    models: Model[],
-    objectProgram: Program,
-    outlineProgram: Program,
-    idProgram: Program,
-    disposeModels: () => void,
+    models: Model[];
+    objectProgram: Program;
+    outlineProgram: Program;
+    idProgram: Program;
+    disposeModels: () => void;
 } {
     const models: Model[] = [];
 

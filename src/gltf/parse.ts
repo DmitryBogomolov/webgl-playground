@@ -48,7 +48,7 @@ function isJsonContent(data: ArrayBufferView): boolean {
     return true;
 }
 
-function parseGlb(data: ArrayBufferView): { gltf: GlTFSchema.GlTf, buffer: ArrayBuffer | null } {
+function parseGlb(data: ArrayBufferView): { gltf: GlTFSchema.GlTf; buffer: ArrayBuffer | null } {
     const arr = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
     const totalLength = readHeader(arr);
     if (totalLength !== arr.length) {
