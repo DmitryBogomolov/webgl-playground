@@ -22,7 +22,7 @@ describe('render loop', () => {
             calls[calls.length - 1][0](time);
         }
 
-        function makeCallback(func?: () => void): { callback: RenderLoopEventHandler, calls: RenderLoopEvent[] } {
+        function makeCallback(func?: () => void): { callback: RenderLoopEventHandler; calls: RenderLoopEvent[] } {
             const calls: RenderLoopEvent[] = [];
             const callback: RenderLoopEventHandler = (e) => {
                 calls.push({ ...e });

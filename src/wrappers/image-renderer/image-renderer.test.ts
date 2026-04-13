@@ -62,8 +62,8 @@ describe('image-renderer', () => {
 
             expect(MockProgram).toBeCalledWith({
                 runtime,
-                vertShader: expect.any(String),
-                fragShader: expect.any(String),
+                vertShader: expect.any(String) as string,
+                fragShader: expect.any(String) as string,
                 tag: 'ImageRenderer:shared:stub/runtime',
             });
             expect(primitive.setProgram).toBeCalledWith(program);

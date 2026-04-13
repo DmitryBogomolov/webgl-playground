@@ -9,11 +9,11 @@ describe('framebuffer', () => {
         const MockTexture = Texture as jest.Mock;
         let framebuffer: WebGLFramebuffer;
         let texture: {
-            dispose: jest.Mock,
-            setFormat: jest.Mock,
-            setParameters: jest.Mock,
-            setImageData: jest.Mock,
-            glHandle: jest.Mock,
+            dispose: jest.Mock;
+            setFormat: jest.Mock;
+            setParameters: jest.Mock;
+            setImageData: jest.Mock;
+            glHandle: jest.Mock;
         };
         let ctx: WebGL2RenderingContext;
         let runtime: Runtime;

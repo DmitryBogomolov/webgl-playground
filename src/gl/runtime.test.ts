@@ -14,7 +14,6 @@ describe('runtime', () => {
         let pixelStorei: jest.Mock;
         let testResizeObserver: TestResizeObserver;
         let testRequestAnimationFrame: jest.Mock;
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         const { createElement } = document;
         const { ResizeObserver, devicePixelRatio, requestAnimationFrame } = globalThis;
 
@@ -29,14 +28,17 @@ describe('runtime', () => {
         class TestResizeObserver {
             readonly callback: ResizeObserverCallback;
             element: unknown = null;
+
             constructor(func: ResizeObserverCallback) {
                 this.callback = func;
                 // eslint-disable-next-line @typescript-eslint/no-this-alias
                 testResizeObserver = this;
             }
+
             observe(element: unknown): void {
                 this.element = element;
             }
+
             disconnect(): void {
                 this.element = 'disconnected';
             }
@@ -65,7 +67,7 @@ describe('runtime', () => {
             } as Partial<WebGL2RenderingContext> as WebGL2RenderingContext;
             canvas.getContext = jest.fn().mockReturnValueOnce(ctx);
             document.createElement = jest.fn().mockReturnValueOnce(canvas);
-            // @ts-ignore Test environment.
+            // @ts-expect-error Test environment.
             testResizeObserver = null;
             testRequestAnimationFrame = jest.fn();
             Object.assign(globalThis, {
@@ -78,7 +80,7 @@ describe('runtime', () => {
         afterEach(() => {
             document.createElement = createElement;
             Object.assign(globalThis, { ResizeObserver, devicePixelRatio, requestAnimationFrame });
-            // @ts-ignore Test environment.
+            // @ts-expect-error Test environment.
             testResizeObserver = null;
         });
 
