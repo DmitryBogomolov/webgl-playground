@@ -1,5 +1,4 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
-// import globals from 'globals'; // TODO ??? Remove dependency?
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin';
