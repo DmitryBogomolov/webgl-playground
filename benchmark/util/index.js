@@ -41,7 +41,7 @@ function median(items) {
 }
 
 function fmt(value) {
-    return value .toPrecision(4);
+    return value.toPrecision(4);
 }
 
 function runWorker(index) {

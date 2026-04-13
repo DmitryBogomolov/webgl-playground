@@ -95,7 +95,7 @@ module.exports = {
                 CULL_FACE: 'TEST_CULL_FACE',
                 BLEND: 'TEST_BLEND',
             },
-        }
+        },
     },
 
     // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
@@ -209,9 +209,11 @@ module.exports = {
 
     // A map from regular expressions to paths to transformers
     transform: {
+        // eslint-disable-next-line no-useless-escape
         '\.ts$': ['ts-jest', {
-            tsconfig: '<rootDir>/tsconfig.json'
+            tsconfig: '<rootDir>/tsconfig.json',
         }],
+        // eslint-disable-next-line no-useless-escape
         '\.vert$|\.frag$|\.glsl$': '<rootDir>/tools/jest-shader-transform.js',
     },
 
