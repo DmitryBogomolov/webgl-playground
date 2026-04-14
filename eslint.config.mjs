@@ -21,6 +21,7 @@ const stylisticRules = {
         multilineDetection: 'brackets',
     }],
     '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: true }],
+    '@stylistic/max-len': ['error', { code: 120 }],
 };
 
 const baseConfig = defineConfig({
