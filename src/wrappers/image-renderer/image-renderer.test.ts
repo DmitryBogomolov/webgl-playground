@@ -48,8 +48,8 @@ describe('image-renderer', () => {
         });
 
         it('create instance', () => {
-            expect(MockPrimitive).toBeCalledWith({ runtime, tag: 'ImageRenderer:shared:stub/runtime' });
-            expect(primitive.setup).toBeCalledWith({
+            expect(MockPrimitive).toHaveBeenCalledWith({ runtime, tag: 'ImageRenderer:shared:stub/runtime' });
+            expect(primitive.setup).toHaveBeenCalledWith({
                 vertexData: new Float32Array([-1, -1, +1, -1, +1, +1, -1, +1]),
                 indexData: new Uint16Array([0, 1, 2, 2, 3, 0]),
                 vertexSchema: {
@@ -60,25 +60,25 @@ describe('image-renderer', () => {
                 },
             });
 
-            expect(MockProgram).toBeCalledWith({
+            expect(MockProgram).toHaveBeenCalledWith({
                 runtime,
                 vertShader: expect.any(String) as string,
                 fragShader: expect.any(String) as string,
                 tag: 'ImageRenderer:shared:stub/runtime',
             });
-            expect(primitive.setProgram).toBeCalledWith(program);
+            expect(primitive.setProgram).toHaveBeenCalledWith(program);
 
-            expect(MockTexture).toBeCalledWith({ runtime, tag: 'tag/test' });
-            expect(texture.setParameters).toBeCalledWith({ mag_filter: 'nearest', min_filter: 'nearest' });
-            expect(texture.setImageData).toBeCalledWith({ data: null, size: { x: 1, y: 1 } });
+            expect(MockTexture).toHaveBeenCalledWith({ runtime, tag: 'tag/test' });
+            expect(texture.setParameters).toHaveBeenCalledWith({ mag_filter: 'nearest', min_filter: 'nearest' });
+            expect(texture.setImageData).toHaveBeenCalledWith({ data: null, size: { x: 1, y: 1 } });
         });
 
         it('destroy instance', () => {
             renderer.dispose();
 
-            expect(primitive.dispose).toBeCalledWith();
-            expect(program.dispose).toBeCalledWith();
-            expect(texture.dispose).toBeCalledWith();
+            expect(primitive.dispose).toHaveBeenCalledWith();
+            expect(program.dispose).toHaveBeenCalledWith();
+            expect(texture.dispose).toHaveBeenCalledWith();
         });
 
         it('initial state', () => {
@@ -152,7 +152,7 @@ describe('image-renderer', () => {
             renderer.setImageData(testData);
 
             expect(changed).toEqual(true);
-            expect(texture.setImageData).toBeCalledWith(testData, { unpackFlipY: true });
+            expect(texture.setImageData).toHaveBeenCalledWith(testData, { unpackFlipY: true });
         });
 
         it('set image data / url', async () => {
@@ -165,23 +165,23 @@ describe('image-renderer', () => {
             renderer.setImageData({ url: '/test-url' });
             await promise;
 
-            expect(makeImage).toBeCalledWith({ url: '/test-url' });
-            expect(texture.setImageData).toBeCalledWith(testData, { unpackFlipY: true });
+            expect(makeImage).toHaveBeenCalledWith({ url: '/test-url' });
+            expect(texture.setImageData).toHaveBeenCalledWith(testData, { unpackFlipY: true });
         });
 
         it('share primitive and program amoung all renderers', () => {
             const otherRenderer = new ImageRenderer({ runtime });
             const otherTexture = MockTexture.mock.instances[1];
 
-            expect(MockTexture).toBeCalledTimes(2);
-            expect(MockPrimitive).toBeCalledTimes(1);
-            expect(MockProgram).toBeCalledTimes(1);
+            expect(MockTexture).toHaveBeenCalledTimes(2);
+            expect(MockPrimitive).toHaveBeenCalledTimes(1);
+            expect(MockProgram).toHaveBeenCalledTimes(1);
 
             otherRenderer.dispose();
 
-            expect(otherTexture.dispose).toBeCalledWith();
-            expect(primitive.dispose).not.toBeCalled();
-            expect(program.dispose).not.toBeCalled();
+            expect(otherTexture.dispose).toHaveBeenCalledWith();
+            expect(primitive.dispose).not.toHaveBeenCalled();
+            expect(program.dispose).not.toHaveBeenCalled();
         });
     });
 });

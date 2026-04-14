@@ -50,11 +50,11 @@ describe('http-request', () => {
             const { task: response } = httpRequest('/test-url');
 
             expect(controllers.length).toEqual(1);
-            expect(fetch).toBeCalledWith('/test-url', { signal: controllers[0].signal });
+            expect(fetch).toHaveBeenCalledWith('/test-url', { signal: controllers[0].signal });
 
             const result = await response;
             expect(result).toEqual({ tag: 'test-data' });
-            expect(controllers[0].abort).toBeCalledTimes(0);
+            expect(controllers[0].abort).toHaveBeenCalledTimes(0);
         });
 
         it('load several times', async () => {
@@ -66,7 +66,7 @@ describe('http-request', () => {
             const response2 = httpRequest('/test-url-2');
             const response3 = httpRequest('/test-url-3');
 
-            expect(fetch).toBeCalledTimes(3);
+            expect(fetch).toHaveBeenCalledTimes(3);
             expect(controllers.length).toEqual(3);
             expect(fetch).toHaveBeenNthCalledWith(1, '/test-url-1', { signal: controllers[0].signal });
             expect(fetch).toHaveBeenNthCalledWith(2, '/test-url-2', { signal: controllers[1].signal });
@@ -74,9 +74,9 @@ describe('http-request', () => {
 
             const results = await Promise.all([response1.task, response2.task, response3.task]);
             expect(results).toEqual([100, 200, 300]);
-            expect(controllers[0].abort).toBeCalledTimes(0);
-            expect(controllers[1].abort).toBeCalledTimes(0);
-            expect(controllers[2].abort).toBeCalledTimes(0);
+            expect(controllers[0].abort).toHaveBeenCalledTimes(0);
+            expect(controllers[1].abort).toHaveBeenCalledTimes(0);
+            expect(controllers[2].abort).toHaveBeenCalledTimes(0);
         });
 
         it('cancel', () => {
@@ -85,7 +85,7 @@ describe('http-request', () => {
             const { cancel } = httpRequest('/test-url');
             cancel();
 
-            expect(controllers[0].abort).toBeCalledWith();
+            expect(controllers[0].abort).toHaveBeenCalledWith();
         });
 
         it('cancel several times', () => {
@@ -99,8 +99,8 @@ describe('http-request', () => {
             response2.cancel();
             response1.cancel();
 
-            expect(controllers[0].abort).toBeCalledWith();
-            expect(controllers[1].abort).toBeCalledWith();
+            expect(controllers[0].abort).toHaveBeenCalledWith();
+            expect(controllers[1].abort).toHaveBeenCalledWith();
         });
 
         it('handle request error', async () => {
@@ -126,7 +126,7 @@ describe('http-request', () => {
             const result = await response.task;
 
             expect(result).toEqual(100);
-            expect(fetch).toBeCalledWith('/test-url', { method: 'POST', signal: controllers[0].signal });
+            expect(fetch).toHaveBeenCalledWith('/test-url', { method: 'POST', signal: controllers[0].signal });
         });
 
         it('receive binary response', async () => {

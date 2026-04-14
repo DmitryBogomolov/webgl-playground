@@ -33,7 +33,7 @@ describe('parse', () => {
         it('parse not valid JSON', async () => {
             const data = Buffer.from('  { bad data }  ');
 
-            await expect(() => parseGlTF(data)).rejects.toThrowError();
+            await expect(() => parseGlTF(data)).rejects.toThrow();
         });
 
         it('parse binary', async () => {
@@ -61,7 +61,7 @@ describe('parse', () => {
         it('parse not valid binary', async () => {
             const data = Buffer.from('bad data');
 
-            await expect(() => parseGlTF(data)).rejects.toThrowError();
+            await expect(() => parseGlTF(data)).rejects.toThrow();
         });
     });
 });
