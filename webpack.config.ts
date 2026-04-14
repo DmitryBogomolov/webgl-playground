@@ -1,6 +1,6 @@
 import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
 import type { Playground } from './tools/playground.types';
-import path from 'path';
+import path from 'node:path';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
@@ -55,8 +55,10 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         output: {
             path: path.join(__dirname, './build'),
             // filename: 'lib.js',
-            library: 'lib',
-            libraryTarget: 'umd',
+            library: {
+                name: 'lib',
+                type: 'umd',
+            },
             globalObject: 'this',
             clean: true,
         },
@@ -115,7 +117,10 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                 publicPath: `${CONTENT_PATH}/`,
             },
             setupMiddlewares: (middlewares, devServer) => {
-                setupHandlers(devServer.app!, playgrounds);
+                const handlers = setupHandlers(playgrounds);
+                for (const handler of handlers) {
+                    devServer.app!.get(handler.path, handler.handler);
+                }
                 return middlewares;
             },
         },
