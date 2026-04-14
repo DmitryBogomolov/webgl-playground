@@ -34,13 +34,13 @@ function equal(lhs: number, rhs: number): boolean {
 }
 
 function vecToStr(v: unknown, keys: ReadonlyArray<string>): string {
-    // @ts-ignore Vector field.
+    // @ts-expect-error Vector field.
     const parts = keys.map((key) => `${key}: ${v[key]}`);
     return `{ ${parts.join(', ')} }`;
 }
 
 function checkVec<T>(actual: T, expected: T, keys: ReadonlyArray<string>): jest.CustomMatcherResult {
-    // @ts-ignore Vector field.
+    // @ts-expect-error Vector field.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const eq = keys.every((key) => equal(actual[key], expected[key]));
     if (eq) {
@@ -73,8 +73,10 @@ function matToStr(v: unknown, rank: number, transpose: boolean): string {
     return lines.join('\n');
 }
 
-function checkMat<T extends { readonly [i: number]: number }>(
-    actual: T, expected: T, rank: number,
+function checkMat<T extends Record<number, number>>(
+    actual: T,
+    expected: T,
+    rank: number,
 ): jest.CustomMatcherResult {
     let count = 0;
     for (let i = 0; i < rank; ++i) {

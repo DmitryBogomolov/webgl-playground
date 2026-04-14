@@ -26,13 +26,13 @@ describe('gltf-renderer', () => {
         });
 
         it('create instance', () => {
-            expect(MockLoader).toBeCalledWith();
+            expect(MockLoader).toHaveBeenCalledWith();
         });
 
         it('destroy instance', () => {
             renderer.dispose();
 
-            expect(loader.dispose).toBeCalledWith();
+            expect(loader.dispose).toHaveBeenCalledWith();
         });
     });
 });

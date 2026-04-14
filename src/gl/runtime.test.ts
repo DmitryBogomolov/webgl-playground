@@ -14,7 +14,6 @@ describe('runtime', () => {
         let pixelStorei: jest.Mock;
         let testResizeObserver: TestResizeObserver;
         let testRequestAnimationFrame: jest.Mock;
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         const { createElement } = document;
         const { ResizeObserver, devicePixelRatio, requestAnimationFrame } = globalThis;
 
@@ -29,14 +28,17 @@ describe('runtime', () => {
         class TestResizeObserver {
             readonly callback: ResizeObserverCallback;
             element: unknown = null;
+
             constructor(func: ResizeObserverCallback) {
                 this.callback = func;
                 // eslint-disable-next-line @typescript-eslint/no-this-alias
                 testResizeObserver = this;
             }
+
             observe(element: unknown): void {
                 this.element = element;
             }
+
             disconnect(): void {
                 this.element = 'disconnected';
             }
@@ -65,7 +67,7 @@ describe('runtime', () => {
             } as Partial<WebGL2RenderingContext> as WebGL2RenderingContext;
             canvas.getContext = jest.fn().mockReturnValueOnce(ctx);
             document.createElement = jest.fn().mockReturnValueOnce(canvas);
-            // @ts-ignore Test environment.
+            // @ts-expect-error Test environment.
             testResizeObserver = null;
             testRequestAnimationFrame = jest.fn();
             Object.assign(globalThis, {
@@ -78,7 +80,7 @@ describe('runtime', () => {
         afterEach(() => {
             document.createElement = createElement;
             Object.assign(globalThis, { ResizeObserver, devicePixelRatio, requestAnimationFrame });
-            // @ts-ignore Test environment.
+            // @ts-expect-error Test environment.
             testResizeObserver = null;
         });
 
@@ -87,7 +89,7 @@ describe('runtime', () => {
 
             expect(runtime.canvas).toEqual(canvas);
             expect(runtime.renderSize).toEqual({ x: 0, y: 0 });
-            expect(canvas.getContext as jest.Mock).toBeCalledWith(
+            expect(canvas.getContext as jest.Mock).toHaveBeenCalledWith(
                 'webgl2',
                 {
                     alpha: true,
@@ -117,8 +119,8 @@ describe('runtime', () => {
             expect(runtime.renderSize).toEqual({ x: 402, y: 304 });
             expect(canvas.width).toEqual(402);
             expect(canvas.height).toEqual(304);
-            expect(renderSizeChanged).toBeCalledTimes(1);
-            expect(testRequestAnimationFrame).toBeCalledTimes(1);
+            expect(renderSizeChanged).toHaveBeenCalledTimes(1);
+            expect(testRequestAnimationFrame).toHaveBeenCalledTimes(1);
         });
 
         it('resize / contentBoxSize', () => {
@@ -138,8 +140,8 @@ describe('runtime', () => {
             expect(runtime.renderSize).toEqual({ x: 812, y: 408 });
             expect(canvas.width).toEqual(812);
             expect(canvas.height).toEqual(408);
-            expect(renderSizeChanged).toBeCalledTimes(1);
-            expect(testRequestAnimationFrame).toBeCalledTimes(1);
+            expect(renderSizeChanged).toHaveBeenCalledTimes(1);
+            expect(testRequestAnimationFrame).toHaveBeenCalledTimes(1);
         });
 
         it('resize / contentRect', () => {
@@ -159,8 +161,8 @@ describe('runtime', () => {
             expect(runtime.renderSize).toEqual({ x: 812, y: 408 });
             expect(canvas.width).toEqual(812);
             expect(canvas.height).toEqual(408);
-            expect(renderSizeChanged).toBeCalledTimes(1);
-            expect(testRequestAnimationFrame).toBeCalledTimes(1);
+            expect(renderSizeChanged).toHaveBeenCalledTimes(1);
+            expect(testRequestAnimationFrame).toHaveBeenCalledTimes(1);
         });
 
         it('return default state', () => {

@@ -70,8 +70,8 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
             return 'center';
         }
         if (
-            equal(len, state.thickness() / 2, BORDER_THRESHOLD) &&
-            equal(Math.abs(dot2(pointer, targetVertex.normal)) / len, 1, 0.1)
+            equal(len, state.thickness() / 2, BORDER_THRESHOLD)
+            && equal(Math.abs(dot2(pointer, targetVertex.normal)) / len, 1, 0.1)
         ) {
             return 'border';
         }
@@ -150,23 +150,23 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         }
 
         switch (targetVertex.location) {
-        case 'center':
-            action = 'move_vertex';
-            break;
-        case 'border':
-            action = 'change_thickness';
-            break;
+            case 'center':
+                action = 'move_vertex';
+                break;
+            case 'border':
+                action = 'change_thickness';
+                break;
         }
     }
 
     function onMove({ coords }: TrackerEvent): void {
         switch (action) {
-        case 'move_vertex':
-            moveVertex(coords);
-            break;
-        case 'change_thickness':
-            changeThickness(coords);
-            break;
+            case 'move_vertex':
+                moveVertex(coords);
+                break;
+            case 'change_thickness':
+                changeThickness(coords);
+                break;
         }
     }
 

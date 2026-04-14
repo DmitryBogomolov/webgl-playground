@@ -6,20 +6,20 @@ export function color(r: number, g: number, b: number, a: number = 1): Color {
 
 export function isColor(arg: unknown): arg is Color {
     return Boolean(
-        arg &&
-        Number.isFinite((arg as Color).r) &&
-        Number.isFinite((arg as Color).g) &&
-        Number.isFinite((arg as Color).b) &&
-        Number.isFinite((arg as Color).a),
+        arg
+        && Number.isFinite((arg as Color).r)
+        && Number.isFinite((arg as Color).g)
+        && Number.isFinite((arg as Color).b)
+        && Number.isFinite((arg as Color).a),
     );
 }
 
 export function colorEq(lhs: Color, rhs: Color, eps: number = 1E-7): boolean {
     return lhs === rhs || (
-        Math.abs(lhs.r - rhs.r) <= eps &&
-        Math.abs(lhs.g - rhs.g) <= eps &&
-        Math.abs(lhs.b - rhs.b) <= eps &&
-        Math.abs(lhs.a - rhs.a) <= eps
+        Math.abs(lhs.r - rhs.r) <= eps
+        && Math.abs(lhs.g - rhs.g) <= eps
+        && Math.abs(lhs.b - rhs.b) <= eps
+        && Math.abs(lhs.a - rhs.a) <= eps
     );
 }
 
@@ -48,6 +48,7 @@ function fromHex(val: string): number {
 }
 
 export function hex2color(hex: string): Color {
+    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
     if (hex[0] !== '#') {
         return color(0, 0, 0, 0);
     }

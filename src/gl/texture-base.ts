@@ -95,7 +95,7 @@ export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
     protected readonly _log: Logger;
     protected readonly _runtime: TextureRuntimeBase;
     private readonly _texture: WebGLTexture;
-    protected readonly _target!: number;
+    protected readonly _target: number = this._initTarget();
     protected _size: Vec2 = clone2(ZERO2);
     private _internalFormat: number = DEFAULT_TEXTURE_FORMAT;
     private _format: number = DEFAULT_TEXTURE_INTERNAL_FORMAT;
@@ -144,6 +144,8 @@ export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
         return texture;
     }
 
+    protected abstract _initTarget(): number;
+
     protected abstract _bind(): void;
 
     private _initTextureState(): void {
@@ -162,9 +164,9 @@ export abstract class TextureBase implements GLHandleWrapper<WebGLTexture> {
         let unpackPremultiplyAlpha = false;
         let unpackColorSpaceConversion: UNPACK_COLORSPACE_CONVERSION = 'browser_default';
         if (options) {
-            unpackFlipY = !!(options.unpackFlipY || unpackFlipY);
-            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha || unpackPremultiplyAlpha);
-            unpackColorSpaceConversion = options.unpackColorSpaceConversion || unpackColorSpaceConversion;
+            unpackFlipY = !!(options.unpackFlipY ?? unpackFlipY);
+            unpackPremultiplyAlpha = !!(options.unpackPremultiplyAlpha ?? unpackPremultiplyAlpha);
+            unpackColorSpaceConversion = options.unpackColorSpaceConversion ?? unpackColorSpaceConversion;
         }
         this._runtime.setPixelStoreUnpackFlipYWebgl(unpackFlipY);
         this._runtime.setPixelStoreUnpackPremultiplyAlphaWebgl(unpackPremultiplyAlpha);

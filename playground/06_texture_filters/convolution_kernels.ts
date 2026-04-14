@@ -1,4 +1,3 @@
-
 export type Kernel = Readonly<[number, number, number, number, number, number, number, number, number]>;
 
 export interface ConvolutionKernel {

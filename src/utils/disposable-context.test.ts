@@ -13,9 +13,9 @@ describe('disposable-context', () => {
             context.add(obj3);
             context.dispose();
 
-            expect(obj1.dispose).toBeCalledWith();
-            expect(obj2.dispose).toBeCalledWith();
-            expect(obj3.dispose).toBeCalledWith();
+            expect(obj1.dispose).toHaveBeenCalledWith();
+            expect(obj2.dispose).toHaveBeenCalledWith();
+            expect(obj3.dispose).toHaveBeenCalledWith();
         });
 
         it('do not dispose if released', () => {
@@ -30,9 +30,9 @@ describe('disposable-context', () => {
             context.release();
             context.dispose();
 
-            expect(obj1.dispose).not.toBeCalled();
-            expect(obj2.dispose).not.toBeCalled();
-            expect(obj3.dispose).not.toBeCalled();
+            expect(obj1.dispose).not.toHaveBeenCalled();
+            expect(obj2.dispose).not.toHaveBeenCalled();
+            expect(obj3.dispose).not.toHaveBeenCalled();
         });
     });
 });

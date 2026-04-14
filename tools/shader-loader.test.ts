@@ -9,8 +9,8 @@ describe('shader-loader', () => {
     });
 
     function setDebugSources(sources: Record<string, string>): void {
-        (fs.readFile as jest.Mock).mockImplementation((name: unknown) => {
-            const source = sources[name as string];
+        (fs.readFile as jest.Mock).mockImplementation((name: string) => {
+            const source = sources[name];
             return source ? Promise.resolve(source) : Promise.reject(new Error(`not found: ${name}`));
         });
     }
@@ -25,7 +25,7 @@ describe('shader-loader', () => {
         function addDependency(file: string): void {
             dependencies.push(file);
         }
-        // @ts-ignore Test setup.
+        // @ts-expect-error No exported type in webpack.
         const content: string = await processShader.call({ resourcePath, addDependency }, source);
         const code = content.substring('export default '.length);
         const lines = (JSON.parse(code) as string).split('\n');

@@ -14,6 +14,12 @@ const NAME = 'range-control';
 const LABEL_CLASS = `${NAME}-label`;
 const INPUT_CLASS = `${NAME}-input`;
 const VALUE_CLASS = `${NAME}-value`;
+const STYLES = [
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${INPUT_CLASS} ${INPUT_STYLE}`,
+    `.${VALUE_CLASS} { width: 40px; padding-left: 4px; float: right; text-align: right; }`,
+].join('\n');
 
 export class RangeControl extends BaseControl {
     private readonly _options: RangeControlOptions;
@@ -61,6 +67,14 @@ export class RangeControl extends BaseControl {
         this._options.value.off(this._handleValueChange);
     }
 
+    protected override _initName(): string {
+        return NAME;
+    }
+
+    protected override _initStyles(): string {
+        return STYLES;
+    }
+
     private _updateInput(): void {
         this._input.value = String(this._options.value());
     }
@@ -79,18 +93,6 @@ export class RangeControl extends BaseControl {
         this._options.value(value);
     };
 }
-
-const STYLES = [
-    `.${NAME} ${CONTROL_STYLE}`,
-    `.${LABEL_CLASS} ${LABEL_STYLE}`,
-    `.${INPUT_CLASS} ${INPUT_STYLE}`,
-    `.${VALUE_CLASS} { width: 40px; padding-left: 4px; float: right; text-align: right; }`,
-].join('\n');
-
-Object.assign(RangeControl.prototype, {
-    _NAME: NAME,
-    _STYLES: STYLES,
-});
 
 function formatText(value: number): string {
     return `${value}`;

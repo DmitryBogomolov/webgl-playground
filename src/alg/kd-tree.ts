@@ -108,8 +108,8 @@ export class KDTree<T> {
 
 function defaultDist(axes: KDTreeDistance): number {
     let dist = 0;
-    for (let i = 0; i < axes.length; ++i) {
-        dist += axes[i] ** 2;
+    for (const axis of axes) {
+        dist += axis ** 2;
     }
     return dist;
 }

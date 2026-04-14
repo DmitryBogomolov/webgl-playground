@@ -8,7 +8,8 @@ const _v2_scratch = vec2(0, 0);
 const _v3_scratch = vec3(0, 0, 0);
 
 export function generatePlaneX<T>(
-    size: Vec2, makeVertex: VertexMaker<T>,
+    size: Vec2,
+    makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch as Vec2Mut);
     let idx = 0;
@@ -16,14 +17,15 @@ export function generatePlaneX<T>(
         makeVertex({ position: vec3(0, -dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
         makeVertex({ position: vec3(0, +dw, -dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
         makeVertex({ position: vec3(0, +dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
-        makeVertex({ position: vec3(0, -dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+        makeVertex({ position: vec3(0, -dw, +dh), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx),
     ];
     const indices = [0, 1, 2, 2, 3, 0];
     return { vertices, indices };
 }
 
 export function generatePlaneY<T>(
-    size: Vec2, makeVertex: VertexMaker<T>,
+    size: Vec2,
+    makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch as Vec2Mut);
     let idx = 0;
@@ -31,14 +33,15 @@ export function generatePlaneY<T>(
         makeVertex({ position: vec3(-dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
         makeVertex({ position: vec3(-dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
         makeVertex({ position: vec3(+dh, 0, +dw), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
-        makeVertex({ position: vec3(+dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+        makeVertex({ position: vec3(+dh, 0, -dw), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx),
     ];
     const indices = [0, 1, 2, 2, 3, 0];
     return { vertices, indices };
 }
 
 export function generatePlaneZ<T>(
-    size: Vec2, makeVertex: VertexMaker<T>,
+    size: Vec2,
+    makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dw, y: dh } = mul2(size, 0.5, _v2_scratch as Vec2Mut);
     let idx = 0;
@@ -46,14 +49,15 @@ export function generatePlaneZ<T>(
         makeVertex({ position: vec3(-dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 0) }, idx++),
         makeVertex({ position: vec3(+dw, -dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 0) }, idx++),
         makeVertex({ position: vec3(+dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(1, 1) }, idx++),
-        makeVertex({ position: vec3(-dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx++),
+        makeVertex({ position: vec3(-dw, +dh, 0), normal: vec3(0, 1, 0), texcoord: vec2(0, 1) }, idx),
     ];
     const indices = [0, 1, 2, 2, 3, 0];
     return { vertices, indices };
 }
 
 export function generateCube<T>(
-    size: Vec3, makeVertex: VertexMaker<T>,
+    size: Vec3,
+    makeVertex: VertexMaker<T>,
 ): VertexIndexData<T> {
     const { x: dx, y: dy, z: dz } = mul3(size, 0.5, _v3_scratch as Vec3Mut);
 
@@ -88,7 +92,7 @@ export function generateCube<T>(
         makeVertex({ position: vec3(-dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 0) }, idx++),
         makeVertex({ position: vec3(+dx, +dy, +dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 0) }, idx++),
         makeVertex({ position: vec3(+dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(1, 1) }, idx++),
-        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) }, idx++),
+        makeVertex({ position: vec3(-dx, +dy, -dz), normal: vec3(0, +1, 0), texcoord: vec2(0, 1) }, idx),
     ];
     const indices: number[] = [];
     for (let i = 0; i < 6; ++i) {
@@ -100,7 +104,9 @@ export function generateCube<T>(
 }
 
 export function generateSphere<T>(
-    size: Vec3, makeVertex: VertexMaker<T>, partition: number = 4,
+    size: Vec3,
+    makeVertex: VertexMaker<T>,
+    partition: number = 4,
 ): VertexIndexData<T> {
     const step = Math.PI / partition;
     const lonCount = 2 * partition;

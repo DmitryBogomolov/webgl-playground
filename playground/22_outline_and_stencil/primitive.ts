@@ -38,11 +38,11 @@ interface VertexInfo {
 }
 
 export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>): {
-    models: Model[],
-    objectProgram: Program,
-    outlineProgram: Program,
-    idProgram: Program,
-    disposeModels: () => void,
+    models: Model[];
+    objectProgram: Program;
+    outlineProgram: Program;
+    idProgram: Program;
+    disposeModels: () => void;
 } {
     const models: Model[] = [];
 
@@ -66,24 +66,24 @@ export function makeModels(runtime: Runtime, list: ReadonlyArray<ModelOptions>):
     for (const { type, size, location, color } of list) {
         let vertexIndexData: VertexIndexData<VertexInfo>;
         switch (type) {
-        case 'cube':
-            vertexIndexData = generateCube(size, makeCubeVertexInfo);
-            break;
-        case 'sphere':
-            vertexIndexData = generateSphere(size, makeSphereVertexInfo, 12);
-            break;
-        case 'plane':
-            switch (0) {
-            case size.x:
-                vertexIndexData = generatePlaneX(vec2(size.y, size.z), makePlaneVertexInfo);
+            case 'cube':
+                vertexIndexData = generateCube(size, makeCubeVertexInfo);
                 break;
-            case size.y:
-                vertexIndexData = generatePlaneY(vec2(size.x, size.z), makePlaneVertexInfo);
+            case 'sphere':
+                vertexIndexData = generateSphere(size, makeSphereVertexInfo, 12);
                 break;
-            case size.z:
-                vertexIndexData = generatePlaneZ(vec2(size.x, size.y), makePlaneVertexInfo);
-                break;
-            }
+            case 'plane':
+                switch (0) {
+                    case size.x:
+                        vertexIndexData = generatePlaneX(vec2(size.y, size.z), makePlaneVertexInfo);
+                        break;
+                    case size.y:
+                        vertexIndexData = generatePlaneY(vec2(size.x, size.z), makePlaneVertexInfo);
+                        break;
+                    case size.z:
+                        vertexIndexData = generatePlaneZ(vec2(size.x, size.y), makePlaneVertexInfo);
+                        break;
+                }
         }
         const primitive = makePrimitive(runtime, vertexIndexData!);
         const mat = translation4x4(location);

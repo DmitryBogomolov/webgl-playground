@@ -61,30 +61,38 @@ export function createPrimitive(
         makeAccessorTypeValidator(VALID_POSITION_TYPES, 'POSITION'),
         noop,
     );
-    const indexInfo = primitive.indices !== undefined ? getAttributeInfo(
-        asset,
-        primitive.indices,
-        makeAccessorTypeValidator(VALID_INDEX_TYPES, 'index'),
-        noop,
-    ) : generateIndexInfo(positionInfo.count);
-    const normalInfo = normalIdx !== undefined ? getAttributeInfo(
-        asset,
-        normalIdx,
-        makeAccessorTypeValidator(VALID_NORMAL_TYPES, 'NORMAL'),
-        makeAccessorCountValidator(positionInfo.count, 'NORMAL'),
-    ) : generateNormalInfo(positionInfo, indexInfo);
-    const colorInfo = colorIdx !== undefined ? getAttributeInfo(
-        asset,
-        colorIdx,
-        makeAccessorTypeValidator(VALID_COLOR_TYPES, 'COLOR_0'),
-        makeAccessorCountValidator(positionInfo.count, 'COLOR_0'),
-    ) : null;
-    const texcoordInfo = texcoordIdx !== undefined ? getAttributeInfo(
-        asset,
-        texcoordIdx,
-        makeAccessorTypeValidator(VALID_TEXCOORD_TYPES, 'TEXCOORD_0'),
-        makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
-    ) : null;
+    const indexInfo = primitive.indices !== undefined
+        ? getAttributeInfo(
+            asset,
+            primitive.indices,
+            makeAccessorTypeValidator(VALID_INDEX_TYPES, 'index'),
+            noop,
+        )
+        : generateIndexInfo(positionInfo.count);
+    const normalInfo = normalIdx !== undefined
+        ? getAttributeInfo(
+            asset,
+            normalIdx,
+            makeAccessorTypeValidator(VALID_NORMAL_TYPES, 'NORMAL'),
+            makeAccessorCountValidator(positionInfo.count, 'NORMAL'),
+        )
+        : generateNormalInfo(positionInfo, indexInfo);
+    const colorInfo = colorIdx !== undefined
+        ? getAttributeInfo(
+            asset,
+            colorIdx,
+            makeAccessorTypeValidator(VALID_COLOR_TYPES, 'COLOR_0'),
+            makeAccessorCountValidator(positionInfo.count, 'COLOR_0'),
+        )
+        : null;
+    const texcoordInfo = texcoordIdx !== undefined
+        ? getAttributeInfo(
+            asset,
+            texcoordIdx,
+            makeAccessorTypeValidator(VALID_TEXCOORD_TYPES, 'TEXCOORD_0'),
+            makeAccessorCountValidator(positionInfo.count, 'TEXCOORD_0'),
+        )
+        : null;
 
     const result = new Primitive({ runtime });
 
@@ -127,22 +135,26 @@ export function createPrimitive(
         normalMatrix: inversetranspose4x4(transform),
         material,
         description: {
-            HAS_COLOR_ATTR: colorInfo ? '1' : '0',
-            HAS_TEXCOORD_ATTR: texcoordInfo ? '1' : '0',
-            HAS_MATERIAL: material ? '1' : '0',
-            HAS_BASE_COLOR_TEXTURE: texcoordInfo
-                && material?.baseColorTextureIndex !== undefined ? '1' : '0',
-            HAS_METALLIC_ROUGHNESS_TEXTURE: texcoordInfo
-                && material?.metallicRoughnessTextureIndex !== undefined ? '1' : '0',
+            HAS_COLOR_ATTR: toDefValue(colorInfo),
+            HAS_TEXCOORD_ATTR: toDefValue(texcoordInfo),
+            HAS_MATERIAL: toDefValue(material),
+            HAS_BASE_COLOR_TEXTURE:
+                toDefValue(texcoordInfo && material?.baseColorTextureIndex !== undefined),
+            HAS_METALLIC_ROUGHNESS_TEXTURE:
+                toDefValue(texcoordInfo && material?.metallicRoughnessTextureIndex !== undefined),
         },
     };
+}
+
+function toDefValue(cond: unknown): string {
+    return cond ? '1' : '0';
 }
 
 interface AttributeInfo {
     readonly type: GlTF_ACCESSOR_TYPE;
     readonly stride: number;
     readonly count: number;
-    readonly data: Uint8Array;
+    readonly data: Uint8Array<ArrayBuffer>;
 }
 
 type TypeValidator = (type: GlTF_ACCESSOR_TYPE) => void;
@@ -175,7 +187,7 @@ function calculateTotalSize(attributes: Iterable<AttributeInfo | null>): number 
 
 interface SetVertexDataCtx {
     readonly attributes: VertexAttributeDefinition[];
-    readonly data: Uint8Array;
+    readonly data: Uint8Array<ArrayBuffer>;
     offset: number;
 }
 

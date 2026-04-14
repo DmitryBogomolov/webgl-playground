@@ -296,7 +296,7 @@ function createControl(params: ControlParams): Control {
     const tracker = new Tracker(elementRoot, {
         start: (e) => {
             const { tag } = (e.nativeEvent.target as HTMLElement).dataset;
-            handler = (handlers[tag as string] ?? null) as Handler | null;
+            handler = (handlers[tag!] ?? null) as Handler | null;
             if (handler) {
                 setCursor(CURSOR);
             }

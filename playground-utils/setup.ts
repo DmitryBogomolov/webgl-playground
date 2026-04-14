@@ -2,7 +2,7 @@ import type { RuntimeParams, EventProxy, LogHandler, LogLevel } from 'lib';
 import { Runtime } from 'lib';
 import { hasUrlParam } from './url';
 
-export function setup(params?: Partial<RuntimeParams>): { runtime: Runtime, container: HTMLElement } {
+export function setup(params?: Partial<RuntimeParams>): { runtime: Runtime; container: HTMLElement } {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const log = !hasUrlParam('no-logger') ? createLogger() : undefined;
     const runtime = new Runtime({

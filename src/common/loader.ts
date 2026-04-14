@@ -36,7 +36,7 @@ export class Loader {
 
     private _getRequest(url: string, params: HttpRequestParams | undefined): Entry {
         const key = `${params?.method ?? '-'}:${url}:${params?.contentType ?? '-'}`;
-        return this._entries.get(key) || this._createRequest(key, url, params);
+        return this._entries.get(key) ?? this._createRequest(key, url, params);
     }
 
     load<T>(url: string, params?: HttpRequestParams): Promise<T> {
@@ -57,7 +57,7 @@ export class Loader {
                 },
                 (err) => {
                     if (this._tasks.has(task)) {
-                        reject(err);
+                        reject(err as Error);
                     }
                 },
             );

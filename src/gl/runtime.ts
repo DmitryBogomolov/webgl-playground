@@ -48,10 +48,10 @@ interface BindingsState {
     arrayBuffer: WebGLBuffer | null;
     // ELEMENT_ARRAY_BUFFER is part of VAO state.
     // When bound VAO is changed bound element array buffer is changed as well. Hence state is dropped.
-    elementArrayBuffers: { [key: number]: WebGLBuffer | null };
+    elementArrayBuffers: Record<number, WebGLBuffer | null>;
     textureUnit: number;
-    boundTextures: { [key: number]: WebGLTexture | null };
-    boundCubeTextures: { [key: number]: WebGLTexture | null };
+    boundTextures: Record<number, WebGLTexture | null>;
+    boundCubeTextures: Record<number, WebGLTexture | null>;
     framebuffer: WebGLFramebuffer | null;
     renderbuffer: WebGLRenderbuffer | null;
 }
@@ -413,7 +413,7 @@ export class Runtime {
 
     bindTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._bindingsState.boundTextures[this._bindingsState.textureUnit] || null) === handle) {
+        if ((this._bindingsState.boundTextures[this._bindingsState.textureUnit] ?? null) === handle) {
             return;
         }
         this._log.info('bind_texture({0})', texture);
@@ -423,7 +423,7 @@ export class Runtime {
 
     bindCubeTexture(texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] || null) === handle) {
+        if ((this._bindingsState.boundCubeTextures[this._bindingsState.textureUnit] ?? null) === handle) {
             return;
         }
         this._log.info('bind_cube_texture({0})', texture);
@@ -433,7 +433,7 @@ export class Runtime {
 
     setTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._bindingsState.boundTextures[unit] || null) === handle) {
+        if ((this._bindingsState.boundTextures[unit] ?? null) === handle) {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
@@ -446,7 +446,7 @@ export class Runtime {
 
     setCubeTextureUnit(unit: number, texture: GLHandleWrapper<WebGLTexture> | null): void {
         const handle = unwrapGLHandle(texture);
-        if ((this._bindingsState.boundCubeTextures[unit] || null) === handle) {
+        if ((this._bindingsState.boundCubeTextures[unit] ?? null) === handle) {
             return;
         }
         if (this._bindingsState.textureUnit !== unit) {
@@ -541,9 +541,9 @@ export class Runtime {
 
     readPixels(renderTarget: RenderTarget | null, pixels: ArrayBufferView, options: ReadPixelsOptions = {}): void {
         const range = getReadPixelsRange(this._renderTarget?.size() ?? this._renderSize, options.p1, options.p2);
-        const format = options.format || DEFAULT_READ_PIXELS_FORMAT;
-        const glFormat = READ_PIXELS_FORMAT_MAP[format] || READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
-        const glType = READ_PIXELS_TYPE_MAP[format] || READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
+        const format = options.format ?? DEFAULT_READ_PIXELS_FORMAT;
+        const glFormat = READ_PIXELS_FORMAT_MAP[format] ?? READ_PIXELS_FORMAT_MAP[DEFAULT_READ_PIXELS_FORMAT];
+        const glType = READ_PIXELS_TYPE_MAP[format] ?? READ_PIXELS_TYPE_MAP[DEFAULT_READ_PIXELS_FORMAT];
         // In practice this state has no effect on "readPixels" output (though documentation states otherwise).
         // So it is just set to a fixed value to avoid any inconsistencies.
         this.setPixelStoreUnpackFlipYWebgl(false);
@@ -601,7 +601,7 @@ function createCanvas(container: HTMLElement): HTMLCanvasElement {
     canvas.style.border = 'none';
     canvas.style.backgroundColor = 'none';
     container.appendChild(canvas);
-    // @ts-ignore Tag canvas.
+    // @ts-expect-error Tag canvas.
     canvas[CANVAS_TAG] = true;
     return canvas;
 }

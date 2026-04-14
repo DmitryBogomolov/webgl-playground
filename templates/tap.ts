@@ -9,11 +9,11 @@ interface Entry {
 
 const entries: Entry[] = [];
 
-// @ts-ignore Take methods closest to constructor and destructor.
+// @ts-expect-error Take methods closest to constructor and destructor.
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { _getContext, _loseContext } = Runtime.prototype;
 
-// @ts-ignore Hook into constructor.
+// @ts-expect-error Hook into constructor.
 Runtime.prototype._getContext = function (...args) {
     const ret = _getContext.apply(this, args);
     for (const entry of entries) {
@@ -21,7 +21,7 @@ Runtime.prototype._getContext = function (...args) {
     }
     return ret;
 };
-// @ts-ignore Hook into destructor.
+// @ts-expect-error Hook into destructor.
 Runtime.prototype._loseContext = function (...args) {
     for (const entry of entries) {
         entry.cache.get(this)!();
@@ -42,8 +42,8 @@ export function tapRuntime(handler: TapHandler): () => void {
 }
 
 export function setConsoleCommand(name: string, handler: () => void): void {
-    // @ts-ignore Global.
+    // @ts-expect-error Global object access.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const playground = (window.playground = window.playground || {});
+    const playground = (window.playground = window.playground ?? {});
     Object.assign(playground, { [name]: handler });
 }

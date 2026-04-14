@@ -73,7 +73,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     const vertexData = writeVertexData(
         {
             length: segmentCount * 4,
-            *[Symbol.iterator]() {
+            * [Symbol.iterator]() {
                 for (let i = 0; i < segmentCount; ++i) {
                     const p1 = points[i];
                     const p2 = points[pickIndex(i + 1, segmentCount)];
@@ -100,7 +100,7 @@ export function updateContourData(primitive: Primitive, points: ReadonlyArray<Ve
     primitive.updateIndexRange({ indexCount: segmentCount * INDEX_PER_SEGMENT });
 }
 
-function generateContourIndices(): Uint16Array {
+function generateContourIndices(): Uint16Array<ArrayBuffer> {
     const indices: number[] = [];
     for (let i = 0; i < MAX_CONTOUR_SEGMENTS; ++i) {
         const vertexIdx = VERTEX_PER_SEGMENT * i;

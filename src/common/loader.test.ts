@@ -17,7 +17,7 @@ describe('loader', () => {
 
             const task = loader.load('/test-url');
 
-            expect(httpRequestMock).toBeCalledWith('/test-url', undefined);
+            expect(httpRequestMock).toHaveBeenCalledWith('/test-url', undefined);
 
             const result = await task;
             expect(result).toEqual(100);
@@ -34,7 +34,7 @@ describe('loader', () => {
             const task4 = loader.load('/test-url-1');
             const task5 = loader.load('/test-url-1');
 
-            expect(httpRequestMock).toBeCalledTimes(2);
+            expect(httpRequestMock).toHaveBeenCalledTimes(2);
             expect(httpRequestMock).toHaveBeenNthCalledWith(1, '/test-url-1', undefined);
             expect(httpRequestMock).toHaveBeenNthCalledWith(2, '/test-url-2', undefined);
 
@@ -50,7 +50,7 @@ describe('loader', () => {
             const task = loader.load('/test-url');
             loader.cancel(task);
 
-            expect(cancel).toBeCalledWith();
+            expect(cancel).toHaveBeenCalledWith();
         });
 
         it('cancel several times', () => {
@@ -68,8 +68,8 @@ describe('loader', () => {
             loader.cancel(task2);
             loader.cancel(task1);
 
-            expect(cancel1).toBeCalledTimes(1);
-            expect(cancel2).toBeCalledTimes(1);
+            expect(cancel1).toHaveBeenCalledTimes(1);
+            expect(cancel2).toHaveBeenCalledTimes(1);
         });
 
         it('do not abort request if there are tasks', async () => {
@@ -87,7 +87,7 @@ describe('loader', () => {
 
             const results = await Promise.all([task1, task4]);
             expect(results).toEqual([10, 10]);
-            expect(cancel).toBeCalledTimes(0);
+            expect(cancel).toHaveBeenCalledTimes(0);
         });
 
         it('abort request if all tasks are canceled', () => {
@@ -105,7 +105,7 @@ describe('loader', () => {
             loader.cancel(task4);
             loader.cancel(task1);
 
-            expect(cancel).toBeCalledTimes(1);
+            expect(cancel).toHaveBeenCalledTimes(1);
         });
 
         it('abort requests on dispose', () => {
@@ -123,8 +123,8 @@ describe('loader', () => {
 
             loader.dispose();
 
-            expect(cancel1).toBeCalledWith();
-            expect(cancel2).toBeCalledWith();
+            expect(cancel1).toHaveBeenCalledWith();
+            expect(cancel2).toHaveBeenCalledWith();
         });
 
         it('load several times sequentially', async () => {
@@ -140,7 +140,7 @@ describe('loader', () => {
             expect(result1).toEqual(100);
             expect(result2).toEqual(200);
             expect(result3).toEqual(300);
-            expect(httpRequestMock).toBeCalledTimes(3);
+            expect(httpRequestMock).toHaveBeenCalledTimes(3);
             expect(httpRequestMock).toHaveBeenNthCalledWith(1, '/test-url', undefined);
             expect(httpRequestMock).toHaveBeenNthCalledWith(2, '/test-url', undefined);
             expect(httpRequestMock).toHaveBeenNthCalledWith(3, '/test-url', undefined);

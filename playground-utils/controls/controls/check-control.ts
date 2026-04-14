@@ -10,6 +10,11 @@ export interface CheckControlOptions {
 const NAME = 'check-control';
 const LABEL_CLASS = `${NAME}-label`;
 const INPUT_CLASS = `${NAME}-input`;
+const STYLES = [
+    `.${NAME} ${CONTROL_STYLE}`,
+    `.${LABEL_CLASS} ${LABEL_STYLE}`,
+    `.${INPUT_CLASS} ${INPUT_STYLE}`,
+].join('\n');
 
 export class CheckControl extends BaseControl {
     private readonly _options: CheckControlOptions;
@@ -44,6 +49,14 @@ export class CheckControl extends BaseControl {
         this._options.checked.off(this._handleCheckedChange);
     }
 
+    protected override _initName(): string {
+        return NAME;
+    }
+
+    protected override _initStyles(): string {
+        return STYLES;
+    }
+
     private _updateInput(): void {
         this._input.checked = this._options.checked();
     }
@@ -57,14 +70,3 @@ export class CheckControl extends BaseControl {
         this._options.checked(checked);
     };
 }
-
-const STYLES = [
-    `.${NAME} ${CONTROL_STYLE}`,
-    `.${LABEL_CLASS} ${LABEL_STYLE}`,
-    `.${INPUT_CLASS} ${INPUT_STYLE}`,
-].join('\n');
-
-Object.assign(CheckControl.prototype, {
-    _NAME: NAME,
-    _STYLES: STYLES,
-});

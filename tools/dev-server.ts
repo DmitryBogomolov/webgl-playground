@@ -1,11 +1,8 @@
-import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
+import type { RequestHandler } from 'webpack-dev-server';
 import type { Playground, Template } from './playground.types';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import Mustache from 'mustache';
-
-export type Application =
-    NonNullable<Parameters<NonNullable<DevServerConfiguration['onBeforeSetupMiddleware']>>[0]['app']>;
 
 export const CONTENT_PATH = '/static';
 export const ASSETS_PATH = '/assets';
@@ -18,7 +15,12 @@ const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 const ROOT_TEMPLATE_NAME = 'index';
 const PLAYGROUND_TEMPLATE_NAME = 'playground';
 
-export function setupHandlers(app: Application, playgrounds: ReadonlyArray<Playground>): void {
+export interface DevServerHandler {
+    readonly path: string;
+    readonly handler: RequestHandler;
+}
+
+export function setupHandlers(playgrounds: ReadonlyArray<Playground>): DevServerHandler[] {
     const templates = new Map<string, string>();
     let rootPageCache = '';
     const playgroundPagesCache = new Map<string, string>();
@@ -49,17 +51,32 @@ export function setupHandlers(app: Application, playgrounds: ReadonlyArray<Playg
         return content;
     }
 
-    app.get('/favicon.ico', (_, res) => {
-        res.send('favicon');
-    });
-    app.get('/', (_req, res) => {
-        res.send(getRootPage());
-    });
+    const handlers: DevServerHandler[] = [];
+
+    handlers.push(
+        {
+            path: '/favicon.ico',
+            handler: (_, res) => {
+                res.send('favicon');
+            },
+        },
+        {
+            path: '/',
+            handler: (_, res) => {
+                res.send(getRootPage());
+            },
+        },
+    );
     playgrounds.forEach((playground) => {
-        app.get(`${PLAYGROUND_PATH}/${playground.name}/`, (_req, res) => {
-            res.send(getPlaygroundPage(playground));
+        handlers.push({
+            path: `${PLAYGROUND_PATH}/${playground.name}/`,
+            handler: (_, res) => {
+                res.send(getPlaygroundPage(playground));
+            },
         });
     });
+
+    return handlers;
 }
 
 function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: ReadonlyMap<string, string>): string {
@@ -105,15 +122,19 @@ export function collectTemplates(playgrounds: ReadonlyArray<Playground>): Templa
 }
 
 function watchTemplates(
-    playgrounds: ReadonlyArray<Playground>, templates: Map<string, string>, onChange: (name: string) => void,
+    playgrounds: ReadonlyArray<Playground>,
+    templates: Map<string, string>,
+    onChange: (name: string) => void,
 ): void {
     collectTemplates(playgrounds).forEach(({ name, path }) => {
-        function readTemplate(): void {
+        const readTemplate = (): void => {
             fs.readFile(path, 'utf8', (_err, data) => {
-                templates.set(name, data);
-                onChange(name);
+                if (data) {
+                    templates.set(name, data);
+                    onChange(name);
+                }
             });
-        }
+        };
         fs.watch(path, readTemplate);
         readTemplate();
     });

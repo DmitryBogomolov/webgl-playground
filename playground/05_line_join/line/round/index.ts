@@ -30,15 +30,15 @@ export class RoundLine extends LineBase {
         return writeVertexData(
             {
                 length: (vertices.length - 1) * 4,
-                *[Symbol.iterator]() {
+                * [Symbol.iterator]() {
                     for (let i = 0; i < vertices.length - 1; ++i) {
-                        yield *makeVertices(vertices, i, clr);
+                        yield* makeVertices(vertices, i, clr);
                     }
                 },
             },
             vertexSchema,
             eigen,
-        );
+        ).buffer;
     }
 
     protected _writeIndexes(vertexCount: number): ArrayBuffer {
@@ -47,7 +47,7 @@ export class RoundLine extends LineBase {
         for (let i = 0; i < segmentCount; ++i) {
             makeIndexes(list, i * 4);
         }
-        return new Uint16Array(list);
+        return new Uint16Array(list).buffer;
     }
 
     protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
@@ -58,16 +58,16 @@ export class RoundLine extends LineBase {
         const vertexData = writeVertexData(
             {
                 length: (endIdx - startIdx + 1) * 4,
-                *[Symbol.iterator]() {
+                * [Symbol.iterator]() {
                     for (let i = startIdx; i <= endIdx; ++i) {
-                        yield *makeVertices(vertices, i, clr);
+                        yield* makeVertices(vertices, i, clr);
                     }
                 },
             },
             vertexSchema,
             eigen,
             this._buffer,
-        );
+        ).buffer;
         const offset = startIdx * 4 * vertexSchema.vertexSize;
         return [vertexData, offset];
     }
