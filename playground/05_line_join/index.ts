@@ -47,13 +47,13 @@ function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFact
         runtime.requestFrameRender();
     });
     state.changedVertices.on(() => {
-        line.setVertices(state.vertices());
+        line.setVertices(state.vertices);
         runtime.requestFrameRender();
     });
     state.changedVertex.on(() => {
-        line.updateVertex(state.vertices(), state.changedVertex().index);
+        line.updateVertex(state.vertices, state.changedVertex().index);
         runtime.requestFrameRender();
     });
-    line.setVertices(state.vertices());
+    line.setVertices(state.vertices);
     line.setThickness(state.thickness() * thicknessFactor);
 }

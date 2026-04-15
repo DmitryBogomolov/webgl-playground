@@ -51,10 +51,9 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
     }
 
     function getVertexNormal(vertexIdx: number): Vec2 {
-        const vertices = state.vertices();
-        const curr = vertices[vertexIdx];
-        const next = vertices[vertexIdx + 1];
-        const prev = vertices[vertexIdx - 1];
+        const curr = state.vertices[vertexIdx];
+        const next = state.vertices[vertexIdx + 1];
+        const prev = state.vertices[vertexIdx - 1];
         const ret = getPxCoords(curr) as Vec2Mut;
         const nextDir = next ? sub2(getPxCoords(next), ret) : ZERO2;
         const prevDir = prev ? sub2(ret, getPxCoords(prev)) : ZERO2;
@@ -96,7 +95,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         if (targetVertex.idx !== vertexIdx) {
             targetVertex = {
                 idx: vertexIdx,
-                coords: getPxCoords(state.vertices()[vertexIdx]),
+                coords: getPxCoords(state.vertices[vertexIdx]),
                 normal: getVertexNormal(vertexIdx),
                 location: 'none',
             };
@@ -131,7 +130,7 @@ export function setupTracker(runtime: Runtime, tree: SearchTree, state: State): 
         if (action !== 'none') {
             return;
         }
-        const vertexCount = state.vertices().length;
+        const vertexCount = state.vertices.length;
         if (targetVertex.location === 'center') {
             if (vertexCount <= 2) {
                 return;

@@ -3,12 +3,18 @@ import { vec2, clone2 } from 'lib';
 import { observable } from 'playground-utils/observable';
 
 export class State {
-    private _vertices = getInitialVertices();
+    private readonly _vertices: Vec2[] = [
+        vec2(-0.7, -0.8),
+        vec2(-0.1, +0.5),
+        vec2(+0.4, -0.5),
+        vec2(+0.8, +0.6),
+    ];
+
     readonly changedVertices = observable({ count: -1 });
     readonly changedVertex = observable({ index: -1 });
     readonly thickness = observable(50);
 
-    vertices(): ReadonlyArray<Vec2> {
+    get vertices(): ReadonlyArray<Vec2> {
         return this._vertices;
     }
 
@@ -26,13 +32,4 @@ export class State {
         this._vertices[idx] = clone2(position);
         this.changedVertex({ index: idx });
     }
-}
-
-function getInitialVertices(): Vec2[] {
-    return [
-        vec2(-0.7, -0.8),
-        vec2(-0.1, +0.5),
-        vec2(+0.4, -0.5),
-        vec2(+0.8, +0.6),
-    ];
 }

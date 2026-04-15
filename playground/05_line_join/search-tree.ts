@@ -25,7 +25,7 @@ export class SearchTree {
     private readonly _update = (): void => {
         const { clientWidth, clientHeight } = this._runtime.canvas;
         const size: Vec2 = { x: clientWidth, y: clientHeight };
-        const vertices = this._state.vertices().map((v) => ndc2px(v, size));
+        const vertices = this._state.vertices.map((v) => ndc2px(v, size));
         this._tree = new KDTree(vertices, axisFuncList);
     };
 
