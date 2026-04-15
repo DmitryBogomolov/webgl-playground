@@ -27,13 +27,14 @@ export class BevelLine extends LineBase {
     }
 
     protected override _setPoints(points: ArrayLike<Vec2>): SetPointsResult {
+        const segmentCount = points.length - 1;
         const clr = this._color;
         const vertexData = writeVertexData(
             {
-                length: (points.length - 1) * 4,
+                length: segmentCount * 4,
                 * [Symbol.iterator]() {
-                    for (let i = 0; i < points.length - 1; ++i) {
-                        yield* makeVertices(points, i, clr);
+                    for (let i = 0; i < segmentCount; ++i) {
+                        yield* makeSegmentVertices(points, i, clr);
                     }
                 },
             },
@@ -42,7 +43,6 @@ export class BevelLine extends LineBase {
         );
 
         const list: number[] = [];
-        const segmentCount = points.length - 1;
         for (let i = 0; i < segmentCount; ++i) {
             makeIndexes(list, i * 4);
             if (i < segmentCount - 1) {
@@ -56,24 +56,26 @@ export class BevelLine extends LineBase {
     protected override _updatePoint(points: ArrayLike<Vec2>, idx: number): UpdatePointResult {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments
         // and segments (k-2, k-1) and (k+1, k+2) as before/after part.
-        const startIdx = Math.max(idx - 2, 0);
-        const endIdx = Math.min(idx + 1, points.length - 2);
+        const startSegmentIdx = Math.max(idx - 2, 0);
+        const endSegmentIdx = Math.min(idx + 1, points.length - 2);
         const clr = this._color;
         const vertexData = writeVertexData(
             {
-                length: (endIdx - startIdx + 1) * 4,
+                length: (endSegmentIdx - startSegmentIdx + 1) * 4,
                 * [Symbol.iterator]() {
-                    for (let i = startIdx; i <= endIdx; ++i) {
-                        yield* makeVertices(points, i, clr);
+                    for (let i = startSegmentIdx; i <= endSegmentIdx; ++i) {
+                        yield* makeSegmentVertices(points, i, clr);
                     }
                 },
             },
             vertexSchema,
             eigen,
             this._buffer,
-        );
-        const offset = startIdx * 4 * vertexSchema.vertexSize;
-        return { vertexData: vertexData.buffer, offset };
+        ).buffer;
+        const offset = startSegmentIdx * 4 * vertexSchema.vertexSize;
+        // TODO_THIS: Use views.
+        const data = vertexData.slice(0, (endSegmentIdx - startSegmentIdx + 1) * 4 * vertexSchema.vertexSize);
+        return { vertexData: data, offset };
     }
 }
 
@@ -91,11 +93,11 @@ function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
     return vec4(other.x, other.y, outer.x, outer.y);
 }
 
-function* makeVertices(vertices: ArrayLike<Vec2>, i: number, clr: Color): Iterable<BevelVertex> {
-    const start = vertices[i];
-    const end = vertices[i + 1];
-    const before = vertices[i - 1] || end;
-    const after = vertices[i + 2] || start;
+function* makeSegmentVertices(vertices: ArrayLike<Vec2>, segmentIdx: number, clr: Color): Iterable<BevelVertex> {
+    const start = vertices[segmentIdx];
+    const end = vertices[segmentIdx + 1];
+    const before = vertices[segmentIdx - 1] || end;
+    const after = vertices[segmentIdx + 2] || start;
 
     const startOther = makeOtherAttr(end, before);
     const endOther = makeOtherAttr(start, after);
