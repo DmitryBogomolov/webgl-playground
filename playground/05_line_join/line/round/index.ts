@@ -1,4 +1,5 @@
 import type { Runtime, Color, Vec2, Vec4 } from 'lib';
+import type { SetPointsResult, UpdatePointResult } from '../line';
 import { parseVertexSchema, vec4, writeVertexData } from 'lib';
 import { LineBase } from '../line';
 import vertShader from './shaders/vert.glsl';
@@ -25,55 +26,54 @@ export class RoundLine extends LineBase {
         this._color = clr;
     }
 
-    protected _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer {
+    protected override _setPoints(points: ArrayLike<Vec2>): SetPointsResult {
+        const segmentCount = points.length - 1;
         const clr = this._color;
-        return writeVertexData(
+        const vertexData = writeVertexData(
             {
-                length: (vertices.length - 1) * 4,
+                length: segmentCount * 4,
                 * [Symbol.iterator]() {
-                    for (let i = 0; i < vertices.length - 1; ++i) {
-                        yield* makeVertices(vertices, i, clr);
+                    for (let i = 0; i < segmentCount; ++i) {
+                        yield* makeSegmentVertices(points, i, clr);
                     }
                 },
             },
             vertexSchema,
             eigen,
-        ).buffer;
-    }
+        );
 
-    protected _writeIndexes(vertexCount: number): ArrayBuffer {
         const list: number[] = [];
-        const segmentCount = vertexCount - 1;
         for (let i = 0; i < segmentCount; ++i) {
             makeIndexes(list, i * 4);
         }
-        return new Uint16Array(list).buffer;
+
+        return { vertexData, indexData: new Uint16Array(list) };
     }
 
-    protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
+    protected override _updatePoint(points: ArrayLike<Vec2>, idx: number): UpdatePointResult {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments.
-        const startIdx = Math.max(idx - 1, 0);
-        const endIdx = Math.min(idx, vertices.length - 2);
+        const startSegmentIdx = Math.max(idx - 1, 0);
+        const endSegmentIdx = Math.min(idx, points.length - 2);
         const clr = this._color;
         const vertexData = writeVertexData(
             {
-                length: (endIdx - startIdx + 1) * 4,
+                length: (endSegmentIdx - startSegmentIdx + 1) * 4,
                 * [Symbol.iterator]() {
-                    for (let i = startIdx; i <= endIdx; ++i) {
-                        yield* makeVertices(vertices, i, clr);
+                    for (let i = startSegmentIdx; i <= endSegmentIdx; ++i) {
+                        yield* makeSegmentVertices(points, i, clr);
                     }
                 },
             },
             vertexSchema,
             eigen,
             this._buffer,
-        ).buffer;
-        const offset = startIdx * 4 * vertexSchema.vertexSize;
-        return [vertexData, offset];
+        );
+        const offset = startSegmentIdx * 4 * vertexSchema.vertexSize;
+        return { vertexData, offset };
     }
 }
 
-type RoundVertex = [Vec4, Vec2, Color];
+type RoundVertex = Readonly<[Vec4, Vec2, Color]>;
 
 function eigen(v: RoundVertex): RoundVertex {
     return v;
@@ -83,9 +83,9 @@ function makePositionAttr(position: Vec2, crossSide: number, lateralSide: number
     return vec4(position.x, position.y, crossSide, lateralSide);
 }
 
-function* makeVertices(vertices: ReadonlyArray<Vec2>, i: number, clr: Color): Iterable<RoundVertex> {
-    const start = vertices[i];
-    const end = vertices[i + 1];
+function* makeSegmentVertices(vertices: ArrayLike<Vec2>, segmentIdx: number, clr: Color): Iterable<RoundVertex> {
+    const start = vertices[segmentIdx];
+    const end = vertices[segmentIdx + 1];
 
     const startOther = end;
     const endOther = start;

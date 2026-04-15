@@ -7,10 +7,20 @@ export interface LineParams {
     readonly fragShader: string;
 }
 
+export interface SetPointsResult {
+    readonly vertexData: ArrayBufferView<ArrayBuffer>;
+    readonly indexData: ArrayBufferView<ArrayBuffer>;
+}
+
+export interface UpdatePointResult {
+    readonly vertexData: ArrayBufferView<ArrayBuffer>;
+    readonly offset: number;
+}
+
 export abstract class LineBase {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
-    private _thickness = 1;
+    private _thickness: number = 1;
 
     constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
@@ -33,22 +43,18 @@ export abstract class LineBase {
         this._primitive.dispose();
     }
 
-    protected abstract _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer;
+    protected abstract _setPoints(points: ArrayLike<Vec2>): SetPointsResult;
 
-    protected abstract _writeIndexes(vertexCount: number): ArrayBuffer;
+    protected abstract _updatePoint(points: ArrayLike<Vec2>, idx: number): UpdatePointResult;
 
-    protected abstract _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number];
-
-    setVertices(vertices: ReadonlyArray<Vec2>): void {
-        const vertexCount = vertices.length;
-        const vertexData = this._writeVertices(vertices);
-        const indexData = this._writeIndexes(vertexCount);
+    setPoints(points: ArrayLike<Vec2>): void {
+        const { vertexData, indexData } = this._setPoints(points);
         this._primitive.setVertexData(vertexData);
         this._primitive.setIndexData(indexData);
     }
 
-    updateVertex(vertices: ReadonlyArray<Vec2>, vertexIdx: number): void {
-        const [vertexData, offset] = this._updateVertex(vertices, vertexIdx);
+    updatePoint(points: ArrayLike<Vec2>, pointIdx: number): void {
+        const { vertexData, offset } = this._updatePoint(points, pointIdx);
         this._primitive.updateVertexData(vertexData, offset);
     }
 

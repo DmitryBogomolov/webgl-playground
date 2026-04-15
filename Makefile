@@ -1,13 +1,20 @@
 setup: node_modules package.json
 	@npm install
 
-.PHONY:
+.PHONY: build
 build:
 	@npm run build
 
+.PHONY: typecheck
+typecheck:
+	@npm run typecheck
+
+.PHONY: lint
+lint:
+	@npm run lint
+
 .PHONY: check
-check:
-	@npm run tscheck && npm run lint
+check: typecheck lint
 
 .PHONY: test
 test:
