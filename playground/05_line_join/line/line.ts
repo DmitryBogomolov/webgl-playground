@@ -8,12 +8,12 @@ export interface LineParams {
 }
 
 export interface SetPointsResult {
-    readonly vertexData: ArrayBuffer;
-    readonly indexData: ArrayBuffer;
+    readonly vertexData: ArrayBufferView<ArrayBuffer>;
+    readonly indexData: ArrayBufferView<ArrayBuffer>;
 }
 
 export interface UpdatePointResult {
-    readonly vertexData: ArrayBuffer;
+    readonly vertexData: ArrayBufferView<ArrayBuffer>;
     readonly offset: number;
 }
 

@@ -47,7 +47,7 @@ export class RoundLine extends LineBase {
             makeIndexes(list, i * 4);
         }
 
-        return { vertexData: vertexData.buffer, indexData: new Uint16Array(list).buffer };
+        return { vertexData, indexData: new Uint16Array(list) };
     }
 
     protected override _updatePoint(points: ArrayLike<Vec2>, idx: number): UpdatePointResult {
@@ -67,11 +67,9 @@ export class RoundLine extends LineBase {
             vertexSchema,
             eigen,
             this._buffer,
-        ).buffer;
+        );
         const offset = startSegmentIdx * 4 * vertexSchema.vertexSize;
-        // TODO_THIS: Use views.
-        const data = vertexData.slice(0, (endSegmentIdx - startSegmentIdx + 1) * 4 * vertexSchema.vertexSize);
-        return { vertexData: data, offset };
+        return { vertexData, offset };
     }
 }
 
