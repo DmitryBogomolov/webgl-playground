@@ -179,8 +179,12 @@ type CheckNodeBoxFunc<T, K extends BaseContext<T>> = (boxDist: number, context: 
 type VisitNodeFunc<T, K extends BaseContext<T>> = (node: KDNode<T>, nodeDist: number, context: K) => void;
 
 function walkTree<T, K extends BaseContext<T>>(
-    node: KDNode<T> | null, axis: number, distance: KDTreeDistance, context: K,
-    checkNodeBox: CheckNodeBoxFunc<T, K>, visitNode: VisitNodeFunc<T, K>,
+    node: KDNode<T> | null,
+    axis: number,
+    distance: KDTreeDistance,
+    context: K,
+    checkNodeBox: CheckNodeBoxFunc<T, K>,
+    visitNode: VisitNodeFunc<T, K>,
 ): void {
     if (node === null) {
         return;
@@ -213,7 +217,10 @@ function visitNodeNearest<T>(node: KDNode<T>, nodeDistance: number, context: Nea
 }
 
 function findNearest<T>(
-    node: KDNode<T> | null, axis: number, distance: KDTreeDistance, context: NearestContext<T>,
+    node: KDNode<T> | null,
+    axis: number,
+    distance: KDTreeDistance,
+    context: NearestContext<T>,
 ): void {
     walkTree(node, axis, distance, context, checkNodeBoxNearest, visitNodeNearest);
 }
@@ -232,7 +239,10 @@ function visitNodeNearestMany<T>(node: KDNode<T>, nodeDistance: number, { heap, 
 }
 
 function findNearestMany<T>(
-    node: KDNode<T> | null, axis: number, distance: KDTreeDistance, context: NearestManyContext<T>,
+    node: KDNode<T> | null,
+    axis: number,
+    distance: KDTreeDistance,
+    context: NearestManyContext<T>,
 ): void {
     walkTree(node, axis, distance, context, checkNodeBoxNearestMany, visitNodeNearestMany);
 }
@@ -248,7 +258,10 @@ function visitNodeInRadius<T>(node: KDNode<T>, nodeDistance: number, { heap, rad
 }
 
 function findInRadius<T>(
-    node: KDNode<T> | null, axis: number, distance: KDTreeDistance, context: InRadiusContext<T>,
+    node: KDNode<T> | null,
+    axis: number,
+    distance: KDTreeDistance,
+    context: InRadiusContext<T>,
 ): void {
     walkTree(node, axis, distance, context, checkNodeBoxInRadius, visitNodeInRadius);
 }
