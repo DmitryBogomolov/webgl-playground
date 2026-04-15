@@ -1,4 +1,5 @@
 import type { Runtime, Color, Vec2, Vec4 } from 'lib';
+import type { UpdateVertexResult } from '../line';
 import { parseVertexSchema, vec4, writeVertexData } from 'lib';
 import { LineBase } from '../line';
 import vertShader from './shaders/vert.glsl';
@@ -25,7 +26,7 @@ export class RoundLine extends LineBase {
         this._color = clr;
     }
 
-    protected _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer {
+    protected override _writeVertices(vertices: ArrayLike<Vec2>): ArrayBuffer {
         const clr = this._color;
         return writeVertexData(
             {
@@ -41,7 +42,7 @@ export class RoundLine extends LineBase {
         ).buffer;
     }
 
-    protected _writeIndexes(vertexCount: number): ArrayBuffer {
+    protected override _writeIndexes(vertexCount: number): ArrayBuffer {
         const list: number[] = [];
         const segmentCount = vertexCount - 1;
         for (let i = 0; i < segmentCount; ++i) {
@@ -50,7 +51,7 @@ export class RoundLine extends LineBase {
         return new Uint16Array(list).buffer;
     }
 
-    protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
+    protected override _updateVertex(vertices: ArrayLike<Vec2>, idx: number): UpdateVertexResult {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments.
         const startIdx = Math.max(idx - 1, 0);
         const endIdx = Math.min(idx, vertices.length - 2);
@@ -69,11 +70,11 @@ export class RoundLine extends LineBase {
             this._buffer,
         ).buffer;
         const offset = startIdx * 4 * vertexSchema.vertexSize;
-        return [vertexData, offset];
+        return { vertexData, offset };
     }
 }
 
-type RoundVertex = [Vec4, Vec2, Color];
+type RoundVertex = Readonly<[Vec4, Vec2, Color]>;
 
 function eigen(v: RoundVertex): RoundVertex {
     return v;
@@ -83,7 +84,7 @@ function makePositionAttr(position: Vec2, crossSide: number, lateralSide: number
     return vec4(position.x, position.y, crossSide, lateralSide);
 }
 
-function* makeVertices(vertices: ReadonlyArray<Vec2>, i: number, clr: Color): Iterable<RoundVertex> {
+function* makeVertices(vertices: ArrayLike<Vec2>, i: number, clr: Color): Iterable<RoundVertex> {
     const start = vertices[i];
     const end = vertices[i + 1];
 

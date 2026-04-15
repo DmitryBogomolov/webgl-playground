@@ -43,7 +43,7 @@ const UNWRAPPERS_MAP: Mapping<number, Unwrapper> = {
 export function writeVertexData<T>(
     vertices: Iterable<T> & { readonly length: number },
     vertexSchema: VertexSchemaInfo,
-    getVertexValues: (vertex: T) => ATTRIBUTE_VALUE[],
+    getVertexValues: (vertex: T) => ArrayLike<ATTRIBUTE_VALUE>,
     out?: Uint8Array<ArrayBuffer>,
 ): Uint8Array<ArrayBuffer> {
     const byteLength = vertices.length * vertexSchema.vertexSize;

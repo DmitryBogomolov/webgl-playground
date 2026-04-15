@@ -7,10 +7,15 @@ export interface LineParams {
     readonly fragShader: string;
 }
 
+export interface UpdateVertexResult {
+    readonly vertexData: ArrayBuffer;
+    readonly offset: number;
+}
+
 export abstract class LineBase {
     private readonly _runtime: Runtime;
     private readonly _primitive: Primitive;
-    private _thickness = 1;
+    private _thickness: number = 1;
 
     constructor(runtime: Runtime, params: LineParams) {
         this._runtime = runtime;
@@ -37,18 +42,17 @@ export abstract class LineBase {
 
     protected abstract _writeIndexes(vertexCount: number): ArrayBuffer;
 
-    protected abstract _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number];
+    protected abstract _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): UpdateVertexResult;
 
     setVertices(vertices: ReadonlyArray<Vec2>): void {
-        const vertexCount = vertices.length;
         const vertexData = this._writeVertices(vertices);
-        const indexData = this._writeIndexes(vertexCount);
+        const indexData = this._writeIndexes(vertices.length);
         this._primitive.setVertexData(vertexData);
         this._primitive.setIndexData(indexData);
     }
 
     updateVertex(vertices: ReadonlyArray<Vec2>, vertexIdx: number): void {
-        const [vertexData, offset] = this._updateVertex(vertices, vertexIdx);
+        const { vertexData, offset } = this._updateVertex(vertices, vertexIdx);
         this._primitive.updateVertexData(vertexData, offset);
     }
 

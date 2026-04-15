@@ -1,4 +1,5 @@
 import type { Runtime, Color, Vec2, Vec3, Vec4 } from 'lib';
+import type { UpdateVertexResult } from '../line';
 import { parseVertexSchema, vec3, vec4, writeVertexData } from 'lib';
 import { LineBase } from '../line';
 import vertShader from './shaders/vert.glsl';
@@ -25,7 +26,7 @@ export class BevelLine extends LineBase {
         this._color = clr;
     }
 
-    protected _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer {
+    protected override _writeVertices(vertices: ArrayLike<Vec2>): ArrayBuffer {
         const clr = this._color;
         return writeVertexData(
             {
@@ -41,7 +42,7 @@ export class BevelLine extends LineBase {
         ).buffer;
     }
 
-    protected _writeIndexes(vertexCount: number): ArrayBuffer {
+    protected override _writeIndexes(vertexCount: number): ArrayBuffer {
         const list: number[] = [];
         const segmentCount = vertexCount - 1;
         for (let i = 0; i < segmentCount; ++i) {
@@ -53,7 +54,7 @@ export class BevelLine extends LineBase {
         return new Uint16Array(list).buffer;
     }
 
-    protected _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): [ArrayBuffer, number] {
+    protected override _updateVertex(vertices: ArrayLike<Vec2>, idx: number): UpdateVertexResult {
         // Vertex k affects segments (k-1, k) and (k, k+1) as part of segments
         // and segments (k-2, k-1) and (k+1, k+2) as before/after part.
         const startIdx = Math.max(idx - 2, 0);
@@ -73,11 +74,11 @@ export class BevelLine extends LineBase {
             this._buffer,
         );
         const offset = startIdx * 4 * vertexSchema.vertexSize;
-        return [vertexData.buffer, offset];
+        return { vertexData: vertexData.buffer, offset };
     }
 }
 
-type BevelVertex = [Vec3, Vec4, Color];
+type BevelVertex = Readonly<[Vec3, Vec4, Color]>;
 
 function eigen(v: BevelVertex): BevelVertex {
     return v;
@@ -91,7 +92,7 @@ function makeOtherAttr(other: Vec2, outer: Vec2): Vec4 {
     return vec4(other.x, other.y, outer.x, outer.y);
 }
 
-function* makeVertices(vertices: ReadonlyArray<Vec2>, i: number, clr: Color): Iterable<BevelVertex> {
+function* makeVertices(vertices: ArrayLike<Vec2>, i: number, clr: Color): Iterable<BevelVertex> {
     const start = vertices[i];
     const end = vertices[i + 1];
     const before = vertices[i - 1] || end;
