@@ -52,7 +52,7 @@ const baseConfig = defineConfig({
 const TESTS_PATTERN = '**/*.test.ts';
 
 export default defineConfig([
-    globalIgnores(['./node_modules/', './dist/']),
+    globalIgnores(['./node_modules/', './dist/', './build/']),
     {
         name: 'sources',
         files: ['**/*.ts'],
