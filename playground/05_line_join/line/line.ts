@@ -7,7 +7,12 @@ export interface LineParams {
     readonly fragShader: string;
 }
 
-export interface UpdateVertexResult {
+export interface SetPointsResult {
+    readonly vertexData: ArrayBuffer;
+    readonly indexData: ArrayBuffer;
+}
+
+export interface UpdatePointResult {
     readonly vertexData: ArrayBuffer;
     readonly offset: number;
 }
@@ -38,21 +43,18 @@ export abstract class LineBase {
         this._primitive.dispose();
     }
 
-    protected abstract _writeVertices(vertices: ReadonlyArray<Vec2>): ArrayBuffer;
+    protected abstract _setPoints(points: ArrayLike<Vec2>): SetPointsResult;
 
-    protected abstract _writeIndexes(vertexCount: number): ArrayBuffer;
+    protected abstract _updatePoint(points: ArrayLike<Vec2>, idx: number): UpdatePointResult;
 
-    protected abstract _updateVertex(vertices: ReadonlyArray<Vec2>, idx: number): UpdateVertexResult;
-
-    setVertices(vertices: ReadonlyArray<Vec2>): void {
-        const vertexData = this._writeVertices(vertices);
-        const indexData = this._writeIndexes(vertices.length);
+    setPoints(points: ArrayLike<Vec2>): void {
+        const { vertexData, indexData } = this._setPoints(points);
         this._primitive.setVertexData(vertexData);
         this._primitive.setIndexData(indexData);
     }
 
-    updateVertex(vertices: ReadonlyArray<Vec2>, vertexIdx: number): void {
-        const { vertexData, offset } = this._updateVertex(vertices, vertexIdx);
+    updatePoint(points: ArrayLike<Vec2>, pointIdx: number): void {
+        const { vertexData, offset } = this._updatePoint(points, pointIdx);
         this._primitive.updateVertexData(vertexData, offset);
     }
 

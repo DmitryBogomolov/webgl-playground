@@ -11,22 +11,22 @@ export class SearchTree {
         this._runtime = runtime;
         this._state = state;
         this._runtime.renderSizeChanged.on(this._update);
-        this._state.changedVertices.on(this._update);
-        this._state.changedVertex.on(this._update);
+        this._state.changedPoints.on(this._update);
+        this._state.updatedPoint.on(this._update);
         this._update();
     }
 
     dispose(): void {
         this._runtime.renderSizeChanged.off(this._update);
-        this._state.changedVertices.off(this._update);
-        this._state.changedVertex.off(this._update);
+        this._state.changedPoints.off(this._update);
+        this._state.updatedPoint.off(this._update);
     }
 
     private readonly _update = (): void => {
         const { clientWidth, clientHeight } = this._runtime.canvas;
         const size: Vec2 = { x: clientWidth, y: clientHeight };
-        const vertices = this._state.vertices.map((v) => ndc2px(v, size));
-        this._tree = new KDTree(vertices, axisFuncList);
+        const points = this._state.points.map((v) => ndc2px(v, size));
+        this._tree = new KDTree(points, axisFuncList);
     };
 
     findNearest(target: Vec2): number {
