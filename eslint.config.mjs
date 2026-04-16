@@ -19,6 +19,7 @@ export default defineConfig([
             },
         },
         rules: {
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
             '@stylistic/indent': ['error', 4],
             '@stylistic/indent-binary-ops': ['error', 4],
             '@stylistic/semi': ['error', 'always'],
@@ -72,9 +73,6 @@ export default defineConfig([
                 console: false,
                 performance: false,
             },
-        },
-        rules: {
-            'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
         },
     },
 ]);
