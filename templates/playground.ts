@@ -1,12 +1,13 @@
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
+import { setup, renderOnChange, disposeAll } from 'playground-utils/setup';
 import { hasUrlParam } from 'playground-utils/url';
 import { tapRuntime, setConsoleCommand } from './tap';
 import './screenshot-button';
 // @ts-expect-error Actual path is provided in loader.
 import { main } from '__PATH__';
 
-const doInit = main as () => (() => void);
 let isActive = false;
-let doDispose: (() => void) | null = null;
+let output: MainFuncOutput | null = null;
 
 function init(): void {
     if (isActive) {
@@ -14,7 +15,7 @@ function init(): void {
     }
     isActive = true;
 
-    doDispose = doInit();
+    output = (main as unknown as (arg: MainFuncInput) => MainFuncOutput)({ setup, renderOnChange });
 }
 
 function dispose(): void {
@@ -23,8 +24,10 @@ function dispose(): void {
     }
     isActive = false;
 
-    doDispose!();
-    doDispose = null;
+    if (Array.isArray(output)) {
+        disposeAll(output);
+    }
+    output = null;
 }
 
 function setupButton(): () => void {

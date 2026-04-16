@@ -1,4 +1,5 @@
 import type { Primitive, Mat4, Mat4Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     ViewProj,
@@ -8,7 +9,6 @@ import {
     deg2rad,
     spherical2zxy,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeProgram, makeSphere, makeEllipse, makeCube, makePlane, makeWireframe } from './primitive';
@@ -31,7 +31,7 @@ interface PrimitiveData {
     readonly offset: number;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -168,10 +168,8 @@ export function main(): () => void {
         { label: 'wifeframe', checked: isWireframeShown },
     ]);
 
-    return () => {
-        disposeAll([
-            cancelRender, controlRoot,
-            program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
-        ]);
-    };
+    return [
+        cancelRender, controlRoot,
+        program, ...primitives.map((p) => p.primitive), wireframe, colorTexture, mappingTexture, runtime,
+    ];
 }

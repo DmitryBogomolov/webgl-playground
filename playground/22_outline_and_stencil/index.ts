@@ -1,4 +1,5 @@
 import type { Runtime, Program, Vec2, Mat4Mut, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import type { Model } from './primitive';
 import {
@@ -10,7 +11,6 @@ import {
     color, colors,
     getEventCoords, uint2bytes, makePixelViewProjMat,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeModels } from './primitive';
@@ -42,7 +42,7 @@ interface State {
     readonly selectedObjects: Set<number>;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup({ contextAttributes: { stencil: true } });
     const vp = new ViewProj();
     const framebuffer = new Framebuffer({
@@ -129,13 +129,10 @@ export function main(): () => void {
         { label: 'thickness', value: outlineThickness, min: 0, max: 20 },
     ]);
 
-    return () => {
-        container.removeEventListener('click', handleClick);
-        disposeAll([
-            controlRoot, disposeTrackBall, cancelRender,
-            disposeModels, framebuffer, runtime,
-        ]);
-    };
+    return [
+        () => container.removeEventListener('click', handleClick),
+        controlRoot, disposeTrackBall, cancelRender, disposeModels, framebuffer, runtime,
+    ];
 }
 
 function renderScene(state: State): void {

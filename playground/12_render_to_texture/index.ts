@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, Vec3, Mat4, Mat4Mut, Color, Vec3Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     Framebuffer,
@@ -9,7 +10,6 @@ import {
     deg2rad,
     spherical2zxy,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 import { makeObject, makeTexturePlane } from './primitive';
 
@@ -41,7 +41,7 @@ interface State {
     readonly targetModels: ReadonlyArray<Mat4>;
 }
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -115,11 +115,7 @@ export function main(): () => void {
 
     const animate = animation(runtime);
 
-    return () => {
-        disposeAll([
-            animate, texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime,
-        ]);
-    };
+    return [animate, texturePlane.program(), texturePlane, object.program(), object, framebuffer, runtime];
 }
 
 function renderToTexture({

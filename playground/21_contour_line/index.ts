@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, Vec3, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -6,7 +7,6 @@ import {
     vec3,
     color,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, wrapped } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeContourPrimitive, updateContourData } from './primitive';
@@ -33,7 +33,7 @@ interface State {
     readonly contourThickness: Observable<number>;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
     const vp = new ViewProj();
@@ -94,9 +94,7 @@ export function main(): () => void {
         { label: 'thickness', value: contourThickness, min: 0, max: 32 },
     ]);
 
-    return () => {
-        disposeAll([cancelRender, disposeTrackBall, controlRoot, primitive, contourPrimitive, runtime]);
-    };
+    return [cancelRender, disposeTrackBall, controlRoot, primitive, contourPrimitive, runtime];
 }
 
 const objectRenderState = createRenderState({

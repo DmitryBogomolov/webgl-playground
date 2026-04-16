@@ -1,10 +1,10 @@
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     ViewProj,
     GlTFRenderer,
     color,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { trackBall } from 'playground-utils/track-ball';
@@ -30,7 +30,7 @@ const MODELS: ReadonlyArray<ModelInfo> = [
     { name: 'Cube', path: 'Cube/Cube.gltf' },
 ];
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -71,10 +71,5 @@ export function main(): () => void {
         { label: 'model', options: MODELS.map((info) => info.name), selection: selectedModelName },
     ]);
 
-    return () => {
-        disposeAll([
-            cancelRender, controlRoot, disposeTrackBall,
-            renderer, runtime,
-        ]);
-    };
+    return [cancelRender, controlRoot, disposeTrackBall, renderer, runtime];
 }

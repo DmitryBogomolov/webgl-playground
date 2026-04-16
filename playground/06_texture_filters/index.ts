@@ -1,6 +1,6 @@
 import type { Runtime } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import { Primitive, Program, Texture, makeImage, memoize, parseVertexSchema } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import vertShader from './shaders/vert.glsl';
@@ -14,7 +14,7 @@ import { convolutionKernels } from './convolution_kernels';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
@@ -42,9 +42,7 @@ export function main(): () => void {
         { label: 'kernel', options: convolutionKernels.map((kernel) => kernel.name), selection: kernelName },
     ]);
 
-    return () => {
-        disposeAll([primitive.program(), primitive, runtime, kernelName, controlRoot, cancelRender]);
-    };
+    return [primitive.program(), primitive, runtime, kernelName, controlRoot, cancelRender];
 }
 
 function makePrimitive(runtime: Runtime): Primitive {

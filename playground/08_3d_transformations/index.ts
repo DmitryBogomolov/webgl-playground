@@ -1,11 +1,11 @@
 import type { Mat4Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     color,
     ZERO3, YUNIT3, vec3,
     mat4, mul4x4, identity4x4, perspective4x4, lookAt4x4,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
 import { makeFigureRenderer } from './figure';
@@ -17,7 +17,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const CAMERA_HEIGHT = 3;
     const CAMERA_DISTANCE = 13;
     const PI2 = Math.PI * 2;
@@ -77,7 +77,5 @@ export function main(): () => void {
 
     const animate = animation(runtime);
 
-    return () => {
-        disposeAll([factory, runtime, animate]);
-    };
+    return [factory, runtime, animate];
 }

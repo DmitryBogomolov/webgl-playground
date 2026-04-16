@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, TextureCube, Mat4, Mat4Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -6,7 +7,6 @@ import {
     mat4, identity4x4, apply4x4, yrotation4x4, xrotation4x4, inversetranspose4x4,
     deg2rad,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makeQuad, makeCube } from './primitive';
@@ -36,7 +36,7 @@ interface State {
     readonly texture: TextureCube;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     const quad = makeQuad(runtime);
     const cube = makeCube(runtime);
@@ -87,12 +87,10 @@ export function main(): () => void {
         { label: 'cube', checked: isCubeShown },
     ]);
 
-    return () => {
-        disposeAll([
-            cancelRender, controlRoot, disposeTrackBall,
-            quad.program(), quad, cube.program(), cube, texture, runtime,
-        ]);
-    };
+    return [
+        cancelRender, controlRoot, disposeTrackBall,
+        quad.program(), quad, cube.program(), cube, texture, runtime,
+    ];
 }
 
 const defaultRenderState = createRenderState({

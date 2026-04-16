@@ -2,6 +2,13 @@ import type { RuntimeParams, EventProxy, LogHandler, LogLevel } from 'lib';
 import { Runtime } from 'lib';
 import { hasUrlParam } from './url';
 
+export type Disposable = { dispose(): void } | (() => void);
+export interface MainFuncInput {
+    readonly setup: typeof setup;
+    readonly renderOnChange: typeof renderOnChange;
+}
+export type MainFuncOutput = void | Disposable[];
+
 export function setup(params?: Partial<RuntimeParams>): { runtime: Runtime; container: HTMLElement } {
     const container = document.querySelector<HTMLElement>(PLAYGROUND_ROOT)!;
     const log = !hasUrlParam('no-logger') ? createLogger() : undefined;
@@ -74,8 +81,6 @@ function createLogger(): LogHandler {
         }
     }
 }
-
-export type Disposable = { dispose(): void } | (() => void);
 
 export function disposeAll(disposables: Iterable<Disposable>): void {
     for (const disposable of disposables) {

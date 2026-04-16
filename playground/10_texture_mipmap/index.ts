@@ -1,4 +1,5 @@
 import type { Vec2, Mat4Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -9,7 +10,6 @@ import {
     color,
     fovSize2Dist, deg2rad,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { animation } from 'playground-utils/animation';
@@ -24,7 +24,7 @@ import { makeTexture } from './texture';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     runtime.setRenderState(createRenderState({
@@ -139,7 +139,5 @@ export function main(): () => void {
 
     const animate = animation(runtime);
 
-    return () => {
-        disposeAll([animate, cancelRender, controlRoot, primitive.program(), primitive, texture, runtime]);
-    };
+    return [animate, cancelRender, controlRoot, primitive.program(), primitive, texture, runtime];
 }
