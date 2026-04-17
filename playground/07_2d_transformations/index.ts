@@ -1,10 +1,10 @@
 import type { Mat3Mut } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     color, colors,
     vec2, mul2,
     mat3, projection3x3, mul3x3,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { animation } from 'playground-utils/animation';
 import { makePrimitiveFactory } from './primitive';
 import { makeAnimation } from './animation';
@@ -17,7 +17,7 @@ import { makeFigureRenderer } from './figure';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     runtime.setClearColor(color(0.7, 0.7, 0.7));
     const factory = makePrimitiveFactory(runtime);
@@ -52,7 +52,5 @@ export function main(): () => void {
 
     const animate = animation(runtime);
 
-    return () => {
-        disposeAll([factory, runtime, animate]);
-    };
+    return [factory, runtime, animate];
 }

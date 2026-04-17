@@ -1,7 +1,7 @@
 import type { Runtime, Color, Vec2 } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { MainThreadMessage, WorkerMessage } from './messages';
 import { Primitive, Program, color, vec2, parseVertexSchema, writeVertexData } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { CONNECTION_INIT } from './connection';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
@@ -19,7 +19,7 @@ interface State {
     scale: number;
 }
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
 
@@ -36,9 +36,7 @@ export function main(): () => void {
     });
     const disposeWorker = runWorker(runtime, state);
 
-    return () => {
-        disposeAll([primitive.program(), primitive, runtime, disposeWorker]);
-    };
+    return [primitive.program(), primitive, runtime, disposeWorker];
 }
 
 function runWorker(runtime: Runtime, state: State): () => void {

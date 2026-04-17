@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, Program, Vec3, Mat4, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     Framebuffer,
@@ -9,7 +10,6 @@ import {
     deg2rad,
     spherical2zxy,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed, bind } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { trackBall } from 'playground-utils/track-ball';
@@ -52,7 +52,7 @@ interface State {
     readonly wireframe: Primitive;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -161,12 +161,10 @@ export function main(): () => void {
         { label: 'z far', value: zFar, min: 7, max: 20, step: 1 },
     ]);
 
-    return () => {
-        disposeAll([
-            cancelRender, controlRoot, disposeTrackBall,
-            ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
-        ]);
-    };
+    return [
+        cancelRender, controlRoot, disposeTrackBall,
+        ...objects.map((t) => t.primitive), program, depthProgram, wireframe, framebuffer, runtime,
+    ];
 }
 
 function makeObject(primitive: Primitive, offset: Vec3, clr: Color): ObjectInfo {

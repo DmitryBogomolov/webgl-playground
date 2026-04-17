@@ -1,4 +1,5 @@
 import type { Runtime, Program, Vec2, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     Framebuffer,
@@ -8,7 +9,6 @@ import {
     color, colors,
     uint2bytes, getEventCoords,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackBall } from 'playground-utils/track-ball';
 import { makeObjectsFactory, SceneItem } from './primitive';
 
@@ -36,7 +36,7 @@ interface State {
     pixelCoord: Vec2;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -99,13 +99,10 @@ export function main(): () => void {
         },
     });
 
-    return () => {
-        container.removeEventListener('pointermove', handlePointerMove);
-        disposeAll([
-            cancelRender, disposeTrackBall,
-            disposeObjects, framebuffer, runtime,
-        ]);
-    };
+    return [
+        () => container.removeEventListener('pointermove', handlePointerMove),
+        cancelRender, disposeTrackBall, disposeObjects, framebuffer, runtime,
+    ];
 }
 
 function renderFrame(state: State): void {

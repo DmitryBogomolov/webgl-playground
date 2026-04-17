@@ -1,6 +1,6 @@
 import type { Runtime, Vec2, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import { Program, Primitive, colors, vec2, parseVertexSchema, writeVertexData } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import vertShader from './shaders/shader.vert';
 import fragShader from './shaders/shader.frag';
 
@@ -14,7 +14,7 @@ interface Vertex {
     readonly color: Color;
 }
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     const primitive = makePrimitive(runtime);
     runtime.frameRequested.on(() => {
@@ -22,9 +22,7 @@ export function main(): () => void {
         primitive.render();
     });
 
-    return () => {
-        disposeAll([primitive.program(), primitive, runtime]);
-    };
+    return [primitive.program(), primitive, runtime];
 }
 
 function makePrimitive(runtime: Runtime): Primitive {

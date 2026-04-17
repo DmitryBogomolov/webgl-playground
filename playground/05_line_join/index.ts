@@ -1,6 +1,6 @@
 import type { Runtime } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { LineBase } from './line/line';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { colors } from 'lib';
 import { State } from './state';
 import { BevelLine } from './line/bevel';
@@ -17,7 +17,7 @@ import { setupTracker } from './tracker';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
 
     const state = new State();
@@ -36,9 +36,7 @@ export function main(): () => void {
         roundLine.render();
     });
 
-    return () => {
-        disposeAll([bevelLine, roundLine, runtime, tree, tracker]);
-    };
+    return [bevelLine, roundLine, runtime, tree, tracker];
 }
 
 function setupLine(line: LineBase, runtime: Runtime, state: State, thicknessFactor: number): void {

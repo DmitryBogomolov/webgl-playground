@@ -1,4 +1,5 @@
 import type { Program, SHADER_UNIFORM_VALUE, Vec3Mut, Mat4, Mat4Mut, Color } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import {
     createRenderState,
@@ -9,7 +10,6 @@ import {
     color,
     deg2rad, fovDist2Size, spherical2zxy, Primitive,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { observable, computed } from 'playground-utils/observable';
 import { createControls } from 'playground-utils/controls';
 import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgram } from './primitive';
@@ -21,7 +21,7 @@ import { makePrimitive, makeDirectionalProgram, makePointProgram, makeSpotProgra
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     runtime.setClearColor(color(0.4, 0.4, 0.4));
     runtime.setRenderState(createRenderState({
@@ -166,11 +166,7 @@ export function main(): () => void {
         { label: 'limit range', min: 0, max: 20, value: lightLimitRange },
     ]);
 
-    return () => {
-        disposeAll([
-            cancelRender, controlRoot, directionalProgram, pointProgram, spotProgram, primitive, runtime,
-        ]);
-    };
+    return [cancelRender, controlRoot, directionalProgram, pointProgram, spotProgram, primitive, runtime];
 }
 
 function renderPrimitive(

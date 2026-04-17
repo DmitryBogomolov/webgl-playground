@@ -1,4 +1,5 @@
 import type { Runtime } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import {
     createRenderState,
     Primitive,
@@ -9,7 +10,6 @@ import {
     UNIT3,
     parseVertexSchema,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { trackBall } from 'playground-utils/track-ball';
 import vertShader from './shaders/cube.vert';
 import fragShader from './shaders/cube.frag';
@@ -22,7 +22,7 @@ import fragShader from './shaders/cube.frag';
  */
 export type DESCRIPTION = never;
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     runtime.setRenderState(createRenderState({
         depthTest: true,
@@ -56,12 +56,7 @@ export function main(): () => void {
         },
     });
 
-    return () => {
-        disposeAll([
-            cancelRender, disposeTrackBall,
-            primitive.program(), primitive, texture, runtime,
-        ]);
-    };
+    return [cancelRender, disposeTrackBall, primitive.program(), primitive, texture, runtime];
 }
 
 function makePrimitive(runtime: Runtime): Primitive {

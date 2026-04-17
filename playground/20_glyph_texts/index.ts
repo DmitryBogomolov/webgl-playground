@@ -1,4 +1,5 @@
 import type { Runtime, Primitive, Vec2, Vec3, Mat4, Color, Program } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { GlyphAtlas } from './glyph';
 import {
     createRenderState,
@@ -9,7 +10,6 @@ import {
     translation4x4,
     color, colors,
 } from 'lib';
-import { setup, disposeAll, renderOnChange } from 'playground-utils/setup';
 import { makePrimitive } from './primitive';
 import { makeStringPrimitive, makeStringProgram, getNextLabel } from './label';
 import { makeGlyphAtlas } from './glyph';
@@ -46,7 +46,7 @@ interface State {
     readonly objects: ReadonlyArray<ObjectInfo>;
 }
 
-export function main(): () => void {
+export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const { runtime } = setup();
     runtime.setClearColor(color(0.8, 0.8, 0.8));
 
@@ -85,12 +85,10 @@ export function main(): () => void {
 
     const cancelRender = renderOnChange(runtime, [vp]);
 
-    return () => {
-        disposeAll([
-            cancelRender, disposeTrackBall,
-            disposeObjects, primitive.program(), primitive, atlasTexture, runtime,
-        ]);
-    };
+    return [
+        cancelRender, disposeTrackBall,
+        disposeObjects, primitive.program(), primitive, atlasTexture, runtime,
+    ];
 }
 
 const primitiveRenderState = createRenderState({

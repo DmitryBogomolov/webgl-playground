@@ -1,4 +1,5 @@
 import type { Runtime, Vec2 } from 'lib';
+import type { MainFuncInput, MainFuncOutput } from 'playground-utils/setup';
 import type { Observable } from 'playground-utils/observable';
 import {
     Primitive,
@@ -8,7 +9,6 @@ import {
     vec2, ZERO2, sub2, mul2, inv2,
     parseVertexSchema,
 } from 'lib';
-import { setup, disposeAll } from 'playground-utils/setup';
 import { observable } from 'playground-utils/observable';
 import { makeTextureData } from './image';
 import vertShader from './shaders/shader.vert';
@@ -49,7 +49,7 @@ interface Controls {
     readonly crossLinear: HTMLElement;
 }
 
-export function main(): () => void {
+export function main({ setup }: MainFuncInput): MainFuncOutput {
     const { runtime, container } = setup();
     const primitive = makePrimitive(runtime);
     const texture = makeTexture(runtime);
@@ -115,9 +115,7 @@ export function main(): () => void {
         drawRect(runtime, primitive, texture, size, vec2(+offset.x, -offset.y), 'linear', texcoord());
     });
 
-    return () => {
-        disposeAll([primitive.program(), primitive, runtime, tracker, texcoord]);
-    };
+    return [primitive.program(), primitive, runtime, tracker, texcoord];
 }
 
 function makeTexture(runtime: Runtime): Texture {
