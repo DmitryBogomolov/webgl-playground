@@ -12,11 +12,8 @@ export default defineConfig([
             stylistic.configs.recommended,
         ],
         languageOptions: {
-            ecmaVersion: 2018,
+            ecmaVersion: 2022,
             sourceType: 'module',
-            parserOptions: {
-                projectService: true,
-            },
         },
         rules: {
             'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
@@ -47,6 +44,11 @@ export default defineConfig([
             tseslint.configs.recommendedTypeChecked,
             tseslint.configs.stylisticTypeChecked,
         ],
+        languageOptions: {
+            parserOptions: {
+                project: './tsconfig.json',
+            },
+        },
         rules: {
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
             '@typescript-eslint/array-type': 'off',
