@@ -18,7 +18,7 @@ check: typecheck lint
 
 .PHONY: test
 test:
-	@npm test
+	@npm test -- $(FILTER)
 
 .PHONY: dev
 dev:
