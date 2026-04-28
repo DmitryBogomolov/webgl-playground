@@ -1,11 +1,12 @@
-import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
+import type { Configuration, EntryObject } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'node:path';
 import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
     TEMPLATES_DIR, CONTENT_PATH, ASSETS_PATH,
-    setupHandlers, collectTemplates, getPlaygroundItemPath,
+    setupHandlers, getPlaygroundItemPath,
+    htmlAssetsPlugin,
 } from './tools/dev-server';
 
 const PORT = Number(process.env.PORT) || 3001;
@@ -36,37 +37,37 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     return entry;
 }
 
-function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
-    return {
-        apply: (compiler) => {
-            compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-                const items = collectTemplates(playgrounds).map(({ path }) => path);
-                compilation.fileDependencies.addAll(items);
-            });
-        },
-    };
-}
+// function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
+//     return {
+//         apply: (compiler) => {
+//             compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
+//                 const items = collectTemplates(playgrounds).map(({ path }) => path);
+//                 compilation.fileDependencies.addAll(items);
+//             });
+//         },
+//     };
+// }
 
-function htmlPlugin(): WebpackPluginInstance {
-    return {
-        apply: (compiler) => {
-            compiler.hooks.thisCompilation.tap('html-plugin', (compilation) => {
-                compilation.hooks.processAssets.tapAsync(
-                    {
-                        name: 'html-plugin',
-                        stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
-                    },
-                    (_, callback) => {
-                        // TODO...
-                        const source = new compiler.webpack.sources.RawSource('<Hello World>');
-                        compilation.emitAsset('test.html', source);
-                        callback();
-                    },
-                );
-            });
-        },
-    };
-}
+// function htmlPlugin(): WebpackPluginInstance {
+//     return {
+//         apply: (compiler) => {
+//             compiler.hooks.thisCompilation.tap('html-plugin', (compilation) => {
+//                 compilation.hooks.processAssets.tapAsync(
+//                     {
+//                         name: 'html-plugin',
+//                         stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
+//                     },
+//                     (_, callback) => {
+//                         // TODO...
+//                         const source = new compiler.webpack.sources.RawSource('<Hello World>');
+//                         compilation.emitAsset('test.html', source);
+//                         callback();
+//                     },
+//                 );
+//             });
+//         },
+//     };
+// }
 
 function config(playgrounds: ReadonlyArray<Playground>): Configuration {
     return {
@@ -75,7 +76,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         entry: buildEntry(playgrounds),
         output: {
             path: path.join(__dirname, './build'),
-            // filename: 'lib.js',
             library: {
                 name: 'lib',
                 type: 'umd',
@@ -124,8 +124,7 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         },
         plugins: [
             new MiniCssWebpackPlugin(),
-            watchPlugin(playgrounds),
-            htmlPlugin(),
+            htmlAssetsPlugin(playgrounds),
         ],
         devServer: {
             port: PORT,
