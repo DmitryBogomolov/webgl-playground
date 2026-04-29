@@ -15,6 +15,7 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
             import: path.join(TEMPLATES_DIR, 'index.ts'),
+            filename: '[name].js',
         },
     };
 
@@ -26,11 +27,13 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
         const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
             import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
+            filename: 'playground/[name].js',
         };
         if (playground.worker) {
             const workerPath = getPlaygroundItemPath(name, playground.worker);
             entry[name + '_worker'] = {
                 import: workerPath,
+                filename: 'playground/[name].js',
             };
         }
     });
@@ -131,19 +134,19 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             hot: false,
             liveReload: false,
             devMiddleware: {
-                publicPath: `${ASSETS_PATH}/`,
+                publicPath: '/',
             },
             static: {
                 directory: path.join(__dirname, './static'),
                 publicPath: `${CONTENT_PATH}/`,
             },
-            setupMiddlewares: (middlewares, devServer) => {
-                const handlers = setupHandlers(playgrounds);
-                for (const handler of handlers) {
-                    devServer.app!.get(handler.path, handler.handler);
-                }
-                return middlewares;
-            },
+            // setupMiddlewares: (middlewares, devServer) => {
+            //     const handlers = setupHandlers(playgrounds);
+            //     for (const handler of handlers) {
+            //         devServer.app!.get(handler.path, handler.handler);
+            //     }
+            //     return middlewares;
+            // },
         },
     };
 }

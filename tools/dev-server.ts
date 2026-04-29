@@ -9,7 +9,7 @@ import Mustache from 'mustache';
 export const CONTENT_PATH = '/static';
 export const ASSETS_PATH = '/assets';
 const BOOTSTRAP_PATH = `${CONTENT_PATH}/bootstrap.min.css`;
-const PLAYGROUND_PATH = '/playground';
+export const PLAYGROUND_PATH = '/playground';
 
 export const TEMPLATES_DIR = path.join(__dirname, '../templates');
 const PLAYGROUND_DIR = path.join(__dirname, '../playground');
@@ -89,10 +89,10 @@ function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: Reado
     return Mustache.render(template, {
         title: 'WebGL Playground',
         bootstrap_styles_url: BOOTSTRAP_PATH,
-        styles_url: `${ASSETS_PATH}/index.css`,
-        bundle_url: `${ASSETS_PATH}/index.js`,
+        styles_url: `./${ROOT_TEMPLATE_NAME}.css`,
+        bundle_url: `./${ROOT_TEMPLATE_NAME}.js`,
         playgrounds: playgrounds.map(
-            ({ name, title }) => ({ url: `${PLAYGROUND_PATH}/${name}/`, title }),
+            ({ name, title }) => ({ url: `./playground/${name}.html`, title }),
         ),
     });
 }
@@ -108,7 +108,8 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
         title: playground.title,
         bootstrap_styles_url: BOOTSTRAP_PATH,
         styles_url: `${CONTENT_PATH}/playground.css`,
-        bundle_url: `${ASSETS_PATH}/${name}.js`,
+        back_url: '../',
+        bundle_url: `./${name}.js`,
         worker_url: playground.worker ? `${ASSETS_PATH}/${name}_worker.js` : null,
         custom_markup: playground.markup ? templates.get(name)! : null,
     });
@@ -257,15 +258,18 @@ function emitAssets(
     const errors: string[] = [];
     for (const asset of assets) {
         let content: string | null;
+        let filePath: string;
         if (asset === ROOT_TEMPLATE_NAME) {
             content = renderRootPage(playgrounds, templateContents);
+            filePath = `${asset}.html`;
         } else {
             const playground = playgrounds.find((playground) => playground.name === asset)!;
             content = renderPlaygroundPage(playground, templateContents);
+            filePath = `playground/${asset}.html`;
         }
         if (content) {
             const source = new compiler.webpack.sources.RawSource(content, false);
-            compilation.emitAsset(`${asset}.html`, source);
+            compilation.emitAsset(filePath, source);
         } else {
             errors.push(asset);
         }
