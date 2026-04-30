@@ -98,11 +98,24 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     exclude: /node_modules/,
                 },
                 {
-                    test: /\/static\/\.css$/,
+                    // test: /\.\/static\/\.*$/,
+                    test: /\.png$/,
                     type: 'asset/resource',
+                    generator: {
+                        filename: './static/[name][ext]',
+                    },
+                },
+                {
+                    // test: /\.\/static\/\.*$/,
+                    test: /\.css$/,
+                    type: 'asset/resource',
+                    generator: {
+                        filename: './static/[name][ext]',
+                    },
                 },
                 {
                     test: /\.css$/,
+                    exclude: /static/,
                     use: [
                         {
                             loader: MiniCssExtractPlugin.loader,
@@ -130,7 +143,9 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             },
         },
         plugins: [
-            new MiniCssExtractPlugin(),
+            new MiniCssExtractPlugin({
+                filename: './static/[name].css',
+            }),
             htmlAssetsPlugin(playgrounds),
         ],
         devServer: {
