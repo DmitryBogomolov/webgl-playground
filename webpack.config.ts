@@ -1,7 +1,7 @@
 import type { Configuration, EntryObject } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'node:path';
-import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
     TEMPLATES_DIR, CONTENT_PATH, ASSETS_PATH,
@@ -98,10 +98,14 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     exclude: /node_modules/,
                 },
                 {
+                    test: /\/static\/\.css$/,
+                    type: 'asset/resource',
+                },
+                {
                     test: /\.css$/,
                     use: [
                         {
-                            loader: MiniCssWebpackPlugin.loader,
+                            loader: MiniCssExtractPlugin.loader,
                         },
                         {
                             loader: 'css-loader',
@@ -126,7 +130,7 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             },
         },
         plugins: [
-            new MiniCssWebpackPlugin(),
+            new MiniCssExtractPlugin(),
             htmlAssetsPlugin(playgrounds),
         ],
         devServer: {
