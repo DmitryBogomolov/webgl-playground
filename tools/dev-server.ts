@@ -12,6 +12,7 @@ const BOOTSTRAP_PATH = `${CONTENT_PATH}/bootstrap.min.css`;
 export const PLAYGROUND_PATH = '/playground';
 
 export const TEMPLATES_DIR = path.join(__dirname, '../templates');
+export const STATIC_DIR = path.join(__dirname, '../static');
 const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 
 const ROOT_TEMPLATE_NAME = 'index';
@@ -89,6 +90,7 @@ function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: Reado
     return Mustache.render(template, {
         title: 'WebGL Playground',
         bootstrap_styles_url: './static/bootstrap.min.css',
+        favicon_url: './static/favicon.png',
         styles_url: `./${ROOT_TEMPLATE_NAME}.css`,
         bundle_url: `./${ROOT_TEMPLATE_NAME}.js`,
         playgrounds: playgrounds.map(

@@ -3,7 +3,6 @@ import { setup, renderOnChange, disposeAll } from 'playground-utils/setup';
 import { hasUrlParam } from 'playground-utils/url';
 import { tapRuntime, setConsoleCommand } from './tap';
 import './screenshot-button';
-import '../static/playground.css';
 // @ts-expect-error Actual path is provided in loader.
 import { main } from '__PATH__';
 

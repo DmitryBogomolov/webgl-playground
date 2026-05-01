@@ -4,7 +4,7 @@ import path from 'node:path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
-    TEMPLATES_DIR, CONTENT_PATH, ASSETS_PATH,
+    TEMPLATES_DIR, STATIC_DIR, CONTENT_PATH, ASSETS_PATH,
     setupHandlers, getPlaygroundItemPath,
     htmlAssetsPlugin,
 } from './tools/dev-server';
@@ -14,7 +14,12 @@ const PORT = Number(process.env.PORT) || 3001;
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
-            import: path.join(TEMPLATES_DIR, 'index.ts'),
+            import: [
+                path.join(TEMPLATES_DIR, 'index.ts'),
+                path.join(STATIC_DIR, 'favicon.png'),
+                path.join(STATIC_DIR, 'bootstrap.min.css'),
+                path.join(STATIC_DIR, 'bootstrap.min.css.map'),
+            ],
             filename: '[name].js',
         },
     };
@@ -26,7 +31,10 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
         const { name } = playground;
         const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
-            import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
+            import: [
+                `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
+                path.join(STATIC_DIR, 'playground.css'),
+            ],
             filename: 'playground/[name].js',
         };
         if (playground.worker) {
@@ -144,10 +152,10 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             devMiddleware: {
                 publicPath: '/',
             },
-            static: {
-                directory: path.join(__dirname, './static'),
-                publicPath: `${CONTENT_PATH}/`,
-            },
+            // static: {
+            //     directory: path.join(__dirname, './static'),
+            //     publicPath: `${CONTENT_PATH}/`,
+            // },
             // setupMiddlewares: (middlewares, devServer) => {
             //     const handlers = setupHandlers(playgrounds);
             //     for (const handler of handlers) {
