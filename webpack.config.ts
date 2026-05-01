@@ -6,8 +6,11 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
+    PLAYGROUND_DIR,
     TEMPLATES_DIR,
     STATIC_DIR,
+    ROOT_TEMPLATE_NAME,
+    PLAYGROUND_TEMPLATE_NAME,
     getPlaygroundItemPath,
     htmlAssetsPlugin,
 } from './tools/html-assets-plugin';
@@ -17,12 +20,12 @@ const PORT = Number(process.env.PORT) || 3001;
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
-            import: path.join(TEMPLATES_DIR, 'index.ts'),
+            import: path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.ts`),
             filename: '[name].js',
         },
     };
 
-    const filePath = path.join(TEMPLATES_DIR, 'playground.ts');
+    const filePath = path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.ts`);
     const loaderPath = path.join(__dirname, './tools/playground-loader.ts');
 
     playgrounds.forEach((playground) => {
@@ -120,5 +123,5 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
 }
 
 export default function (): Promise<Configuration> {
-    return buildRegistry(path.join(__dirname, './playground')).then(config);
+    return buildRegistry(PLAYGROUND_DIR).then(config);
 }
