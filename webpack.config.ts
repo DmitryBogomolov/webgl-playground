@@ -1,12 +1,14 @@
 import type { Configuration, EntryObject } from 'webpack';
+import type { /* for 'devServer' field */ } from 'webpack-dev-server';
 import type { Playground } from './tools/playground.types';
 import path from 'node:path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
-    TEMPLATES_DIR, STATIC_DIR, CONTENT_PATH, ASSETS_PATH,
-    setupHandlers, getPlaygroundItemPath,
+    TEMPLATES_DIR,
+    STATIC_DIR,
+    getPlaygroundItemPath,
     htmlAssetsPlugin,
 } from './tools/dev-server';
 
@@ -40,38 +42,6 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     });
     return entry;
 }
-
-// function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
-//     return {
-//         apply: (compiler) => {
-//             compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-//                 const items = collectTemplates(playgrounds).map(({ path }) => path);
-//                 compilation.fileDependencies.addAll(items);
-//             });
-//         },
-//     };
-// }
-
-// function htmlPlugin(): WebpackPluginInstance {
-//     return {
-//         apply: (compiler) => {
-//             compiler.hooks.thisCompilation.tap('html-plugin', (compilation) => {
-//                 compilation.hooks.processAssets.tapAsync(
-//                     {
-//                         name: 'html-plugin',
-//                         stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
-//                     },
-//                     (_, callback) => {
-//                         // TODO...
-//                         const source = new compiler.webpack.sources.RawSource('<Hello World>');
-//                         compilation.emitAsset('test.html', source);
-//                         callback();
-//                     },
-//                 );
-//             });
-//         },
-//     };
-// }
 
 function config(playgrounds: ReadonlyArray<Playground>): Configuration {
     return {
@@ -145,17 +115,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             devMiddleware: {
                 publicPath: '/',
             },
-            // static: {
-            //     directory: path.join(__dirname, './static'),
-            //     publicPath: `${CONTENT_PATH}/`,
-            // },
-            // setupMiddlewares: (middlewares, devServer) => {
-            //     const handlers = setupHandlers(playgrounds);
-            //     for (const handler of handlers) {
-            //         devServer.app!.get(handler.path, handler.handler);
-            //     }
-            //     return middlewares;
-            // },
         },
     };
 }

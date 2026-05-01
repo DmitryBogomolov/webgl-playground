@@ -1,14 +1,11 @@
 import type { WebpackPluginInstance, Compiler, Compilation } from 'webpack';
-import type { RequestHandler } from 'webpack-dev-server';
 import type { Playground, Template } from './playground.types';
 import { promisify } from 'node:util';
 import path from 'node:path';
-import fs from 'node:fs';
 import Mustache from 'mustache';
 
 export const CONTENT_PATH = '/static';
 export const ASSETS_PATH = '/assets';
-const BOOTSTRAP_PATH = `${CONTENT_PATH}/bootstrap.min.css`;
 export const PLAYGROUND_PATH = '/playground';
 
 export const TEMPLATES_DIR = path.join(__dirname, '../templates');
@@ -17,70 +14,6 @@ const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 
 const ROOT_TEMPLATE_NAME = 'index';
 const PLAYGROUND_TEMPLATE_NAME = 'playground';
-
-export interface DevServerHandler {
-    readonly path: string;
-    readonly handler: RequestHandler;
-}
-
-export function setupHandlers(playgrounds: ReadonlyArray<Playground>): DevServerHandler[] {
-    const templates = new Map<string, string>();
-    let rootPageCache = '';
-    const playgroundPagesCache = new Map<string, string>();
-
-    watchTemplates(playgrounds, templates, (name) => {
-        if (name === ROOT_TEMPLATE_NAME) {
-            rootPageCache = '';
-        } else if (name === PLAYGROUND_TEMPLATE_NAME) {
-            playgroundPagesCache.clear();
-        } else {
-            playgroundPagesCache.delete(name);
-        }
-    });
-
-    function getRootPage(): string {
-        if (!rootPageCache) {
-            rootPageCache = renderRootPage(playgrounds, templates)!;
-        }
-        return rootPageCache;
-    }
-
-    function getPlaygroundPage(playground: Playground): string {
-        let content = playgroundPagesCache.get(playground.name);
-        if (!content) {
-            content = renderPlaygroundPage(playground, templates)!;
-            playgroundPagesCache.set(playground.name, content);
-        }
-        return content;
-    }
-
-    const handlers: DevServerHandler[] = [];
-
-    handlers.push(
-        {
-            path: '/favicon.ico',
-            handler: (_, res) => {
-                res.send('favicon');
-            },
-        },
-        {
-            path: '/',
-            handler: (_, res) => {
-                res.send(getRootPage());
-            },
-        },
-    );
-    playgrounds.forEach((playground) => {
-        handlers.push({
-            path: `${PLAYGROUND_PATH}/${playground.name}/`,
-            handler: (_, res) => {
-                res.send(getPlaygroundPage(playground));
-            },
-        });
-    });
-
-    return handlers;
-}
 
 function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: ReadonlyMap<string, string>): string | null {
     const template = templates.get(ROOT_TEMPLATE_NAME);
@@ -121,7 +54,7 @@ export function getPlaygroundItemPath(playground: string, item: string): string 
     return path.join(PLAYGROUND_DIR, playground, item);
 }
 
-export function collectTemplates(playgrounds: Iterable<Playground>): Template[] {
+function collectTemplates(playgrounds: Iterable<Playground>): Template[] {
     const list: Template[] = [
         { name: ROOT_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'index.html') },
         { name: PLAYGROUND_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'playground.html') },
@@ -132,25 +65,6 @@ export function collectTemplates(playgrounds: Iterable<Playground>): Template[] 
         }
     }
     return list;
-}
-
-function watchTemplates(
-    playgrounds: ReadonlyArray<Playground>,
-    templates: Map<string, string>,
-    onChange: (name: string) => void,
-): void {
-    collectTemplates(playgrounds).forEach(({ name, path }) => {
-        const readTemplate = (): void => {
-            fs.readFile(path, 'utf8', (_err, data) => {
-                if (data) {
-                    templates.set(name, data);
-                    onChange(name);
-                }
-            });
-        };
-        fs.watch(path, readTemplate);
-        readTemplate();
-    });
 }
 
 const NAME = 'html-assets-plugin';
