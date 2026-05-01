@@ -18,11 +18,6 @@ declare module '*.css' {
     export default data;
 }
 
-declare module '*.png' {
-    declare const data: string;
-    export default data;
-}
-
 declare const PLAYGROUND_NAME: string;
 declare const PLAYGROUND_ROOT: string;
 declare const WORKER_URL: string;

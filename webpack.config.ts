@@ -2,6 +2,7 @@ import type { Configuration, EntryObject } from 'webpack';
 import type { Playground } from './tools/playground.types';
 import path from 'node:path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
     TEMPLATES_DIR, STATIC_DIR, CONTENT_PATH, ASSETS_PATH,
@@ -14,12 +15,7 @@ const PORT = Number(process.env.PORT) || 3001;
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
-            import: [
-                path.join(TEMPLATES_DIR, 'index.ts'),
-                path.join(STATIC_DIR, 'favicon.png'),
-                path.join(STATIC_DIR, 'bootstrap.min.css'),
-                path.join(STATIC_DIR, 'bootstrap.min.css.map'),
-            ],
+            import: path.join(TEMPLATES_DIR, 'index.ts'),
             filename: '[name].js',
         },
     };
@@ -31,10 +27,7 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
         const { name } = playground;
         const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
-            import: [
-                `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
-                path.join(STATIC_DIR, 'playground.css'),
-            ],
+            import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
             filename: 'playground/[name].js',
         };
         if (playground.worker) {
@@ -106,15 +99,11 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     exclude: /node_modules/,
                 },
                 {
-                    test: new RegExp(`/static/.*$`),
-                    type: 'asset/resource',
-                    generator: {
-                        filename: './static/[name][ext]',
-                    },
+                    test: /\.(vert|frag|glsl)$/,
+                    use: 'shader-loader',
                 },
                 {
                     test: /\.css$/,
-                    exclude: new RegExp('/static/'),
                     use: [
                         {
                             loader: MiniCssExtractPlugin.loader,
@@ -130,10 +119,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                         },
                     ],
                 },
-                {
-                    test: /\.(vert|frag|glsl)$/,
-                    use: 'shader-loader',
-                },
             ],
         },
         resolveLoader: {
@@ -143,6 +128,14 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
         },
         plugins: [
             new MiniCssExtractPlugin(),
+            new CopyPlugin({
+                patterns: [
+                    {
+                        from: STATIC_DIR,
+                        to: path.join(__dirname, './build/static'),
+                    },
+                ],
+            }),
             htmlAssetsPlugin(playgrounds),
         ],
         devServer: {
