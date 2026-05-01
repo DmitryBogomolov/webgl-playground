@@ -10,7 +10,7 @@ import {
     STATIC_DIR,
     getPlaygroundItemPath,
     htmlAssetsPlugin,
-} from './tools/dev-server';
+} from './tools/html-assets-plugin';
 
 const PORT = Number(process.env.PORT) || 3001;
 
