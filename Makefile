@@ -23,3 +23,8 @@ test:
 .PHONY: dev
 dev:
 	@npm run dev
+
+.PHONY: serve-static
+serve-static: PORT = 10001
+serve-static:
+	@cd ./build && python3 -m http.server $(PORT)
