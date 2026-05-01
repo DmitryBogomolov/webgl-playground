@@ -88,7 +88,7 @@ function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: Reado
     }
     return Mustache.render(template, {
         title: 'WebGL Playground',
-        bootstrap_styles_url: BOOTSTRAP_PATH,
+        bootstrap_styles_url: './static/bootstrap.min.css',
         styles_url: `./${ROOT_TEMPLATE_NAME}.css`,
         bundle_url: `./${ROOT_TEMPLATE_NAME}.js`,
         playgrounds: playgrounds.map(
@@ -106,11 +106,11 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
     return Mustache.render(template, {
         name,
         title: playground.title,
-        bootstrap_styles_url: BOOTSTRAP_PATH,
-        styles_url: `${CONTENT_PATH}/playground.css`,
+        bootstrap_styles_url: '../static/bootstrap.min.css',
+        styles_url: `../static/playground.css`,
         back_url: '../',
         bundle_url: `./${name}.js`,
-        worker_url: playground.worker ? `${ASSETS_PATH}/${name}_worker.js` : null,
+        worker_url: playground.worker ? `./${name}_worker.js` : null,
         custom_markup: playground.markup ? templates.get(name)! : null,
     });
 }
