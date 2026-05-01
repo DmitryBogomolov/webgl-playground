@@ -1,5 +1,6 @@
 import type { WebpackPluginInstance, Compiler, Compilation } from 'webpack';
 import type { Playground, Template } from './playground.types';
+import { sources } from 'webpack';
 import { promisify } from 'node:util';
 import path from 'node:path';
 import Mustache from 'mustache';
@@ -54,17 +55,25 @@ export function getPlaygroundItemPath(playground: string, item: string): string 
     return path.join(PLAYGROUND_DIR, playground, item);
 }
 
-function collectTemplates(playgrounds: Iterable<Playground>): Template[] {
-    const list: Template[] = [
+function collectTemplates(playgrounds: Iterable<Playground>): Map<string, Template> {
+    const collection = new Map<string, Template>();
+    collection.set(
+        ROOT_TEMPLATE_NAME,
         { name: ROOT_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'index.html') },
+    );
+    collection.set(
+        PLAYGROUND_TEMPLATE_NAME,
         { name: PLAYGROUND_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, 'playground.html') },
-    ];
+    );
     for (const playground of playgrounds) {
         if (playground.markup) {
-            list.push({ name: playground.name, path: getPlaygroundItemPath(playground.name, playground.markup) });
+            collection.set(
+                playground.name,
+                { name: playground.name, path: getPlaygroundItemPath(playground.name, playground.markup) },
+            );
         }
     }
-    return list;
+    return collection;
 }
 
 const NAME = 'html-assets-plugin';
@@ -72,24 +81,28 @@ const NAME = 'html-assets-plugin';
 export function htmlAssetsPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
     return {
         apply: (compiler) => {
-            const templates = collectTemplates(playgrounds);
+            const templateIndex = collectTemplates(playgrounds);
             const templateContents = new Map<string, string>();
-            const templateIndex = new Map(templates.map((template) => [template.path, template]));
+            const assetSources = new Map<string, sources.RawSource>();
             compiler.hooks.compilation.tap(NAME, (compilation) => {
-                templates.forEach((template) => {
+                for (const template of templateIndex.values()) {
                     compilation.fileDependencies.add(template.path);
-                });
-                const changedTemplates = findChangedTemplates(templateIndex, templateContents, compiler);
+                }
+                const changedTemplates = findChangedTemplates(compiler, templateIndex, templateContents);
                 if (changedTemplates.length === 0) {
+                    emitAssets(compilation, assetSources);
                     return;
                 }
                 const changedAssets = findAffectedAssets(playgrounds, changedTemplates);
                 updateTemplates(compiler, changedTemplates, templateContents)
                     .then(() => {
-                        emitAssets(compiler, compilation, changedAssets, playgrounds, templateContents);
+                        updateAssets(changedAssets, playgrounds, templateContents, assetSources);
                     })
                     .catch((err) => {
                         compilation.errors.push(err as Error);
+                    })
+                    .finally(() => {
+                        emitAssets(compilation, assetSources);
                     });
             });
         },
@@ -97,9 +110,9 @@ export function htmlAssetsPlugin(playgrounds: ReadonlyArray<Playground>): Webpac
 }
 
 function findChangedTemplates(
+    compiler: Compiler,
     templateIndex: ReadonlyMap<string, Template>,
     templateContents: Map<string, string>,
-    compiler: Compiler,
 ): Template[] {
     if (templateContents.size === 0) {
         return Array.from(templateIndex.values());
@@ -164,12 +177,11 @@ function updateTemplates(
     });
 }
 
-function emitAssets(
-    compiler: Compiler,
-    compilation: Compilation,
+function updateAssets(
     assets: ReadonlyArray<string>,
     playgrounds: ReadonlyArray<Playground>,
     templateContents: ReadonlyMap<string, string>,
+    assetSources: Map<string, sources.RawSource>,
 ): void {
     const errors: string[] = [];
     for (const asset of assets) {
@@ -184,13 +196,22 @@ function emitAssets(
             filePath = `playground/${asset}.html`;
         }
         if (content) {
-            const source = new compiler.webpack.sources.RawSource(content, false);
-            compilation.emitAsset(filePath, source);
+            const source = new sources.RawSource(content, false);
+            assetSources.set(filePath, source);
         } else {
             errors.push(asset);
         }
     }
     if (errors.length > 0) {
         throw new Error(`no templates for assets: ${errors.join(', ')}`);
+    }
+}
+
+function emitAssets(
+    compilation: Compilation,
+    assetSources: ReadonlyMap<string, sources.RawSource>,
+): void {
+    for (const [key, source] of assetSources) {
+        compilation.emitAsset(key, source);
     }
 }
