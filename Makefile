@@ -1,6 +1,10 @@
 setup: node_modules package.json
 	@npm install
 
+.PHONY: clean
+clean:
+	@rm -rf ./dist ./build
+
 .PHONY: build
 build:
 	@npm run build
