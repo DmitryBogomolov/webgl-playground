@@ -26,8 +26,8 @@ export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     imageLeaves.setTextureUnit(5);
 
     imageCells.setImageData(generateTextureData());
-    imageLetter.setImageData({ url: '/static/f-letter.png' });
-    imageLeaves.setImageData({ url: '/static/leaves.jpg' });
+    imageLetter.setImageData({ url: `${STATIC_PATH}/f-letter.png` });
+    imageLeaves.setImageData({ url: `${STATIC_PATH}/leaves.jpg` });
 
     const cancelRender = renderOnChange(runtime, [imageCells, imageLeaves, imageLeaves]);
 

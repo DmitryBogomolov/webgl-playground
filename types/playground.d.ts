@@ -21,3 +21,4 @@ declare module '*.css' {
 declare const PLAYGROUND_NAME: string;
 declare const PLAYGROUND_ROOT: string;
 declare const WORKER_URL: string;
+declare const STATIC_PATH: string;

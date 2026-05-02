@@ -46,6 +46,7 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
         back_url: '../',
         bundle_url: `./${name}.js`,
         worker_url: playground.worker ? `./${name}_worker.js` : null,
+        static_path: '../static',
         custom_markup: playground.markup ? templates.get(name)! : null,
     });
 }

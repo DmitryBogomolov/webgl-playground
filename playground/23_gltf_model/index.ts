@@ -64,7 +64,7 @@ export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const selectedModelName = observable(MODELS[0].name);
     bind(selectedModelName, (targetName) => {
         const model = MODELS.find(({ name }) => name === targetName)!;
-        renderer.setData({ url: `/static/gltf-models/${model.path}` }).catch(console.error);
+        renderer.setData({ url: `${STATIC_PATH}/gltf-models/${model.path}` }).catch(console.error);
     });
 
     const controlRoot = createControls(container, [

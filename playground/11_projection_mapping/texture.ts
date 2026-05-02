@@ -27,7 +27,7 @@ export function makeMappingTexture(runtime: Runtime, onReady: () => void): Textu
         mag_filter: 'nearest',
         min_filter: 'nearest',
     });
-    makeImage({ url: '/static/f-letter.png' }).then(
+    makeImage({ url: `${STATIC_PATH}/f-letter.png` }).then(
         (image) => {
             texture.setImageData(image, { unpackFlipY: true });
             onReady();
