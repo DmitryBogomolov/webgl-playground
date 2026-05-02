@@ -51,24 +51,16 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
 }
 
 function collectTemplates(playgrounds: Iterable<Playground>): Map<string, Template> {
-    const collection = new Map<string, Template>();
-    collection.set(
-        ROOT_TEMPLATE_NAME,
+    const list: Template[] = [
         { name: ROOT_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.html`) },
-    );
-    collection.set(
-        PLAYGROUND_TEMPLATE_NAME,
         { name: PLAYGROUND_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.html`) },
-    );
+    ];
     for (const playground of playgrounds) {
         if (playground.markup) {
-            collection.set(
-                playground.name,
-                { name: playground.name, path: playground.markup },
-            );
+            list.push({ name: playground.name, path: playground.markup });
         }
     }
-    return collection;
+    return new Map(list.map((template) => ([template.path, template])));
 }
 
 const NAME = 'html-assets-plugin';
@@ -107,7 +99,7 @@ export function htmlAssetsPlugin(playgrounds: ReadonlyArray<Playground>): Webpac
 function findChangedTemplates(
     compiler: Compiler,
     templateIndex: ReadonlyMap<string, Template>,
-    templateContents: Map<string, string>,
+    templateContents: ReadonlyMap<string, string>,
 ): Template[] {
     if (templateContents.size === 0) {
         return Array.from(templateIndex.values());
@@ -125,10 +117,7 @@ function findChangedTemplates(
     return [];
 }
 
-function findAffectedAssets(
-    playgrounds: ReadonlyArray<Playground>,
-    changedTemplates: ReadonlyArray<Template>,
-): string[] {
+function findAffectedAssets(playgrounds: Iterable<Playground>, changedTemplates: Iterable<Template>): string[] {
     const collection = new Set<string>();
     for (const template of changedTemplates) {
         if (template.name === ROOT_TEMPLATE_NAME) {
