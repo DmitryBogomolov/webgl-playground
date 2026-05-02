@@ -12,6 +12,9 @@ export const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 export const ROOT_TEMPLATE_NAME = 'index';
 export const PLAYGROUND_TEMPLATE_NAME = 'playground';
 
+const PLAYGROUND_PATH = 'playground';
+export const STATIC_PATH = 'static';
+
 function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: ReadonlyMap<string, string>): string | null {
     const template = templates.get(ROOT_TEMPLATE_NAME);
     if (!template) {
@@ -19,12 +22,12 @@ function renderRootPage(playgrounds: ReadonlyArray<Playground>, templates: Reado
     }
     return Mustache.render(template, {
         title: 'WebGL Playground',
-        bootstrap_styles_url: './static/bootstrap.min.css',
-        favicon_url: './static/favicon.png',
+        bootstrap_styles_url: `./${STATIC_PATH}/bootstrap.min.css`,
+        favicon_url: `./${STATIC_PATH}/favicon.png`,
         styles_url: `./${ROOT_TEMPLATE_NAME}.css`,
         bundle_url: `./${ROOT_TEMPLATE_NAME}.js`,
         playgrounds: playgrounds.map(
-            ({ name, title }) => ({ url: `./playground/${name}.html`, title }),
+            ({ name, title }) => ({ url: `./${PLAYGROUND_PATH}/${name}.html`, title }),
         ),
     });
 }
@@ -38,17 +41,13 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
     return Mustache.render(template, {
         name,
         title: playground.title,
-        bootstrap_styles_url: '../static/bootstrap.min.css',
-        styles_url: `../static/playground.css`,
+        bootstrap_styles_url: `../${STATIC_PATH}/bootstrap.min.css`,
+        styles_url: `../${STATIC_PATH}/playground.css`,
         back_url: '../',
         bundle_url: `./${name}.js`,
         worker_url: playground.worker ? `./${name}_worker.js` : null,
         custom_markup: playground.markup ? templates.get(name)! : null,
     });
-}
-
-export function getPlaygroundItemPath(playground: string, item: string): string {
-    return path.join(PLAYGROUND_DIR, playground, item);
 }
 
 function collectTemplates(playgrounds: Iterable<Playground>): Map<string, Template> {
@@ -65,7 +64,7 @@ function collectTemplates(playgrounds: Iterable<Playground>): Map<string, Templa
         if (playground.markup) {
             collection.set(
                 playground.name,
-                { name: playground.name, path: getPlaygroundItemPath(playground.name, playground.markup) },
+                { name: playground.name, path: playground.markup },
             );
         }
     }
@@ -189,7 +188,7 @@ function updateAssets(
         } else {
             const playground = playgrounds.find((playground) => playground.name === asset)!;
             content = renderPlaygroundPage(playground, templateContents);
-            filePath = `playground/${asset}.html`;
+            filePath = `${PLAYGROUND_PATH}/${asset}.html`;
         }
         if (content) {
             const source = new sources.RawSource(content, false);

@@ -11,7 +11,7 @@ import {
     STATIC_DIR,
     ROOT_TEMPLATE_NAME,
     PLAYGROUND_TEMPLATE_NAME,
-    getPlaygroundItemPath,
+    STATIC_PATH,
     htmlAssetsPlugin,
 } from './tools/html-assets-plugin';
 
@@ -30,15 +30,13 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
 
     playgrounds.forEach((playground) => {
         const { name } = playground;
-        const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
-            import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
+            import: `!ts-loader!${loaderPath}?path=${playground.index}!${filePath}`,
             filename: 'playground/[name].js',
         };
         if (playground.worker) {
-            const workerPath = getPlaygroundItemPath(name, playground.worker);
             entry[name + '_worker'] = {
-                import: workerPath,
+                import: playground.worker,
                 filename: 'playground/[name].js',
             };
         }
@@ -47,12 +45,13 @@ function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
 }
 
 function config(playgrounds: ReadonlyArray<Playground>): Configuration {
+    const outputPath = path.join(__dirname, 'build');
     return {
         mode: 'development',
         devtool: 'inline-source-map',
         entry: buildEntry(playgrounds),
         output: {
-            path: path.join(__dirname, './build'),
+            path: outputPath,
             library: {
                 name: 'lib',
                 type: 'umd',
@@ -105,7 +104,7 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                 patterns: [
                     {
                         from: STATIC_DIR,
-                        to: path.join(__dirname, './build/static'),
+                        to: path.join(outputPath, STATIC_PATH),
                     },
                 ],
             }),
