@@ -4,8 +4,8 @@
   "description": "WebGL playground",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--require ts-node/register --no-experimental-strip-types' TS_NODE_PROJECT=./tsconfig.json webpack serve",
-    "build": "NODE_OPTIONS='--require ts-node/register --no-experimental-strip-types' TS_NODE_PROJECT=./tsconfig.json webpack build",
+    "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=./tsconfig.json webpack serve",
+    "build": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=./tsconfig.json webpack build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint",
     "lint:fix": "npm run lint -- --fix",

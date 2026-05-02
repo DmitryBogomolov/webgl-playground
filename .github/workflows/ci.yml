@@ -29,8 +29,7 @@ jobs:
         run: npm run lint
       - name: Tests
         run: npm test
-    #     Fails with "node: --no-experimental-strip-types is not allowed in NODE_OPTIONS"
-    #   - name: Build
-    #     run: |
-    #       npm run build
-    #       ls ./build/
+      - name: Build
+        run: |
+          npm run build
+          ls ./build/
