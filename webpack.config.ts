@@ -7,10 +7,9 @@ import CopyPlugin from 'copy-webpack-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
     PLAYGROUND_DIR,
-    TEMPLATES_DIR,
     STATIC_DIR,
-    ROOT_TEMPLATE_NAME,
-    PLAYGROUND_TEMPLATE_NAME,
+    ROOT_TEMPLATE_TS_PATH,
+    PLAYGROUND_TEMPLATE_TS_PATH,
     STATIC_PATH,
     htmlAssetsPlugin,
 } from './tools/html-assets-plugin';
@@ -20,18 +19,16 @@ const PORT = Number(process.env.PORT) || 3001;
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
-            import: path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.ts`),
+            import: ROOT_TEMPLATE_TS_PATH,
             filename: '[name].js',
         },
     };
 
-    const filePath = path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.ts`);
     const loaderPath = path.join(__dirname, './tools/playground-loader.ts');
-
     playgrounds.forEach((playground) => {
         const { name } = playground;
         entry[name] = {
-            import: `!ts-loader!${loaderPath}?path=${playground.index}!${filePath}`,
+            import: `!ts-loader!${loaderPath}?path=${playground.index}!${PLAYGROUND_TEMPLATE_TS_PATH}`,
             filename: 'playground/[name].js',
         };
         if (playground.worker) {

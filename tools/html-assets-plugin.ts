@@ -5,12 +5,16 @@ import { promisify } from 'node:util';
 import path from 'node:path';
 import Mustache from 'mustache';
 
-export const TEMPLATES_DIR = path.join(__dirname, '../templates');
+const TEMPLATES_DIR = path.join(__dirname, '../templates');
 export const STATIC_DIR = path.join(__dirname, '../static');
 export const PLAYGROUND_DIR = path.join(__dirname, '../playground');
 
-export const ROOT_TEMPLATE_NAME = 'index';
-export const PLAYGROUND_TEMPLATE_NAME = 'playground';
+const ROOT_TEMPLATE_NAME = 'index';
+const PLAYGROUND_TEMPLATE_NAME = 'playground';
+export const ROOT_TEMPLATE_TS_PATH = path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.ts`);
+export const PLAYGROUND_TEMPLATE_TS_PATH = path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.ts`);
+const ROOT_TEMPLATE_HTML_PATH = path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.html`);
+const PLAYGROUND_TEMPLATE_HTML_PATH = path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.html`);
 
 const PLAYGROUND_PATH = 'playground';
 export const STATIC_PATH = 'static';
@@ -53,8 +57,8 @@ function renderPlaygroundPage(playground: Playground, templates: ReadonlyMap<str
 
 function collectTemplates(playgrounds: Iterable<Playground>): Map<string, Template> {
     const list: Template[] = [
-        { name: ROOT_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, `${ROOT_TEMPLATE_NAME}.html`) },
-        { name: PLAYGROUND_TEMPLATE_NAME, path: path.join(TEMPLATES_DIR, `${PLAYGROUND_TEMPLATE_NAME}.html`) },
+        { name: ROOT_TEMPLATE_NAME, path: ROOT_TEMPLATE_HTML_PATH },
+        { name: PLAYGROUND_TEMPLATE_NAME, path: PLAYGROUND_TEMPLATE_HTML_PATH },
     ];
     for (const playground of playgrounds) {
         if (playground.markup) {
