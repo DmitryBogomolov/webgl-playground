@@ -45,9 +45,9 @@ function checkDir(dirPath: string): Promise<Playground | null> {
         return {
             name,
             title: capitalizeName(name),
-            index: INDEX_NAME,
-            worker: workerExists ? WORKER_NAME : null,
-            markup: markupExists ? MARKUP_NAME : null,
+            index: path.join(dirPath, INDEX_NAME),
+            worker: workerExists ? path.join(dirPath, WORKER_NAME) : null,
+            markup: markupExists ? path.join(dirPath, MARKUP_NAME) : null,
         };
     });
 }

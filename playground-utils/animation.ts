@@ -17,7 +17,7 @@ export function animation(runtime: Runtime): () => void {
     runtime.canvas.parentElement!.appendChild(button);
 
     const cancel = bind(value, (val) => {
-        img.src = `/static/${val ? 'play' : 'pause'}-solid.svg`;
+        img.src = `${STATIC_PATH}/${val ? 'play-solid.svg' : 'pause-solid.svg'}`;
         if (val) {
             runtime.frameRequested.on(handleFrame);
             runtime.requestFrameRender();

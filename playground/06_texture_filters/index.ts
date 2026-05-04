@@ -77,7 +77,7 @@ function makeTexture(runtime: Runtime): Texture {
         mag_filter: 'nearest',
     });
 
-    makeImage({ url: '/static/leaves.jpg' }).then(
+    makeImage({ url: `${STATIC_PATH}/leaves.jpg` }).then(
         (image) => {
             texture.setImageData(image, { unpackFlipY: true });
             runtime.requestFrameRender();

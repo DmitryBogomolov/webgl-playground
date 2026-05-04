@@ -1,60 +1,54 @@
-import type { Configuration, EntryObject, WebpackPluginInstance } from 'webpack';
+import type { Configuration, EntryObject } from 'webpack';
+import type { /* for 'devServer' field */ } from 'webpack-dev-server';
 import type { Playground } from './tools/playground.types';
 import path from 'node:path';
-import MiniCssWebpackPlugin from 'mini-css-extract-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import { buildRegistry } from './tools/registry-builder';
 import {
-    TEMPLATES_DIR, CONTENT_PATH, ASSETS_PATH,
-    setupHandlers, collectTemplates, getPlaygroundItemPath,
-} from './tools/dev-server';
+    PLAYGROUND_DIR,
+    STATIC_DIR,
+    ROOT_TEMPLATE_TS_PATH,
+    PLAYGROUND_TEMPLATE_TS_PATH,
+    STATIC_PATH,
+    htmlAssetsPlugin,
+} from './tools/html-assets-plugin';
 
 const PORT = Number(process.env.PORT) || 3001;
 
 function buildEntry(playgrounds: ReadonlyArray<Playground>): EntryObject {
     const entry: EntryObject = {
         'index': {
-            import: path.join(TEMPLATES_DIR, 'index.ts'),
+            import: ROOT_TEMPLATE_TS_PATH,
+            filename: '[name].js',
         },
     };
 
-    const filePath = path.join(TEMPLATES_DIR, 'playground.ts');
     const loaderPath = path.join(__dirname, './tools/playground-loader.ts');
-
     playgrounds.forEach((playground) => {
         const { name } = playground;
-        const indexPath = getPlaygroundItemPath(name, playground.index);
         entry[name] = {
-            import: `!ts-loader!${loaderPath}?path=${indexPath}!${filePath}`,
+            import: `!ts-loader!${loaderPath}?path=${playground.index}!${PLAYGROUND_TEMPLATE_TS_PATH}`,
+            filename: 'playground/[name].js',
         };
         if (playground.worker) {
-            const workerPath = getPlaygroundItemPath(name, playground.worker);
             entry[name + '_worker'] = {
-                import: workerPath,
+                import: playground.worker,
+                filename: 'playground/[name].js',
             };
         }
     });
     return entry;
 }
 
-function watchPlugin(playgrounds: ReadonlyArray<Playground>): WebpackPluginInstance {
-    return {
-        apply(compiler) {
-            compiler.hooks.afterCompile.tap('watch-templates', (compilation) => {
-                const items = collectTemplates(playgrounds).map(({ path }) => path);
-                compilation.fileDependencies.addAll(items);
-            });
-        },
-    };
-}
-
 function config(playgrounds: ReadonlyArray<Playground>): Configuration {
+    const outputPath = path.join(__dirname, 'build');
     return {
         mode: 'development',
         devtool: 'inline-source-map',
         entry: buildEntry(playgrounds),
         output: {
-            path: path.join(__dirname, './build'),
-            // filename: 'lib.js',
+            path: outputPath,
             library: {
                 name: 'lib',
                 type: 'umd',
@@ -74,10 +68,14 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                     exclude: /node_modules/,
                 },
                 {
+                    test: /\.(vert|frag|glsl)$/,
+                    use: 'shader-loader',
+                },
+                {
                     test: /\.css$/,
                     use: [
                         {
-                            loader: MiniCssWebpackPlugin.loader,
+                            loader: MiniCssExtractPlugin.loader,
                         },
                         {
                             loader: 'css-loader',
@@ -90,10 +88,6 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
                         },
                     ],
                 },
-                {
-                    test: /\.(vert|frag|glsl)$/,
-                    use: 'shader-loader',
-                },
             ],
         },
         resolveLoader: {
@@ -102,31 +96,28 @@ function config(playgrounds: ReadonlyArray<Playground>): Configuration {
             },
         },
         plugins: [
-            new MiniCssWebpackPlugin(),
-            watchPlugin(playgrounds),
+            new MiniCssExtractPlugin(),
+            new CopyPlugin({
+                patterns: [
+                    {
+                        from: STATIC_DIR,
+                        to: path.join(outputPath, STATIC_PATH),
+                    },
+                ],
+            }),
+            htmlAssetsPlugin(playgrounds),
         ],
         devServer: {
             port: PORT,
             hot: false,
             liveReload: false,
             devMiddleware: {
-                publicPath: `${ASSETS_PATH}/`,
-            },
-            static: {
-                directory: path.join(__dirname, './static'),
-                publicPath: `${CONTENT_PATH}/`,
-            },
-            setupMiddlewares: (middlewares, devServer) => {
-                const handlers = setupHandlers(playgrounds);
-                for (const handler of handlers) {
-                    devServer.app!.get(handler.path, handler.handler);
-                }
-                return middlewares;
+                publicPath: '/',
             },
         },
     };
 }
 
 export default function (): Promise<Configuration> {
-    return buildRegistry(path.join(__dirname, './playground')).then(config);
+    return buildRegistry(PLAYGROUND_DIR).then(config);
 }
