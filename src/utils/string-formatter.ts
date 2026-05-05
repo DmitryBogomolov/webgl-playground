@@ -14,21 +14,23 @@ export function toStr(obj: unknown): string {
     }
     const type = typeof obj;
     if (type === 'symbol') {
-        return String(obj as symbol);
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        return String(obj);
     }
     if (Array.isArray(obj)) {
         return `[${obj.map(toStr).join(', ')}]`;
     }
     if (type === 'object') {
-        if ((obj as object).toString !== objectToString) {
+        if ((obj).toString !== objectToString) {
             // eslint-disable-next-line @typescript-eslint/no-base-to-string
-            return (obj as object).toString();
+            return obj.toString();
         }
         if (objectToString.call(obj) === '[object Object]') {
             return `{ ${Object.entries(obj).map(([key, val]) => `${key}: ${toStr(val)}`).join(', ')} }`;
         }
     }
-    return String(obj as string);
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    return String(obj);
 }
 
 export function toArgStr(obj: unknown): string {
@@ -37,16 +39,18 @@ export function toArgStr(obj: unknown): string {
     }
     const type = typeof obj;
     if (type === 'symbol') {
-        return String(obj as symbol);
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        return String(obj);
     }
     if (Array.isArray(obj)) {
         return obj.join(', ');
     }
     if (type === 'object') {
-        return Object.entries(obj as object)
+        return Object.entries(obj)
             .filter(([_, val]) => val !== undefined)
             .map(([key, val]) => `${key}=${val}`)
             .join(', ');
     }
-    return String(obj as string);
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    return String(obj);
 }

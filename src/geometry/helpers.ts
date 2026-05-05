@@ -1,5 +1,5 @@
 export function range<T>(size: number, func: (idx: number) => T | null): ReadonlyArray<T> {
-    return Array.from({ length: size }, (_, i) => func(i)).filter((t) => t !== null) as T[];
+    return Array.from({ length: size }, (_, i) => func(i)).filter((t) => t !== null);
 }
 
 export function rowcol2idxRank(matRank: number, row: number, col: number): number {

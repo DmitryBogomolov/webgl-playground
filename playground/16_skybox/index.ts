@@ -47,12 +47,12 @@ export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
     const modelLat = observable(0);
     const _modelMat = mat4() as Mat4Mut;
     const modelMat = computed(
-        ([modelLon, modelLat]) => {
+        ([modelLon, modelLat]): Mat4 => {
             const mat = _modelMat;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(modelLon));
             apply4x4(mat, xrotation4x4, deg2rad(modelLat));
-            return mat as Mat4;
+            return mat;
         },
         [modelLon, modelLat],
     );
