@@ -83,13 +83,13 @@ export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
 
     const _modelViewProj = mat4() as Mat4Mut;
     const modelViewProj = computed(
-        ([model, proj]) => {
+        ([model, proj]): Mat4 => {
             const mat = _modelViewProj;
             identity4x4(mat);
             mul4x4(model, mat, mat);
             mul4x4(view, mat, mat);
             mul4x4(proj, mat, mat);
-            return mat as Mat4;
+            return mat;
         },
         [model, proj],
     );

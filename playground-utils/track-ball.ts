@@ -296,7 +296,9 @@ function createControl(params: ControlParams): Control {
     const tracker = new Tracker(elementRoot, {
         start: (e) => {
             const { tag } = (e.nativeEvent.target as HTMLElement).dataset;
-            handler = (handlers[tag!] ?? null) as Handler | null;
+            handler = handlers[tag!] ?? null;
+            // @ts-expect-error Some weird case
+            // "This condition will always return true since this function is always defined."
             if (handler) {
                 setCursor(CURSOR);
             }

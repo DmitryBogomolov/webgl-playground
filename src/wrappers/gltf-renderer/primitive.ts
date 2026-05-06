@@ -3,7 +3,7 @@ import type { GlTFAsset, GlTFSchema } from '../../gltf/asset.types';
 import type { GlTF_ACCESSOR_TYPE } from '../../gltf/accessor.types';
 import type { GlTF_PRIMITIVE_MODE } from '../../gltf/primitive.types';
 import type { Mat4 } from '../../geometry/mat4.types';
-import type { VERTEX_ATTRIBUTE_TYPE, VertexAttributeDefinition } from '../../gl/vertex-schema.types';
+import type { VertexAttributeDefinition } from '../../gl/vertex-schema.types';
 import type { Runtime } from '../../gl/runtime';
 import { Primitive } from '../../gl/primitive';
 import { parseVertexSchema } from '../../gl/vertex-schema';
@@ -200,7 +200,7 @@ function setVertexData(
     ctx.data.set(info.data, ctx.offset);
     ctx.attributes.push({
         location,
-        type: info.type as VERTEX_ATTRIBUTE_TYPE,
+        type: info.type,
         offset: ctx.offset,
         stride: info.stride,
         normalized,

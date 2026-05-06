@@ -72,12 +72,12 @@ export function main({ setup, renderOnChange }: MainFuncInput): MainFuncOutput {
 
     const _model = mat4() as Mat4Mut;
     const model = computed(
-        ([rotation, position]) => {
+        ([rotation, position]): Mat4 => {
             const mat = _model;
             identity4x4(mat);
             apply4x4(mat, yrotation4x4, deg2rad(rotation));
             apply4x4(mat, translation4x4, vec3(position, 0, 0));
-            return mat as Mat4;
+            return mat;
         },
         [rotation, position],
     );
