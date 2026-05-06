@@ -1,10 +1,13 @@
-name: Deploy
+name: Deploy static content to Pages
 
 on:
   workflow_run:
     workflows: [ CI ]
     branches: [ master ]
     types: [ completed ]
+
+  # TODO: Manual run from Actions?
+  # workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,10 +22,10 @@ concurrency:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     outputs:
       page-url: ${{ steps.deployment.outputs.page_url }}
 
@@ -34,7 +37,7 @@ jobs:
           path: ./build
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-      - name: Configure Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -42,4 +45,4 @@ jobs:
           path: ./build
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
