@@ -65,15 +65,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: static-content
-          path: ./this-pr/site
+          path: ./site/this-pr
           # github-token: ${{ secrets.GITHUB_TOKEN }}
           # run-id: ${{ github.event.workflow_run.id }}
+      - name: DEBUG # DEBUG
+        run: rm ./site/this-pr/playground/01*
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./this-pr/site
+          path: ./site
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v5
