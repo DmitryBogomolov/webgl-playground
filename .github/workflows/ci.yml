@@ -57,6 +57,9 @@ jobs:
       pages: write
       id-token: write
 
+    env:
+      page-path: ${{ case(github.event_name == 'pull_request', format('pr_{0}', github.event.pull_request.number), 'master') }}
+
     # outputs:
     #   page-url: ${{ steps.deployment.outputs.page_url }}
 
@@ -69,7 +72,9 @@ jobs:
           # github-token: ${{ secrets.GITHUB_TOKEN }}
           # run-id: ${{ github.event.workflow_run.id }}
       - name: DEBUG # DEBUG
-        run: rm ./site/this-pr/playground/01*
+        run: |
+          rm ./site/this-pr/playground/01*
+          echo "${{ env.page-path }}"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload to Pages
