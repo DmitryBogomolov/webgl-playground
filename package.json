@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=./tsconfig.json webpack serve",
-    "build": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=./tsconfig.json webpack build",
+    "build-static": "NODE_OPTIONS='--require ts-node/register' TS_NODE_PROJECT=./tsconfig.json webpack build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint",
     "lint:fix": "npm run lint -- --fix",
