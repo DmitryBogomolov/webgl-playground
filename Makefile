@@ -1,13 +1,9 @@
-setup: node_modules package.json
+setup: node_modules package.json package-lock.json
 	@npm install
 
 .PHONY: clean
 clean:
 	@rm -rf ./dist ./build
-
-.PHONY: build
-build:
-	@npm run build
 
 .PHONY: typecheck
 typecheck:
@@ -27,6 +23,10 @@ test:
 .PHONY: dev
 dev:
 	@npm run dev
+
+.PHONY: build-static
+build-static:
+	@npm run build-static
 
 .PHONY: serve-static
 serve-static: PORT = 10001
