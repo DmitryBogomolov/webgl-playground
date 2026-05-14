@@ -71,7 +71,7 @@ jobs:
         with:
           name: static-content
           path: ./site
-      - name: Deploy content
+      - name: Deploy content )test
         run: |
           aws s3 rm --recursive "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
           aws s3 cp --recursive ./site "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
