@@ -22,6 +22,24 @@ jobs:
     steps:
       - name: Hello
         run: |
-          aws s3api list-objects-v2 \
+          tags=$(aws s3api list-objects-v2 \
             --bucket ${{ vars.BUCKET }} \
-            --query "Contents[?ends_with(Key, '/${{ env.file_name }}')].Key"
+            --query "Contents[?ends_with(Key, '/${{ env.file_name }}')].Key" \
+            --output text)
+          mkdir ./tags
+
+          for tag_path in $tags; do
+            pr=$(dirname "$tag_path")
+            aws s3 cp s3://${{ vars.BUCKET }}/$tag_path "./tags/$pr.txt"
+          done
+
+          now=$(date -u +%s)
+          for tag_path in ./tags/*.txt; do
+            pr_ts=$(cat "$tag_path")
+            closed=$(date -u -d "$pr_ts" +%s)
+            days=$(( (now - closed) / 86400 ))
+            if [ "$age_days" -gt 3 ]; then
+              pr=$(basename "$tag_path" .txt)
+              aws s3 rm --recursive s3://${{ vars.BUCKET }}/$pr/
+            fi
+          done
