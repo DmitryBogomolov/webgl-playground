@@ -1,0 +1,46 @@
+name: Sanitize site
+
+on:
+# TODO: Disable for now.
+#   schedule:
+#     - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  sanitize:
+    name: Check outdated folders
+    runs-on: ubuntu-latest
+
+    environment: s3-site
+
+    env:
+      file_name: _CLOSED.txt
+      AWS_ENDPOINT_URL: ${{ vars.ENDPOINT_URL }}
+      AWS_DEFAULT_REGION: ${{ vars.REGION }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+
+    steps:
+      - name: Hello
+        run: |
+          tags=$(aws s3api list-objects-v2 \
+            --bucket ${{ vars.BUCKET }} \
+            --query "Contents[?ends_with(Key, '/${{ env.file_name }}')].Key" \
+            --output text)
+          mkdir ./tags
+
+          for tag_path in $tags; do
+            pr=$(dirname "$tag_path")
+            aws s3 cp "s3://${{ vars.BUCKET }}/$tag_path" "./tags/$pr.txt"
+          done
+
+          now=$(date -u +%s)
+          for tag_path in ./tags/*.txt; do
+            pr_ts=$(cat "$tag_path")
+            closed=$(date -u -d "$pr_ts" +%s)
+            days=$(( (now - closed) / 86400 ))
+            if [ "$age_days" -gt 3 ]; then
+              pr=$(basename "$tag_path" .txt)
+              aws s3 rm --recursive "s3://${{ vars.BUCKET }}/$pr/"
+            fi
+          done
