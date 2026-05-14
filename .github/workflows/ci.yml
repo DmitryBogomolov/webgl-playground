@@ -48,7 +48,14 @@ jobs:
     needs: ci
 
     env:
-      page_path: ${{ case(github.event_name == 'pull_request', format('pr_{0}', github.event.pull_request.number), 'master') }}
+      page_path: |
+        ${{
+          case(
+            github.event_name == 'pull_request',
+            format('pr_{0}', github.event.pull_request.number),
+            'master'
+          )
+        }}
       AWS_ENDPOINT_URL: ${{ vars.ENDPOINT_URL }}
       AWS_DEFAULT_REGION: ${{ vars.REGION }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
