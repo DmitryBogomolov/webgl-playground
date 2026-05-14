@@ -1,0 +1,26 @@
+name: Mark closed PR
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  mark-site-closed:
+    name: Mark PR site as closed
+    runs-on: ubuntu-latest
+
+    env:
+      file_path: ./_CLOSED.txt
+      page_path: pr_${{ github.event.pull_request.number }}
+      AWS_ENDPOINT_URL: ${{ vars.ENDPOINT_URL }}
+      AWS_DEFAULT_REGION: ${{ vars.REGION }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+
+    steps:
+      - name: Create status file
+        run: |
+          echo "${{ github.event.pull_request.merged_at }}" > ${{ env.file_path }}
+      - name: Upload status file
+        run: |
+          aws s3 cp ${{ env.file_path }} s3://${{ vars.BUCKET }}/${{ env.page_path }}/
