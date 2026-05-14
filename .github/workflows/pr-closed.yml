@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Create status file
         run: |
-          echo "${{ github.event.pull_request.merged_at }}" > ${{ env.file_name }}
+          echo "${{ github.event.pull_request.merged_at }}" > ./${{ env.file_name }}
       - name: Upload status file
         run: |
-          aws s3 cp ${{ env.file_name }} s3://${{ vars.BUCKET }}/${{ env.page_path }}/
+          aws s3 cp ./${{ env.file_name }} s3://${{ vars.BUCKET }}/${{ env.page_path }}/
