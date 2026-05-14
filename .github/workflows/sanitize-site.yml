@@ -1,8 +1,9 @@
 name: Sanitize site
 
 on:
-  schedule:
-    - cron: '0 9 * * *'
+# TODO: Disable for now.
+#   schedule:
+#     - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
