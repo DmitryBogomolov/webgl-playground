@@ -31,7 +31,7 @@ jobs:
 
           for tag_path in $tags; do
             pr=$(dirname "$tag_path")
-            aws s3 cp s3://${{ vars.BUCKET }}/$tag_path "./tags/$pr.txt"
+            aws s3 cp "s3://${{ vars.BUCKET }}/$tag_path" "./tags/$pr.txt"
           done
 
           now=$(date -u +%s)
@@ -41,6 +41,6 @@ jobs:
             days=$(( (now - closed) / 86400 ))
             if [ "$age_days" -gt 3 ]; then
               pr=$(basename "$tag_path" .txt)
-              aws s3 rm --recursive s3://${{ vars.BUCKET }}/$pr/
+              aws s3 rm --recursive "s3://${{ vars.BUCKET }}/$pr/"
             fi
           done
