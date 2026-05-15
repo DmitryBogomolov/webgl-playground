@@ -52,7 +52,7 @@ jobs:
       url: ${{ format('{0}/{1}/', vars.BUCKET_URL, env.page_path) }}
 
     env:
-      page_path: |
+      page_path: >
         ${{
           case(
             github.event_name == 'pull_request',
