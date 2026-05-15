@@ -52,7 +52,7 @@ jobs:
       url: ${{ format('{0}/{1}/', vars.BUCKET_URL, env.page_path) }}
 
     env:
-      page_path: |
+      page_path: >-
         ${{
           case(
             github.event_name == 'pull_request',
@@ -71,7 +71,9 @@ jobs:
         with:
           name: static-content
           path: ./site
+
       - name: Deploy content
         run: |
-          aws s3 rm --recursive "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
-          aws s3 cp --recursive ./site "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
+          aws s3 rm --recursive s3://${{ vars.BUCKET }}/${{ env.page_path }}/
+          aws s3 cp --recursive ./site s3://${{ vars.BUCKET }}/${{ env.page_path }}/
+
