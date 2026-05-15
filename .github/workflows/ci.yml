@@ -71,7 +71,15 @@ jobs:
         with:
           name: static-content
           path: ./site
-      - name: Deploy content
-        run: |
-          aws s3 rm --recursive "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
-          aws s3 cp --recursive ./site "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
+
+      - name: Debug 1
+        run: echo "${{ env.page_path }}"
+
+      - name: Debug 2
+        run: echo "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
+
+    #   - name: Deploy content
+    #     run: |
+    #       aws s3 rm --recursive "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
+    #       aws s3 cp --recursive ./site "s3://${{ vars.BUCKET }}/${{ env.page_path }}/"
+
