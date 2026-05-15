@@ -17,6 +17,10 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-latest
 
+    permissions:
+      pages: write
+      id-token: write
+
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     environment:
