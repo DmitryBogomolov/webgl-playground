@@ -1,5 +1,7 @@
 [![CI](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/ci.yml/badge.svg)](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/ci.yml)
 
+[![Deploy](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/deploy.yml/badge.svg)](https://github.com/DmitryBogomolov/webgl-playground/actions/workflows/deploy.yml)
+
 # webgl-playground
 Playground for WebGL samples
 
@@ -14,10 +16,14 @@ leaves.jpg \
 play-solid.svg, pause-solid.svg \
 [Downloaded here](https://fontawesome.com/search?o=r&c=media-playback&s=solid)
 
+### Static site
+
+[GitHub Page](https://dmitrybogomolov.github.io/webgl-playground/)
+
+[Cloud](https://webgl-playground-site.website.yandexcloud.net/master/)
 
 ### TODO
 
-- service worker for fetched content (in static bundle)
 - rework type system with fields picking
 - extract some state object from Runtime - primitive and others would use it rather then entrire Runtime
 - uniform buffers
