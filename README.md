@@ -16,6 +16,11 @@ leaves.jpg \
 play-solid.svg, pause-solid.svg \
 [Downloaded here](https://fontawesome.com/search?o=r&c=media-playback&s=solid)
 
+### Static site
+
+[GitHub Page](https://dmitrybogomolov.github.io/webgl-playground/)
+
+[Cloud](https://webgl-playground-site.website.yandexcloud.net/master/)
 
 ### TODO
 
