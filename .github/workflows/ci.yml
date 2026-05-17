@@ -70,7 +70,10 @@ jobs:
       - name: DEBUG
         run: |
           echo "DEBUG: ${{ env.content_path }}/tools/remove-outdated-folders.sh"
-          cat ${{ env.content_path }}/tools/remove-outdated-folders.sh
+          wget ${{ env.content_path }}/tools/remove-outdated-folders.sh
+          cat ./remove-outdated-folders.sh
+          sh ./remove-outdated-folders.sh {{ vars.BUCKET }} _CLOSED.txt 1
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
