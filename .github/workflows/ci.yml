@@ -52,6 +52,7 @@ jobs:
       url: ${{ format('{0}/{1}/', vars.BUCKET_URL, env.page_path) }}
 
     env:
+      content_path: format('https://raw.githubusercontent.com/{0}/refs/heads/master', github.repository)
       page_path: >-
         ${{
           case(
@@ -66,6 +67,10 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
 
     steps:
+      - name: DEBUG
+        run: |
+          echo "DEBUG: ${{ env.content_path }}/tools/remove-outdated-folders.sh"
+          cat ${{ env.content_path }}/tools/remove-outdated-folders.sh
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
