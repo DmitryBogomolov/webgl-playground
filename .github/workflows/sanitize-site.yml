@@ -29,7 +29,8 @@ jobs:
       - name: Checkout script
         uses: actions/checkout@v6
         with:
-          sparse-checkout: ./tools/remove-outdated-folders.sh
+          sparse-checkout: |
+            ./tools/remove-outdated-folders.sh
           sparse-checkout-cone-mode: false
       - name: Check bucket folders
         run: sh ./tools/remove-outdated-folders.sh ${{ vars.BUCKET }} ${{ env.file_name }} ${{ inputs.age_days }}
