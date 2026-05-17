@@ -5,6 +5,11 @@ on:
 #   schedule:
 #     - cron: '0 9 * * *'
   workflow_dispatch:
+    inputs:
+      age_days:
+        description: 'Folder age in days'
+        required: false
+        default: 3
 
 jobs:
   sanitize:
@@ -27,4 +32,4 @@ jobs:
           sparse-checkout: ./tools/remove-outdated-folders.sh
           sparse-checkout-cone-mode: false
       - name: Check bucket folders
-        run: sh ./tools/remove-outdated-folders.sh ${{ vars.BUCKET }} ${{ env.file_name }}
+        run: sh ./tools/remove-outdated-folders.sh ${{ vars.BUCKET }} ${{ env.file_name }} ${{ inputs.age_days }}
