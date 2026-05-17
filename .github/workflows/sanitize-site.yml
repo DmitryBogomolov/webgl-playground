@@ -19,6 +19,7 @@ jobs:
     environment: s3-site
 
     env:
+      raw_content_path: ${{ format('https://raw.githubusercontent.com/{0}/refs/heads/master', github.repository) }}
       file_name: _CLOSED.txt
       AWS_ENDPOINT_URL: ${{ vars.ENDPOINT_URL }}
       AWS_DEFAULT_REGION: ${{ vars.REGION }}
@@ -27,10 +28,6 @@ jobs:
 
     steps:
       - name: Checkout script
-        uses: actions/checkout@v6
-        with:
-          sparse-checkout: |
-            ./tools/remove-outdated-folders.sh
-          sparse-checkout-cone-mode: false
+        run: wget ${{ env.raw_content_path }}/tools/remove-outdated-folders.sh
       - name: Check bucket folders
-        run: sh ./tools/remove-outdated-folders.sh ${{ vars.BUCKET }} ${{ env.file_name }} ${{ inputs.age_days }}
+        run: sh ./remove-outdated-folders.sh ${{ vars.BUCKET }} ${{ env.file_name }} ${{ inputs.age_days }}

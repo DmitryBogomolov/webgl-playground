@@ -34,8 +34,7 @@ for tag_path in ./tags/*.tag; do
     echo "$tag_path $pr_tag $closed_time $diff"
     if [ "$diff" -gt "$age" ]; then
         pr=$(basename "$tag_path" .tag)
-        # aws s3 rm --recursive s3://$bucket/$pr/
-        echo "TODO: aws s3 rm --recursive s3://$bucket/$pr/"
+        aws s3 rm --recursive s3://$bucket/$pr/
     fi
 done
 
