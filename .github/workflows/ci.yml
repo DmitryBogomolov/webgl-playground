@@ -52,7 +52,7 @@ jobs:
       url: ${{ format('{0}/{1}/', vars.BUCKET_URL, env.page_path) }}
 
     env:
-      content_path: format('https://raw.githubusercontent.com/{0}/refs/heads/master', github.repository)
+      content_path: ${{ format('https://raw.githubusercontent.com/{0}/refs/heads/master', github.repository) }}
       page_path: >-
         ${{
           case(
